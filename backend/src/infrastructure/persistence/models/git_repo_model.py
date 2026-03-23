@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
-from src.infrastructure.persistence.base import Base
+
+from backend.src.infrastructure.persistence.base import Base
 
 
 class GitRepoModel(Base):
