@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from src.domain.entities.member import MemberDTO, MemberWithReposDTO
+from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO
 
 
 class IMemberRepository(ABC):

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
+from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
 
 class IRepoRepository(ABC):
     @abstractmethod

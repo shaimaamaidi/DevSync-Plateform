@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
-from src.domain.ports.repositories.i_repo_repository import IRepoRepository
+from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
+from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 
 
 class RepoService:

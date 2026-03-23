@@ -2,8 +2,8 @@ import re
 import requests
 from datetime import datetime
 from typing import List
-from src.domain.entities.deployment import Deployment
-from src.domain.ports.services.i_github_service import IGitHubService
+from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.ports.services.i_github_service import IGitHubService
 
 HEADERS = {
     "Accept": "application/vnd.github+json",
@@ -65,7 +65,7 @@ class GitHubDeploymentAdapter(IGitHubService):
             "queued": "FILE", "inactive": "INACTIF", "destroyed": "SUPPRIME",
         }.get(state, "?")
 
-    def get_deployments(self, repo_url: str) -> List[Deployment]:
+    def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
         owner, repo = self._parse_repo(repo_url)
         raw = self._github_get(f"https://api.github.com/repos/{owner}/{repo}/deployments")
         deployments = []
@@ -76,7 +76,7 @@ class GitHubDeploymentAdapter(IGitHubService):
             )
             state = statuses[0].get("state", "no status") if statuses else "no status"
             log_url = (statuses[0].get("log_url") or statuses[0].get("target_url") or "-") if statuses else "-"
-            deployments.append(Deployment(
+            deployments.append(DeploymentDTO(
                 dep_id=dep_id,
                 environment=dep.get("environment", "-"),
                 ref=dep.get("ref", "-"),

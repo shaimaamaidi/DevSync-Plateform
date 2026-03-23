@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
 
 
 class IClickUpRepository(ABC):

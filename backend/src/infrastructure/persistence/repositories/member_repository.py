@@ -1,9 +1,9 @@
 from typing import List, Optional
 
-from src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
-from src.domain.ports.repositories.i_member_repository import IMemberRepository
-from src.infrastructure.persistence.models.git_repo_model import GitRepoModel
-from src.infrastructure.persistence.models.member_model import MemberModel
+from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
+from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
+from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
+from backend.src.infrastructure.persistence.models.member_model import MemberModel
 
 
 def _model_to_dto(m: MemberModel) -> MemberDTO:

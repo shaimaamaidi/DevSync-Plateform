@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
-from src.domain.ports.repositories.i_repo_repository import IRepoRepository
-from src.infrastructure.persistence.models.git_repo_model import GitRepoModel
+from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
+from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
+from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
 
 
 def _model_to_dto(m: GitRepoModel) -> GitRepoDTO:

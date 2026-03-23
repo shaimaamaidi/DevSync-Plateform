@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
-from src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
-from src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
+from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
+from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 
 
 def _model_to_dto(m: ClickUpSpaceModel) -> ClickUpSpaceDTO:

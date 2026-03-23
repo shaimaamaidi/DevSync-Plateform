@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from src.domain.entities.member import MemberDTO, MemberWithReposDTO
-from src.domain.entities.git_repo import GitRepoDTO
-from src.domain.ports.repositories.i_member_repository import IMemberRepository
+from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO
+from backend.src.domain.entities.git_repo import GitRepoDTO
+from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
 
 class MemberService:

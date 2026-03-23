@@ -1,8 +1,8 @@
 from typing import List, Optional
 
-from src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
-from src.domain.entities.git_repo import GitRepoDTO
-from src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
+from backend.src.domain.entities.git_repo import GitRepoDTO
+from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 
 
 class ClickUpService:
