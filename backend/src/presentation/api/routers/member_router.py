@@ -7,10 +7,9 @@ router = APIRouter()
 
 
 @router.post("/")
-def add_member(request: Request, username: str, email: str, repo_id: int) -> MemberDTO:
+def add_member(request: Request, member: MemberDTO) -> MemberDTO:
     container = request.app.state.container
-    repo = container.repo_service.get_by_id(repo_id)
-    return container.member_service.add_member(username, email, repo)
+    return container.member_service.add_member(member)
 
 
 @router.get("/by-repo/{repo_id}")
@@ -27,9 +26,10 @@ def get_all_with_repos(request: Request) -> List[MemberWithReposDTO]:
 
 
 @router.put("/{member_id}")
-def update_member(member_id: int, request: Request, username: str = None, email: str = None) -> MemberDTO:
+def update_member(member_id: int, request: Request, member: MemberDTO) -> MemberDTO:
     service = request.app.state.container.member_service
-    return service.update(member_id, username, email)
+    member.id = member_id
+    return service.update_member(member)
 
 
 @router.delete("/{member_id}")

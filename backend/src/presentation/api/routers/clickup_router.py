@@ -1,18 +1,41 @@
 from fastapi import APIRouter, Request
-from typing import List
-
-from backend.src.domain.entities.git_repo import GitRepoDTO
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 
 router = APIRouter()
 
 
-@router.post("/space")
-def associate_space(request: Request, repo: GitRepoDTO, space_name: str, space_id: str):
-    service = request.app.state.container.associator_service
-    return service.associate_space(repo, space_name, space_id)
+@router.get("/")
+def get_all_spaces(request: Request):
+    service = request.app.state.container.clickup_service
+    return service.get_all()
 
 
-@router.post("/members")
-def associate_members(request: Request, repo: GitRepoDTO, members: List[dict]):
-    service = request.app.state.container.associator_service
-    return service.associate_members(repo, members)
+@router.get("/light")
+def get_all_light(request: Request):
+    service = request.app.state.container.clickup_service
+    return service.get_all_light()
+
+
+@router.get("/{space_id}")
+def get_space_by_id(space_id: int, request: Request):
+    service = request.app.state.container.clickup_service
+    return service.get_by_id(space_id)
+
+
+@router.post("/")
+def create_space(request: Request, space: ClickUpSpaceDTO):
+    service = request.app.state.container.clickup_service
+    return service.add_space(space)
+
+
+@router.put("/{space_id}")
+def update_space(space_id:int, request: Request, space: ClickUpSpaceDTO):
+    service = request.app.state.container.clickup_service
+    space.id = space_id
+    return service.update_space(space)
+
+
+@router.delete("/{space_id}")
+def delete_space(space_id: int, request: Request):
+    service = request.app.state.container.clickup_service
+    return service.delete(space_id)

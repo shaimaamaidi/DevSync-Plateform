@@ -6,10 +6,22 @@ from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
 router = APIRouter()
 
 
-@router.post("/")
-def add_repo(request: Request, name: str, url: str) -> GitRepoDTO:
+@router.get("/all")
+def get_all_repos(request: Request) -> List[GitRepoDTO]:
     service = request.app.state.container.repo_service
-    return service.add_repo(name, url)
+    return service.get_all()
+
+
+@router.get("/details")
+def get_all_with_details(request: Request) -> List[GitRepoDetailDTO]:
+    service = request.app.state.container.repo_service
+    return service.get_all_with_details()
+
+
+@router.post("/")
+def add_repo(request: Request, repo: GitRepoDTO) -> GitRepoDTO:
+    service = request.app.state.container.repo_service
+    return service.add_repo(repo)
 
 
 @router.get("/{repo_id}")
@@ -24,22 +36,11 @@ def get_repo_by_name(name: str, request: Request) -> GitRepoDTO:
     return service.get_by_name(name)
 
 
-@router.get("/all")
-def get_all_repos(request: Request) -> List[GitRepoDTO]:
-    service = request.app.state.container.repo_service
-    return service.get_all()
-
-
-@router.get("/details")
-def get_all_with_details(request: Request) -> List[GitRepoDetailDTO]:
-    service = request.app.state.container.repo_service
-    return service.get_all_with_details()
-
-
 @router.put("/{repo_id}")
-def update_repo(repo_id: int, request: Request, name: str = None, url: str = None) -> GitRepoDTO:
+def update_repo(repo_id: int, request: Request, repo: GitRepoDTO) -> GitRepoDTO:
     service = request.app.state.container.repo_service
-    return service.update(repo_id, name, url)
+    repo.id = repo_id
+    return service.update_repo(repo)
 
 
 @router.delete("/{repo_id}")
