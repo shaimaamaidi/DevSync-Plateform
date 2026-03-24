@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.infrastructure.di.container import Container
+from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.presentation.api.routers import associator_router, clickup_router, repo_router, member_router, deployment_router
 
 
@@ -22,9 +22,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # 🔹 DI Container
-    container = Container()
-    app.state.container = container
+    # 🔹 DB connector (session per request)
+    app.state.db = MySQLConnector()
 
     # 🔹 Routers
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])
