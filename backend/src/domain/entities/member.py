@@ -1,24 +1,22 @@
-from dataclasses import dataclass, field
 from typing import List, Optional
 
-
-@dataclass
-class RepoSummary:
-    name: str
-    url: str
+from pydantic import BaseModel
 
 
-@dataclass
-class MemberDTO:
-    username: str
-    email: str
-    repos: List[RepoSummary] = field(default_factory=list)
+class RepoSummary(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
+
+
+class MemberDTO(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+    repos: List[RepoSummary] = []
     id: Optional[int] = None
 
 
-@dataclass
-class MemberWithReposDTO:
-    id: int
-    username: str
-    email: str
-    repos: List[RepoSummary] = field(default_factory=list)
+class MemberWithReposDTO(BaseModel):
+    id: Optional[int] =  None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    repos: List[RepoSummary] = []

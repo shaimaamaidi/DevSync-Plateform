@@ -43,7 +43,7 @@ class MySQLConnector:
     def connect(self):
         try:
             connection_string = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
-            self.engine = create_engine(connection_string, echo=True)  # echo=True pour debug SQL
+            self.engine = create_engine(connection_string, echo=True)
             self.Session = sessionmaker(bind=self.engine)
             return self.engine, self.Session
         except SQLAlchemyError as e:

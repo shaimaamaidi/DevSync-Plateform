@@ -1,17 +1,15 @@
-from dataclasses import dataclass
 from typing import Optional
+from pydantic import BaseModel
 
 
-@dataclass
-class ClickUpSpaceDTO:
-    name: str
-    space_id: str
+class ClickUpSpaceDTO(BaseModel):
+    name: Optional[str] = None
+    space_id: Optional[str] =None
     repo_id: Optional[int] = None
     id: Optional[int] = None
 
 
-@dataclass
-class ClickUpSpaceLightDTO:
-    id: int
-    space_id: str
-    name: str
+class ClickUpSpaceLightDTO(BaseModel):
+    id: Optional[int] = None
+    space_id: Optional[str] = None
+    name: Optional[str] = None

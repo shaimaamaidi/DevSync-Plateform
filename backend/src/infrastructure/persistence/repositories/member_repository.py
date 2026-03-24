@@ -1,6 +1,7 @@
 from typing import List
 
 from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
+from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
 from backend.src.domain.exceptions.member_persistence_exception import MemberPersistenceException
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
@@ -23,13 +24,13 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         self._session = session
 
     def save(self, member: MemberDTO) -> MemberDTO:
+        if not member.username or not member.email:
+            raise InvalidInputException(
+                "Member must have a valid 'username' and 'email' for create."
+            )
         try:
-            m = self._session.query(MemberModel).filter_by(email=member.email).first()
-            if m:
-                m.username = member.username
-            else:
-                m = MemberModel(username=member.username, email=member.email)
-                self._session.add(m)
+            m = MemberModel(username=member.username, email=member.email)
+            self._session.add(m)
 
             if member.repos:
                 repo_urls = [r.url for r in member.repos]
@@ -46,12 +47,22 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def update(self, member: MemberDTO) -> MemberDTO:
+        if not member.id:
+            raise InvalidInputException("Member must have a valid database ID for update.")
+
+        if not member.username and not member.email and not member.repos:
+            raise InvalidInputException(
+                "Member must have a valid 'username' or 'email' or repo's list for update."
+            )
+
         try:
             m = self._session.query(MemberModel).filter_by(id=member.id).first()
             if not m:
                 raise MemberNotFoundException(member.id)
-            m.username = member.username
-            m.email = member.email
+            if member.username:
+                m.username = member.username
+            if member.email:
+                m.email = member.email
 
             if member.repos is not None:
                 repo_urls = [r.url for r in member.repos]

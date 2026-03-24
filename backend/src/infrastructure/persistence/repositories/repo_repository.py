@@ -2,6 +2,7 @@ from typing import List
 
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
 from backend.src.domain.entities.member import RepoSummary
+from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
 from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
@@ -29,7 +30,7 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
         )
         for mb in m.members
     ]
-    space = ClickUpSpaceSummary(name=m.clickup_space.name) if m.clickup_space else None
+    space = ClickUpSpaceSummary(name=m.clickup_space.name, space_id=m.clickup_space.id) if m.clickup_space else None
     return GitRepoDetailDTO(id=m.id, name=m.name, url=m.url, members=members, clickup_space=space)
 
 class SqlAlchemyRepoRepository(IRepoRepository):
@@ -37,13 +38,13 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         self._session = session
 
     def save(self, repo: GitRepoDTO) -> GitRepoDTO:
+        if not repo.name or not repo.url:
+            raise InvalidInputException(
+                "GitHub Repo must have a valid 'name' and 'url' for create."
+            )
         try:
-            m = self._session.query(GitRepoModel).filter_by(url=repo.url).first()
-            if m:
-                m.name = repo.name
-            else:
-                m = GitRepoModel(name=repo.name, url=repo.url)
-                self._session.add(m)
+            m = GitRepoModel(name=repo.name, url=repo.url)
+            self._session.add(m)
             self._session.commit()
             self._session.refresh(m)
             return _model_to_dto(m)
@@ -54,12 +55,22 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def update(self, repo: GitRepoDTO) -> GitRepoDTO:
+        if not repo.id:
+            raise InvalidInputException("GitHub Repo must have a valid database ID for update.")
+
+        if not repo.name and not repo.url:
+            raise InvalidInputException(
+                "GitHub Repo must have a valid 'name' or 'url' for update."
+            )
+
         try:
             m = self._session.query(GitRepoModel).filter_by(id=repo.id).first()
             if not m:
                 raise RepoNotFoundException(repo.id)
-            m.name = repo.name
-            m.url = repo.url
+            if repo.name:
+                m.name = repo.name
+            if repo.url:
+                m.url = repo.url
             self._session.commit()
             self._session.refresh(m)
             return _model_to_dto(m)

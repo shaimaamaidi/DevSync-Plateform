@@ -3,6 +3,7 @@ from typing import List
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
 from backend.src.domain.exceptions.clickup_persistence_exception import ClickUpPersistenceException
 from backend.src.domain.exceptions.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
+from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 
@@ -20,14 +21,14 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         self._session = session
 
     def save(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+        if not space.space_id or not space.name:
+            raise InvalidInputException(
+                "ClickUp space must have a valid 'name' and 'space_id' for create."
+            )
+
         try:
-            m = self._session.query(ClickUpSpaceModel).filter_by(space_id=space.space_id).first()
-            if m:
-                m.name = space.name
-                m.repo_id = space.repo_id
-            else:
-                m = ClickUpSpaceModel(name=space.name, space_id=space.space_id, repo_id=space.repo_id)
-                self._session.add(m)
+            m = ClickUpSpaceModel(name=space.name, space_id=space.space_id, repo_id=space.repo_id)
+            self._session.add(m)
             self._session.commit()
             self._session.refresh(m)
             return _model_to_dto(m)
@@ -38,13 +39,22 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpPersistenceException(str(e)) from e
 
     def update(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+        if not space.id:
+            raise InvalidInputException("ClickUp space must have a valid database ID for update.")
+
+        if not space.space_id and not space.name and not space.repo_id:
+            raise InvalidInputException("ClickUp space must have a valid 'name' or 'space_id' or 'repo_id' for update.")
+
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space.id).first()
             if not m:
                 raise ClickUpSpaceNotFoundException(space.id)
-            m.name = space.name
-            m.space_id = space.space_id
-            m.repo_id = space.repo_id
+            if space.name:
+                m.name = space.name
+            if space.space_id:
+                m.space_id = space.space_id
+            if space.repo_id:
+                m.repo_id = space.repo_id
             self._session.commit()
             self._session.refresh(m)
             return _model_to_dto(m)
