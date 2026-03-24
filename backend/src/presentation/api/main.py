@@ -1,8 +1,11 @@
 """FastAPI application factory and configuration."""
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
+from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.presentation.api.routers import associator_router, clickup_router, repo_router, member_router, deployment_router
 
@@ -24,6 +27,10 @@ def create_app() -> FastAPI:
 
     # 🔹 DB connector (session per request)
     app.state.db = MySQLConnector()
+
+    app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
+    app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
+    app.add_exception_handler(Exception, FastAPIExceptionHandler.handle_generic_exception)
 
     # 🔹 Routers
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])

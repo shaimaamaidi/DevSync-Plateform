@@ -1,0 +1,123 @@
+"""FastAPI exception handlers for domain and validation errors."""
+import logging
+from fastapi import Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+
+from backend.src.domain.exceptions.app_exception import AppException
+
+logger = logging.getLogger(__name__)
+
+_NOT_FOUND_CODES = {
+    "CLICKUP_SPACE_NOT_FOUND",
+    "MEMBER_NOT_FOUND",
+    "REPO_NOT_FOUND",
+    "GITHUB_REPO_NOT_FOUND",
+}
+
+_PERSISTENCE_CODES = {
+    "CLICKUP_PERSISTENCE_ERROR",
+    "MEMBER_PERSISTENCE_ERROR",
+    "REPO_PERSISTENCE_ERROR",
+    "DATABASE_CONNECTION_ERROR",
+    "DATABASE_INITIALIZATION_ERROR",
+    "DATABASE_SESSION_ERROR",
+}
+
+_VALIDATION_CODES = {
+    "INVALID_INPUT",
+    "INVALID_MEMBER_DATA",
+    "INVALID_GITHUB_URL",
+}
+
+_RUNTIME_CODES = {
+    "GITHUB_RATE_LIMIT",
+}
+
+
+class FastAPIExceptionHandler:
+    """Centralized exception handling for FastAPI."""
+
+    @staticmethod
+    async def handle_app_exception(request: Request, exc: AppException) -> JSONResponse:
+        """Handle domain application exceptions."""
+        if exc.code in _NOT_FOUND_CODES:
+            logger.warning(
+                "Not Found Error [%s]: %s",
+                exc.code,
+                exc.message,
+            )
+        elif exc.code in _PERSISTENCE_CODES:
+            logger.error(
+                "Persistence/Database Error [%s]: %s",
+                exc.code,
+                exc.message,
+                exc_info=exc,
+            )
+        elif exc.code in _VALIDATION_CODES:
+            logger.info(
+                "Validation Error [%s]: %s",
+                exc.code,
+                exc.message,
+            )
+        elif exc.code in _RUNTIME_CODES:
+            logger.warning(
+                "Runtime Error [%s]: %s",
+                exc.code,
+                exc.message,
+            )
+        else:
+            logger.error(
+                "Unknown Application Error [%s]: %s",
+                exc.code,
+                exc.message,
+                exc_info=exc,
+            )
+
+        return JSONResponse(
+            status_code=exc.http_status,
+            content={
+                "error": {
+                    "code": exc.code,
+                    "message": exc.message,
+                }
+            },
+        )
+
+    @staticmethod
+    async def handle_validation_exception(request: Request, exc: RequestValidationError) -> JSONResponse:
+        """Handle FastAPI request validation errors."""
+        logger.info(
+            "Validation Error on request %s: %s",
+            request.url.path,
+            exc.errors(),
+        )
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "VALIDATION_ERROR",
+                    "message": "Request validation failed",
+                    "details": exc.errors(),
+                }
+            },
+        )
+
+    @staticmethod
+    async def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
+        """Handle unhandled exceptions."""
+        logger.error(
+            "Unhandled exception on request %s: %s",
+            request.url.path,
+            str(exc),
+            exc_info=exc,
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "INTERNAL_SERVER_ERROR",
+                    "message": str(exc),
+                }
+            },
+        )
