@@ -24,6 +24,8 @@ class MySQLConnector:
         missing = [k for k, v in {
             "MYSQL_USER": self.user,
             "MYSQL_PASSWORD": self.password,
+            "MYSQL_HOST": self.host,
+            "MYSQL_PORT": self.port,
             "MYSQL_DB": self.db,
         }.items() if not v]
         if missing:

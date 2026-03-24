@@ -30,7 +30,11 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
         )
         for mb in m.members
     ]
-    space = ClickUpSpaceSummary(name=m.clickup_space.name, space_id=m.clickup_space.id) if m.clickup_space else None
+    space = (
+        ClickUpSpaceSummary(name=m.clickup_space.name, space_id=m.clickup_space.space_id)
+        if m.clickup_space
+        else None
+    )
     return GitRepoDetailDTO(id=m.id, name=m.name, url=m.url, members=members, clickup_space=space)
 
 class SqlAlchemyRepoRepository(IRepoRepository):
