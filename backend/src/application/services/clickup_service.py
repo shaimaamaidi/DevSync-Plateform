@@ -17,6 +17,9 @@ class ClickUpService:
     def get_by_id(self, space_id: int) -> ClickUpSpaceDTO:
         return self._repo.find_by_id(space_id)
 
+    def get_by_space_id(self, space_id: str) -> ClickUpSpaceDTO:
+        return self._repo.find_by_space_id(space_id)
+
     def get_all(self) -> List[ClickUpSpaceDTO]:
         return self._repo.find_all()
 

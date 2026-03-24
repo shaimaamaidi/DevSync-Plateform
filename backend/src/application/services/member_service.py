@@ -18,6 +18,9 @@ class MemberService:
     def get_members_by_repo(self, repo: GitRepoDTO) -> List[MemberDTO]:
         return self._repo.find_by_repo_id(repo.id)
 
+    def get_member_by_email(self, repo: GitRepoDTO) -> MemberDTO:
+        return self._repo.find_by_email(repo.email)
+
     def get_all_with_repos(self) -> List[MemberWithReposDTO]:
         return self._repo.find_all_with_repos()
 
