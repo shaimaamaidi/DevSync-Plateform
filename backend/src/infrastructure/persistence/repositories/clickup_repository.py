@@ -1,6 +1,8 @@
-from typing import List, Optional
+from typing import List
 
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
+from backend.src.domain.exceptions.clickup_persistence_exception import ClickUpPersistenceException
+from backend.src.domain.exceptions.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 
@@ -18,40 +20,72 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         self._session = session
 
     def save(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
-        m = self._session.query(ClickUpSpaceModel).filter_by(space_id=space.space_id).first()
-        if m:
-            m.name = space.name
-            m.repo_id = space.repo_id
-        else:
-            m = ClickUpSpaceModel(name=space.name, space_id=space.space_id, repo_id=space.repo_id)
-            self._session.add(m)
-        self._session.commit()
-        self._session.refresh(m)
+        try:
+            m = self._session.query(ClickUpSpaceModel).filter_by(space_id=space.space_id).first()
+            if m:
+                m.name = space.name
+                m.repo_id = space.repo_id
+            else:
+                m = ClickUpSpaceModel(name=space.name, space_id=space.space_id, repo_id=space.repo_id)
+                self._session.add(m)
+            self._session.commit()
+            self._session.refresh(m)
+            return _model_to_dto(m)
+        except ClickUpPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise ClickUpPersistenceException(str(e)) from e
+
+
+    def find_by_id(self, space_id: int) -> ClickUpSpaceDTO:
+        try:
+            m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
+        except Exception as e:
+            raise ClickUpPersistenceException(str(e)) from e
+        if not m:
+            raise ClickUpSpaceNotFoundException(space_id)
         return _model_to_dto(m)
 
-    def find_by_id(self, space_id: int) -> Optional[ClickUpSpaceDTO]:
-        m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
-        return _model_to_dto(m) if m else None
-
-    def find_by_space_id(self, space_id: str) -> Optional[ClickUpSpaceDTO]:
-        m = self._session.query(ClickUpSpaceModel).filter_by(space_id=space_id).first()
-        return _model_to_dto(m) if m else None
+    def find_by_space_id(self, space_id: str) -> ClickUpSpaceDTO:
+        try:
+            m = self._session.query(ClickUpSpaceModel).filter_by(space_id=space_id).first()
+        except Exception as e:
+            raise ClickUpPersistenceException(str(e)) from e
+        if not m:
+            raise ClickUpSpaceNotFoundException(space_id)
+        return _model_to_dto(m)
 
     def find_all(self) -> List[ClickUpSpaceDTO]:
-        return [_model_to_dto(m) for m in self._session.query(ClickUpSpaceModel).all()]
+        try:
+            return [_model_to_dto(m) for m in self._session.query(ClickUpSpaceModel).all()]
+        except Exception as e:
+            raise ClickUpPersistenceException(str(e)) from e
 
     def find_all_light(self) -> List[ClickUpSpaceLightDTO]:
-        rows = self._session.query(
-            ClickUpSpaceModel.id,
-            ClickUpSpaceModel.space_id,
-            ClickUpSpaceModel.name,
-        ).all()
-        return [ClickUpSpaceLightDTO(id=r.id, space_id=r.space_id, name=r.name) for r in rows]
+        try:
+            rows = self._session.query(
+                ClickUpSpaceModel.id,
+                ClickUpSpaceModel.space_id,
+                ClickUpSpaceModel.name,
+            ).all()
+            return [ClickUpSpaceLightDTO(id=r.id, space_id=r.space_id, name=r.name) for r in rows]
+        except Exception as e:
+            raise ClickUpPersistenceException(str(e)) from e
 
     def delete(self, space_id: int) -> bool:
-        m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
+        try:
+            m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
+        except Exception as e:
+            raise ClickUpPersistenceException(str(e)) from e
         if not m:
-            return False
-        self._session.delete(m)
-        self._session.commit()
-        return True
+            raise ClickUpSpaceNotFoundException(space_id)
+        try:
+            self._session.delete(m)
+            self._session.commit()
+            return True
+        except ClickUpPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise ClickUpPersistenceException(str(e)) from e

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO
 
@@ -10,11 +10,11 @@ class IMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, member_id: int) -> Optional[MemberDTO]:
+    def find_by_id(self, member_id: int) -> MemberDTO:
         pass
 
     @abstractmethod
-    def find_by_email(self, email: str) -> Optional[MemberDTO]:
+    def find_by_email(self, email: str) -> MemberDTO:
         pass
 
     @abstractmethod

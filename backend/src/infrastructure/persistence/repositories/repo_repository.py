@@ -1,6 +1,8 @@
-from typing import List, Optional
+from typing import List
 
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
+from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
+from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
 
@@ -20,38 +22,75 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         self._session = session
 
     def save(self, repo: GitRepoDTO) -> GitRepoDTO:
-        m = self._session.query(GitRepoModel).filter_by(url=repo.url).first()
-        if m:
-            m.name = repo.name
-        else:
-            m = GitRepoModel(name=repo.name, url=repo.url)
-            self._session.add(m)
-        self._session.commit()
-        self._session.refresh(m)
+        try:
+            m = self._session.query(GitRepoModel).filter_by(url=repo.url).first()
+            if m:
+                m.name = repo.name
+            else:
+                m = GitRepoModel(name=repo.name, url=repo.url)
+                self._session.add(m)
+            self._session.commit()
+            self._session.refresh(m)
+            return _model_to_dto(m)
+        except RepoPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise RepoPersistenceException(str(e)) from e
+
+
+    def find_by_id(self, repo_id: int) -> GitRepoDTO:
+        try:
+            m = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
+        except Exception as e:
+            raise RepoPersistenceException(str(e)) from e
+        if not m:
+            raise RepoNotFoundException(repo_id)
         return _model_to_dto(m)
 
-    def find_by_id(self, repo_id: int) -> Optional[GitRepoDTO]:
-        m = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
-        return _model_to_dto(m) if m else None
+    def find_by_url(self, url: str) -> GitRepoDTO:
+        try:
+            m = self._session.query(GitRepoModel).filter_by(url=url).first()
+        except Exception as e:
+            raise RepoPersistenceException(str(e)) from e
+        if not m:
+            raise RepoNotFoundException(url)
+        return _model_to_dto(m)
 
-    def find_by_url(self, url: str) -> Optional[GitRepoDTO]:
-        m = self._session.query(GitRepoModel).filter_by(url=url).first()
-        return _model_to_dto(m) if m else None
-
-    def find_by_name(self, name: str) -> Optional[GitRepoDTO]:
-        m = self._session.query(GitRepoModel).filter_by(name=name).first()
-        return _model_to_dto(m) if m else None
+    def find_by_name(self, name: str) -> GitRepoDTO:
+        try:
+            m = self._session.query(GitRepoModel).filter_by(name=name).first()
+        except Exception as e:
+            raise RepoPersistenceException(str(e)) from e
+        if not m:
+            raise RepoNotFoundException(name)
+        return _model_to_dto(m)
 
     def find_all(self) -> List[GitRepoDTO]:
-        return [_model_to_dto(m) for m in self._session.query(GitRepoModel).all()]
+        try:
+            return [_model_to_dto(m) for m in self._session.query(GitRepoModel).all()]
+        except Exception as e:
+            raise RepoPersistenceException(str(e)) from e
 
     def find_all_with_details(self) -> List[GitRepoDetailDTO]:
-        return [_model_to_detail_dto(m) for m in self._session.query(GitRepoModel).all()]
+        try:
+            return [_model_to_detail_dto(m) for m in self._session.query(GitRepoModel).all()]
+        except Exception as e:
+            raise RepoPersistenceException(str(e)) from e
 
     def delete(self, repo_id: int) -> bool:
-        m = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
+        try:
+            m = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
+        except Exception as e:
+            raise RepoPersistenceException(str(e)) from e
         if not m:
-            return False
-        self._session.delete(m)
-        self._session.commit()
-        return True
+            raise RepoNotFoundException(repo_id)
+        try:
+            self._session.delete(m)
+            self._session.commit()
+            return True
+        except RepoPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise RepoPersistenceException(str(e)) from e

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
 
@@ -9,15 +9,15 @@ class IRepoRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, repo_id: int) -> Optional[GitRepoDTO]:
+    def find_by_id(self, repo_id: int) -> GitRepoDTO:
         pass
 
     @abstractmethod
-    def find_by_url(self, url: str) -> Optional[GitRepoDTO]:
+    def find_by_url(self, url: str) -> GitRepoDTO:
         pass
 
     @abstractmethod
-    def find_by_name(self, name: str) -> Optional[GitRepoDTO]:
+    def find_by_name(self, name: str) -> GitRepoDTO:
         pass
 
     @abstractmethod

@@ -10,6 +10,3 @@ class DeploymentService:
 
     def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
         return self._github.get_deployments(repo_url)
-
-    def display(self, repo_url: str) -> None:
-        self._github.display_deployments(repo_url)

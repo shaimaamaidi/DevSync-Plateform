@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
 
@@ -10,11 +10,11 @@ class IClickUpRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, space_id: int) -> Optional[ClickUpSpaceDTO]:
+    def find_by_id(self, space_id: int) -> ClickUpSpaceDTO:
         pass
 
     @abstractmethod
-    def find_by_space_id(self, space_id: str) -> Optional[ClickUpSpaceDTO]:
+    def find_by_space_id(self, space_id: str) -> ClickUpSpaceDTO:
         pass
 
     @abstractmethod

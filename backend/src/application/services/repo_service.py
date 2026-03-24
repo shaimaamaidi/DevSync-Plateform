@@ -1,6 +1,7 @@
-from typing import List, Optional
+from typing import List
 
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
+from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 
 
@@ -9,16 +10,17 @@ class RepoService:
         self._repo = repo_repo
 
     def add_repo(self, name: str, url: str) -> GitRepoDTO:
-        existing = self._repo.find_by_url(url)
-        if existing:
+        try:
+            existing = self._repo.find_by_url(url)
             existing.name = name
             return self._repo.save(existing)
-        return self._repo.save(GitRepoDTO(name=name, url=url))
+        except RepoNotFoundException:
+            return self._repo.save(GitRepoDTO(name=name, url=url))
 
-    def get_by_id(self, repo_id: int) -> Optional[GitRepoDTO]:
+    def get_by_id(self, repo_id: int) -> GitRepoDTO:
         return self._repo.find_by_id(repo_id)
 
-    def get_by_name(self, name: str) -> Optional[GitRepoDTO]:
+    def get_by_name(self, name: str) -> GitRepoDTO:
         return self._repo.find_by_name(name)
 
     def get_all(self) -> List[GitRepoDTO]:
@@ -27,10 +29,8 @@ class RepoService:
     def get_all_with_details(self) -> List[GitRepoDetailDTO]:
         return self._repo.find_all_with_details()
 
-    def update(self, repo_id: int, name: str = None, url: str = None) -> Optional[GitRepoDTO]:
+    def update(self, repo_id: int, name: str = None, url: str = None) -> GitRepoDTO:
         dto = self._repo.find_by_id(repo_id)
-        if not dto:
-            return None
         if name:
             dto.name = name
         if url:

@@ -3,6 +3,10 @@ import requests
 from datetime import datetime
 from typing import List
 from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.domain.exceptions.github_rate_limit_exception import GitHubRateLimitException
+from backend.src.domain.exceptions.github_repo_not_found_exception import GitHubRepoNotFoundException
+from backend.src.domain.exceptions.invalid_github_url_exception import InvalidGitHubUrlException
 from backend.src.domain.ports.services.i_github_service import IGitHubService
 
 HEADERS = {
@@ -17,34 +21,54 @@ class GitHubDeploymentAdapter(IGitHubService):
         url = url.rstrip("/")
         match = re.search(r"github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
         if not match:
-            raise ValueError(f"URL GitHub invalide : {url}")
+            raise InvalidGitHubUrlException(url)
         return match.group(1), match.group(2)
 
     @staticmethod
     def _github_get(url: str):
         results = []
         while url:
-            resp = requests.get(url, headers=HEADERS, timeout=15)
+            try:
+                resp = requests.get(url, headers=HEADERS, timeout=15)
+            except requests.exceptions.Timeout:
+                raise AppException(
+                    message="GitHub API request timed out.",
+                    code="GITHUB_TIMEOUT",
+                    http_status=504
+                )
+            except requests.exceptions.ConnectionError:
+                raise AppException(
+                    message="Could not connect to GitHub API.",
+                    code="GITHUB_CONNECTION_ERROR",
+                    http_status=503
+                )
             if resp.status_code == 403:
                 reset = resp.headers.get("X-RateLimit-Reset", "")
-                msg = "Rate limit atteint."
-                if reset:
-                    reset_dt = datetime.fromtimestamp(int(reset)).strftime("%H:%M:%S")
-                    msg += f" Reessayez apres {reset_dt}."
-                raise PermissionError(msg)
+                reset_dt = datetime.fromtimestamp(int(reset)).strftime("%H:%M:%S") if reset else None
+                raise GitHubRateLimitException(reset_dt)
             if resp.status_code == 404:
-                raise FileNotFoundError("Repo introuvable (404).")
-            resp.raise_for_status()
+                raise GitHubRepoNotFoundException(url)
+            try:
+                resp.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                raise AppException(
+                    message=f"GitHub API error: {e}",
+                    code="GITHUB_API_ERROR",
+                    http_status=502
+                ) from e
             data = resp.json()
             if isinstance(data, list):
                 results.extend(data)
             else:
                 return data
             link = resp.headers.get("Link", "")
-            url = next(
-                (re.search(r"<([^>]+)>", p).group(1) for p in link.split(",") if 'rel="next"' in p),
-                None,
-            )
+            url = None
+            for part in link.split(","):
+                if 'rel="next"' in part:
+                    m = re.search(r"<([^>]+)>", part)
+                    if m:
+                        url = m.group(1)
+                    break
         return results
 
     @staticmethod
@@ -88,21 +112,3 @@ class GitHubDeploymentAdapter(IGitHubService):
                 log_url=log_url,
             ))
         return deployments
-
-    def display_deployments(self, repo_url: str) -> None:
-        owner, repo = self._parse_repo(repo_url)
-        deployments = self.get_deployments(repo_url)
-        print(f"\n{'='*70}")
-        print(f"  DEPLOYMENTS -- {owner}/{repo}  ({len(deployments)} trouvés)")
-        print(f"{'='*70}\n")
-        if not deployments:
-            print("  Aucun deploiement trouve pour ce repo.")
-            return
-        for d in deployments:
-            label = self._status_icon(d.state)
-            print(f"  [{label:12s}]  env={d.environment}  ref={d.ref} ({d.sha})")
-            print(f"      ID       : {d.dep_id}")
-            print(f"      Cree par : {d.creator}  le  {d.created_at}")
-            print(f"      Desc.    : {d.description}")
-            print(f"      Logs     : {d.log_url}")
-            print()
