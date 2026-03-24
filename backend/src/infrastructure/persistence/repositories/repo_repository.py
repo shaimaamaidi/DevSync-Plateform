@@ -1,6 +1,7 @@
 from typing import List
 
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
+from backend.src.domain.entities.member import RepoSummary
 from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
 from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
@@ -8,14 +9,28 @@ from backend.src.infrastructure.persistence.models.git_repo_model import GitRepo
 
 
 def _model_to_dto(m: GitRepoModel) -> GitRepoDTO:
-    return GitRepoDTO(id=m.id, name=m.name, url=m.url)
+    members = [
+        MemberSummary(
+            username=mb.username,
+            email=mb.email,
+            repos=[RepoSummary(name=r.name, url=r.url) for r in mb.repos]
+        )
+        for mb in m.members
+    ]
+    return GitRepoDTO(id=m.id, name=m.name, url=m.url, members=members)
 
 
 def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
-    members = [MemberSummary(username=mb.username, email=mb.email) for mb in m.members]
+    members = [
+        MemberSummary(
+            username=mb.username,
+            email=mb.email,
+            repos=[RepoSummary(name=r.name, url=r.url) for r in mb.repos]
+        )
+        for mb in m.members
+    ]
     space = ClickUpSpaceSummary(name=m.clickup_space.name) if m.clickup_space else None
     return GitRepoDetailDTO(id=m.id, name=m.name, url=m.url, members=members, clickup_space=space)
-
 
 class SqlAlchemyRepoRepository(IRepoRepository):
     def __init__(self, session):
@@ -38,6 +53,21 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             self._session.rollback()
             raise RepoPersistenceException(str(e)) from e
 
+    def update(self, repo: GitRepoDTO) -> GitRepoDTO:
+        try:
+            m = self._session.query(GitRepoModel).filter_by(id=repo.id).first()
+            if not m:
+                raise RepoNotFoundException(repo.id)
+            m.name = repo.name
+            m.url = repo.url
+            self._session.commit()
+            self._session.refresh(m)
+            return _model_to_dto(m)
+        except RepoPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise RepoPersistenceException(str(e)) from e
 
     def find_by_id(self, repo_id: int) -> GitRepoDTO:
         try:

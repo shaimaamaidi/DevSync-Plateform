@@ -4,6 +4,7 @@ from backend.src.infrastructure.persistence.base import Base
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
 from backend.src.infrastructure.persistence.models.member_model import MemberModel
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
+from backend.src.infrastructure.persistence.models.member_repo_association import member_repo_association
 
 from backend.src.domain.exceptions.app_exception import AppException
 

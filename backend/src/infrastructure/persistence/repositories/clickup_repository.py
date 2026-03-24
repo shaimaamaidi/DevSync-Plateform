@@ -37,6 +37,22 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             self._session.rollback()
             raise ClickUpPersistenceException(str(e)) from e
 
+    def update(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+        try:
+            m = self._session.query(ClickUpSpaceModel).filter_by(id=space.id).first()
+            if not m:
+                raise ClickUpSpaceNotFoundException(space.id)
+            m.name = space.name
+            m.space_id = space.space_id
+            m.repo_id = space.repo_id
+            self._session.commit()
+            self._session.refresh(m)
+            return _model_to_dto(m)
+        except ClickUpPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise ClickUpPersistenceException(str(e)) from e
 
     def find_by_id(self, space_id: int) -> ClickUpSpaceDTO:
         try:

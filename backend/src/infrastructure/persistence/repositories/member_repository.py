@@ -9,7 +9,13 @@ from backend.src.infrastructure.persistence.models.member_model import MemberMod
 
 
 def _model_to_dto(m: MemberModel) -> MemberDTO:
-    return MemberDTO(id=m.id, username=m.username, email=m.email, repo_id=m.repo_id)
+    repos = [RepoSummary(name=r.name, url=r.url) for r in m.repos]
+    return MemberDTO(id=m.id, username=m.username, email=m.email, repos=repos)
+
+
+def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
+    repos = [RepoSummary(name=r.name, url=r.url) for r in m.repos]
+    return MemberWithReposDTO(id=m.id, username=m.username, email=m.email, repos=repos)
 
 
 class SqlAlchemyMemberRepository(IMemberRepository):
@@ -21,10 +27,37 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             m = self._session.query(MemberModel).filter_by(email=member.email).first()
             if m:
                 m.username = member.username
-                m.repo_id = member.repo_id
             else:
-                m = MemberModel(username=member.username, email=member.email, repo_id=member.repo_id)
+                m = MemberModel(username=member.username, email=member.email)
                 self._session.add(m)
+
+            if member.repos:
+                repo_urls = [r.url for r in member.repos]
+                repos = self._session.query(GitRepoModel).filter(GitRepoModel.url.in_(repo_urls)).all()
+                m.repos = repos
+
+            self._session.commit()
+            self._session.refresh(m)
+            return _model_to_dto(m)
+        except MemberPersistenceException:
+            raise
+        except Exception as e:
+            self._session.rollback()
+            raise MemberPersistenceException(str(e)) from e
+
+    def update(self, member: MemberDTO) -> MemberDTO:
+        try:
+            m = self._session.query(MemberModel).filter_by(id=member.id).first()
+            if not m:
+                raise MemberNotFoundException(member.id)
+            m.username = member.username
+            m.email = member.email
+
+            if member.repos is not None:
+                repo_urls = [r.url for r in member.repos]
+                repos = self._session.query(GitRepoModel).filter(GitRepoModel.url.in_(repo_urls)).all()
+                m.repos = repos
+
             self._session.commit()
             self._session.refresh(m)
             return _model_to_dto(m)
@@ -54,35 +87,17 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
         try:
-            rows = self._session.query(MemberModel).filter_by(repo_id=repo_id).all()
-            return [_model_to_dto(m) for m in rows]
+            repo = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
+            if not repo:
+                return []
+            return [_model_to_dto(m) for m in repo.members]
         except Exception as e:
             raise MemberPersistenceException(str(e)) from e
 
     def find_all_with_repos(self) -> List[MemberWithReposDTO]:
         try:
-                rows = (
-                    self._session.query(MemberModel, GitRepoModel)
-                    .join(GitRepoModel, MemberModel.repo_id == GitRepoModel.id)
-                    .all()
-                )
-                acc: dict[int, MemberWithReposDTO] = {}
-                for member_m, repo_m in rows:
-                    if member_m.id not in acc:
-                        acc[member_m.id] = MemberWithReposDTO(
-                            id=member_m.id,
-                            username=member_m.username,
-                            email=member_m.email,
-                            repos=[],
-                        )
-                    acc[member_m.id].repos.append(RepoSummary(name=repo_m.name, url=repo_m.url))
-
-                orphans = self._session.query(MemberModel).filter(MemberModel.repo_id.is_(None)).all()
-                for m in orphans:
-                    if m.id not in acc:
-                        acc[m.id] = MemberWithReposDTO(id=m.id, username=m.username, email=m.email, repos=[])
-
-                return list(acc.values())
+            rows = self._session.query(MemberModel).all()
+            return [_model_to_with_repos_dto(m) for m in rows]
         except MemberPersistenceException:
             raise
         except Exception as e:

@@ -12,7 +12,7 @@ class RepoSummary:
 class MemberDTO:
     username: str
     email: str
-    repo_id: Optional[int] = None
+    repos: List[RepoSummary] = field(default_factory=list)
     id: Optional[int] = None
 
 

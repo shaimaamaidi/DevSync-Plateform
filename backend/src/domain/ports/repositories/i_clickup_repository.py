@@ -10,6 +10,10 @@ class IClickUpRepository(ABC):
         pass
 
     @abstractmethod
+    def update(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+        pass
+
+    @abstractmethod
     def find_by_id(self, space_id: int) -> ClickUpSpaceDTO:
         pass
 

@@ -10,6 +10,10 @@ class IMemberRepository(ABC):
         pass
 
     @abstractmethod
+    def update(self, member: MemberDTO) -> MemberDTO:
+        pass
+
+    @abstractmethod
     def find_by_id(self, member_id: int) -> MemberDTO:
         pass
 

@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
 from backend.src.infrastructure.persistence.base import Base
+from backend.src.infrastructure.persistence.models.member_repo_association import member_repo_association
 
 
 class MemberModel(Base):
@@ -9,5 +10,8 @@ class MemberModel(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)
     email = Column(String(255), nullable=False, unique=True)
-    repo_id = Column(Integer, ForeignKey("git_repos.id"), nullable=False)
-    repo = relationship("GitRepoModel", back_populates="members")
+    repos = relationship(
+        "GitRepoModel",
+        secondary=member_repo_association,
+        back_populates="members",
+    )

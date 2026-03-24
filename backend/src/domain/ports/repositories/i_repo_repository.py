@@ -9,6 +9,10 @@ class IRepoRepository(ABC):
         pass
 
     @abstractmethod
+    def update(self, repo: GitRepoDTO) -> GitRepoDTO:
+        pass
+
+    @abstractmethod
     def find_by_id(self, repo_id: int) -> GitRepoDTO:
         pass
 
