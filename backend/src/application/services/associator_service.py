@@ -71,7 +71,7 @@ class AssociatorService:
             existing_member = self._member.get_member_by_mail(m["mail"])
             logger.info("Member fetched successfully: member_id=%s", existing_member.id)
 
-            updated_repos = existing_member.repos + [RepoSummary(name=existing_repo.name, url=existing_repo.url)]
+            updated_repos = existing_member.repos + [RepoSummary(name=existing_repo.name, url=existing_repo.url, id=existing_repo.id)]
 
             updated_member = MemberDTO(
                 id=existing_member.id,

@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: MemberModel) -> MemberDTO:
-    repos = [RepoSummary(name=r.name, url=r.url) for r in m.repos]
+    repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos]
     return MemberDTO(id=m.id, username=m.username, mail=m.mail, repos=repos)
 
 
 def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
-    repos = [RepoSummary(name=r.name, url=r.url) for r in m.repos]
+    repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos]
     return MemberWithReposDTO(id=m.id, username=m.username, mail=m.mail, repos=repos)
 
 

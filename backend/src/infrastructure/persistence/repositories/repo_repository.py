@@ -25,7 +25,7 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
         MemberSummary(
             username=mb.username,
             mail=mb.mail,
-            repos=[RepoSummary(name=r.name, url=r.url) for r in mb.repos]
+            repos=[RepoSummary(name=r.name, url=r.url, id=r.id) for r in mb.repos]
         )
         for mb in m.members
     ]

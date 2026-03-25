@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 class RepoSummary(BaseModel):
     name: Optional[str] = None
     url: Optional[str] = None
-
+    id: Optional[int] = None
 
 class MemberDTO(BaseModel):
     username: Optional[str] = None
