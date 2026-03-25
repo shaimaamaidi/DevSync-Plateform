@@ -103,7 +103,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
             if not m:
                 logger.warning("Member not found for update (id=%s)", member.id)
-                raise MemberNotFoundException(member.id)
+                raise MemberNotFoundException(message=f"Member not found with ID: {member.id}")
 
             if member.username:
                 m.username = member.username
@@ -163,7 +163,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         if not m:
             logger.warning("Member not found (id=%s)", member_id)
-            raise MemberNotFoundException(member_id)
+            raise MemberNotFoundException(message=f"Member not found with ID: {member_id}")
         
         logger.info(
             "Member fetched successfully (id=%s, username=%s, mail=%s)",
@@ -190,7 +190,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         if not m:
             logger.warning("Repository not found (mail=%s)", mail)
-            raise MemberNotFoundException(mail)
+            raise MemberNotFoundException(message=f"Member not found with mail: {mail}")
 
         logger.info(
             "Member fetched successfully (id=%s, username=%s, mail=%s)",
@@ -267,7 +267,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         if not m:
             logger.warning("Member not found (id=%s)", member_id)
-            raise MemberNotFoundException(member_id)
+            raise MemberNotFoundException(message=f"Member not found with ID: {member_id}")
 
         try:
             self._session.delete(m)
