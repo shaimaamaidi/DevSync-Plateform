@@ -20,7 +20,7 @@ class RepoService:
         logger.info("Repository added successfully: id=%s, name=%s", result.id, result.name)
         return result
 
-    def update_repo(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
+    def update_repo(self, repo: GitRepoDetailDTO) -> GitRepoDetailDTO:
         logger.info("Updating repository: id=%s, name=%s", repo.id, repo.name)
 
         result = self._repo.update(repo)
@@ -51,15 +51,6 @@ class RepoService:
 
         logger.info("Repository fetched successfully: id=%s, url=%s", result.id, result.url)
         return result
-
-
-    def get_all(self) -> List[GitRepoDTO]:
-        logger.info("Fetching all repositories")
-
-        results = self._repo.find_all()
-
-        logger.info("Fetched %s repositories successfully", len(results))
-        return results
 
     def get_all_with_details(self) -> List[GitRepoDetailDTO]:
         logger.info("Fetching all repositories with details")

@@ -9,7 +9,7 @@ class IRepoRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
+    def update(self, repo: GitRepoDetailDTO) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
@@ -22,10 +22,6 @@ class IRepoRepository(ABC):
 
     @abstractmethod
     def find_by_name(self, name: str) -> GitRepoDetailDTO:
-        pass
-
-    @abstractmethod
-    def find_all(self) -> List[GitRepoDTO]:
         pass
 
     @abstractmethod

@@ -16,16 +16,6 @@ router = APIRouter()
 
 @router.get("/all")
 def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepoDTO]:
-    logger.info("Fetching all repositories")
-
-    service = container.repo_service
-    results = service.get_all()
-
-    logger.info("Repositories retrieved successfully: count=%s", len(results))
-    return results
-
-@router.get("/details")
-def get_all_with_details(container: Container = Depends(get_container)) -> List[GitRepoDetailDTO]:
     logger.info("Fetching all repositories with details")
 
     service = container.repo_service
@@ -75,7 +65,7 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
 
 
 @router.put("/{repo_id}")
-def update_repo(repo_id: int, repo: GitRepoDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
+def update_repo(repo_id: int, repo: GitRepoDetailDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     logger.info(
         "Updating repository: repo_id=%s, new_name=%s, new_url=%s",
         repo_id,
