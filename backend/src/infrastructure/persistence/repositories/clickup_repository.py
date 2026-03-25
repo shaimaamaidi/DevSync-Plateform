@@ -15,11 +15,11 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: ClickUpSpaceModel) -> ClickUpSpaceDTO:
-    return ClickUpSpaceDTO(id=m.id, name=m.name, space_code=m.space_id, repo_id=m.repo_id)
+    return ClickUpSpaceDTO(id=m.id, name=m.name, space_code=m.space_code, repo_id=m.repo_id)
 
 
 def _model_to_light_dto(m: ClickUpSpaceModel) -> ClickUpSpaceLightDTO:
-    return ClickUpSpaceLightDTO(id=m.id, space_code=m.space_id, name=m.name)
+    return ClickUpSpaceLightDTO(id=m.id, space_code=m.space_code, name=m.name, repo_id=m.repo_id)
 
 
 class SqlAlchemyClickUpRepository(IClickUpRepository):
@@ -162,10 +162,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpSpaceNotFoundException(space_code)
 
         logger.info(
-            "ClickUp space fetched successfully (id=%s, name=%s, space_id=%s)",
+            "ClickUp space fetched successfully (id=%s, name=%s, space_code=%s)",
             m.id,
             m.name,
-            m.space_id
+            m.space_code
         )
 
         return _model_to_dto(m)

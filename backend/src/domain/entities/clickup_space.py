@@ -12,4 +12,5 @@ class ClickUpSpaceDTO(BaseModel):
 class ClickUpSpaceLightDTO(BaseModel):
     id: Optional[int] = None
     space_code: Optional[str] = None
+    repo_id: Optional[int] = None
     name: Optional[str] = None
