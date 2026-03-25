@@ -31,4 +31,10 @@ def setup_logger() -> None:
 
     sqlalchemy_logger = logging.getLogger("sqlalchemy.engine")
     sqlalchemy_logger.handlers = []
+    sqlalchemy_logger.setLevel(logging.WARNING)
     sqlalchemy_logger.propagate = True
+
+    sqlalchemy_engine_logger = logging.getLogger("sqlalchemy.engine.Engine")
+    sqlalchemy_engine_logger.handlers = []
+    sqlalchemy_engine_logger.setLevel(logging.WARNING)
+    sqlalchemy_engine_logger.propagate = True

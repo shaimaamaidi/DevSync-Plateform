@@ -94,7 +94,7 @@ class MySQLConnector:
 
         try:
             connection_string = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
-            self.engine = create_engine(connection_string, echo=True)
+            self.engine = create_engine(connection_string, echo=False)
             self.Session = sessionmaker(bind=self.engine)
 
             logger.info("Database connection established successfully")
