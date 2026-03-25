@@ -46,7 +46,7 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
 def create_space(space: ClickUpSpaceDTO, container: Container = Depends(get_container)):
     logger.info(
         "[ClickUp] Creating ClickUp space: space_id=%s, name=%s",
-        space.space_id,
+        space.space_code,
         space.name,
     )
 

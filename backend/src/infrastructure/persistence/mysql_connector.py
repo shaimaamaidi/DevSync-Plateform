@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -15,11 +16,19 @@ from backend.src.domain.exceptions.database_session_exception import DatabaseSes
 logger = logging.getLogger(__name__)
 
 
+_BACKEND_DIR = Path(__file__).resolve().parents[3]
+_DOTENV_PATH = _BACKEND_DIR / ".env"
+
+
 class MySQLConnector:
     def __init__(self):
         logger.info("Initializing MySQL connector")
 
-        load_dotenv()
+        loaded = load_dotenv(_DOTENV_PATH, override=False)
+
+        if not loaded:
+            logger.warning(".env file not found at %s", _DOTENV_PATH)
+
         self.user = os.getenv("MYSQL_USER")
         self.password = os.getenv("MYSQL_PASSWORD")
         self.host = os.getenv("MYSQL_HOST")

@@ -8,7 +8,7 @@ from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundE
 from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
-
+from backend.src.infrastructure.persistence.models.member_model import MemberModel
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ def _model_to_dto(m: GitRepoModel) -> GitRepoDTO:
     members = [
         MemberSummary(
             username=mb.username,
-            email=mb.email,
+            mail=mb.mail,
             repos=[RepoSummary(name=r.name, url=r.url) for r in mb.repos]
         )
         for mb in m.members
@@ -29,13 +29,13 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
     members = [
         MemberSummary(
             username=mb.username,
-            email=mb.email,
+            mail=mb.mail,
             repos=[RepoSummary(name=r.name, url=r.url) for r in mb.repos]
         )
         for mb in m.members
     ]
     space = (
-        ClickUpSpaceSummary(name=m.clickup_space.name, space_id=m.clickup_space.space_id)
+        ClickUpSpaceSummary(name=m.clickup_space.name, space_code=m.clickup_space.space_id)
         if m.clickup_space
         else None
     )
@@ -106,12 +106,37 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
             if not m:
                 logger.warning("Repository not found for update (id=%s)", repo.id)
-                raise RepoNotFoundException(repo.id)
+                raise RepoNotFoundException(message=f"Repository not found with ID : {repo.id}")
 
             if repo.name:
                 m.name = repo.name
             if repo.url:
                 m.url = repo.url
+
+            if repo.members is not None:
+                incoming_mails = {member.mail for member in repo.members}
+
+                existing_members = (
+                    self._session.query(MemberModel)
+                    .filter(MemberModel.mail.in_(incoming_mails))
+                    .all()
+                )
+
+                found_mails = {mem.mail for mem in existing_members}
+                missing_mails = incoming_mails - found_mails
+
+                if missing_mails:
+                    logger.warning(
+                        "Some members not found and will be skipped (mails=%s)",
+                        missing_mails
+                    )
+
+                m.members = existing_members
+                logger.info(
+                    "Members association updated for repository (id=%s, count=%s)",
+                    repo.id,
+                    len(existing_members)
+                )
 
             self._session.commit()
             self._session.refresh(m)
@@ -148,7 +173,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
         if not m:
             logger.warning("Repository not found (id=%s)", repo_id)
-            raise RepoNotFoundException(repo_id)
+            raise RepoNotFoundException(message=f"Repository not found with ID: {repo_id}")
 
         logger.info(
             "Repository fetched successfully (id=%s, name=%s, url=%s)",
@@ -175,7 +200,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
         if not m:
             logger.warning("Repository not found (url=%s)", url)
-            raise RepoNotFoundException(url)
+            raise RepoNotFoundException(message=f"Repository not found with URL: {url}")
 
         logger.info(
             "Repository fetched successfully (id=%s, name=%s, url=%s)",
@@ -202,7 +227,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
         if not m:
             logger.warning("Repository not found (name=%s)", name)
-            raise RepoNotFoundException(name)
+            raise RepoNotFoundException(message=f"Repository not found with NAME: {name}")
 
         logger.info(
             "Repository fetched successfully (id=%s, name=%s, url=%s)",
@@ -271,7 +296,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
         if not m:
             logger.warning("Repository not found (id=%s)", repo_id)
-            raise RepoNotFoundException(repo_id)
+            raise RepoNotFoundException(message=f"Repository not found with ID: {repo_id}")
 
         try:
             self._session.delete(m)

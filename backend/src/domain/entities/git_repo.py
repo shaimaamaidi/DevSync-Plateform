@@ -7,13 +7,13 @@ from backend.src.domain.entities.member import RepoSummary
 
 class MemberSummary(BaseModel):
     username: Optional[str] = None
-    email: Optional[str] = None
+    mail: Optional[str] = None
     repos: List["RepoSummary"] = Field(default_factory=list)
 
 
 class ClickUpSpaceSummary(BaseModel):
     name: Optional[str] = None
-    space_id: Optional[str] = None
+    space_code: Optional[str] = None
 
 
 class GitRepoDTO(BaseModel):
