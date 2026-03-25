@@ -35,7 +35,7 @@ def get_all_with_details(container: Container = Depends(get_container)) -> List[
     return results
 
 @router.post("/")
-def add_repo(repo: GitRepoDTO, container: Container = Depends(get_container)) -> GitRepoDTO:
+def add_repo(repo: GitRepoDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     logger.info(
         "Creating or updating repository: name=%s, url=%s",
         repo.name,
@@ -53,7 +53,7 @@ def add_repo(repo: GitRepoDTO, container: Container = Depends(get_container)) ->
     return result
 
 @router.get("/{repo_id}")
-def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) -> GitRepoDTO:
+def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     logger.info("Fetching repository by id: repo_id=%s", repo_id)
 
     service = container.repo_service
@@ -75,7 +75,7 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
 
 
 @router.put("/{repo_id}")
-def update_repo(repo_id: int, repo: GitRepoDTO, container: Container = Depends(get_container)) -> GitRepoDTO:
+def update_repo(repo_id: int, repo: GitRepoDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     logger.info(
         "Updating repository: repo_id=%s, new_name=%s, new_url=%s",
         repo_id,

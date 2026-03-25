@@ -16,15 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: GitRepoModel) -> GitRepoDTO:
-    members = [
-        MemberSummary(
-            username=mb.username,
-            mail=mb.mail,
-            repos=[RepoSummary(name=r.name, url=r.url) for r in mb.repos]
-        )
-        for mb in m.members
-    ]
-    return GitRepoDTO(id=m.id, name=m.name, url=m.url, members=members)
+    return GitRepoDTO(id=m.id, name=m.name, url=m.url)
 
 
 def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
@@ -47,7 +39,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
     def __init__(self, session):
         self._session = session
 
-    def save(self, repo: GitRepoDTO) -> GitRepoDTO:
+    def save(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
         logger.info(
             "Creating new repository (name=%s, url=%s)",
             repo.name,
@@ -76,7 +68,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 m.url
             )
 
-            return _model_to_dto(m)
+            return _model_to_detail_dto(m)
 
         except IntegrityError as e:
             self._session.rollback()
@@ -93,7 +85,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             )
             raise RepoPersistenceException(str(e)) from e
 
-    def update(self, repo: GitRepoDTO) -> GitRepoDTO:
+    def update(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
         logger.info("Updating repository (id=%s)", repo.id)
 
         if not repo.id:
@@ -148,7 +140,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
             logger.info("Repository updated successfully (id=%s)", m.id)
 
-            return _model_to_dto(m)
+            return _model_to_detail_dto(m)
 
         except IntegrityError as e:
             self._session.rollback()
@@ -165,7 +157,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             )
             raise RepoPersistenceException(str(e)) from e
 
-    def find_by_id(self, repo_id: int) -> GitRepoDTO:
+    def find_by_id(self, repo_id: int) -> GitRepoDetailDTO:
         logger.info("Fetching repository (id=%s)", repo_id)
 
         try:
@@ -189,9 +181,9 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             m.url
         )
 
-        return _model_to_dto(m)
+        return _model_to_detail_dto(m)
 
-    def find_by_url(self, url: str) -> GitRepoDTO:
+    def find_by_url(self, url: str) -> GitRepoDetailDTO:
         logger.info("Fetching repository by url (url=%s)", url)
 
         try:
@@ -215,9 +207,9 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             m.url
         )
 
-        return _model_to_dto(m)
+        return _model_to_detail_dto(m)
 
-    def find_by_name(self, name: str) -> GitRepoDTO:
+    def find_by_name(self, name: str) -> GitRepoDetailDTO:
         logger.info("Fetching repository by name (name=%s)", name)
 
         try:
@@ -241,7 +233,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             m.url
         )
 
-        return _model_to_dto(m)
+        return _model_to_detail_dto(m)
 
     def find_all(self) -> List[GitRepoDTO]:
         logger.info("Fetching all repositories")

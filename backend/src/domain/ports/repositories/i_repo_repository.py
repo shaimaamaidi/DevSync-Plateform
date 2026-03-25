@@ -5,23 +5,23 @@ from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
 
 class IRepoRepository(ABC):
     @abstractmethod
-    def save(self, repo: GitRepoDTO) -> GitRepoDTO:
+    def save(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
-    def update(self, repo: GitRepoDTO) -> GitRepoDTO:
+    def update(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
-    def find_by_id(self, repo_id: int) -> GitRepoDTO:
+    def find_by_id(self, repo_id: int) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
-    def find_by_url(self, url: str) -> GitRepoDTO:
+    def find_by_url(self, url: str) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
-    def find_by_name(self, name: str) -> GitRepoDTO:
+    def find_by_name(self, name: str) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod

@@ -12,7 +12,7 @@ class RepoService:
     def __init__(self, repo_repo: IRepoRepository):
         self._repo = repo_repo
 
-    def add_repo(self, repo: GitRepoDTO) -> GitRepoDTO:
+    def add_repo(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
         logger.info("Adding new repository: name=%s, url=%s", repo.name, repo.url)
 
         result = self._repo.save(repo)
@@ -20,7 +20,7 @@ class RepoService:
         logger.info("Repository added successfully: id=%s, name=%s", result.id, result.name)
         return result
 
-    def update_repo(self, repo: GitRepoDTO) -> GitRepoDTO:
+    def update_repo(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
         logger.info("Updating repository: id=%s, name=%s", repo.id, repo.name)
 
         result = self._repo.update(repo)
@@ -28,7 +28,7 @@ class RepoService:
         logger.info("Repository updated successfully: id=%s, name=%s", result.id, result.name)
         return result
 
-    def get_by_id(self, repo_id: int) -> GitRepoDTO:
+    def get_by_id(self, repo_id: int) -> GitRepoDetailDTO:
         logger.info("Fetching repository by id: %s", repo_id)
 
         result = self._repo.find_by_id(repo_id)
@@ -36,7 +36,7 @@ class RepoService:
         logger.info("Repository fetched successfully: id=%s, name=%s", result.id, result.name)
         return result
 
-    def get_by_name(self, name: str) -> GitRepoDTO:
+    def get_by_name(self, name: str) -> GitRepoDetailDTO:
         logger.info("Fetching repository by name: %s", name)
 
         result = self._repo.find_by_name(name)
@@ -44,7 +44,7 @@ class RepoService:
         logger.info("Repository fetched successfully: id=%s, name=%s", result.id, result.name)
         return result
 
-    def get_by_url(self, url: str) -> GitRepoDTO:
+    def get_by_url(self, url: str) -> GitRepoDetailDTO:
         logger.info("Fetching repository by URL: %s", url)
 
         result = self._repo.find_by_url(url)
