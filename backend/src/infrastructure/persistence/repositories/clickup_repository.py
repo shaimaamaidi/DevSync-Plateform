@@ -30,7 +30,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         logger.info(
             "Creating ClickUp space (name=%s, space_code=%s)",
             space.name,
-            space.space_id,
+            space.space_code,
         )
 
         if not space.space_code or not space.name:
@@ -55,7 +55,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("ClickUp space already exists (space_code=%s)", space.space_id)
+            logger.warning("ClickUp space already exists (space_code=%s)", space.space_code)
             raise InvalidInputException("ClickUp space with this space_code already exists.") from e
         except ClickUpPersistenceException:
             raise
@@ -136,10 +136,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpSpaceNotFoundException(space_id)
 
         logger.info(
-            "ClickUp space fetched successfully (id=%s, name=%s, space_id=%s)",
+            "ClickUp space fetched successfully (id=%s, name=%s, space_code=%s)",
             m.id,
             m.name,
-            m.space_id
+            m.space_code
         )
 
         return _model_to_dto(m)

@@ -54,8 +54,8 @@ def create_space(space: ClickUpSpaceDTO, container: Container = Depends(get_cont
     result = service.add_space(space)
 
     logger.info(
-        "[ClickUp] ClickUp space created successfully: space_id=%s",
-        result.space_id,
+        "[ClickUp] ClickUp space created successfully: space_code=%s",
+        result.space_code,
     )
     return result
 

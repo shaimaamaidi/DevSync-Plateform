@@ -13,19 +13,19 @@ class ClickUpService:
         self._repo = clickup_repo
 
     def add_space(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
-        logger.info("Adding new ClickUp space: space_id=%s, name=%s", space.space_id, space.name)
+        logger.info("Adding new ClickUp space: space_code=%s, name=%s", space.space_code, space.name)
 
         result = self._repo.save(space)
 
-        logger.info("ClickUp space added successfully: id=%s, space_id=%s", result.id, result.space_id)
+        logger.info("ClickUp space added successfully: id=%s, space_code=%s", result.id, result.space_code)
         return result
 
     def update_space(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
-        logger.info("Updating ClickUp space: id=%s, space_id=%s", space.id, space.space_id)
+        logger.info("Updating ClickUp space: id=%s, space_code=%s", space.id, space.space_code)
 
         result = self._repo.update(space)
 
-        logger.info("ClickUp space updated successfully: id=%s, space_id=%s", result.id, result.space_id)
+        logger.info("ClickUp space updated successfully: id=%s, space_code=%s", result.id, result.space_code)
         return result
 
     def get_by_id(self, space_id: int) -> ClickUpSpaceDTO:
@@ -33,7 +33,7 @@ class ClickUpService:
 
         result = self._repo.find_by_id(space_id)
 
-        logger.info("ClickUp space fetched successfully: id=%s, space_id=%s", result.id, result.space_id)
+        logger.info("ClickUp space fetched successfully: id=%s, space_code=%s", result.id, result.space_code)
         return result
 
     def get_by_space_code(self, space_code: str) -> ClickUpSpaceDTO:
@@ -41,7 +41,7 @@ class ClickUpService:
 
         result = self._repo.find_by_space_code(space_code)
 
-        logger.info("ClickUp space fetched successfully: id=%s, space_id=%s", result.id, result.space_id)
+        logger.info("ClickUp space fetched successfully: id=%s, space_code=%s", result.id, result.space_code)
         return result
 
     def get_all(self) -> List[ClickUpSpaceDTO]:
