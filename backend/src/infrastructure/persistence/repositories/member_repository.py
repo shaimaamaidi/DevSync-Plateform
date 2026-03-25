@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from sqlalchemy.exc import IntegrityError
+
 from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
 from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
@@ -68,6 +70,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
             return _model_to_dto(m)
 
+        except IntegrityError as e:
+            self._session.rollback()
+            logger.warning("Member already exists (mail=%s)", member.mail)
+            raise InvalidInputException("Member with this mail already exists.") from e
         except MemberPersistenceException:
             raise
         except Exception as e:
@@ -75,8 +81,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Failed to create member (mail=%s): %s",
                 member.mail,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -128,6 +133,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
             return _model_to_dto(m)
 
+        except IntegrityError as e:
+            self._session.rollback()
+            logger.warning("Member mail already exists (mail=%s)", member.mail)
+            raise InvalidInputException("Member with this mail already exists.") from e
         except MemberPersistenceException:
             raise
         except Exception as e:
@@ -136,7 +145,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 "Failed to update member (id=%s): %s",
                 member.id,
                 str(e),
-                exc_info=e,
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -149,8 +157,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Error fetching member (id=%s): %s",
                 member_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -177,8 +184,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Error fetching member by mail (mail=%s): %s",
                 mail,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -219,8 +225,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Failed to fetching members by repository ID (repo_id=%s): %s",
                 repo_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -244,7 +249,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Failed to fetch members with repositories: %s",
                 str(e),
-                exc_info=e,
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -257,8 +261,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Error deleting member (id=%s): %s",
                 member_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -281,7 +284,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.error(
                 "Failed to delete member (id=%s): %s",
                 member_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise MemberPersistenceException(str(e)) from e

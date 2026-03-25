@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from sqlalchemy.exc import IntegrityError
+
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
 from backend.src.domain.entities.member import RepoSummary
 from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
@@ -76,6 +78,10 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
             return _model_to_dto(m)
 
+        except IntegrityError as e:
+            self._session.rollback()
+            logger.warning("Repository already exists (url=%s)", repo.url)
+            raise InvalidInputException("Repository with this URL already exists.") from e
         except RepoPersistenceException:
             raise
         except Exception as e:
@@ -83,8 +89,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Failed to create repository (url=%s): %s",
                 repo.url,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -145,6 +150,10 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
             return _model_to_dto(m)
 
+        except IntegrityError as e:
+            self._session.rollback()
+            logger.warning("Repository already exists (url=%s)", repo.url)
+            raise InvalidInputException("Repository with this URL already exists.") from e
         except RepoPersistenceException:
             raise
         except Exception as e:
@@ -152,8 +161,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Failed to update repository (id=%s): %s",
                 repo.id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -166,8 +174,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Error fetching repository (id=%s): %s",
                 repo_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -193,8 +200,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Error fetching repository by url (url=%s): %s",
                 url,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -220,8 +226,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Error Fetching repository by name (name=%s): %s",
                 name,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -254,8 +259,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         except Exception as e:
             logger.error(
                 "Error fetching all repositories: %s",
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -275,8 +279,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         except Exception as e:
             logger.error(
                 "Error fetching all repositories with details: %s",
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -289,8 +292,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Error deleting repository (id=%s): %s",
                 repo_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -313,7 +315,6 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.error(
                 "Failed to delete repository (id=%s): %s",
                 repo_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise RepoPersistenceException(str(e)) from e

@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from sqlalchemy.exc import IntegrityError
+
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
 from backend.src.domain.exceptions.clickup_persistence_exception import ClickUpPersistenceException
 from backend.src.domain.exceptions.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
@@ -51,6 +53,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
             return _model_to_dto(m)
 
+        except IntegrityError as e:
+            self._session.rollback()
+            logger.warning("ClickUp space already exists (space_code=%s)", space.space_id)
+            raise InvalidInputException("ClickUp space with this space_code already exists.") from e
         except ClickUpPersistenceException:
             raise
         except Exception as e:
@@ -58,8 +64,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             logger.error(
                 "Failed to create clickup space (space_code=%s): %s",
                 space.space_code,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -98,6 +103,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
             return _model_to_dto(m)
 
+        except IntegrityError as e:
+            self._session.rollback()
+            logger.warning("ClickUp space already exists (space_code=%s)", space.space_code)
+            raise InvalidInputException("ClickUp space with this space_code already exists.") from e
         except ClickUpPersistenceException:
             raise
         except Exception as e:
@@ -106,7 +115,6 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
                 "Failed to update clickup space (id=%s): %s",
                 space.id,
                 str(e),
-                exc_info=e,
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -119,8 +127,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             logger.error(
                 "Error fetching clickup space (id=%s): %s",
                 space_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -146,8 +153,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             logger.error(
                 "Error fetching clickup space by space code (space_code=%s): %s",
                 space_code,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -180,8 +186,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         except Exception as e:
             logger.error(
                 "Error fetching all clickup spaces: %s",
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -205,8 +210,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         except Exception as e:
             logger.error(
                 "Error fetching all clickup spaces (light): %s",
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -219,8 +223,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             logger.error(
                 "Error deleting clickup space (id=%s): %s",
                 space_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -243,7 +246,6 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             logger.error(
                 "Failed to delete clickup space (id=%s): %s",
                 space_id,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise ClickUpPersistenceException(str(e)) from e

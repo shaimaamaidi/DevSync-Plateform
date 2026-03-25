@@ -29,7 +29,7 @@ class AssociatorService:
         existing_repo = self._repo.get_by_url(repo.url)
         logger.info("Repository fetched successfully: repo_id=%s", existing_repo.id)
 
-        existing_space = self._clickup.get_by_space_id(clickup_space.space_id)
+        existing_space = self._clickup.get_by_space_code(clickup_space.space_id)
         logger.info("ClickUp space fetched successfully: space_id=%s", existing_space.id)
 
         existing_space.repo_id = existing_repo.id
