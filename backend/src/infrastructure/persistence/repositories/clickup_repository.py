@@ -55,8 +55,15 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("ClickUp space already exists (space_code=%s)", space.space_code)
-            raise InvalidInputException("ClickUp space with this space_code already exists.") from e
+            error_code = getattr(getattr(e, "orig", None), "errno", None)
+            if error_code == 1062:
+                logger.warning("ClickUp space already exists (space_code=%s)", space.space_code)
+                raise InvalidInputException("ClickUp space with this space_code already exists.") from e
+            if error_code == 1452:
+                logger.warning("Invalid repo_id for clickup space (repo_id=%s)", space.repo_id)
+                raise InvalidInputException("ClickUp space repo_id does not exist.") from e
+            logger.error("Integrity error while creating clickup space: %s", str(e))
+            raise ClickUpPersistenceException(str(e)) from e
         except ClickUpPersistenceException:
             raise
         except Exception as e:
@@ -105,8 +112,15 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("ClickUp space already exists (space_code=%s)", space.space_code)
-            raise InvalidInputException("ClickUp space with this space_code already exists.") from e
+            error_code = getattr(getattr(e, "orig", None), "errno", None)
+            if error_code == 1062:
+                logger.warning("ClickUp space already exists (space_code=%s)", space.space_code)
+                raise InvalidInputException("ClickUp space with this space_code already exists.") from e
+            if error_code == 1452:
+                logger.warning("Invalid repo_id for clickup space (repo_id=%s)", space.repo_id)
+                raise InvalidInputException("ClickUp space repo_id does not exist.") from e
+            logger.error("Integrity error while updating clickup space: %s", str(e))
+            raise ClickUpPersistenceException(str(e)) from e
         except ClickUpPersistenceException:
             raise
         except Exception as e:
