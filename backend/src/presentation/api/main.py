@@ -9,13 +9,15 @@ from backend.src.domain.exceptions.app_exception import AppException
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
+from backend.src.presentation.api.middleware.request_id_middleware import request_id_middleware
 from backend.src.presentation.api.routers import associator_router, clickup_router, repo_router, member_router, deployment_router
 
 
-setup_logger()
 logger = logging.getLogger(__name__)
 
 def create_app() -> FastAPI:
+    setup_logger() 
+
     app = FastAPI(
         title="ClickUp Integration API",
         description="Manage repositories, members, ClickUp spaces and deployments.",
@@ -29,6 +31,8 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.middleware("http")(request_id_middleware)
 
     # 🔹 DB connector (session per request)
     app.state.db = MySQLConnector()

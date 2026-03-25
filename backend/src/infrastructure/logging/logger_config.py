@@ -1,16 +1,24 @@
 """Logger configuration utilities for the application."""
-
 import logging
 
+from backend.src.infrastructure.logging.request_id import RequestIdFilter
 
-def setup_logger():
-    """Configure global logging settings for the application.
 
-    Returns:
-        None.
-    """
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    )
+def setup_logger() -> None:
+    """Configure global logging settings for the application."""
+    root_logger = logging.getLogger()
+
+    if root_logger.handlers:
+        return 
+
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    handler.setFormatter(logging.Formatter(
+        fmt="%(asctime)s [%(levelname)s] %(name)s [request_id=%(request_id)s]: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    ))
+    handler.addFilter(RequestIdFilter()) 
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    root_logger.addHandler(handler)
