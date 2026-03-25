@@ -4,12 +4,18 @@ import logging
 from backend.src.infrastructure.logging.request_id import RequestIdFilter
 
 
+class _LoggerNameFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        if record.name == "uvicorn.error":
+            record.name = "uvicorn"
+        return True
+
+
 def setup_logger() -> None:
     """Configure global logging settings for the application."""
     root_logger = logging.getLogger()
 
-    if root_logger.handlers:
-        return
+    root_logger.handlers.clear()
 
     handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
@@ -18,6 +24,7 @@ def setup_logger() -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     ))
     handler.addFilter(RequestIdFilter())
+    handler.addFilter(_LoggerNameFilter())
 
     root_logger.setLevel(logging.INFO)
     root_logger.addHandler(handler)
