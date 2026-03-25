@@ -61,7 +61,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
                 raise InvalidInputException("ClickUp space with this space_code already exists.") from e
             if error_code == 1452:
                 logger.warning("Invalid repo_id for clickup space (repo_id=%s)", space.repo_id)
-                raise InvalidInputException("ClickUp space repo_id does not exist.") from e
+                raise InvalidInputException("Repository ID %s does not exist.", space.repo_id) from e
             logger.error("Integrity error while creating clickup space: %s", str(e))
             raise ClickUpPersistenceException(str(e)) from e
         except ClickUpPersistenceException:
@@ -118,7 +118,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
                 raise InvalidInputException("ClickUp space with this space_code already exists.") from e
             if error_code == 1452:
                 logger.warning("Invalid repo_id for clickup space (repo_id=%s)", space.repo_id)
-                raise InvalidInputException("ClickUp space repo_id does not exist.") from e
+                raise InvalidInputException("Repository ID %s does not exist.", space.repo_id) from e
             logger.error("Integrity error while updating clickup space: %s", str(e))
             raise ClickUpPersistenceException(str(e)) from e
         except ClickUpPersistenceException:
