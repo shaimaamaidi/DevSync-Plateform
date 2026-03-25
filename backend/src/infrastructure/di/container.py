@@ -1,3 +1,5 @@
+import logging
+
 from backend.src.application.services.member_service import MemberService
 from backend.src.infrastructure.external.github_deployments import GitHubDeploymentAdapter
 from backend.src.infrastructure.persistence.repositories.clickup_repository import SqlAlchemyClickUpRepository
@@ -9,27 +11,49 @@ from backend.src.application.services.associator_service import AssociatorServic
 from backend.src.application.services.deployment_service import DeploymentService
 
 
+logger = logging.getLogger(__name__)
+
+
 class Container:
     def __init__(self, session):
+        logger.info("Initializing application container")
+
         self.session = session
 
-        # Repositories
-        self.repo_repo = SqlAlchemyRepoRepository(self.session)
-        self.member_repo = SqlAlchemyMemberRepository(self.session)
-        self.clickup_repo = SqlAlchemyClickUpRepository(self.session)
+        try:
+            # Repositories
+            logger.info("Initializing repositories")
 
-        # External services
-        self.github_service = GitHubDeploymentAdapter()
+            self.repo_repo = SqlAlchemyRepoRepository(self.session)
+            self.member_repo = SqlAlchemyMemberRepository(self.session)
+            self.clickup_repo = SqlAlchemyClickUpRepository(self.session)
 
-        # Application services
-        self.repo_service = RepoService(self.repo_repo)
-        self.member_service = MemberService(self.member_repo)
-        self.clickup_service = ClickUpService(self.clickup_repo)
+            # External services
+            logger.info("Initializing external services")
 
-        self.associator_service = AssociatorService(
-            self.clickup_service,
-            self.member_service,
-            self.repo_service,
-        )
+            self.github_service = GitHubDeploymentAdapter()
 
-        self.deployment_service = DeploymentService(self.github_service)
+            # Application services
+            logger.info("Initializing application services")
+
+            self.repo_service = RepoService(self.repo_repo)
+            self.member_service = MemberService(self.member_repo)
+            self.clickup_service = ClickUpService(self.clickup_repo)
+
+            self.associator_service = AssociatorService(
+                self.clickup_service,
+                self.member_service,
+                self.repo_service,
+            )
+
+            self.deployment_service = DeploymentService(self.github_service)
+
+            logger.info("Application container initialized successfully")
+
+        except Exception as e:
+            logger.error(
+                "Failed to initialize application container: %s",
+                str(e),
+                exc_info=e,
+            )
+            raise

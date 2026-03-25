@@ -18,7 +18,7 @@ class IMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_email(self, email: str) -> MemberDTO:
+    def find_by_mail(self, mail: str) -> MemberDTO:
         pass
 
     @abstractmethod

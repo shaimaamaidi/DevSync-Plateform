@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
@@ -10,8 +12,13 @@ from backend.src.domain.exceptions.database_initialization_exception import Data
 from backend.src.domain.exceptions.database_session_exception import DatabaseSessionException
 
 
+logger = logging.getLogger(__name__)
+
+
 class MySQLConnector:
     def __init__(self):
+        logger.info("Initializing MySQL connector")
+
         load_dotenv()
         self.user = os.getenv("MYSQL_USER")
         self.password = os.getenv("MYSQL_PASSWORD")
@@ -28,35 +35,92 @@ class MySQLConnector:
             "MYSQL_PORT": self.port,
             "MYSQL_DB": self.db,
         }.items() if not v]
+
         if missing:
+            logger.error(
+                "Missing required environment variables for database: %s",
+                missing
+            )
             raise DatabaseInitializationException(
                 f"Missing required environment variables: {', '.join(missing)}"
             )
 
+        logger.info(
+            "MySQLConnector initialized (host=%s, port=%s, db=%s)",
+            self.host,
+            self.port,
+            self.db
+        )
+
     def create_db_if_not_exists(self):
+        logger.info(
+            "Ensuring database exists (db=%s, host=%s)",
+            self.db,
+            self.host
+        )
+
         try:
             engine = create_engine(f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}")
             with engine.connect() as conn:
                 conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{self.db}`"))
-                print(f"Database `{self.db}` checked/created.")
+
+            logger.info("Database '%s' is ready", self.db)
+
         except SQLAlchemyError as e:
+            logger.error(
+                "Failed to create or verify database '%s': %s",
+                self.db,
+                str(e),
+                exc_info=e
+            )
             raise DatabaseInitializationException() from e
 
     def connect(self):
+        logger.info(
+            "Connecting to MySQL database (host=%s, port=%s, db=%s)",
+            self.host,
+            self.port,
+            self.db
+        )
+
         try:
             connection_string = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
             self.engine = create_engine(connection_string, echo=True)
             self.Session = sessionmaker(bind=self.engine)
+
+            logger.info("Database connection established successfully")
+
             return self.engine, self.Session
+
         except SQLAlchemyError as e:
+            logger.error(
+                "Database connection failed (host=%s, db=%s): %s",
+                self.host,
+                self.db,
+                str(e),
+                exc_info=e,
+            )
             raise DatabaseConnectionException() from e
 
     def get_session(self):
+        logger.info("Creating new database session")
+
         try:
             if not self.Session:
+                logger.warning("Session factory not initialized, connecting to database")
+
                 self.connect()
+
+                logger.info("Database session established successfully")
+
             return self.Session()
+
         except AppException:
             raise
         except Exception as e:
+            logger.error(
+                "Failed to create database session: %s",
+                str(e),
+                exc_info=e
+            )
             raise DatabaseSessionException() from e

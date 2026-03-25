@@ -18,7 +18,7 @@ class IClickUpRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_space_id(self, space_id: str) -> ClickUpSpaceDTO:
+    def find_by_space_code(self, space_id: str) -> ClickUpSpaceDTO:
         pass
 
     @abstractmethod

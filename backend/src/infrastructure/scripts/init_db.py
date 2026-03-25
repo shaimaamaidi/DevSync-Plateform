@@ -1,3 +1,5 @@
+import logging
+
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.base import Base
 
@@ -9,29 +11,48 @@ from backend.src.infrastructure.persistence.models.member_repo_association impor
 from backend.src.domain.exceptions.app_exception import AppException
 
 
+logger = logging.getLogger(__name__)
+
+
 def init_db():
-    print("🚀 Initializing database...")
+    logger.info("Starting database initialization")
 
     try:
+        # Initialize connector
+        logger.info("Initializing MySQL connector")
         db = MySQLConnector()
 
         # Create DB if not exists
+        logger.info("Ensuring database exists")
         db.create_db_if_not_exists()
 
         # Connect
+        logger.info("Connecting to database")
         engine, Session = db.connect()
 
         # Create tables
+        logger.info("Creating database tables from metadata")
         Base.metadata.create_all(engine)
 
-        print("✅ Database and tables initialized successfully.")
+        logger.info("Database initialization completed successfully")
 
     except AppException as e:
-        print(f"❌ Application error: {e.message}")
+        logger.error(
+            "Application error during database initialization [%s]: %s",
+            e.code,
+            e.message,
+            exc_info=e,
+        )
+        raise
 
     except Exception as e:
-        print(f"❌ Unexpected error: {str(e)}")
-
+        logger.error(
+            "Application error during database initialization [%s]: %s",
+            e.code,
+            e.message,
+            exc_info=e,
+        )
+        raise
 
 if __name__ == "__main__":
     init_db()

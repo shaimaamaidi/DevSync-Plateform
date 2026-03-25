@@ -10,7 +10,7 @@ class RepoSummary(BaseModel):
 
 class MemberDTO(BaseModel):
     username: Optional[str] = None
-    email: Optional[str] = None
+    mail: Optional[str] = None
     repos: List[RepoSummary] = Field(default_factory=list)
     id: Optional[int] = None
 
@@ -18,5 +18,5 @@ class MemberDTO(BaseModel):
 class MemberWithReposDTO(BaseModel):
     id: Optional[int] =  None
     username: Optional[str] = None
-    email: Optional[str] = None
+    mail: Optional[str] = None
     repos: List[RepoSummary] = Field(default_factory=list)

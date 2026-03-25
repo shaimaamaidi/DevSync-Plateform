@@ -1,4 +1,5 @@
 """FastAPI application factory and configuration."""
+import logging
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -6,9 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.domain.exceptions.app_exception import AppException
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
+from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.presentation.api.routers import associator_router, clickup_router, repo_router, member_router, deployment_router
 
+
+setup_logger()
+logger = logging.getLogger(__name__)
 
 def create_app() -> FastAPI:
     app = FastAPI(

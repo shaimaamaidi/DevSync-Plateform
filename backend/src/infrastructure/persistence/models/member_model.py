@@ -9,7 +9,7 @@ class MemberModel(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)
-    email = Column(String(255), nullable=False, unique=True)
+    mail = Column(String(255), nullable=False, unique=True)
     repos = relationship(
         "GitRepoModel",
         secondary=member_repo_association,
