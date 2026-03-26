@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/")
+@router.post("/", response_model=MemberDTO)
 def add_member(member: MemberCreateDTO, container: Container = Depends(get_container)) -> MemberDTO:
     logger.info(
         "[Member] Creating member: mail=%s, username=%s",
@@ -32,7 +32,7 @@ def add_member(member: MemberCreateDTO, container: Container = Depends(get_conta
     )
     return result
 
-@router.get("/by-repo/{repo_id}")
+@router.get("/by-repo/{repo_id}", response_model=List[MemberDTO])
 def get_members_by_repo(repo_id: int, container: Container = Depends(get_container)) -> List[MemberDTO]:
     logger.info("[Member] Fetching members for repository: repo_id=%s", repo_id)
 
@@ -46,7 +46,7 @@ def get_members_by_repo(repo_id: int, container: Container = Depends(get_contain
     )
     return results
 
-@router.get("/all-with-repos")
+@router.get("/all-with-repos", response_model=List[MemberWithReposDTO])
 def get_all_with_repos(container: Container = Depends(get_container)) -> List[MemberWithReposDTO]:
     logger.info("[Member] Fetching all members with their repositories")
 
@@ -59,7 +59,7 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
     )
     return results
 
-@router.put("/{member_id}")
+@router.put("/{member_id}", response_model=MemberWithReposDTO)
 def update_member(member_id: int, member: MemberUpdateDTO, container: Container = Depends(get_container)) -> MemberWithReposDTO:
     logger.info("[Member] Updating member: id=%s", member_id)
 
@@ -73,7 +73,7 @@ def update_member(member_id: int, member: MemberUpdateDTO, container: Container 
     )
     return result
 
-@router.delete("/{member_id}")
+@router.delete("/{member_id}", response_model=bool)
 def delete_member(member_id: int, container: Container = Depends(get_container)) -> bool:
     logger.info("[Member] Deleting member: id=%s", member_id)
 

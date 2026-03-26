@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/")
+@router.get("/", response_model=list[ClickUpSpaceDTO])
 def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickUpSpaceDTO]:
     logger.info("[ClickUp] Fetching all ClickUp spaces")
 
@@ -28,7 +28,7 @@ def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickU
     logger.info("[ClickUp] Retrieved %d ClickUp spaces", len(results))
     return results
 
-@router.get("/light")
+@router.get("/light", response_model=list[ClickUpSpaceLightDTO])
 def get_all_light(container: Container = Depends(get_container)) -> list[ClickUpSpaceLightDTO]:
     logger.info("[ClickUp] Fetching all ClickUp spaces (light version)")
 
@@ -38,7 +38,7 @@ def get_all_light(container: Container = Depends(get_container)) -> list[ClickUp
     logger.info("[ClickUp] Retrieved %d ClickUp spaces (light)", len(results))
     return results
 
-@router.get("/{space_id}")
+@router.get("/{space_id}", response_model=ClickUpSpaceDetailDTO)
 def get_space_by_id(space_id: int, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
     logger.info("[ClickUp] Fetching ClickUp space by id=%s", space_id)
 
@@ -48,7 +48,7 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
     logger.info("[ClickUp] ClickUp space retrieved successfully: id=%s", space_id)
     return result
 
-@router.post("/")
+@router.post("/", response_model=ClickUpSpaceDTO)
 def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDTO:
     logger.info(
         "[ClickUp] Creating ClickUp space: space_code=%s, name=%s",
@@ -65,7 +65,7 @@ def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(ge
     )
     return result
 
-@router.put("/{space_id}")
+@router.put("/{space_id}", response_model=ClickUpSpaceDetailDTO)
 def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
     logger.info(
         "[ClickUp] Updating ClickUp space: id=%s",
@@ -82,7 +82,7 @@ def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Contain
     )
     return result
 
-@router.delete("/{space_id}")
+@router.delete("/{space_id}", response_model=bool)
 def delete_space(space_id: int, container: Container = Depends(get_container)) -> bool:
     logger.info("[ClickUp] Deleting ClickUp space: id=%s", space_id)
 

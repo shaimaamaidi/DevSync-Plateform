@@ -1,10 +1,12 @@
 import logging
-from typing import List
-
 from fastapi import APIRouter, Depends
 
-from backend.src.domain.entities.git_repo import GitRepoDTO
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
+from backend.src.domain.entities.associator import (
+    AssociateClickUpSpaceRequest,
+    AssociateClickUpSpaceResponse,
+    AssociateMembersResponse,
+    RepoMembersRequest,
+)
 from backend.src.infrastructure.di.container import Container
 from backend.src.presentation.api.deps import get_container
 
@@ -15,46 +17,89 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/space")
+@router.post("/space", response_model=AssociateClickUpSpaceResponse)
 def associate_space(
-    repo: GitRepoDTO,
-    clickup_space: ClickUpSpaceDTO,
+    request: AssociateClickUpSpaceRequest,
     container: Container = Depends(get_container),
-):
+) -> AssociateClickUpSpaceResponse:
     logger.info(
         "Associating ClickUp space with repository: repo_url=%s, space_code=%s",
-        repo.url,
-        clickup_space.space_code,
+        request.repo_url,
+        request.space_code,
     )
 
     service = container.associator_service
-    result = service.associate_space(repo, clickup_space)
+    result = service.associate_clickup_space(request)
 
     logger.info(
         "ClickUp space associated successfully: repo_url=%s, space_code=%s",
-        repo.url,
-        clickup_space.space_code,
+        request.repo_url,
+        request.space_code,
     )
     return result
 
-@router.post("/members")
+
+@router.post("/members", response_model=AssociateMembersResponse)
 def associate_members(
-    repo: GitRepoDTO,
-    members: List[dict],
+    request: RepoMembersRequest,
     container: Container = Depends(get_container),
-):
+) -> AssociateMembersResponse:
     logger.info(
         "Associating members with repository: repo_url=%s, members_count=%s",
-        repo.url,
-        len(members),
+        request.repo_url,
+        len(request.members),
     )
 
     service = container.associator_service
-    results = service.associate_members(repo, members)
+    results = service.update_members(request)
 
     logger.info(
         "Members associated successfully: repo_url=%s, members_count=%s",
-        repo.url,
-        len(results),
+        request.repo_url,
+        len(request.members),
     )
     return results
+
+
+@router.post("/members/add", response_model=AssociateMembersResponse)
+def add_members(
+    request: RepoMembersRequest,
+    container: Container = Depends(get_container),
+) -> AssociateMembersResponse:
+    logger.info(
+        "Adding members to repository: repo_url=%s, members_count=%s",
+        request.repo_url,
+        len(request.members),
+    )
+
+    service = container.associator_service
+    result = service.add_members(request)
+
+    logger.info(
+        "Members added successfully: repo_url=%s, members_count=%s",
+        request.repo_url,
+        len(request.members),
+    )
+    return result
+
+
+@router.post("/members/remove", response_model=AssociateMembersResponse)
+def remove_members(
+    request: RepoMembersRequest,
+    container: Container = Depends(get_container),
+) -> AssociateMembersResponse:
+    logger.info(
+        "Removing members from repository: repo_url=%s, members_count=%s",
+        request.repo_url,
+        len(request.members),
+    )
+
+    service = container.associator_service
+    result = service.remove_members(request)
+
+    logger.info(
+        "Members removed successfully: repo_url=%s, members_count=%s",
+        request.repo_url,
+        len(request.members),
+    )
+    return result
