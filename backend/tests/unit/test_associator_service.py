@@ -1,0 +1,89 @@
+"""Unit tests for AssociatorService."""
+
+from unittest.mock import MagicMock
+
+import pytest
+
+from backend.src.application.services.associator_service import AssociatorService
+from backend.src.domain.entities.associator import AssociateClickUpSpaceRequest, RepoMembersRequest
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
+from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, RepoMemberDTO
+from backend.src.domain.entities.member import MemberWithReposDTO
+from backend.src.domain.exceptions.invalid_member_data_exception import InvalidMemberDataException
+
+
+def test_associate_clickup_space_updates_repo() -> None:
+    repo_service = MagicMock()
+    clickup_service = MagicMock()
+    member_service = MagicMock()
+
+    clickup_service.get_by_space_code.return_value = ClickUpSpaceDTO(id=2, name="Platform", space_code="PLT")
+    repo_service.get_by_url.return_value = GitRepoDTO(id=1, name="repo", url="https://github.com/org/repo")
+    repo_service.update_repo.return_value = GitRepoDetailDTO(
+        id=1,
+        name="repo",
+        url="https://github.com/org/repo",
+        members=[],
+        clickup_space=None,
+    )
+
+    service = AssociatorService(repo_service, clickup_service, member_service)
+
+    result = service.associate_clickup_space(
+        AssociateClickUpSpaceRequest(repo_url="https://github.com/org/repo", space_code="PLT")
+    )
+
+    repo_service.update_repo.assert_called_once()
+    assert result.clickup_space.space_code == "PLT"
+
+
+def test_add_members_requires_mail() -> None:
+    repo_service = MagicMock()
+    clickup_service = MagicMock()
+    member_service = MagicMock()
+    service = AssociatorService(repo_service, clickup_service, member_service)
+
+    request = RepoMembersRequest(repo_url="https://github.com/org/repo", members=[{}])
+
+    with pytest.raises(InvalidMemberDataException):
+        service.add_members(request)
+
+
+def test_remove_members_builds_payload() -> None:
+    repo_service = MagicMock()
+    clickup_service = MagicMock()
+    member_service = MagicMock()
+
+    repo_service.get_by_url.return_value = GitRepoDTO(id=1, name="repo", url="https://github.com/org/repo")
+    repo_service.get_by_id.return_value = GitRepoDetailDTO(
+        id=1,
+        name="repo",
+        url="https://github.com/org/repo",
+        members=[RepoMemberDTO(id=1, username="alice", mail="alice@example.com")],
+        clickup_space=None,
+    )
+    member_service.get_member_by_mail.return_value = MemberWithReposDTO(
+        id=2,
+        username="bob",
+        mail="bob@example.com",
+        repos=[],
+    )
+    repo_service.update_repo.return_value = GitRepoDetailDTO(
+        id=1,
+        name="repo",
+        url="https://github.com/org/repo",
+        members=[],
+        clickup_space=None,
+    )
+
+    service = AssociatorService(repo_service, clickup_service, member_service)
+
+    request = RepoMembersRequest(
+        repo_url="https://github.com/org/repo",
+        members=[{"mail": "bob@example.com"}],
+    )
+
+    result = service.remove_members(request)
+
+    repo_service.update_repo.assert_called_once()
+    assert result.repo.id == 1
