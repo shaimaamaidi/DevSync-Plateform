@@ -1,3 +1,5 @@
+"""Associator API routes."""
+
 import logging
 from fastapi import APIRouter, Depends
 
@@ -22,6 +24,7 @@ def associate_space(
     request: AssociateClickUpSpaceRequest,
     container: Container = Depends(get_container),
 ) -> AssociateClickUpSpaceResponse:
+    """Associate a ClickUp space with a repository."""
     logger.info(
         "Associating ClickUp space with repository: repo_url=%s, space_code=%s.",
         request.repo_url,
@@ -36,6 +39,7 @@ def associate_space(
         request.repo_url,
         request.space_code,
     )
+
     return result
 
 
@@ -44,6 +48,7 @@ def associate_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
+    """Replace repository members with the provided list."""
     logger.info(
         "Associating members with repository: repo_url=%s, members_count=%s.",
         request.repo_url,
@@ -58,6 +63,7 @@ def associate_members(
         request.repo_url,
         len(request.members),
     )
+
     return results
 
 
@@ -66,6 +72,7 @@ def add_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
+    """Add members to a repository."""
     logger.info(
         "Adding members to repository: repo_url=%s, members_count=%s.",
         request.repo_url,
@@ -80,6 +87,7 @@ def add_members(
         request.repo_url,
         len(request.members),
     )
+
     return result
 
 
@@ -88,6 +96,7 @@ def remove_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
+    """Remove members from a repository."""
     logger.info(
         "Removing members from repository: repo_url=%s, members_count=%s.",
         request.repo_url,
@@ -102,4 +111,5 @@ def remove_members(
         request.repo_url,
         len(request.members),
     )
+
     return result

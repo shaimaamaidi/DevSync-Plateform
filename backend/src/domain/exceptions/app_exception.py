@@ -1,21 +1,16 @@
-"""Base application exception for domain-specific errors."""
+
+"""Base application exception with metadata."""
+
 
 class AppException(Exception):
-    """Base exception for domain and business logic errors.
-
-    Attributes:
-        message: Human-readable error message.
-        code: Error code identifier.
-        http_status: HTTP status code for API responses.
-    """
-
+    """Exception carrying a code and HTTP status."""
     def __init__(self, message: str, code: str = "APP_ERROR", http_status: int = 400):
-        """Initialize the exception.
+        """Initialize an application exception.
 
         Args:
-            message: Human-readable error message.
-            code: Error code identifier.
-            http_status: HTTP status code to return.
+            message: Human readable error message.
+            code: Stable error code.
+            http_status: HTTP status to return.
         """
         self.message = message
         self.code = code

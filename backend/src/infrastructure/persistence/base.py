@@ -1,3 +1,5 @@
+"""SQLAlchemy base metadata for persistence models."""
+
 import logging
 
 from sqlalchemy.orm import declarative_base

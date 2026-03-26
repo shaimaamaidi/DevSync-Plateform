@@ -1,3 +1,5 @@
+"""GitHub adapter for deployment data."""
+
 import logging
 import re
 import requests
@@ -21,8 +23,20 @@ HEADERS = {
 
 
 class GitHubDeploymentAdapter(IGitHubService):
+    """Fetch deployment data from the GitHub API."""
     @staticmethod
     def _parse_repo(url: str) -> tuple[str, str]:
+        """Parse owner and repository name from a GitHub URL.
+
+        Args:
+            url: GitHub repository URL.
+
+        Returns:
+            Tuple of (owner, repo).
+
+        Raises:
+            InvalidGitHubUrlException: When the URL is not a GitHub repo URL.
+        """
         logger.info("Parsing GitHub repository URL: %s.", url)
 
         url = url.rstrip("/")
@@ -40,6 +54,19 @@ class GitHubDeploymentAdapter(IGitHubService):
 
     @staticmethod
     def _github_get(url: str):
+        """Perform paginated GET requests against the GitHub API.
+
+        Args:
+            url: GitHub API URL.
+
+        Returns:
+            API response data.
+
+        Raises:
+            AppException: For timeouts, connection, or API failures.
+            GitHubRateLimitException: When rate limit is exceeded.
+            GitHubRepoNotFoundException: When repository is missing.
+        """
         logger.info("Fetching data from GitHub API: %s.", url)
 
         results = []
@@ -108,6 +135,14 @@ class GitHubDeploymentAdapter(IGitHubService):
 
     @staticmethod
     def _fmt_date(iso: str | None) -> str:
+        """Format an ISO datetime string for display.
+
+        Args:
+            iso: ISO timestamp string.
+
+        Returns:
+            Formatted timestamp or fallback string.
+        """
         if not iso:
             return "-"
         try:
@@ -118,13 +153,30 @@ class GitHubDeploymentAdapter(IGitHubService):
 
     @staticmethod
     def _status_icon(state: str) -> str:
+        """Map a deployment state to a label.
+
+        Args:
+            state: Deployment state.
+
+        Returns:
+            Short status label.
+        """
         return {
             "success": "OK", "active": "ACTIF", "failure": "ECHEC",
+        
             "error": "ERREUR", "pending": "EN ATTENTE", "in_progress": "EN COURS",
             "queued": "FILE", "inactive": "INACTIF", "destroyed": "SUPPRIME",
         }.get(state, "?")
 
     def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+        """Retrieve deployments for the repository URL.
+
+        Args:
+            repo_url: GitHub repository URL.
+
+        Returns:
+            List of deployment DTOs.
+        """
         logger.info("Fetching deployments for repository: %s.", repo_url)
 
         owner, repo = self._parse_repo(repo_url)

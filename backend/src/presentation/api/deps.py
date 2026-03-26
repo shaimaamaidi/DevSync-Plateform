@@ -1,3 +1,5 @@
+"""FastAPI dependency providers."""
+
 import logging
 from typing import Generator
 
@@ -11,6 +13,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_container(request: Request) -> Generator[Container, None, None]:
+    """Provide a request-scoped container.
+
+    Args:
+        request: FastAPI request.
+
+    Yields:
+        Container configured with the request session.
+    """
     session = request.app.state.db.get_session()
     try:
         yield Container(session)

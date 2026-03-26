@@ -1,3 +1,5 @@
+"""Application service for deployment queries."""
+
 import logging
 from typing import List
 
@@ -9,12 +11,26 @@ logger = logging.getLogger(__name__)
 
 
 class DeploymentService:
+    """Provide deployment read use cases."""
     def __init__(self, github_service: IGitHubService):
+        """Initialize the service with a GitHub adapter.
+
+        Args:
+            github_service: GitHub service port.
+        """
         self._github = github_service
 
     def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
-        logger.info("Fetching deployments for repository: repo_url=%s.", repo_url)
+        """List deployments for a repository URL.
 
+        Args:
+            repo_url: GitHub repository URL.
+
+        Returns:
+            Deployment DTO list.
+        """
+        logger.info("Fetching deployments for repository: repo_url=%s.", repo_url)
+        
         results = self._github.get_deployments(repo_url)
 
         logger.info(

@@ -1,3 +1,5 @@
+"""Member API routes."""
+
 import logging
 from typing import List
 
@@ -17,6 +19,7 @@ router = APIRouter()
 
 @router.post("/", response_model=MemberDTO)
 def add_member(member: MemberCreateDTO, container: Container = Depends(get_container)) -> MemberDTO:
+    """Create a new member."""
     logger.info(
         "[Member] Creating member: mail=%s, username=%s.",
         member.mail,
@@ -30,10 +33,12 @@ def add_member(member: MemberCreateDTO, container: Container = Depends(get_conta
         result.id,
         result.mail,
     )
+
     return result
 
 @router.get("/by-repo/{repo_id}", response_model=List[MemberDTO])
 def get_members_by_repo(repo_id: int, container: Container = Depends(get_container)) -> List[MemberDTO]:
+    """Return members for a repository."""
     logger.info("[Member] Fetching members for repository: repo_id=%s.", repo_id)
 
     repo = container.repo_service.get_by_id(GitRepoIdDTO(id=repo_id))
@@ -44,10 +49,12 @@ def get_members_by_repo(repo_id: int, container: Container = Depends(get_contain
         len(results),
         repo_id,
     )
+
     return results
 
 @router.get("/all-with-repos", response_model=List[MemberWithReposDTO])
 def get_all_with_repos(container: Container = Depends(get_container)) -> List[MemberWithReposDTO]:
+    """Return all members with repositories."""
     logger.info("[Member] Fetching all members with their repositories.")
 
     service = container.member_service
@@ -57,10 +64,12 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
         "[Member] Retrieved %d members with repositories.",
         len(results),
     )
+
     return results
 
 @router.put("/{member_id}", response_model=MemberWithReposDTO)
 def update_member(member_id: int, member: MemberUpdateDTO, container: Container = Depends(get_container)) -> MemberWithReposDTO:
+    """Update a member by id."""
     logger.info("[Member] Updating member: id=%s.", member_id)
 
     service = container.member_service
@@ -71,12 +80,14 @@ def update_member(member_id: int, member: MemberUpdateDTO, container: Container 
         "[Member] Member updated successfully: id=%s.",
         member_id,
     )
+
     return result
 
 @router.delete("/{member_id}", response_model=bool)
 def delete_member(member_id: int, container: Container = Depends(get_container)) -> bool:
+    """Delete a member by id."""
     logger.info("[Member] Deleting member: id=%s.", member_id)
-
+    
     service = container.member_service
     result = service.delete(member_id)
 
@@ -84,4 +95,5 @@ def delete_member(member_id: int, container: Container = Depends(get_container))
         "[Member] Member deleted successfully: id=%s.",
         member_id,
     )
+
     return result

@@ -1,3 +1,5 @@
+"""Dependency container for application services."""
+
 import logging
 
 from backend.src.application.services.member_service import MemberService
@@ -15,7 +17,13 @@ logger = logging.getLogger(__name__)
 
 
 class Container:
+    """Wire repositories, adapters, and services for a request."""
     def __init__(self, session):
+        """Initialize dependencies using a shared session.
+
+        Args:
+            session: SQLAlchemy session.
+        """
         logger.info("Initializing application container.")
 
         self.session = session

@@ -1,3 +1,5 @@
+"""Database initialization script."""
+
 import logging
 
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
@@ -15,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 
 def init_db():
+    """Create database and tables if they do not exist."""
     logger.info("Starting database initialization.")
-
+    
     try:
         # Initialize connector
         logger.info("Initializing MySQL connector.")

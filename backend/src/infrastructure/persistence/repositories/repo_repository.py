@@ -1,3 +1,5 @@
+"""SQLAlchemy repository for Git repositories."""
+
 import logging
 from typing import List
 
@@ -23,12 +25,28 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: GitRepoModel) -> GitRepoDTO:
+    """Convert a repository model to a DTO.
+
+    Args:
+        m: Git repository ORM model.
+
+    Returns:
+        Repository DTO.
+    """
     return GitRepoDTO(id=m.id, name=m.name, url=m.url)
 
-
 def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
+    """Convert a repository model to a detailed DTO.
+
+    Args:
+        m: Git repository ORM model.
+
+    Returns:
+        Repository detail DTO.
+    """
     members = [
         RepoMemberDTO(
+    
             id=mb.id,
             username=mb.username,
             mail=mb.mail,
@@ -46,13 +64,29 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
     )
     return GitRepoDetailDTO(id=m.id, name=m.name, url=m.url, members=members, clickup_space=space)
 
+
 class SqlAlchemyRepoRepository(IRepoRepository):
+    """SQLAlchemy-backed Git repository."""
     def __init__(self, session):
+        """Initialize the repository with a session.
+
+        Args:
+            session: SQLAlchemy session.
+        """
         self._session = session
 
     def save(self, repo: GitRepoCreateDTO) -> GitRepoDTO:
+        """Create a repository record.
+
+        Args:
+            repo: Repository create DTO.
+
+        Returns:
+            Created repository DTO.
+        """
         logger.info(
             "Creating new repository (name=%s, url=%s).",
+        
             repo.name,
             repo.url
         )
@@ -97,6 +131,14 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def update(self, repo: GitRepoUpdateDTO) -> GitRepoDetailDTO:
+        """Update a repository record.
+
+        Args:
+            repo: Repository update DTO.
+
+        Returns:
+            Updated repository detail DTO.
+        """
         logger.info("Updating repository (id=%s).", repo.id)
 
         if not repo.id:
@@ -269,6 +311,14 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def find_by_id(self, repo_id: int) -> GitRepoDetailDTO:
+        """Fetch a repository by id.
+
+        Args:
+            repo_id: Repository id.
+
+        Returns:
+            Repository detail DTO.
+        """
         logger.info("Fetching repository (id=%s).", repo_id)
 
         try:
@@ -295,6 +345,14 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         return _model_to_detail_dto(m)
 
     def find_by_url(self, url: str) -> GitRepoDTO:
+        """Fetch a repository by URL.
+
+        Args:
+            url: Repository URL.
+
+        Returns:
+            Repository DTO.
+        """
         logger.info("Fetching repository by url (url=%s).", url)
 
         try:
@@ -321,6 +379,14 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         return _model_to_dto(m)
 
     def find_by_name(self, name: str) -> GitRepoDetailDTO:
+        """Fetch a repository by name.
+
+        Args:
+            name: Repository name.
+
+        Returns:
+            Repository detail DTO.
+        """
         logger.info("Fetching repository by name (name=%s).", name)
 
         try:
@@ -347,6 +413,11 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         return _model_to_detail_dto(m)
 
     def find_all(self) -> List[GitRepoDTO]:
+        """Fetch all repositories.
+
+        Returns:
+            List of repository DTOs.
+        """
         logger.info("Fetching all repositories.")
 
         try:
@@ -367,8 +438,13 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def find_all_with_details(self) -> List[GitRepoDetailDTO]:
-        logger.info("Fetching all repositories with details.")
+        """Fetch all repositories with details.
 
+        Returns:
+            List of repository detail DTOs.
+        """
+        logger.info("Fetching all repositories with details.")
+        
         try:
             results = [_model_to_detail_dto(m) for m in self._session.query(GitRepoModel).all()]
 
@@ -387,8 +463,16 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def delete(self, repo_id: int) -> bool:
-        logger.info("Deleting repository (id=%s).", repo_id)
+        """Delete a repository by id.
 
+        Args:
+            repo_id: Repository id.
+
+        Returns:
+            True when deletion succeeds.
+        """
+        logger.info("Deleting repository (id=%s).", repo_id)
+        
         try:
             m = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
         except Exception as e:

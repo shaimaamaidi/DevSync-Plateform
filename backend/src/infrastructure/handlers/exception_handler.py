@@ -1,4 +1,5 @@
-"""FastAPI exception handlers for domain and validation errors."""
+"""FastAPI exception handlers for domain errors."""
+
 import logging
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
@@ -6,7 +7,9 @@ from fastapi.responses import JSONResponse
 
 from backend.src.domain.exceptions.app_exception import AppException
 
+
 logger = logging.getLogger(__name__)
+
 
 _NOT_FOUND_CODES = {
     "CLICKUP_SPACE_NOT_FOUND",
@@ -37,10 +40,17 @@ _RUNTIME_CODES = {
 
 class FastAPIExceptionHandler:
     """Centralized exception handling for FastAPI."""
-
     @staticmethod
     async def handle_app_exception(request: Request, exc: AppException) -> JSONResponse:
-        """Handle domain application exceptions."""
+        """Handle domain application exceptions.
+
+        Args:
+            request: Incoming request.
+            exc: Application exception instance.
+
+        Returns:
+            JSON response with error payload.
+        """
         if exc.code in _NOT_FOUND_CODES:
             logger.warning(
                 "Not Found Error [%s]: %s.",
@@ -86,7 +96,15 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def handle_validation_exception(request: Request, exc: RequestValidationError) -> JSONResponse:
-        """Handle FastAPI request validation errors."""
+        """Handle request validation errors.
+
+        Args:
+            request: Incoming request.
+            exc: Validation error from FastAPI.
+
+        Returns:
+            JSON response with validation details.
+        """
         logger.info(
             "Validation Error on request %s: %s.",
             request.url.path,
@@ -105,7 +123,15 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
-        """Handle unhandled exceptions."""
+        """Handle unexpected exceptions.
+
+        Args:
+            request: Incoming request.
+            exc: Unhandled exception.
+
+        Returns:
+            JSON response with generic error payload.
+        """
         logger.error(
             "Unhandled exception on request %s: %s.",
             request.url.path,

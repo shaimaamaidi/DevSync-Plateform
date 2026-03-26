@@ -1,3 +1,5 @@
+"""SQLAlchemy model for members."""
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -6,6 +8,7 @@ from backend.src.infrastructure.persistence.models.member_repo_association impor
 
 
 class MemberModel(Base):
+    """Persisted member record."""
     __tablename__ = "members"
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)

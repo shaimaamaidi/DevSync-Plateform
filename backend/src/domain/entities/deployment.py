@@ -1,8 +1,11 @@
+"""Domain DTO for deployment data."""
+
 from dataclasses import dataclass
 
 
 @dataclass
 class DeploymentDTO:
+    """Deployment information returned by GitHub."""
     dep_id: int
     environment: str
     ref: str

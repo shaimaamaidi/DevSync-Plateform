@@ -1,3 +1,5 @@
+"""Deployment API routes."""
+
 import logging
 from typing import List
 
@@ -19,7 +21,7 @@ def list_deployments(
     repo_url: str,
     container: Container = Depends(get_container),
 ) -> List[DeploymentDTO]:
-    """Get all deployments for a given repo URL"""
+    """List deployments for a repository URL."""
     logger.info(
         "[Deployment] Fetching deployments for repository: repo_url=%s.",
         repo_url,
@@ -33,4 +35,5 @@ def list_deployments(
         len(results),
         repo_url,
     )
+
     return results

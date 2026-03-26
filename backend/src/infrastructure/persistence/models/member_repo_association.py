@@ -1,3 +1,5 @@
+"""Association table between members and repositories."""
+
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from backend.src.infrastructure.persistence.base import Base
 

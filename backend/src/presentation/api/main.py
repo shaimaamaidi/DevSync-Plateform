@@ -1,4 +1,5 @@
-"""FastAPI application factory and configuration."""
+"""FastAPI application factory."""
+
 import logging
 
 from fastapi import FastAPI
@@ -15,7 +16,14 @@ from backend.src.presentation.api.routers import associator_router, clickup_rout
 
 logger = logging.getLogger(__name__)
 
+
 def create_app() -> FastAPI:
+    """Create and configure the FastAPI application.
+
+    Returns:
+        Configured FastAPI instance.
+    """
+    
     setup_logger() 
 
     app = FastAPI(
@@ -34,14 +42,14 @@ def create_app() -> FastAPI:
 
     app.middleware("http")(request_id_middleware)
 
-    # 🔹 DB connector (session per request)
+    # DB connector (session per request)
     app.state.db = MySQLConnector()
 
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
     app.add_exception_handler(Exception, FastAPIExceptionHandler.handle_generic_exception)
 
-    # 🔹 Routers
+    # Routers
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])
     app.include_router(associator_router.router, prefix="/associate", tags=["Associator"])
     app.include_router(repo_router.router, prefix="/repo", tags=["Repo"])

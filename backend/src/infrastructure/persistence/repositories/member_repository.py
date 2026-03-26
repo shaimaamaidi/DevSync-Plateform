@@ -1,3 +1,5 @@
+"""SQLAlchemy repository for members."""
+
 import logging
 from typing import List
 
@@ -22,21 +24,51 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: MemberModel) -> MemberDTO:
+    """Convert a member model to a DTO.
+
+    Args:
+        m: Member ORM model.
+
+    Returns:
+        Member DTO.
+    """
     return MemberDTO(id=m.id, username=m.username, mail=m.mail)
 
-
 def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
+    """Convert a member model to a DTO with repos.
+
+    Args:
+        m: Member ORM model.
+
+    Returns:
+        Member DTO with repositories.
+    """
     repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos]
     return MemberWithReposDTO(id=m.id, username=m.username, mail=m.mail, repos=repos)
 
 
 class SqlAlchemyMemberRepository(IMemberRepository):
+    """SQLAlchemy-backed member repository."""
     def __init__(self, session):
+        """Initialize the repository with a session.
+
+        Args:
+            session: SQLAlchemy session.
+        """
         self._session = session
 
     def save(self, member: MemberCreateDTO) -> MemberDTO:
+        """Create a member record.
+
+        Args:
+            member: Member create DTO.
+
+        Returns:
+            Created member DTO.
+        """
         logger.info(
             "Creating new member (username=%s, mail=%s).",
+        
             member.username,
             member.mail
         )
@@ -78,6 +110,14 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def update(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
+        """Update a member record.
+
+        Args:
+            member: Member update DTO.
+
+        Returns:
+            Updated member with repositories.
+        """
         logger.info("Updating member (id=%s).", member.id)
 
         if not member.id:
@@ -185,6 +225,14 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def find_by_id(self, member_id: int) -> MemberDTO:
+        """Fetch a member by id.
+
+        Args:
+            member_id: Member id.
+
+        Returns:
+            Member DTO.
+        """
         logger.info("Fetching member by id=%s.", member_id)
 
         try:
@@ -211,8 +259,16 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         return _model_to_dto(m)
 
     def find_by_mail(self, mail: str) -> MemberWithReposDTO:
-        logger.info("Fetching member by mail (mail=%s).", mail)
+        """Fetch a member by email.
 
+        Args:
+            mail: Member email.
+
+        Returns:
+            Member with repositories DTO.
+        """
+        logger.info("Fetching member by mail (mail=%s).", mail)
+        
         try:
             m = self._session.query(MemberModel).filter_by(mail=mail).first()
 
@@ -238,6 +294,14 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         return _model_to_with_repos_dto(m)
 
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
+        """Fetch members by repository id.
+
+        Args:
+            repo_id: Repository id.
+
+        Returns:
+            List of member DTOs.
+        """
         logger.info("Fetching members by repository ID (repo_id=%s).", repo_id)
 
         try:
@@ -266,8 +330,13 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def find_all_with_repos(self) -> List[MemberWithReposDTO]:
-        logger.info("Fetching all members with their repositories.")
+        """Fetch all members with repositories.
 
+        Returns:
+            List of members with repositories.
+        """
+        logger.info("Fetching all members with their repositories.")
+        
         try:
             rows = self._session.query(MemberModel).all()
             results = [_model_to_with_repos_dto(m) for m in rows]
@@ -289,8 +358,16 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def delete(self, member_id: int) -> bool:
-        logger.info("Deleting member (id=%s).", member_id)
+        """Delete a member by id.
 
+        Args:
+            member_id: Member id.
+
+        Returns:
+            True when deletion succeeds.
+        """
+        logger.info("Deleting member (id=%s).", member_id)
+        
         try:
             m = self._session.query(MemberModel).filter_by(id=member_id).first()
         except Exception as e:

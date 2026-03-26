@@ -1,3 +1,5 @@
+"""SQLAlchemy model for Git repositories."""
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -6,6 +8,7 @@ from backend.src.infrastructure.persistence.models.member_repo_association impor
 
 
 class GitRepoModel(Base):
+    """Persisted Git repository record."""
     __tablename__ = "git_repos"
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)

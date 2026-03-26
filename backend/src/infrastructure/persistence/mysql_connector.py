@@ -1,3 +1,5 @@
+"""MySQL database connector and session factory."""
+
 import logging
 from pathlib import Path
 
@@ -21,7 +23,9 @@ _DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class MySQLConnector:
+    """Create and manage SQLAlchemy engine and sessions."""
     def __init__(self):
+        """Initialize configuration from environment and validate it."""
         logger.info("Initializing MySQL connector.")
 
         loaded = load_dotenv(_DOTENV_PATH, override=False)
@@ -62,8 +66,10 @@ class MySQLConnector:
         )
 
     def create_db_if_not_exists(self):
+        """Ensure the database exists before connecting."""
         logger.info(
             "Ensuring database exists (db=%s, host=%s).",
+        
             self.db,
             self.host
         )
@@ -85,6 +91,11 @@ class MySQLConnector:
             raise DatabaseInitializationException() from e
 
     def connect(self):
+        """Create a SQLAlchemy engine and session factory.
+
+        Returns:
+            Tuple of (engine, sessionmaker).
+        """
         logger.info(
             "Connecting to MySQL database (host=%s, port=%s, db=%s).",
             self.host,
@@ -112,6 +123,11 @@ class MySQLConnector:
             raise DatabaseConnectionException() from e
 
     def get_session(self):
+        """Create a new SQLAlchemy session.
+
+        Returns:
+            SQLAlchemy session instance.
+        """
         logger.info("Creating new database session.")
 
         try:
