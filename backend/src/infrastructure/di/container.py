@@ -41,9 +41,9 @@ class Container:
             self.clickup_service = ClickUpService(self.clickup_repo)
 
             self.associator_service = AssociatorService(
+                self.repo_service,
                 self.clickup_service,
                 self.member_service,
-                self.repo_service,
             )
 
             self.deployment_service = DeploymentService(self.github_service)

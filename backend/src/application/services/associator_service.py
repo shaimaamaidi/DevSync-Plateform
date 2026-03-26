@@ -31,12 +31,13 @@ class AssociatorService:
             request.space_code,
         )
 
+        clickup_space = self._clickup.get_by_space_code(request.space_code)
         existing_repo = self._repo.get_by_url(request.repo_url)
         logger.info("Repository fetched successfully: repo_id=%s", existing_repo.id)
 
         update_payload = GitRepoUpdateDTO(
             id=existing_repo.id,
-            clickup_space=RepoClickUpSpaceRefDTO(space_code=request.space_code),
+            clickup_space=RepoClickUpSpaceRefDTO(space_code=clickup_space.space_code),
         )
 
         updated_repo = self._repo.update_repo(update_payload)
@@ -71,7 +72,8 @@ class AssociatorService:
         for member in request.members:
             if not member.mail:
                 raise InvalidMemberDataException(missing_fields=["mail"], data=member.model_dump())
-            incoming_mails.append(member.mail)
+            existing_member = self._member.get_member_by_mail(member.mail)
+            incoming_mails.append(existing_member.mail)
 
         merged_mails = existing_mails.union(incoming_mails)
         update_payload = GitRepoUpdateDTO(
@@ -98,7 +100,8 @@ class AssociatorService:
         for member in request.members:
             if not member.mail:
                 raise InvalidMemberDataException(missing_fields=["mail"], data=member.model_dump())
-            remove_mails.add(member.mail)
+            existing_member = self._member.get_member_by_mail(member.mail)
+            remove_mails.add(existing_member.mail)
 
         remaining_mails = existing_mails - remove_mails
         update_payload = GitRepoUpdateDTO(
@@ -138,7 +141,8 @@ class AssociatorService:
         for member in request.members:
             if not member.mail:
                 raise InvalidMemberDataException(missing_fields=["mail"], data=member.model_dump())
-            update_mails.append(member.mail)
+            existing_member = self._member.get_member_by_mail(member.mail)
+            update_mails.append(existing_member.mail)
 
         update_payload = GitRepoUpdateDTO(
             id=existing_repo.id,
