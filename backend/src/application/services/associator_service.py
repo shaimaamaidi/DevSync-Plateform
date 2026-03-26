@@ -53,7 +53,7 @@ class AssociatorService:
         )
         return AssociateClickUpSpaceResponse(
             repo=repo_dto,
-            clickup_space=updated_repo.clickup_space,
+            clickup_space=clickup_space,
         )
 
     def add_members(self, request: RepoMembersRequest):
