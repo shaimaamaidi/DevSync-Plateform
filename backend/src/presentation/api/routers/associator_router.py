@@ -22,18 +22,18 @@ def associate_space(
     container: Container = Depends(get_container),
 ):
     logger.info(
-        "Associating ClickUp space with repository: repo_url=%s, space_id=%s",
+        "Associating ClickUp space with repository: repo_url=%s, space_code=%s",
         repo.url,
-        clickup_space.space_id,
+        clickup_space.space_code,
     )
 
     service = container.associator_service
     result = service.associate_space(repo, clickup_space)
 
     logger.info(
-        "ClickUp space associated successfully: repo_url=%s, space_id=%s",
+        "ClickUp space associated successfully: repo_url=%s, space_code=%s",
         repo.url,
-        clickup_space.space_id,
+        clickup_space.space_code,
     )
     return result
 

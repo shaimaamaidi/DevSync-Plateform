@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO
+from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
 
 
 class IMemberRepository(ABC):
     @abstractmethod
-    def save(self, member: MemberDTO) -> MemberDTO:
+    def save(self, member: MemberCreateDTO) -> MemberDTO:
         pass
 
     @abstractmethod
-    def update(self, member: MemberDTO) -> MemberDTO:
+    def update(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
         pass
 
     @abstractmethod
@@ -18,7 +18,7 @@ class IMemberRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_mail(self, mail: str) -> MemberDTO:
+    def find_by_mail(self, mail: str) -> MemberWithReposDTO:
         pass
 
     @abstractmethod

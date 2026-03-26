@@ -1,7 +1,13 @@
 import logging
 
 from fastapi import APIRouter, Depends
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
+from backend.src.domain.entities.clickup_space import (
+    ClickUpSpaceCreateDTO,
+    ClickUpSpaceDTO,
+    ClickUpSpaceDetailDTO,
+    ClickUpSpaceLightDTO,
+    ClickUpSpaceUpdateDTO,
+)
 from backend.src.infrastructure.di.container import Container
 from backend.src.presentation.api.deps import get_container
 
@@ -13,7 +19,7 @@ router = APIRouter()
 
 
 @router.get("/")
-def get_all_spaces(container: Container = Depends(get_container)):
+def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickUpSpaceDTO]:
     logger.info("[ClickUp] Fetching all ClickUp spaces")
 
     service = container.clickup_service
@@ -23,7 +29,7 @@ def get_all_spaces(container: Container = Depends(get_container)):
     return results
 
 @router.get("/light")
-def get_all_light(container: Container = Depends(get_container)):
+def get_all_light(container: Container = Depends(get_container)) -> list[ClickUpSpaceLightDTO]:
     logger.info("[ClickUp] Fetching all ClickUp spaces (light version)")
 
     service = container.clickup_service
@@ -33,7 +39,7 @@ def get_all_light(container: Container = Depends(get_container)):
     return results
 
 @router.get("/{space_id}")
-def get_space_by_id(space_id: int, container: Container = Depends(get_container)):
+def get_space_by_id(space_id: int, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
     logger.info("[ClickUp] Fetching ClickUp space by id=%s", space_id)
 
     service = container.clickup_service
@@ -43,9 +49,9 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
     return result
 
 @router.post("/")
-def create_space(space: ClickUpSpaceDTO, container: Container = Depends(get_container)):
+def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDTO:
     logger.info(
-        "[ClickUp] Creating ClickUp space: space_id=%s, name=%s",
+        "[ClickUp] Creating ClickUp space: space_code=%s, name=%s",
         space.space_code,
         space.name,
     )
@@ -60,7 +66,7 @@ def create_space(space: ClickUpSpaceDTO, container: Container = Depends(get_cont
     return result
 
 @router.put("/{space_id}")
-def update_space(space_id: int, space: ClickUpSpaceDTO, container: Container = Depends(get_container)):
+def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
     logger.info(
         "[ClickUp] Updating ClickUp space: id=%s",
         space_id,
@@ -77,7 +83,7 @@ def update_space(space_id: int, space: ClickUpSpaceDTO, container: Container = D
     return result
 
 @router.delete("/{space_id}")
-def delete_space(space_id: int, container: Container = Depends(get_container)):
+def delete_space(space_id: int, container: Container = Depends(get_container)) -> bool:
     logger.info("[ClickUp] Deleting ClickUp space: id=%s", space_id)
 
     service = container.clickup_service

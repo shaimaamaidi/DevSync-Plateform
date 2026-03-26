@@ -1,15 +1,15 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
+from backend.src.domain.entities.git_repo import GitRepoCreateDTO, GitRepoDTO, GitRepoDetailDTO, GitRepoUpdateDTO
 
 class IRepoRepository(ABC):
     @abstractmethod
-    def save(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
+    def save(self, repo: GitRepoCreateDTO) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
-    def update(self, repo: GitRepoDetailDTO) -> GitRepoDetailDTO:
+    def update(self, repo: GitRepoUpdateDTO) -> GitRepoDetailDTO:
         pass
 
     @abstractmethod
@@ -17,11 +17,15 @@ class IRepoRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_url(self, url: str) -> GitRepoDetailDTO:
+    def find_by_url(self, url: str) -> GitRepoDTO:
         pass
 
     @abstractmethod
     def find_by_name(self, name: str) -> GitRepoDetailDTO:
+        pass
+
+    @abstractmethod
+    def find_all(self) -> List[GitRepoDTO]:
         pass
 
     @abstractmethod

@@ -1,7 +1,13 @@
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
+from backend.src.domain.entities.clickup_space import (
+    ClickUpSpaceCreateDTO,
+    ClickUpSpaceDTO,
+    ClickUpSpaceDetailDTO,
+    ClickUpSpaceLightDTO,
+    ClickUpSpaceUpdateDTO,
+)
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 
 
@@ -12,7 +18,7 @@ class ClickUpService:
     def __init__(self, clickup_repo: IClickUpRepository):
         self._repo = clickup_repo
 
-    def add_space(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+    def add_space(self, space: ClickUpSpaceCreateDTO) -> ClickUpSpaceDTO:
         logger.info("Adding new ClickUp space: space_code=%s, name=%s", space.space_code, space.name)
 
         result = self._repo.save(space)
@@ -20,7 +26,7 @@ class ClickUpService:
         logger.info("ClickUp space added successfully: id=%s, space_code=%s", result.id, result.space_code)
         return result
 
-    def update_space(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+    def update_space(self, space: ClickUpSpaceUpdateDTO) -> ClickUpSpaceDetailDTO:
         logger.info("Updating ClickUp space: id=%s, space_code=%s", space.id, space.space_code)
 
         result = self._repo.update(space)
@@ -28,7 +34,7 @@ class ClickUpService:
         logger.info("ClickUp space updated successfully: id=%s, space_code=%s", result.id, result.space_code)
         return result
 
-    def get_by_id(self, space_id: int) -> ClickUpSpaceDTO:
+    def get_by_id(self, space_id: int) -> ClickUpSpaceDetailDTO:
         logger.info("Fetching ClickUp space by ID: id=%s", space_id)
 
         result = self._repo.find_by_id(space_id)

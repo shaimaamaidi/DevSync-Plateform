@@ -3,7 +3,8 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO
+from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
+from backend.src.domain.entities.git_repo import GitRepoIdDTO
 from backend.src.infrastructure.di.container import Container
 from backend.src.presentation.api.deps import get_container
 
@@ -15,7 +16,7 @@ router = APIRouter()
 
 
 @router.post("/")
-def add_member(member: MemberDTO, container: Container = Depends(get_container)) -> MemberDTO:
+def add_member(member: MemberCreateDTO, container: Container = Depends(get_container)) -> MemberDTO:
     logger.info(
         "[Member] Creating member: mail=%s, username=%s",
         member.mail,
@@ -35,7 +36,7 @@ def add_member(member: MemberDTO, container: Container = Depends(get_container))
 def get_members_by_repo(repo_id: int, container: Container = Depends(get_container)) -> List[MemberDTO]:
     logger.info("[Member] Fetching members for repository: repo_id=%s", repo_id)
 
-    repo = container.repo_service.get_by_id(repo_id)
+    repo = container.repo_service.get_by_id(GitRepoIdDTO(id=repo_id))
     results = container.member_service.get_members_by_repo(repo)
 
     logger.info(
@@ -59,7 +60,7 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
     return results
 
 @router.put("/{member_id}")
-def update_member(member_id: int, member: MemberDTO, container: Container = Depends(get_container)) -> MemberDTO:
+def update_member(member_id: int, member: MemberUpdateDTO, container: Container = Depends(get_container)) -> MemberWithReposDTO:
     logger.info("[Member] Updating member: id=%s", member_id)
 
     service = container.member_service

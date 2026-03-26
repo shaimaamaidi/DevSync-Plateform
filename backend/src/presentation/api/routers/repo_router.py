@@ -3,7 +3,14 @@ from typing import List
 
 from fastapi import APIRouter, Depends
 
-from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO
+from backend.src.domain.entities.git_repo import (
+    GitRepoCreateDTO,
+    GitRepoDTO,
+    GitRepoDetailDTO,
+    GitRepoIdDTO,
+    GitRepoNameDTO,
+    GitRepoUpdateDTO,
+)
 from backend.src.infrastructure.di.container import Container
 from backend.src.presentation.api.deps import get_container
 
@@ -16,6 +23,17 @@ router = APIRouter()
 
 @router.get("/all")
 def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepoDTO]:
+    logger.info("Fetching all repositories")
+
+    service = container.repo_service
+    results = service.get_all()
+
+    logger.info("Repositories retrieved successfully: count=%s", len(results))
+    return results
+
+
+@router.get("/details")
+def get_all_with_details(container: Container = Depends(get_container)) -> List[GitRepoDetailDTO]:
     logger.info("Fetching all repositories with details")
 
     service = container.repo_service
@@ -25,7 +43,7 @@ def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepo
     return results
 
 @router.post("/")
-def add_repo(repo: GitRepoDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
+def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_container)) -> GitRepoDTO:
     logger.info(
         "Creating or updating repository: name=%s, url=%s",
         repo.name,
@@ -47,17 +65,17 @@ def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) 
     logger.info("Fetching repository by id: repo_id=%s", repo_id)
 
     service = container.repo_service
-    result = service.get_by_id(repo_id)
+    result = service.get_by_id(GitRepoIdDTO(id=repo_id))
 
     logger.info("Repository retrieved successfully: repo_id=%s", repo_id)
     return result
 
 @router.get("/by-name/{name}")
-def get_repo_by_name(name: str, container: Container = Depends(get_container)) -> GitRepoDTO:
+def get_repo_by_name(name: str, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     logger.info("Fetching repository by name: name=%s", name)
 
     service = container.repo_service
-    result = service.get_by_name(name)
+    result = service.get_by_name(GitRepoNameDTO(name=name))
 
     logger.info("Repository retrieved successfully: name=%s", name)
     return result
@@ -65,7 +83,7 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
 
 
 @router.put("/{repo_id}")
-def update_repo(repo_id: int, repo: GitRepoDetailDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
+def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     logger.info(
         "Updating repository: repo_id=%s, new_name=%s, new_url=%s",
         repo_id,
@@ -85,7 +103,7 @@ def delete_repo(repo_id: int, container: Container = Depends(get_container)) -> 
     logger.info("Deleting repository: repo_id=%s", repo_id)
 
     service = container.repo_service
-    result = service.delete(repo_id)
+    result = service.delete(GitRepoIdDTO(id=repo_id))
 
     logger.info("Repository deleted successfully: repo_id=%s", repo_id)
     return result

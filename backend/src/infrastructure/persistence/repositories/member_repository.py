@@ -3,7 +3,13 @@ from typing import List
 
 from sqlalchemy.exc import IntegrityError
 
-from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
+from backend.src.domain.entities.member import (
+    MemberCreateDTO,
+    MemberDTO,
+    MemberUpdateDTO,
+    MemberWithReposDTO,
+    RepoSummary,
+)
 from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
 from backend.src.domain.exceptions.member_persistence_exception import MemberPersistenceException
@@ -16,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: MemberModel) -> MemberDTO:
-    repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos]
-    return MemberDTO(id=m.id, username=m.username, mail=m.mail, repos=repos)
+    return MemberDTO(id=m.id, username=m.username, mail=m.mail)
 
 
 def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
@@ -29,7 +34,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
     def __init__(self, session):
         self._session = session
 
-    def save(self, member: MemberDTO) -> MemberDTO:
+    def save(self, member: MemberCreateDTO) -> MemberDTO:
         logger.info(
             "Creating new member (username=%s, mail=%s)",
             member.username,
@@ -49,19 +54,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         try:
             m = MemberModel(username=member.username, mail=member.mail)
             self._session.add(m)
-
-            if member.repos:
-                repo_urls = [r.url for r in member.repos]
-
-                logger.info(
-                    "Associating member with repositories (mail=%s, repo_count=%s)",
-                    member.mail,
-                    len(repo_urls),
-                )
-
-                repos = self._session.query(GitRepoModel).filter(GitRepoModel.url.in_(repo_urls)).all()
-
-                m.repos = repos
 
             self._session.commit()
             self._session.refresh(m)
@@ -85,14 +77,14 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             )
             raise MemberPersistenceException(str(e)) from e
 
-    def update(self, member: MemberDTO) -> MemberDTO:
+    def update(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
         logger.info("Updating member (id=%s)", member.id)
 
         if not member.id:
             logger.warning("Update failed: missing member ID")
             raise InvalidInputException("Member must have a valid database ID for update.")
 
-        if not member.username and not member.mail and not member.repos:
+        if not member.username and not member.mail and (member.repos is None or not member.repos):
             logger.warning("Update failed: no fileds provided (id=%s)", member.id)
             raise InvalidInputException(
                 "Member must have a valid 'username' or 'mail' or repo's list for update."
@@ -111,17 +103,61 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 m.mail = member.mail
 
             if member.repos is not None:
-                repo_urls = [r.url for r in member.repos]
+                if not member.repos:
+                    logger.info(
+                        "Repo list is empty; skipping repos update for member (id=%s)",
+                        member.id,
+                    )
+                else:
+                    if not any(r.id or r.url for r in member.repos):
+                        raise InvalidInputException(
+                            "Repo list must include at least one 'id' or 'url'."
+                        )
 
-                logger.info(
-                    "Updating member-repo associations (member_id=%s, repo_count=%s)",
-                    member.id,
-                    len(repo_urls),
-                )
+                    repos = []
+                    missing_ids = set()
+                    missing_urls = set()
 
-                repos = self._session.query(GitRepoModel).filter(GitRepoModel.url.in_(repo_urls)).all()
+                    for repo in member.repos:
+                        repo_model = None
+                        if repo.id:
+                            repo_model = (
+                                self._session.query(GitRepoModel)
+                                .filter(GitRepoModel.id == repo.id)
+                                .first()
+                            )
+                        if not repo_model and repo.url:
+                            repo_model = (
+                                self._session.query(GitRepoModel)
+                                .filter(GitRepoModel.url == repo.url)
+                                .first()
+                            )
 
-                m.repos = repos
+                        if repo_model:
+                            repos.append(repo_model)
+                        else:
+                            if repo.id:
+                                missing_ids.add(repo.id)
+                            if repo.url:
+                                missing_urls.add(repo.url)
+
+                    if missing_ids or missing_urls:
+                        missing_info = []
+                        if missing_ids:
+                            missing_info.append(f"ids={missing_ids}")
+                        if missing_urls:
+                            missing_info.append(f"urls={missing_urls}")
+                        raise InvalidInputException(
+                            "Repos not found for update (%s)." % ", ".join(missing_info)
+                        )
+
+                    m.repos = list({r.id: r for r in repos}.values())
+
+                    logger.info(
+                        "Updating member-repo associations (member_id=%s, repo_count=%s)",
+                        member.id,
+                        len(m.repos),
+                    )
 
             self._session.commit()
             self._session.refresh(m)
@@ -131,7 +167,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 m.id,
             )
 
-            return _model_to_dto(m)
+            return _model_to_with_repos_dto(m)
 
         except IntegrityError as e:
             self._session.rollback()
@@ -174,7 +210,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         
         return _model_to_dto(m)
 
-    def find_by_mail(self, mail: str) -> MemberDTO:
+    def find_by_mail(self, mail: str) -> MemberWithReposDTO:
         logger.info("Fetching member by mail (mail=%s)", mail)
 
         try:
@@ -199,7 +235,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             m.mail
         )
         
-        return _model_to_dto(m)
+        return _model_to_with_repos_dto(m)
 
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
         logger.info("Fetching members by repository ID (repo_id=%s)", repo_id)

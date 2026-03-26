@@ -3,8 +3,8 @@ from typing import List
 
 from backend.src.application.services.repo_service import RepoService
 from backend.src.domain.entities.git_repo import GitRepoDTO
-from backend.src.domain.entities.member import MemberDTO, RepoSummary
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
+from backend.src.domain.entities.member import MemberDTO, MemberUpdateDTO, RepoRefDTO
+from backend.src.domain.entities.clickup_space import ClickUpRepoRefDTO, ClickUpSpaceDTO, ClickUpSpaceUpdateDTO
 from backend.src.application.services.clickup_service import ClickUpService
 from backend.src.application.services.member_service import MemberService
 from backend.src.domain.exceptions.invalid_member_data_exception import InvalidMemberDataException
@@ -21,20 +21,23 @@ class AssociatorService:
 
     def associate_space(self, repo: GitRepoDTO, clickup_space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
         logger.info(
-            "Associating ClickUp space with repository: repo_url=%s, space_id=%s",
+            "Associating ClickUp space with repository: repo_url=%s, space_code=%s",
             repo.url,
-            clickup_space.space_id,
+            clickup_space.space_code,
         )
 
         existing_repo = self._repo.get_by_url(repo.url)
         logger.info("Repository fetched successfully: repo_id=%s", existing_repo.id)
 
-        existing_space = self._clickup.get_by_space_code(clickup_space.space_id)
+        existing_space = self._clickup.get_by_space_code(clickup_space.space_code)
         logger.info("ClickUp space fetched successfully: space_id=%s", existing_space.id)
 
-        existing_space.repo_id = existing_repo.id
+        update_payload = ClickUpSpaceUpdateDTO(
+            id=existing_space.id,
+            repo=ClickUpRepoRefDTO(id=existing_repo.id),
+        )
 
-        updated_space = self._clickup.update_space(existing_space)
+        updated_space = self._clickup.update_space(update_payload)
 
         logger.info(
             "ClickUp space successfully associated with repository: repo_id=%s, space_id=%s",
@@ -71,12 +74,11 @@ class AssociatorService:
             existing_member = self._member.get_member_by_mail(m["mail"])
             logger.info("Member fetched successfully: member_id=%s", existing_member.id)
 
-            updated_repos = existing_member.repos + [RepoSummary(name=existing_repo.name, url=existing_repo.url, id=existing_repo.id)]
+            updated_repos = [RepoRefDTO(id=r.id, url=r.url) for r in existing_member.repos]
+            updated_repos.append(RepoRefDTO(id=existing_repo.id, url=existing_repo.url))
 
-            updated_member = MemberDTO(
+            updated_member = MemberUpdateDTO(
                 id=existing_member.id,
-                username=existing_member.username,
-                mail=existing_member.mail,
                 repos=updated_repos,
             )
 

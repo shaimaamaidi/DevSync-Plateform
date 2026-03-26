@@ -3,8 +3,14 @@ from typing import List
 
 from sqlalchemy.exc import IntegrityError
 
-from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, MemberSummary, ClickUpSpaceSummary
-from backend.src.domain.entities.member import RepoSummary
+from backend.src.domain.entities.git_repo import (
+    GitRepoCreateDTO,
+    GitRepoDTO,
+    GitRepoDetailDTO,
+    GitRepoUpdateDTO,
+    RepoClickUpSpaceDTO,
+    RepoMemberDTO,
+)
 from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
 from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
@@ -22,15 +28,19 @@ def _model_to_dto(m: GitRepoModel) -> GitRepoDTO:
 
 def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
     members = [
-        MemberSummary(
+        RepoMemberDTO(
+            id=mb.id,
             username=mb.username,
             mail=mb.mail,
-            repos=[RepoSummary(name=r.name, url=r.url, id=r.id) for r in mb.repos]
         )
         for mb in m.members
     ]
     space = (
-        ClickUpSpaceSummary(name=m.clickup_space.name, space_code=m.clickup_space.space_id)
+        RepoClickUpSpaceDTO(
+            id=m.clickup_space.id,
+            name=m.clickup_space.name,
+            space_code=m.clickup_space.space_code,
+        )
         if m.clickup_space
         else None
     )
@@ -40,7 +50,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
     def __init__(self, session):
         self._session = session
 
-    def save(self, repo: GitRepoDTO) -> GitRepoDetailDTO:
+    def save(self, repo: GitRepoCreateDTO) -> GitRepoDTO:
         logger.info(
             "Creating new repository (name=%s, url=%s)",
             repo.name,
@@ -69,12 +79,12 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 m.url
             )
 
-            return _model_to_detail_dto(m)
+            return _model_to_dto(m)
 
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("Repository already exists (url=%s)", repo.url)
-            raise InvalidInputException("Repository with this URL already exists.") from e
+            logger.warning("Repository already exists (url=%s) in another resource", repo.url)
+            raise InvalidInputException("Repository with this URL already exists in another resource.") from e
         except RepoPersistenceException:
             raise
         except Exception as e:
@@ -86,14 +96,19 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             )
             raise RepoPersistenceException(str(e)) from e
 
-    def update(self, repo: GitRepoDetailDTO) -> GitRepoDetailDTO:
+    def update(self, repo: GitRepoUpdateDTO) -> GitRepoDetailDTO:
         logger.info("Updating repository (id=%s)", repo.id)
 
         if not repo.id:
             logger.warning("Update failed: missing repository ID")
             raise InvalidInputException("GitHub Repo must have a valid database ID for update.")
 
-        if not repo.name and not repo.url and repo.members is None and repo.clickup_space is None:
+        if (
+            not repo.name
+            and not repo.url
+            and (repo.members is None or not repo.members)
+            and repo.clickup_space is None
+        ):
             logger.warning("Update failed: no fields provided (id=%s)", repo.id)
             raise InvalidInputException(
                 "GitHub Repo must have at least one field to update: 'name', 'url', 'members' or 'clickup_space'."
@@ -112,51 +127,111 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 m.url = repo.url
 
             if repo.members is not None:
-                incoming_mails = {member.mail for member in repo.members}
-
-                existing_members = (
-                    self._session.query(MemberModel)
-                    .filter(MemberModel.mail.in_(incoming_mails))
-                    .all()
-                )
-
-                found_mails = {mem.mail for mem in existing_members}
-                missing_mails = incoming_mails - found_mails
-
-                if missing_mails:
-                    logger.warning(
-                        "Some members not found and will be skipped (mails=%s)",
-                        missing_mails
-                    )
-
-                m.members = existing_members
-                logger.info(
-                    "Members association updated for repository (id=%s, count=%s)",
-                    repo.id,
-                    len(existing_members)
-                )
-
-            if repo.clickup_space is not None and repo.clickup_space.space_code:
-                clickup_space_model = (
-                    self._session.query(ClickUpSpaceModel)
-                    .filter(
-                        ClickUpSpaceModel.space_code == repo.clickup_space.space_code,
-                        ClickUpSpaceModel.space_code.isnot(None)
-                    )
-                    .first()
-                )
-
-                if clickup_space_model:
-                    m.clickup_space = clickup_space_model
+                if not repo.members:
                     logger.info(
-                        "ClickUp space associated with repository (id=%s, space_code=%s)",
+                        "Members list is empty; skipping members update for repository (id=%s)",
                         repo.id,
-                        repo.clickup_space.space_code
                     )
                 else:
-                    logger.warning(
-                        "ClickUp space not found or space_code is null in DB (space_code=%s), skipping association",
-                        repo.clickup_space.space_code
+                    if not any(m.id or m.mail for m in repo.members):
+                        raise InvalidInputException(
+                            "Members must include at least one 'id' or 'mail'."
+                        )
+
+                    existing_members = []
+                    missing_ids = set()
+                    missing_mails = set()
+
+                    for member in repo.members:
+                        if member.id:
+                            mem = (
+                                self._session.query(MemberModel)
+                                .filter(MemberModel.id == member.id)
+                                .first()
+                            )
+                            if mem:
+                                existing_members.append(mem)
+                                continue
+                            if member.mail:
+                                mem = (
+                                    self._session.query(MemberModel)
+                                    .filter(MemberModel.mail == member.mail)
+                                    .first()
+                                )
+                                if mem:
+                                    existing_members.append(mem)
+                                else:
+                                    missing_ids.add(member.id)
+                                    missing_mails.add(member.mail)
+                            else:
+                                missing_ids.add(member.id)
+                        elif member.mail:
+                            mem = (
+                                self._session.query(MemberModel)
+                                .filter(MemberModel.mail == member.mail)
+                                .first()
+                            )
+                            if mem:
+                                existing_members.append(mem)
+                            else:
+                                missing_mails.add(member.mail)
+
+                    deduped_members = {mem.id: mem for mem in existing_members}.values()
+
+                    if missing_ids or missing_mails:
+                        missing_info = []
+                        if missing_ids:
+                            missing_info.append(f"ids={missing_ids}")
+                        if missing_mails:
+                            missing_info.append(f"mails={missing_mails}")
+                        raise InvalidInputException(
+                            "Members not found for update (%s)." % ", ".join(missing_info)
+                        )
+
+                    m.members = list(deduped_members)
+                    logger.info(
+                        "Members association updated for repository (id=%s, count=%s)",
+                        repo.id,
+                        len(m.members)
+                    )
+
+            if repo.clickup_space is not None:
+                if not repo.clickup_space.id and not repo.clickup_space.space_code:
+                    raise InvalidInputException(
+                        "ClickUp space must include 'id' or 'space_code' for association."
+                    )
+                clickup_space_model = None
+                if repo.clickup_space.id:
+                    clickup_space_model = (
+                        self._session.query(ClickUpSpaceModel)
+                        .filter(ClickUpSpaceModel.id == repo.clickup_space.id)
+                        .first()
+                    )
+
+                if not clickup_space_model and repo.clickup_space.space_code:
+                    clickup_space_model = (
+                        self._session.query(ClickUpSpaceModel)
+                        .filter(
+                            ClickUpSpaceModel.space_code == repo.clickup_space.space_code,
+                            ClickUpSpaceModel.space_code.isnot(None)
+                        )
+                        .first()
+                    )
+
+                if clickup_space_model:
+                    if clickup_space_model.repo_id and clickup_space_model.repo_id != m.id:
+                        raise InvalidInputException(
+                            "ClickUp space is already associated with another repository."
+                        )
+                    m.clickup_space = clickup_space_model
+                    logger.info(
+                        "ClickUp space associated with repository (id=%s)",
+                        repo.id,
+                    )
+                else:
+                    raise InvalidInputException(
+                        "ClickUp space not found for association (id=%s, space_code=%s)."
+                        % (repo.clickup_space.id, repo.clickup_space.space_code)
                     )
 
             self._session.commit()
@@ -166,18 +241,30 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
             return _model_to_detail_dto(m)
 
+        except InvalidInputException:
+            raise
+
+        except RepoNotFoundException:
+            raise
+
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("Repository already exists (url=%s)", repo.url)
-            raise InvalidInputException("Repository with this URL already exists.") from e
+            logger.warning("Repository already exists (url=%s) in another resource", repo.url)
+            raise InvalidInputException("Repository with this URL already exists in another resource.") from e
+
         except RepoPersistenceException:
             raise
+
         except Exception as e:
             self._session.rollback()
             logger.error(
+
                 "Failed to update repository (id=%s): %s",
+
                 repo.id,
+
                 str(e)
+
             )
             raise RepoPersistenceException(str(e)) from e
 
@@ -207,7 +294,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
         return _model_to_detail_dto(m)
 
-    def find_by_url(self, url: str) -> GitRepoDetailDTO:
+    def find_by_url(self, url: str) -> GitRepoDTO:
         logger.info("Fetching repository by url (url=%s)", url)
 
         try:
@@ -231,7 +318,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             m.url
         )
 
-        return _model_to_detail_dto(m)
+        return _model_to_dto(m)
 
     def find_by_name(self, name: str) -> GitRepoDetailDTO:
         logger.info("Fetching repository by name (name=%s)", name)
@@ -258,6 +345,26 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         )
 
         return _model_to_detail_dto(m)
+
+    def find_all(self) -> List[GitRepoDTO]:
+        logger.info("Fetching all repositories")
+
+        try:
+            results = [_model_to_dto(m) for m in self._session.query(GitRepoModel).all()]
+
+            logger.info(
+                "Fetched all repositories successfully (count=%s)",
+                len(results),
+            )
+
+            return results
+
+        except Exception as e:
+            logger.error(
+                "Error fetching all repositories: %s",
+                str(e)
+            )
+            raise RepoPersistenceException(str(e)) from e
 
     def find_all_with_details(self) -> List[GitRepoDetailDTO]:
         logger.info("Fetching all repositories with details")

@@ -1,24 +1,30 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceLightDTO
+from backend.src.domain.entities.clickup_space import (
+    ClickUpSpaceCreateDTO,
+    ClickUpSpaceDTO,
+    ClickUpSpaceDetailDTO,
+    ClickUpSpaceLightDTO,
+    ClickUpSpaceUpdateDTO,
+)
 
 
 class IClickUpRepository(ABC):
     @abstractmethod
-    def save(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+    def save(self, space: ClickUpSpaceCreateDTO) -> ClickUpSpaceDTO:
         pass
 
     @abstractmethod
-    def update(self, space: ClickUpSpaceDTO) -> ClickUpSpaceDTO:
+    def update(self, space: ClickUpSpaceUpdateDTO) -> ClickUpSpaceDetailDTO:
         pass
 
     @abstractmethod
-    def find_by_id(self, space_id: int) -> ClickUpSpaceDTO:
+    def find_by_id(self, space_id: int) -> ClickUpSpaceDetailDTO:
         pass
 
     @abstractmethod
-    def find_by_space_code(self, space_id: str) -> ClickUpSpaceDTO:
+    def find_by_space_code(self, space_code: str) -> ClickUpSpaceDTO:
         pass
 
     @abstractmethod

@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO
+from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
 from backend.src.domain.entities.git_repo import GitRepoDTO
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
@@ -13,7 +13,7 @@ class MemberService:
     def __init__(self, member_repo: IMemberRepository):
         self._repo = member_repo
 
-    def add_member(self, member: MemberDTO) -> MemberDTO:
+    def add_member(self, member: MemberCreateDTO) -> MemberDTO:
         logger.info("Adding new member: username=%s, mail=%s", member.username, member.mail)
 
         result = self._repo.save(member)
@@ -21,7 +21,7 @@ class MemberService:
         logger.info("Member added successfully: id=%s, username=%s", result.id, result.username)
         return result
 
-    def update_member(self, member: MemberDTO) -> MemberDTO:
+    def update_member(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
         logger.info("Updating member: id=%s, username=%s", member.id, member.username)
 
         result = self._repo.update(member)
@@ -37,7 +37,7 @@ class MemberService:
         logger.info("Found %s members for repository successfully: repo_id=%s", len(results), repo.id)
         return results
 
-    def get_member_by_mail(self, mail: str) -> MemberDTO:
+    def get_member_by_mail(self, mail: str) -> MemberWithReposDTO:
         logger.info("Fetching member by mail: %s", mail)
 
         result = self._repo.find_by_mail(mail)

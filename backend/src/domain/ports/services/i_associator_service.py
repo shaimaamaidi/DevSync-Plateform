@@ -7,7 +7,7 @@ from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 
 class IAssociatorService(ABC):
     @abstractmethod
-    def associate_space(self, repo: GitRepoDTO, space_name: str, space_id: str) -> ClickUpSpaceDTO:
+    def associate_space(self, repo: GitRepoDTO, space_name: str, space_code: str) -> ClickUpSpaceDTO:
         pass
 
     @abstractmethod
