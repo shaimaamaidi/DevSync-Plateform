@@ -1,5 +1,7 @@
 import logging
 
+from backend.src.application.services.clickup_service import ClickUpService
+from backend.src.application.services.member_service import MemberService
 from backend.src.application.services.repo_service import RepoService
 from backend.src.domain.entities.associator import (
     AssociateClickUpSpaceRequest,
@@ -17,8 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class AssociatorService:
-    def __init__(self, repo_service: RepoService):
+    def __init__(self, repo_service: RepoService, clickup_service: ClickUpService, member_service:MemberService):
         self._repo = repo_service
+        self._clickup = clickup_service
+        self._member = member_service
 
     def associate_clickup_space(self, request: AssociateClickUpSpaceRequest):
         logger.info(
