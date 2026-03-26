@@ -34,6 +34,13 @@ lerna-debug.log*
 .npm/
 .yarn/
 
+# OpenAPI generator artifacts (frontend)
+frontend/src/api/.openapi-generator/
+frontend/src/api/.openapi-generator-ignore
+frontend/src/api/.npmignore
+frontend/src/api/git_push.sh
+frontend/src/api/docs/
+
 # Test and tooling caches
 .pytest_cache/
 .mypy_cache/
