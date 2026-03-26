@@ -26,14 +26,14 @@ class AssociatorService:
 
     def associate_clickup_space(self, request: AssociateClickUpSpaceRequest):
         logger.info(
-            "Associating ClickUp space with repository: repo_url=%s, space_code=%s",
+            "Associating ClickUp space with repository: repo_url=%s, space_code=%s.",
             request.repo_url,
             request.space_code,
         )
 
         clickup_space = self._clickup.get_by_space_code(request.space_code)
         existing_repo = self._repo.get_by_url(request.repo_url)
-        logger.info("Repository fetched successfully: repo_id=%s", existing_repo.id)
+        logger.info("Repository fetched successfully: repo_id=%s.", existing_repo.id)
 
         update_payload = GitRepoUpdateDTO(
             id=existing_repo.id,
@@ -43,7 +43,7 @@ class AssociatorService:
         updated_repo = self._repo.update_repo(update_payload)
 
         logger.info(
-            "ClickUp space successfully associated with repository: repo_id=%s",
+            "ClickUp space successfully associated with repository: repo_id=%s.",
             existing_repo.id,
         )
         repo_dto = AssociatorRepoDTO(
@@ -58,7 +58,7 @@ class AssociatorService:
 
     def add_members(self, request: RepoMembersRequest):
         logger.info(
-            "Adding members to repository: repo_url=%s, members_count=%s",
+            "Adding members to repository: repo_url=%s, members_count=%s.",
             request.repo_url,
             len(request.members),
         )
@@ -86,7 +86,7 @@ class AssociatorService:
 
     def remove_members(self, request: RepoMembersRequest):
         logger.info(
-            "Removing members from repository: repo_url=%s, members_count=%s",
+            "Removing members from repository: repo_url=%s, members_count=%s.",
             request.repo_url,
             len(request.members),
         )
@@ -130,7 +130,7 @@ class AssociatorService:
 
     def update_members(self, request: RepoMembersRequest):
         logger.info(
-            "Updating repository members list: repo_url=%s, members_count=%s",
+            "Updating repository members list: repo_url=%s, members_count=%s.",
             request.repo_url,
             len(request.members),
         )

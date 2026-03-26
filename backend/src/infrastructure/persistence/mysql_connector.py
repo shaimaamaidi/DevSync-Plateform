@@ -22,12 +22,12 @@ _DOTENV_PATH = _BACKEND_DIR / ".env"
 
 class MySQLConnector:
     def __init__(self):
-        logger.info("Initializing MySQL connector")
+        logger.info("Initializing MySQL connector.")
 
         loaded = load_dotenv(_DOTENV_PATH, override=False)
 
         if not loaded:
-            logger.warning(".env file not found at %s", _DOTENV_PATH)
+            logger.warning(".env file not found at %s.", _DOTENV_PATH)
 
         self.user = os.getenv("MYSQL_USER")
         self.password = os.getenv("MYSQL_PASSWORD")
@@ -47,7 +47,7 @@ class MySQLConnector:
 
         if missing:
             logger.error(
-                "Missing required environment variables for database: %s",
+                "Missing required environment variables for database: %s.",
                 missing
             )
             raise DatabaseInitializationException(
@@ -55,7 +55,7 @@ class MySQLConnector:
             )
 
         logger.info(
-            "MySQLConnector initialized (host=%s, port=%s, db=%s)",
+            "MySQLConnector initialized (host=%s, port=%s, db=%s).",
             self.host,
             self.port,
             self.db
@@ -63,7 +63,7 @@ class MySQLConnector:
 
     def create_db_if_not_exists(self):
         logger.info(
-            "Ensuring database exists (db=%s, host=%s)",
+            "Ensuring database exists (db=%s, host=%s).",
             self.db,
             self.host
         )
@@ -73,11 +73,11 @@ class MySQLConnector:
             with engine.connect() as conn:
                 conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{self.db}`"))
 
-            logger.info("Database '%s' is ready", self.db)
+            logger.info("Database '%s' is ready.", self.db)
 
         except SQLAlchemyError as e:
             logger.error(
-                "Failed to create or verify database '%s': %s",
+                "Failed to create or verify database '%s': %s.",
                 self.db,
                 str(e),
                 exc_info=e
@@ -86,7 +86,7 @@ class MySQLConnector:
 
     def connect(self):
         logger.info(
-            "Connecting to MySQL database (host=%s, port=%s, db=%s)",
+            "Connecting to MySQL database (host=%s, port=%s, db=%s).",
             self.host,
             self.port,
             self.db
@@ -97,13 +97,13 @@ class MySQLConnector:
             self.engine = create_engine(connection_string, echo=False)
             self.Session = sessionmaker(bind=self.engine)
 
-            logger.info("Database connection established successfully")
+            logger.info("Database connection established successfully.")
 
             return self.engine, self.Session
 
         except SQLAlchemyError as e:
             logger.error(
-                "Database connection failed (host=%s, db=%s): %s",
+                "Database connection failed (host=%s, db=%s): %s.",
                 self.host,
                 self.db,
                 str(e),
@@ -112,15 +112,15 @@ class MySQLConnector:
             raise DatabaseConnectionException() from e
 
     def get_session(self):
-        logger.info("Creating new database session")
+        logger.info("Creating new database session.")
 
         try:
             if not self.Session:
-                logger.warning("Session factory not initialized, connecting to database")
+                logger.warning("Session factory not initialized, connecting to database.")
 
                 self.connect()
 
-                logger.info("Database session established successfully")
+                logger.info("Database session established successfully.")
 
             return self.Session()
 
@@ -128,7 +128,7 @@ class MySQLConnector:
             raise
         except Exception as e:
             logger.error(
-                "Failed to create database session: %s",
+                "Failed to create database session: %s.",
                 str(e),
                 exc_info=e
             )

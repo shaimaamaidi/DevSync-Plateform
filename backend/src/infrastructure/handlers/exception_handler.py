@@ -43,32 +43,32 @@ class FastAPIExceptionHandler:
         """Handle domain application exceptions."""
         if exc.code in _NOT_FOUND_CODES:
             logger.warning(
-                "Not Found Error [%s]: %s",
+                "Not Found Error [%s]: %s.",
                 exc.code,
                 exc.message,
             )
         elif exc.code in _PERSISTENCE_CODES:
             logger.error(
-                "Persistence/Database Error [%s]: %s",
+                "Persistence/Database Error [%s]: %s.",
                 exc.code,
                 exc.message,
                 exc_info=exc,
             )
         elif exc.code in _VALIDATION_CODES:
             logger.info(
-                "Validation Error [%s]: %s",
+                "Validation Error [%s]: %s.",
                 exc.code,
                 exc.message,
             )
         elif exc.code in _RUNTIME_CODES:
             logger.warning(
-                "Runtime Error [%s]: %s",
+                "Runtime Error [%s]: %s.",
                 exc.code,
                 exc.message,
             )
         else:
             logger.error(
-                "Unknown Application Error [%s]: %s",
+                "Unknown Application Error [%s]: %s.",
                 exc.code,
                 exc.message,
                 exc_info=exc,
@@ -88,7 +88,7 @@ class FastAPIExceptionHandler:
     async def handle_validation_exception(request: Request, exc: RequestValidationError) -> JSONResponse:
         """Handle FastAPI request validation errors."""
         logger.info(
-            "Validation Error on request %s: %s",
+            "Validation Error on request %s: %s.",
             request.url.path,
             exc.errors(),
         )
@@ -107,7 +107,7 @@ class FastAPIExceptionHandler:
     async def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
         """Handle unhandled exceptions."""
         logger.error(
-            "Unhandled exception on request %s: %s",
+            "Unhandled exception on request %s: %s.",
             request.url.path,
             str(exc),
             exc_info=exc,

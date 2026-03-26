@@ -15,30 +15,30 @@ logger = logging.getLogger(__name__)
 
 
 def init_db():
-    logger.info("Starting database initialization")
+    logger.info("Starting database initialization.")
 
     try:
         # Initialize connector
-        logger.info("Initializing MySQL connector")
+        logger.info("Initializing MySQL connector.")
         db = MySQLConnector()
 
         # Create DB if not exists
-        logger.info("Ensuring database exists")
+        logger.info("Ensuring database exists.")
         db.create_db_if_not_exists()
 
         # Connect
-        logger.info("Connecting to database")
+        logger.info("Connecting to database.")
         engine, Session = db.connect()
 
         # Create tables
-        logger.info("Creating database tables from metadata")
+        logger.info("Creating database tables from metadata.")
         Base.metadata.create_all(engine)
 
-        logger.info("Database initialization completed successfully")
+        logger.info("Database initialization completed successfully.")
 
     except AppException as e:
         logger.error(
-            "Application error during database initialization [%s]: %s",
+            "Application error during database initialization [%s]: %s.",
             e.code,
             e.message,
             exc_info=e,
@@ -47,7 +47,7 @@ def init_db():
 
     except Exception as e:
         logger.error(
-            "Application error during database initialization [%s]: %s",
+            "Application error during database initialization [%s]: %s.",
             e.code,
             e.message,
             exc_info=e,

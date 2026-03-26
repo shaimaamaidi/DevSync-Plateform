@@ -18,7 +18,7 @@ def get_container(request: Request) -> Generator[Container, None, None]:
         raise
     except Exception as e:
         logger.error(
-            "Error while creating container for request: %s",
+            "Error while creating container for request: %s.",
             str(e),
             exc_info=e,
         )

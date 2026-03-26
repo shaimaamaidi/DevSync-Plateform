@@ -13,12 +13,12 @@ class DeploymentService:
         self._github = github_service
 
     def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
-        logger.info("Fetching deployments for repository: repo_url=%s", repo_url)
+        logger.info("Fetching deployments for repository: repo_url=%s.", repo_url)
 
         results = self._github.get_deployments(repo_url)
 
         logger.info(
-            "Fetched %s deployments for repository successfully: repo_url=%s",
+            "Fetched %s deployments for repository successfully: repo_url=%s.",
             len(results),
             repo_url
         )

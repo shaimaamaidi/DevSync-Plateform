@@ -23,38 +23,38 @@ HEADERS = {
 class GitHubDeploymentAdapter(IGitHubService):
     @staticmethod
     def _parse_repo(url: str) -> tuple[str, str]:
-        logger.info("Parsing GitHub repository URL: %s", url)
+        logger.info("Parsing GitHub repository URL: %s.", url)
 
         url = url.rstrip("/")
         match = re.search(r"github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
 
         if not match:
-            logger.warning("Invalid GithHub repository URL: %s", url)
+            logger.warning("Invalid GithHub repository URL: %s.", url)
             raise InvalidGitHubUrlException(url)
 
         owner, repo = match.group(1), match.group(2)
 
-        logger.info("Parsed owner=%s, repo=%s", owner, repo)
+        logger.info("Parsed owner=%s, repo=%s.", owner, repo)
 
         return owner, repo
 
     @staticmethod
     def _github_get(url: str):
-        logger.info("Fetching data from GitHub API: %s", url)
+        logger.info("Fetching data from GitHub API: %s.", url)
 
         results = []
         while url:
             try:
                 resp = requests.get(url, headers=HEADERS, timeout=15)
             except requests.exceptions.Timeout:
-                logger.error("GitHub API request timed out: %s", url)
+                logger.error("GitHub API request timed out: %s.", url)
                 raise AppException(
                     message="GitHub API request timed out.",
                     code="GITHUB_TIMEOUT",
                     http_status=504
                 )
             except requests.exceptions.ConnectionError:
-                logger.error("Could not connect to GitHub API: %s", url)
+                logger.error("Could not connect to GitHub API: %s.", url)
                 raise AppException(
                     message="Could not connect to GitHub API.",
                     code="GITHUB_CONNECTION_ERROR",
@@ -64,19 +64,19 @@ class GitHubDeploymentAdapter(IGitHubService):
                 reset = resp.headers.get("X-RateLimit-Reset", "")
                 reset_dt = datetime.fromtimestamp(int(reset)).strftime("%H:%M:%S") if reset else None
 
-                logger.warning("GitHub rate limit hit, reset at %s", reset_dt)
+                logger.warning("GitHub rate limit hit, reset at %s.", reset_dt)
 
                 raise GitHubRateLimitException(reset_dt)
 
             if resp.status_code == 404:
-                logger.warning("GitHub Repository not found at %s", url)
+                logger.warning("GitHub Repository not found at %s.", url)
                 raise GitHubRepoNotFoundException(url)
 
             try:
                 resp.raise_for_status()
             except requests.exceptions.HTTPError as e:
                 logger.error(
-                    "GitHub API returned HTTP error: %s",
+                    "GitHub API returned HTTP error: %s.",
                     str(e),
                 )
                 raise AppException(
@@ -90,7 +90,7 @@ class GitHubDeploymentAdapter(IGitHubService):
             if isinstance(data, list):
                 results.extend(data)
             else:
-                logger.info("Fetched single object from GitHub API: %s", url)
+                logger.info("Fetched single object from GitHub API: %s.", url)
                 return data
 
             link = resp.headers.get("Link", "")
@@ -102,7 +102,7 @@ class GitHubDeploymentAdapter(IGitHubService):
                         url = m.group(1)
                     break
 
-        logger.info("GitHub API fetch completed, items fetched: %s", len(results))
+        logger.info("GitHub API fetch completed, items fetched: %s.", len(results))
 
         return results
 
@@ -125,7 +125,7 @@ class GitHubDeploymentAdapter(IGitHubService):
         }.get(state, "?")
 
     def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
-        logger.info("Fetching deployments for repository: %s", repo_url)
+        logger.info("Fetching deployments for repository: %s.", repo_url)
 
         owner, repo = self._parse_repo(repo_url)
         raw = self._github_get(f"https://api.github.com/repos/{owner}/{repo}/deployments")
@@ -149,6 +149,6 @@ class GitHubDeploymentAdapter(IGitHubService):
                 log_url=log_url,
             ))
 
-        logger.info("Fetched %d deployments fro repository: %s", len(deployments), repo_url)
+        logger.info("Fetched %d deployments fro repository: %s.", len(deployments), repo_url)
 
         return deployments

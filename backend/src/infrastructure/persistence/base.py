@@ -8,4 +8,4 @@ logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
-logger.info("SQLAlchemy Base metadata initialized")
+logger.info("SQLAlchemy Base metadata initialized.")

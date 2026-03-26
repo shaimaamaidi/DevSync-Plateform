@@ -16,25 +16,25 @@ logger = logging.getLogger(__name__)
 
 class Container:
     def __init__(self, session):
-        logger.info("Initializing application container")
+        logger.info("Initializing application container.")
 
         self.session = session
 
         try:
             # Repositories
-            logger.info("Initializing repositories")
+            logger.info("Initializing repositories.")
 
             self.repo_repo = SqlAlchemyRepoRepository(self.session)
             self.member_repo = SqlAlchemyMemberRepository(self.session)
             self.clickup_repo = SqlAlchemyClickUpRepository(self.session)
 
             # External services
-            logger.info("Initializing external services")
+            logger.info("Initializing external services.")
 
             self.github_service = GitHubDeploymentAdapter()
 
             # Application services
-            logger.info("Initializing application services")
+            logger.info("Initializing application services.")
 
             self.repo_service = RepoService(self.repo_repo)
             self.member_service = MemberService(self.member_repo)
@@ -48,11 +48,11 @@ class Container:
 
             self.deployment_service = DeploymentService(self.github_service)
 
-            logger.info("Application container initialized successfully")
+            logger.info("Application container initialized successfully.")
 
         except Exception as e:
             logger.error(
-                "Failed to initialize application container: %s",
+                "Failed to initialize application container: %s.",
                 str(e),
             )
             raise

@@ -23,7 +23,7 @@ def associate_space(
     container: Container = Depends(get_container),
 ) -> AssociateClickUpSpaceResponse:
     logger.info(
-        "Associating ClickUp space with repository: repo_url=%s, space_code=%s",
+        "Associating ClickUp space with repository: repo_url=%s, space_code=%s.",
         request.repo_url,
         request.space_code,
     )
@@ -32,7 +32,7 @@ def associate_space(
     result = service.associate_clickup_space(request)
 
     logger.info(
-        "ClickUp space associated successfully: repo_url=%s, space_code=%s",
+        "ClickUp space associated successfully: repo_url=%s, space_code=%s.",
         request.repo_url,
         request.space_code,
     )
@@ -45,7 +45,7 @@ def associate_members(
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
     logger.info(
-        "Associating members with repository: repo_url=%s, members_count=%s",
+        "Associating members with repository: repo_url=%s, members_count=%s.",
         request.repo_url,
         len(request.members),
     )
@@ -54,7 +54,7 @@ def associate_members(
     results = service.update_members(request)
 
     logger.info(
-        "Members associated successfully: repo_url=%s, members_count=%s",
+        "Members associated successfully: repo_url=%s, members_count=%s.",
         request.repo_url,
         len(request.members),
     )
@@ -67,7 +67,7 @@ def add_members(
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
     logger.info(
-        "Adding members to repository: repo_url=%s, members_count=%s",
+        "Adding members to repository: repo_url=%s, members_count=%s.",
         request.repo_url,
         len(request.members),
     )
@@ -76,7 +76,7 @@ def add_members(
     result = service.add_members(request)
 
     logger.info(
-        "Members added successfully: repo_url=%s, members_count=%s",
+        "Members added successfully: repo_url=%s, members_count=%s.",
         request.repo_url,
         len(request.members),
     )
@@ -89,7 +89,7 @@ def remove_members(
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
     logger.info(
-        "Removing members from repository: repo_url=%s, members_count=%s",
+        "Removing members from repository: repo_url=%s, members_count=%s.",
         request.repo_url,
         len(request.members),
     )
@@ -98,7 +98,7 @@ def remove_members(
     result = service.remove_members(request)
 
     logger.info(
-        "Members removed successfully: repo_url=%s, members_count=%s",
+        "Members removed successfully: repo_url=%s, members_count=%s.",
         request.repo_url,
         len(request.members),
     )
