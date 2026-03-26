@@ -12,6 +12,7 @@ ENV/
 .env
 .env.*
 !backend/.env.exemple
+!frontend/.env.example
 
 # Build artifacts
 dist/
