@@ -78,7 +78,6 @@ class GitHubDeploymentAdapter(IGitHubService):
                 logger.error(
                     "GitHub API returned HTTP error: %s",
                     str(e),
-                    exc_info=e
                 )
                 raise AppException(
                     message=f"GitHub API error: {e}",

@@ -5,7 +5,7 @@ from backend.src.domain.entities.git_repo import GitRepoCreateDTO, GitRepoDTO, G
 
 class IRepoRepository(ABC):
     @abstractmethod
-    def save(self, repo: GitRepoCreateDTO) -> GitRepoDetailDTO:
+    def save(self, repo: GitRepoCreateDTO) -> GitRepoDTO:
         pass
 
     @abstractmethod

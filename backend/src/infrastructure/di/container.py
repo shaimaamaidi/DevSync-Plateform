@@ -54,6 +54,5 @@ class Container:
             logger.error(
                 "Failed to initialize application container: %s",
                 str(e),
-                exc_info=e,
             )
             raise
