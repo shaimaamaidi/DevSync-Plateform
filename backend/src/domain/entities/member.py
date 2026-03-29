@@ -26,6 +26,7 @@ class MemberCreateDTO(BaseModel):
     """Payload for member creation."""
     username: Optional[str] = None
     mail: Optional[str] = None
+    password: Optional[str] =None
 
 class MemberUpdateDTO(BaseModel):
     """Payload for member updates."""

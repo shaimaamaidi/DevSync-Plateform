@@ -3,6 +3,8 @@
 import logging
 from typing import List
 
+from passlib.context import CryptContext
+
 from sqlalchemy.exc import IntegrityError
 
 from backend.src.domain.entities.member import (
@@ -56,6 +58,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             session: SQLAlchemy session.
         """
         self._session = session
+        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def save(self, member: MemberCreateDTO) -> MemberDTO:
         """Create a member record.
@@ -73,18 +76,20 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             member.mail
         )
 
-        if not member.username or not member.mail:
+        if not member.username or not member.mail or not member.password:
             logger.warning(
                 "Invalid input for member creation (username=%s, mail=%s).",
                 member.username,
                 member.mail
             )
             raise InvalidInputException(
-                "Member must have a valid 'username' and 'mail' for create."
+                "Member must have a valid 'username', 'mail' and 'password' for create."
             )
 
         try:
-            m = MemberModel(username=member.username, mail=member.mail)
+            hashed_password = self.pwd_context.hash(member.password)
+
+            m = MemberModel(username=member.username, mail=member.mail, password=hashed_password)
             self._session.add(m)
 
             self._session.commit()

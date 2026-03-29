@@ -13,6 +13,7 @@ class MemberModel(Base):
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)
     mail = Column(String(255), nullable=False, unique=True)
+    password = Column(String(255), nullable=False)
     repos = relationship(
         "GitRepoModel",
         secondary=member_repo_association,
