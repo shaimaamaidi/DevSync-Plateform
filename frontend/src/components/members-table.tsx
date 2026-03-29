@@ -55,11 +55,20 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
   };
 
   const handleSave = () => {
+
     setErrors({});
-    if (!formData.username || !formData.mail) {
-      const newErrors: Record<string, string> = {};
-      if (!formData.username) newErrors.username = 'Username is required';
-      if (!formData.mail) newErrors.mail = 'Email is required';
+    const newErrors: Record<string, string> = {};
+    if (!formData.username) newErrors.username = 'Username is required';
+    if (!formData.mail) {
+      newErrors.mail = 'Email is required';
+    } else {
+      // Vérification du format d'email simple
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.mail)) {
+        newErrors.mail = 'Invalid email format';
+      }
+    }
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }

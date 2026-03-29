@@ -112,7 +112,6 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
           Add Space
         </Button>
       </div>
-
       <div className="overflow-x-auto border border-border rounded-lg">
         <table className="w-full">
           <thead>
