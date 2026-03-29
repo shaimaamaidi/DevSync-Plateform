@@ -31,7 +31,7 @@ export default function HomePage({ activeTab: initialTab }: HomePageProps) {
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
   const [members, setMembers] = useState<MemberDTO[]>([]);
 
-  // Synchronise l'onglet avec l'URL
+
   useReactEffect(() => {
     if (pathname === '/repositories' && activeTab !== 'repos') {
       setActiveTab('repos');

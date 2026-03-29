@@ -113,7 +113,6 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
                     <h3 className="text-sm font-semibold text-foreground">{deploymentName}</h3>
                     {getStatusBadge(status)}
                   </div>
-
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
                     <div>
                       <p className="text-muted-foreground">Branch</p>
