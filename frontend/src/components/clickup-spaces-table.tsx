@@ -1,4 +1,12 @@
 ﻿import { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import type { ClickUpSpaceLightDTO, GitRepoDTO } from '@/api/api';
 import { repoService } from '@/services/repo-service';
 import { Button } from '@/components/ui/button';
@@ -8,7 +16,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface ClickUpSpacesTableProps {
+export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
   onUpdate: (space: ClickUpSpaceLightDTO) => void;
   onDelete: (id: number) => void;
@@ -20,6 +28,7 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [formData, setFormData] = useState<Partial<ClickUpSpaceLightDTO>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
 
   // Reset errors when modal is opened or closed
   useEffect(() => {
@@ -160,7 +169,7 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                         size="icon"
                         onClick={() => {
                           if (typeof space.id === 'number') {
-                            onDelete(space.id);
+                            setDeleteConfirmSpaceId(space.id);
                           }
                         }}
                         className="h-8 w-8 text-destructive hover:bg-destructive/10"
@@ -278,6 +287,34 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
           </Card>
         </div>
       )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmSpaceId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmSpaceId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to delete this ClickUp space?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. The ClickUp space will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmSpaceId(null)}>
+              No
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteConfirmSpaceId !== null) {
+                  onDelete(deleteConfirmSpaceId);
+                  setDeleteConfirmSpaceId(null);
+                }
+              }}
+            >
+              Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

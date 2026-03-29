@@ -1,4 +1,12 @@
 ﻿import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import type { MemberDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
@@ -6,7 +14,8 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
-interface MembersTableProps {
+
+export interface MembersTableProps {
   members: MemberDTO[];
   onUpdate: (member: MemberDTO) => void;
   onDelete: (id: number) => void;
@@ -18,6 +27,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
   const [formData, setFormData] = useState<Partial<MemberDTO>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [deleteConfirmMemberId, setDeleteConfirmMemberId] = useState<number | null>(null);
 
   // Reset errors when modal is opened or closed
   useEffect(() => {
@@ -124,7 +134,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                         size="icon"
                         onClick={() => {
                           if (typeof member.id === 'number') {
-                            onDelete(member.id);
+                            setDeleteConfirmMemberId(member.id);
                           }
                         }}
                         className="h-8 w-8 text-destructive hover:bg-destructive/10"
@@ -205,6 +215,33 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
           </Card>
         </div>
       )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmMemberId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmMemberId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to delete this member?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. The member will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmMemberId(null)}>
+              No
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteConfirmMemberId !== null) {
+                  onDelete(deleteConfirmMemberId);
+                  setDeleteConfirmMemberId(null);
+                }
+              }}
+            >
+              Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
