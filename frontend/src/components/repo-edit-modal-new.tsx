@@ -37,15 +37,20 @@ export function RepoEditModalNew({
   clickUpSpaces,
   availableMembers,
 }: RepoEditModalNewProps) {
-  const [formData, setFormData] = useState<GitRepoDetailDTO>(
-    repo || {
-      id: undefined,
-      name: '',
-      url: '',
-      members: [],
-      clickup_space: null,
-    }
-  );
+  const initialFormData: GitRepoDetailDTO = {
+    id: undefined,
+    name: '',
+    url: '',
+    members: [],
+    clickup_space: null,
+  };
+  const [formData, setFormData] = useState<GitRepoDetailDTO>(repo || initialFormData);
+    // Reset formData when opening add modal (repo === null and isOpen)
+    useEffect(() => {
+      if (isOpen && repo === null) {
+        setFormData(initialFormData);
+      }
+    }, [isOpen, repo]);
   const [membersToRemove, setMembersToRemove] = useState<RepoMemberDTO[]>([]);
   const [newMembers, setNewMembers] = useState<RepoMemberDTO[]>([]);
   const [showAddMembersPanel, setShowAddMembersPanel] = useState(false);

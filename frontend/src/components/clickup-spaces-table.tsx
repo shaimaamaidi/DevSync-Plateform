@@ -43,9 +43,15 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
 
   const handleAddClick = () => {
     setEditingSpace(null);
-    setFormData({ name: '', space_code: '' });
     setIsAddModalOpen(true);
   };
+
+  // Reset formData when opening add modal
+  useEffect(() => {
+    if (isAddModalOpen && editingSpace === null) {
+      setFormData({ name: '', space_code: '' });
+    }
+  }, [isAddModalOpen, editingSpace]);
 
   const handleEditClick = (space: ClickUpSpaceLightDTO) => {
     setEditingSpace(space);

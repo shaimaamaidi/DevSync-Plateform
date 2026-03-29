@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import type { MemberDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
@@ -20,9 +20,15 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
 
   const handleAddClick = () => {
     setEditingMember(null);
-    setFormData({ username: '', mail: '' });
     setIsAddModalOpen(true);
   };
+
+  // Reset formData when opening add modal
+  useEffect(() => {
+    if (isAddModalOpen && editingMember === null) {
+      setFormData({ username: '', mail: '' });
+    }
+  }, [isAddModalOpen, editingMember]);
 
   const handleEditClick = (member: MemberDTO) => {
     setEditingMember(member);
