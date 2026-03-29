@@ -10,7 +10,7 @@ import {
 import type { ClickUpSpaceLightDTO, GitRepoDTO } from '@/api/api';
 import { repoService } from '@/services/repo-service';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Link as LinkIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -145,14 +145,25 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                   </td>
                   <td className="px-6 py-4 text-center">
                     {space.repo?.url ? (
-                      <span className="text-sm text-foreground">
-                        {space.repo.url}
+                      <a
+                        href={space.repo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                        <span className="text-sm truncate max-w-xs">
+                          {space.repo.url.replace('https://github.com/', '')}
+                        </span>
                         {space.repo.name && (
-                          <span> ({space.repo.name})</span>
+                          <span className="ml-1 text-xs text-muted-foreground">({space.repo.name})</span>
                         )}
-                      </span>
+                      </a>
                     ) : space.repo?.name ? (
-                      <span className="text-sm text-foreground">{space.repo.name}</span>
+                      <span className="text-sm text-foreground flex items-center gap-1 justify-center w-full">
+                        <LinkIcon className="w-4 h-4 opacity-60" />
+                        {space.repo.name}
+                      </span>
                     ) : (
                       <span className="text-sm text-muted-foreground italic">No repo linked</span>
                     )}
