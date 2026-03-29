@@ -122,7 +122,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
       <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardStats repos={repos} deployments={deployments} />
+        <DashboardStats repos={repos} deployments={deployments} members={members} />
 
         <div className="my-8 border-t border-border" />
 

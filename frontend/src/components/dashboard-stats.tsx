@@ -1,14 +1,15 @@
-﻿import type { DeploymentDTO, GitRepoDetailDTO } from '@/api/api';
+﻿import type { DeploymentDTO, GitRepoDetailDTO, MemberDTO } from '@/api/api';
 import { Card } from '@/components/ui/card';
 import { GitBranch, Zap, Users, CheckCircle } from 'lucide-react';
 
 interface DashboardStatsProps {
   repos: GitRepoDetailDTO[];
   deployments: DeploymentDTO[];
+  members: MemberDTO[];
 }
 
-export function DashboardStats({ repos, deployments }: DashboardStatsProps) {
-  const totalMembers = repos.reduce((acc, repo) => acc + (repo.members?.length ?? 0), 0);
+export function DashboardStats({ repos, deployments, members }: DashboardStatsProps) {
+  const totalMembers = members.length;
   const uniqueClickUpSpaces = new Set(
     repos
       .map((repo) => repo.clickup_space?.id ?? repo.clickup_space?.space_code ?? null)
