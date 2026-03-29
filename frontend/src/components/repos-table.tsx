@@ -75,7 +75,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
               <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 ClickUp Space
               </th>
-              <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">
+              <th className="px-12 py-4 text-right text-sm font-semibold text-foreground">
                 Actions
               </th>
             </tr>
@@ -98,7 +98,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
                         href={repo.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1 w-fit justify-center"
+                        className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
                       >
                         <LinkIcon className="w-4 h-4" />
                         <span className="text-sm truncate max-w-xs">
