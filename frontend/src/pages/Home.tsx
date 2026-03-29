@@ -64,53 +64,45 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     }
   };
 
-  useEffect(() => {
-    let isActive = true;
 
-    const loadData = async () => {
-      const [reposData, spacesData, membersData] = await Promise.all([
-        repoService.getAllReposWithDetails(),
-        clickUpService.getAllSpacesLight(),
-        memberService.getAllWithRepos(),
-      ]);
-
-      if (!isActive) return;
-
-      setRepos(reposData);
-      setClickUpSpaces(spacesData);
-      setMembers(membersData.map(memberService.mapToMemberDTO));
-    };
-
-    loadData();
-
-    return () => {
-      isActive = false;
-    };
+  // Fonction centralisée pour refresh toutes les données
+  const refreshAllData = useCallback(async () => {
+    const [reposData, spacesData, membersData] = await Promise.all([
+      repoService.getAllReposWithDetails(),
+      clickUpService.getAllSpacesLight(),
+      memberService.getAllWithRepos(),
+    ]);
+    setRepos(reposData);
+    setClickUpSpaces(spacesData);
+    setMembers(membersData.map(memberService.mapToMemberDTO));
   }, []);
+
+  useEffect(() => {
+    refreshAllData();
+  }, [refreshAllData]);
+
 
 
   const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoDetailDTO) => {
     const nextRepo = await repoService.updateRepo(updatedRepo);
     if (!nextRepo) return;
-    setRepos((prevRepos) =>
-      prevRepos.map((repo) => (repo.id === nextRepo.id ? nextRepo : repo))
-    );
+    await refreshAllData();
     showSuccessToast('Repository updated successfully');
-  }, []);
+  }, [refreshAllData]);
 
   const handleDeleteRepo = useCallback(async (id: number) => {
     const deleted = await repoService.deleteRepo(id);
     if (!deleted) return;
-    setRepos((prevRepos) => prevRepos.filter((repo) => repo.id !== id));
+    await refreshAllData();
     showSuccessToast('Repository deleted successfully');
-  }, []);
+  }, [refreshAllData]);
 
   const handleAddRepo = useCallback(async (newRepo: GitRepoDetailDTO) => {
     const createdRepo = await repoService.createRepo(newRepo);
     if (!createdRepo) return;
-    setRepos((prevRepos) => [...prevRepos, createdRepo]);
+    await refreshAllData();
     showSuccessToast('Repository created successfully');
-  }, []);
+  }, [refreshAllData]);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
     const deploymentData = await deploymentService.listByRepoUrl(repoUrl);
@@ -156,19 +148,19 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               onUpdate={async (member) => {
                 const nextMember = await memberService.updateMember(member);
                 if (!nextMember) return;
-                setMembers((prev) => prev.map((m) => (m.id === nextMember.id ? nextMember : m)));
+                await refreshAllData();
                 showSuccessToast('Member updated successfully');
               }}
               onDelete={async (id) => {
                 const deleted = await memberService.deleteMember(id);
                 if (!deleted) return;
-                setMembers((prev) => prev.filter((m) => m.id !== id));
+                await refreshAllData();
                 showSuccessToast('Member deleted successfully');
               }}
               onAdd={async (newMember) => {
                 const createdMember = await memberService.createMember(newMember);
                 if (!createdMember) return;
-                setMembers((prev) => [...prev, createdMember]);
+                await refreshAllData();
                 showSuccessToast('Member created successfully');
               }}
             />
@@ -182,19 +174,19 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               onUpdate={async (space) => {
                 const nextSpace = await clickUpService.updateSpace(space);
                 if (!nextSpace) return;
-                setClickUpSpaces((prev) => prev.map((s) => (s.id === nextSpace.id ? nextSpace : s)));
+                await refreshAllData();
                 showSuccessToast('ClickUp space updated successfully');
               }}
               onDelete={async (id) => {
                 const deleted = await clickUpService.deleteSpace(id);
                 if (!deleted) return;
-                setClickUpSpaces((prev) => prev.filter((s) => s.id !== id));
+                await refreshAllData();
                 showSuccessToast('ClickUp space deleted successfully');
               }}
               onAdd={async (newSpace) => {
                 const createdSpace = await clickUpService.createSpace(newSpace);
                 if (!createdSpace) return;
-                setClickUpSpaces((prev) => [...prev, createdSpace]);
+                await refreshAllData();
                 showSuccessToast('ClickUp space created successfully');
               }}
             />
