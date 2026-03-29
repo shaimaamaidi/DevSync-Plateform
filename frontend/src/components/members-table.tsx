@@ -25,7 +25,7 @@ export interface MembersTableProps {
 export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTableProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
-  const [formData, setFormData] = useState<Partial<MemberDTO>>({});
+  const [formData, setFormData] = useState<Partial<MemberDTO & { password?: string }>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteConfirmMemberId, setDeleteConfirmMemberId] = useState<number | null>(null);
 
@@ -44,7 +44,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
   // Reset formData when opening add modal
   useEffect(() => {
     if (isAddModalOpen && editingMember === null) {
-      setFormData({ username: '', mail: '' });
+      setFormData({ username: '', mail: '', password: '' });
     }
   }, [isAddModalOpen, editingMember]);
 
@@ -62,11 +62,13 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
     if (!formData.mail) {
       newErrors.mail = 'Email is required';
     } else {
-      // Vérification du format d'email simple
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.mail)) {
         newErrors.mail = 'Invalid email format';
       }
+    }
+    if (!editingMember && (!formData.password || formData.password.length < 6)) {
+      newErrors.password = 'Password (min 6 caractères) requis';
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -79,7 +81,8 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
       onAdd({
         username: formData.username,
         mail: formData.mail,
-      } as MemberDTO);
+        password: formData.password,
+      } as any);
     }
 
     setIsAddModalOpen(false);
@@ -180,6 +183,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                   <X className="w-4 h-4" />
                 </Button>
               </div>
+
               <div className="space-y-4">
                 <div>
                   <Label className="text-foreground font-medium">Username</Label>
@@ -207,6 +211,21 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                     <div className="text-red-500 text-xs mt-1">{errors.mail}</div>
                   )}
                 </div>
+                {!editingMember && (
+                  <div>
+                    <Label className="text-foreground font-medium">Password</Label>
+                    <Input
+                      type="password"
+                      placeholder="Mot de passe"
+                      value={formData.password || ''}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="mt-2 bg-input border-border text-foreground"
+                    />
+                    {errors.password && (
+                      <div className="text-red-500 text-xs mt-1">{errors.password}</div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-2 pt-4 border-t border-border">
