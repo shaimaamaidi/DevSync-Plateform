@@ -32,8 +32,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               <GitBranch className="w-6 h-6 text-primary" />
             </div>
             <div className="text-left">
-              <h1 className="text-lg font-bold text-foreground tracking-tight">DevOps Manager</h1>
-              <p className="text-xs text-muted-foreground font-medium">GitHub & Deployments</p>
+              <h1 className="text-lg font-bold text-foreground tracking-tight">GitHub & Deployments</h1>
             </div>
           </button>
 
