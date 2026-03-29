@@ -29,6 +29,7 @@ const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
     return responseData;
   }
 
+
   if (responseData && typeof responseData === 'object') {
     if ('detail' in responseData) {
       const detail = (responseData as { detail?: string | string[] }).detail;
@@ -37,6 +38,14 @@ const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
       }
       if (typeof detail === 'string') {
         return detail;
+      }
+    }
+
+    // Support backend error format: { error: { message: ... } }
+    if ('error' in responseData && typeof (responseData as any).error === 'object') {
+      const errorObj = (responseData as any).error;
+      if ('message' in errorObj && typeof errorObj.message === 'string') {
+        return errorObj.message;
       }
     }
 
