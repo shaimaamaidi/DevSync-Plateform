@@ -10,7 +10,7 @@ interface NavigationProps {
   onTabChange?: (tab: HomeTab) => void;
 }
 
-export function Navigation({ activeTab, onTabChange }: NavigationProps) {
+export function Navigation({ onTabChange }: NavigationProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
