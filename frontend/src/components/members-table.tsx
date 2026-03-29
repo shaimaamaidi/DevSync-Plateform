@@ -80,9 +80,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
 
   return (
     <div className="space-y-4">
-      {/* Error display example for username */}
-      {errors.username && <div className="text-red-500 text-sm">{errors.username}</div>}
-      {errors.mail && <div className="text-red-500 text-sm">{errors.mail}</div>}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Members Management</h2>
         <Button onClick={handleAddClick} className="gap-2">
@@ -99,7 +96,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                 Member
               </th>
               <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
-                Email
+                Mail
               </th>
               <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">
                 Actions
@@ -174,7 +171,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-
               <div className="space-y-4">
                 <div>
                   <Label className="text-foreground font-medium">Username</Label>
@@ -185,10 +181,12 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                     className="mt-2 bg-input border-border text-foreground"
                   />
+                  {errors.username && (
+                    <div className="text-red-500 text-xs mt-1">{errors.username}</div>
+                  )}
                 </div>
-
                 <div>
-                  <Label className="text-foreground font-medium">Email</Label>
+                  <Label className="text-foreground font-medium">Mail</Label>
                   <Input
                     type="email"
                     placeholder="john.dev@company.com"
@@ -196,6 +194,9 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                     onChange={(e) => setFormData({ ...formData, mail: e.target.value })}
                     className="mt-2 bg-input border-border text-foreground"
                   />
+                  {errors.mail && (
+                    <div className="text-red-500 text-xs mt-1">{errors.mail}</div>
+                  )}
                 </div>
               </div>
 

@@ -105,9 +105,6 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
 
   return (
     <div className="space-y-4">
-      {/* Error display example for name and space_code */}
-      {errors.name && <div className="text-red-500 text-sm">{errors.name}</div>}
-      {errors.space_code && <div className="text-red-500 text-sm">{errors.space_code}</div>}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">ClickUp Spaces</h2>
         <Button onClick={handleAddClick} className="gap-2">
@@ -211,6 +208,7 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
               </div>
 
               <div className="space-y-4">
+
                 <div>
                   <Label className="text-foreground font-medium">Space Name</Label>
                   <Input
@@ -220,6 +218,9 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="mt-2 bg-input border-border text-foreground"
                   />
+                  {errors.name && (
+                    <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+                  )}
                 </div>
 
                 <div>
@@ -231,6 +232,9 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                     onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
                     className="mt-2 bg-input border-border text-foreground"
                   />
+                  {errors.space_code && (
+                    <div className="text-red-500 text-xs mt-1">{errors.space_code}</div>
+                  )}
                 </div>
 
                 <div>
