@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GitBranch, Zap, Users, Boxes } from 'lucide-react';
 
+
 interface NavigationProps {
   activeTab?: 'repos' | 'deployments';
   onTabChange?: (tab: 'repos' | 'deployments') => void;
@@ -11,9 +12,10 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const isHomePage = pathname === '/';
+  const isRepositoriesPage = pathname === '/repositories';
+  const isDeploymentsPage = pathname === '/deployments';
   const isMembersPage = pathname === '/members';
-  const isClickUpPage = pathname === '/clickup-spaces';
+  const isSpacesPage = pathname === '/spaces';
 
   return (
     <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
@@ -36,10 +38,11 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
           {/* Navigation Tabs */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+
               <Button
-                variant={isHomePage && activeTab === 'repos' ? 'default' : 'ghost'}
+                variant={isRepositoriesPage ? 'default' : 'ghost'}
                 onClick={() => {
-                  navigate('/');
+                  navigate('/repositories');
                   onTabChange?.('repos');
                 }}
                 className="gap-2"
@@ -49,9 +52,9 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               </Button>
 
               <Button
-                variant={isHomePage && activeTab === 'deployments' ? 'default' : 'ghost'}
+                variant={isDeploymentsPage ? 'default' : 'ghost'}
                 onClick={() => {
-                  navigate('/');
+                  navigate('/deployments');
                   onTabChange?.('deployments');
                 }}
                 className="gap-2"
@@ -70,8 +73,8 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
               </Button>
 
               <Button
-                variant={isClickUpPage ? 'default' : 'ghost'}
-                onClick={() => navigate('/clickup-spaces')}
+                variant={isSpacesPage ? 'default' : 'ghost'}
+                onClick={() => navigate('/spaces')}
                 className="gap-2"
               >
                 <Boxes className="w-4 h-4" />
