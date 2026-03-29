@@ -195,9 +195,9 @@ export function RepoEditModalNew({
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <Card className="w-full max-w-2xl border-border shadow-2xl max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="sticky top-0 bg-card border-b border-border px-8 py-6">
+        <Card className="w-full max-w-2xl border-border shadow-2xl max-h-[90vh] flex flex-col">
+          {/* Header sticky */}
+          <div className="sticky top-0 bg-card border-b border-border px-8 py-6 z-10">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-foreground">
@@ -222,8 +222,8 @@ export function RepoEditModalNew({
             </div>
           </div>
 
-          {/* Content */}
-          <div className="px-8 py-6 space-y-8">
+          {/* Content scrollable */}
+          <div className="px-8 py-6 space-y-8 flex-1 overflow-y-auto">
             {/* Repository Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -473,8 +473,8 @@ export function RepoEditModalNew({
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-between">
+          {/* Footer sticky */}
+          <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-between z-10">
             <div className="text-sm text-muted-foreground">
               {hasChanges && (
                 <span className="flex items-center gap-2 text-primary">
