@@ -63,19 +63,19 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-muted">
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Repository
               </th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 URL
               </th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Members
               </th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 ClickUp Space
               </th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">
+              <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">
                 Actions
               </th>
             </tr>
@@ -86,69 +86,69 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
                 key={repo.id ?? repo.url ?? repo.name}
                 className="border-b border-border hover:bg-muted/50 transition-colors"
               >
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <GitBranch className="w-5 h-5 text-primary" />
-                    <span className="font-medium text-foreground">{repo.name}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {repo.url ? (
-                    <a
-                      href={repo.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline flex items-center gap-1 w-fit"
-                    >
-                      <LinkIcon className="w-4 h-4" />
-                      <span className="text-sm truncate max-w-xs">
-                        {repo.url.replace('https://github.com/', '')}
-                      </span>
-                    </a>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">No URL</span>
-                  )}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <div className="flex -space-x-2">
-                      {(repo.members ?? []).slice(0, 3).map((member) => (
-                        <Avatar key={member.id ?? member.username} className="w-8 h-8 border border-background">
-                          <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                            {(member.username || 'M')[0].toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      ))}
-                      {(repo.members?.length ?? 0) > 3 && (
-                        <div className="w-8 h-8 flex items-center justify-center bg-muted rounded-full border border-background text-xs font-semibold text-foreground">
-                          +{(repo.members?.length ?? 0) - 3}
-                        </div>
-                      )}
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center gap-3 justify-center">
+                      <GitBranch className="w-5 h-5 text-primary" />
+                      <span className="font-medium text-foreground">{repo.name}</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="gap-1"
-                      onClick={() => handleEditClick(repo)}
-                    >
-                      <Users className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  {repo.clickup_space ? (
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                    >
-                      {repo.clickup_space.name}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-muted-foreground">
-                      Not assigned
-                    </Badge>
-                  )}
-                </td>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {repo.url ? (
+                      <a
+                        href={repo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1 w-fit justify-center"
+                      >
+                        <LinkIcon className="w-4 h-4" />
+                        <span className="text-sm truncate max-w-xs">
+                          {repo.url.replace('https://github.com/', '')}
+                        </span>
+                      </a>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">No URL</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center gap-2 justify-center">
+                      <div className="flex -space-x-2">
+                        {(repo.members ?? []).slice(0, 3).map((member) => (
+                          <Avatar key={member.id ?? member.username} className="w-8 h-8 border border-background">
+                            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                              {(member.username || 'M')[0].toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                        ))}
+                        {(repo.members?.length ?? 0) > 3 && (
+                          <div className="w-8 h-8 flex items-center justify-center bg-muted rounded-full border border-background text-xs font-semibold text-foreground">
+                            +{(repo.members?.length ?? 0) - 3}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1"
+                        onClick={() => handleEditClick(repo)}
+                      >
+                        <Users className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {repo.clickup_space ? (
+                      <Badge
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                      >
+                        {repo.clickup_space.name}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        Not assigned
+                      </Badge>
+                    )}
+                  </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2">
                     <Button

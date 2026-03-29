@@ -116,16 +116,16 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-muted">
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Space Name
               </th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Space ID
               </th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Linked Repository
               </th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">
+              <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">
                 Actions
               </th>
             </tr>
@@ -138,13 +138,20 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                   className="border-b border-border hover:bg-muted/50 transition-colors"
                 >
                   <td className="px-6 py-4">
-                    <span className="font-medium text-foreground">{space.name}</span>
+                    <span className="font-medium text-foreground w-full text-center block">{space.name}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-center">
                     <span className="font-mono text-sm text-muted-foreground">{space.space_code || 'N/A'}</span>
                   </td>
-                  <td className="px-6 py-4">
-                    {space.repo?.name ? (
+                  <td className="px-6 py-4 text-center">
+                    {space.repo?.url ? (
+                      <span className="text-sm text-foreground">
+                        {space.repo.url}
+                        {space.repo.name && (
+                          <span> ({space.repo.name})</span>
+                        )}
+                      </span>
+                    ) : space.repo?.name ? (
                       <span className="text-sm text-foreground">{space.repo.name}</span>
                     ) : (
                       <span className="text-sm text-muted-foreground italic">No repo linked</span>

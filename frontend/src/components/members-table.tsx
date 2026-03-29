@@ -101,13 +101,13 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
         <table className="w-full">
           <thead>
             <tr className="border-b border-border bg-muted">
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Member
               </th>
-              <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">
+              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                 Mail
               </th>
-              <th className="px-6 py-4 text-right text-sm font-semibold text-foreground">
+              <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">
                 Actions
               </th>
             </tr>
@@ -120,9 +120,9 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                   className="border-b border-border hover:bg-muted/50 transition-colors"
                 >
                   <td className="px-6 py-4">
-                    <span className="font-medium text-foreground">{member.username}</span>
+                    <span className="font-medium text-foreground w-full text-center block">{member.username}</span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 text-center">
                     <span className="text-sm text-muted-foreground">{member.mail || 'N/A'}</span>
                   </td>
                   <td className="px-6 py-4">

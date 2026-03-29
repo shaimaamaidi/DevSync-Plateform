@@ -97,62 +97,69 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
 
       {/* Deployments List */}
       <div className="space-y-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-foreground text-center mb-2">
+          <div>Branch</div>
+          <div>Commit</div>
+          <div>Author</div>
+          <div>Deployed</div>
+        </div>
         {filteredDeployments.length > 0 ? (
           filteredDeployments.map((deployment, index) => {
             const status = getStatus(deployment);
             const createdAt = deployment.created_at ? new Date(deployment.created_at) : null;
             const deploymentName = deployment.description || deployment.environment || 'Deployment';
             return (
-            <Card
-              key={deployment.dep_id ?? `${deployment.environment ?? 'deployment'}-${index}`}
-              className={`p-4 border ${getStatusColor(status)} transition-all hover:shadow-md`}
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-semibold text-foreground">{deploymentName}</h3>
-                    {getStatusBadge(status)}
+              <Card
+                key={deployment.dep_id ?? `${deployment.environment ?? 'deployment'}-${index}`}
+                className={`p-4 border ${getStatusColor(status)} transition-all hover:shadow-md`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-sm font-semibold text-foreground">{deploymentName}</h3>
+                      {getStatusBadge(status)}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-center">
+                      <div>
+                        <p className="text-muted-foreground">&nbsp;</p>
+                        <p className="font-medium text-foreground mt-0.5">{deployment.ref || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">&nbsp;</p>
+                        <p className="font-mono text-foreground mt-0.5">
+                          {deployment.sha ? deployment.sha.slice(0, 7) : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">&nbsp;</p>
+                        <p className="font-medium text-foreground mt-0.5">{deployment.creator || 'Unknown'}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">&nbsp;</p>
+                        <p className="font-medium text-foreground mt-0.5">
+                          {createdAt
+                            ? formatDistanceToNow(createdAt, { addSuffix: true })
+                            : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                    <div>
-                      <p className="text-muted-foreground">Branch</p>
-                      <p className="font-medium text-foreground mt-0.5">{deployment.ref || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Commit</p>
-                      <p className="font-mono text-foreground mt-0.5">
-                        {deployment.sha ? deployment.sha.slice(0, 7) : 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Author</p>
-                      <p className="font-medium text-foreground mt-0.5">{deployment.creator || 'Unknown'}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Deployed</p>
-                      <p className="font-medium text-foreground mt-0.5">
-                        {createdAt
-                          ? formatDistanceToNow(createdAt, { addSuffix: true })
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
 
-                {deployment.log_url && (
-                  <a
-                    href={deployment.log_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-shrink-0 p-2 hover:bg-background rounded-lg transition-colors"
-                    title="Open deployment URL"
-                  >
-                    <ExternalLink className="w-5 h-5 text-primary" />
-                  </a>
-                )}
-              </div>
-            </Card>
-          )})
+                  {deployment.log_url && (
+                    <a
+                      href={deployment.log_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-shrink-0 p-2 hover:bg-background rounded-lg transition-colors"
+                      title="Open deployment URL"
+                    >
+                      <ExternalLink className="w-5 h-5 text-primary" />
+                    </a>
+                  )}
+                </div>
+              </Card>
+            );
+          })
         ) : (
           <Card className="p-8 text-center border-dashed">
             <p className="text-muted-foreground">
