@@ -6,6 +6,17 @@ type ErrorLike = {
   };
 };
 
+// Simple event system to broadcast errors to a UI alert handler
+type ErrorListener = (msg: string) => void;
+const listeners: ErrorListener[] = [];
+export function subscribeToApiError(listener: ErrorListener) {
+  listeners.push(listener);
+  return () => {
+    const idx = listeners.indexOf(listener);
+    if (idx !== -1) listeners.splice(idx, 1);
+  };
+}
+
 const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
   if (!error || typeof error !== 'object') {
     return 'Unknown error';
@@ -43,5 +54,5 @@ const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
 
 export const handleApiError = (error: ErrorLike | unknown, context: string) => {
   const message = normalizeErrorMessage(error);
-  alert(`${context}: ${message}`);
+  listeners.forEach((cb) => cb(`${context}: ${message}`));
 };
