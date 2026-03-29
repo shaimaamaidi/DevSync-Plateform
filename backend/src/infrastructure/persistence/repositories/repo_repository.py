@@ -169,9 +169,10 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 m.url = repo.url
 
             if repo.members is not None:
+                deduped_members = {}
                 if not repo.members:
                     logger.info(
-                        "Members list is empty; skipping members update for repository (id=%s).",
+                        "Members list is empty.",
                         repo.id,
                     )
                 else:
@@ -230,12 +231,12 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                             "Members not found for update (%s)." % ", ".join(missing_info)
                         )
 
-                    m.members = list(deduped_members)
-                    logger.info(
-                        "Members association updated for repository (id=%s, count=%s).",
-                        repo.id,
-                        len(m.members)
-                    )
+                m.members = list(deduped_members)
+                logger.info(
+                    "Members association updated for repository (id=%s, count=%s).",
+                    repo.id,
+                    len(m.members)
+                )
 
             if repo.clickup_space is not None:
                 if not repo.clickup_space.id and not repo.clickup_space.space_code:

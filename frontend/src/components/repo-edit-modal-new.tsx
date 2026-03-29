@@ -45,17 +45,26 @@ export function RepoEditModalNew({
     clickup_space: null,
   };
   const [formData, setFormData] = useState<GitRepoDetailDTO>(repo || initialFormData);
-    // Reset formData when opening add modal (repo === null and isOpen)
-    useEffect(() => {
-      if (isOpen && repo === null) {
+  // Reset formData when opening modal: fill with repo if editing, or empty if adding
+  useEffect(() => {
+    if (isOpen) {
+      if (repo) {
+        setFormData(repo);
+      } else {
         setFormData(initialFormData);
       }
-    }, [isOpen, repo]);
+    }
+  }, [isOpen, repo]);
   const [membersToRemove, setMembersToRemove] = useState<RepoMemberDTO[]>([]);
   const [newMembers, setNewMembers] = useState<RepoMemberDTO[]>([]);
   const [showAddMembersPanel, setShowAddMembersPanel] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (!isOpen) {
+      setErrors({});
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (repo) {
@@ -145,20 +154,24 @@ export function RepoEditModalNew({
   };
 
   const handleSave = () => {
+    setErrors({});
     if (!validateForm()) return;
 
-    // Calculate final members list: remove membersToRemove and add newMembers
+    // Calculate final members list: (original - toRemove) + toAdd
     const originalMembers = repo?.members || [];
-    const finalMembers = [
-      ...originalMembers.filter((member) =>
-        !membersToRemove.find((memberToRemove) => memberKey(memberToRemove) === memberKey(member))
-      ),
-      ...newMembers,
+    // Remove members present in membersToRemove
+    const filteredMembers = originalMembers.filter((member) =>
+      !membersToRemove.find((memberToRemove) => memberKey(memberToRemove) === memberKey(member))
+    );
+    // Add new members (avoid duplicates)
+    const allMembers = [
+      ...filteredMembers,
+      ...newMembers.filter((newM) => !filteredMembers.find((m) => memberKey(m) === memberKey(newM)))
     ];
 
     const updatedRepo: GitRepoDetailDTO = {
       ...formData,
-      members: finalMembers,
+      members: allMembers,
     };
 
     onSave(updatedRepo);
@@ -197,8 +210,12 @@ export function RepoEditModalNew({
                 </p>
               </div>
               <button
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  setErrors({});
+                  onOpenChange(false);
+                }}
                 className="p-2 hover:bg-muted rounded-lg transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
               </button>
@@ -394,66 +411,65 @@ export function RepoEditModalNew({
                 >
                   {showAddMembersPanel ? 'Close' : '+ Add Members'}
                 </Button>
-              </div>
-
-              {/* Add Members Panel */}
-              {showAddMembersPanel && (
-                <div className="space-y-4 p-4 rounded-lg border border-primary/50 bg-primary/5">
-                  <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 bg-primary rounded-full" />
-                    <Label className="text-foreground font-semibold">Select Members to Add</Label>
-                  </div>
-
-                  {/* Available Members Dropdown */}
-                  <div>
-                    <Label className="text-sm text-muted-foreground">All Available Members</Label>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      {availableToAdd.map((member) => (
-                        <button
-                          key={member.id ?? member.mail ?? member.username}
-                          type="button"
-                          onClick={() => handleAddNewMember(member)}
-                          className="p-3 rounded-lg border-2 border-border hover:border-primary/50 bg-muted/50 hover:bg-primary/5 text-left transition-all"
-                        >
-                          <p className="font-medium text-foreground text-sm">{member.username}</p>
-                          <p className="text-xs text-muted-foreground">{member.mail || 'No email'}</p>
-                        </button>
-                      ))}
+                {/* Add Members Panel */}
+                {showAddMembersPanel && (
+                  <div className="space-y-4 p-4 rounded-lg border border-primary/50 bg-primary/5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-5 bg-primary rounded-full" />
+                      <Label className="text-foreground font-semibold">Select Members to Add</Label>
                     </div>
-                    {availableToAdd.length === 0 && (
-                      <p className="text-sm text-muted-foreground italic mt-3">
-                        All members are already added
-                      </p>
-                    )}
-                  </div>
 
-                  {/* Selected New Members */}
-                  {newMembers.length > 0 && (
-                    <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/30">
-                      <p className="text-sm font-medium text-foreground mb-2">
-                        Members to be added ({newMembers.length})
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {newMembers.map((member) => (
-                          <Badge
-                            key={memberKey(member)}
-                            className="gap-2 px-3 py-1.5 text-sm bg-green-600 text-white"
+                    {/* Available Members Dropdown */}
+                    <div>
+                      <Label className="text-sm text-muted-foreground">All Available Members</Label>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        {availableToAdd.map((member) => (
+                          <button
+                            key={member.id ?? member.mail ?? member.username}
+                            type="button"
+                            onClick={() => handleAddNewMember(member)}
+                            className="p-3 rounded-lg border-2 border-border hover:border-primary/50 bg-muted/50 hover:bg-primary/5 text-left transition-all"
                           >
-                            {member.username}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveNewMember(memberKey(member))}
-                              className="hover:opacity-70 transition-opacity"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </Badge>
+                            <p className="font-medium text-foreground text-sm">{member.username}</p>
+                            <p className="text-xs text-muted-foreground">{member.mail || 'No email'}</p>
+                          </button>
                         ))}
                       </div>
+                      {availableToAdd.length === 0 && (
+                        <p className="text-sm text-muted-foreground italic mt-3">
+                          All members are already added
+                        </p>
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
+
+                    {/* Selected New Members */}
+                    {newMembers.length > 0 && (
+                      <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                        <p className="text-sm font-medium text-foreground mb-2">
+                          Members to be added ({newMembers.length})
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {newMembers.map((member) => (
+                            <Badge
+                              key={memberKey(member)}
+                              className="gap-2 px-3 py-1.5 text-sm bg-green-600 text-white"
+                            >
+                              {member.username}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveNewMember(memberKey(member))}
+                                className="hover:opacity-70 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

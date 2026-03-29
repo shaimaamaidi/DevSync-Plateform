@@ -5,6 +5,14 @@ import { Edit2, Trash2, Plus, GitBranch, Users, Link as LinkIcon } from 'lucide-
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { RepoEditModalNew } from './repo-edit-modal-new';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface ReposTableProps {
   repos: GitRepoDetailDTO[];
@@ -19,6 +27,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
   const [selectedRepo, setSelectedRepo] = useState<GitRepoDetailDTO | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [deleteConfirmRepoId, setDeleteConfirmRepoId] = useState<number | null>(null);
 
   const handleEditClick = (repo: GitRepoDetailDTO) => {
     setSelectedRepo(repo);
@@ -155,7 +164,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
                       size="sm"
                       onClick={() => {
                         if (typeof repo.id === 'number') {
-                          onDelete(repo.id);
+                          setDeleteConfirmRepoId(repo.id);
                         }
                       }}
                       className="text-destructive hover:bg-destructive/10"
@@ -185,6 +194,33 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
         clickUpSpaces={clickUpSpaces}
         availableMembers={availableMembers}
       />
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmRepoId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmRepoId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to delete?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. The repository will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirmRepoId(null)}>
+              No
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteConfirmRepoId !== null) {
+                  onDelete(deleteConfirmRepoId);
+                  setDeleteConfirmRepoId(null);
+                }
+              }}
+            >
+              Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

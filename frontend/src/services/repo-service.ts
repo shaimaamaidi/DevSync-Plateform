@@ -68,20 +68,23 @@ export const repoService = {
       return null;
     }
 
+    // For each member, pass both id and mail if available
     const members: RepoMemberRefDTO[] | null = repo.members
       ? repo.members.map((member) => ({
-          id: member.id ?? null,
-          mail: member.mail ?? null,
+          id: member.id ?? undefined,
+          mail: member.mail ?? undefined,
         }))
       : null;
 
+    // For clickup_space, pass both id and space_code if available
     const clickupSpace: RepoClickUpSpaceRefDTO | null = repo.clickup_space
       ? {
-          id: repo.clickup_space.id ?? null,
-          space_code: repo.clickup_space.space_code ?? null,
+          id: repo.clickup_space.id ?? undefined,
+          space_code: repo.clickup_space.space_code ?? undefined,
         }
       : null;
 
+    // Always pass id for repo
     const payload: GitRepoUpdateDTO = {
       id: repo.id,
       name: repo.name ?? null,
@@ -91,7 +94,9 @@ export const repoService = {
     };
 
     try {
-      const response = await repoApi.updateRepoRepoRepoIdPut(repo.id, payload);
+      // Ensure id is present in payload (not just as path param)
+      const payloadWithId = { ...payload, id: repo.id };
+      const response = await repoApi.updateRepoRepoRepoIdPut(repo.id, payloadWithId);
       return response.data ?? null;
     } catch (error) {
       handleApiError(error, 'Unable to update repository');

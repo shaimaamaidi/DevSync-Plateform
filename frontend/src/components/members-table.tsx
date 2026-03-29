@@ -17,6 +17,14 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
   const [formData, setFormData] = useState<Partial<MemberDTO>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Reset errors when modal is opened or closed
+  useEffect(() => {
+    if (!isAddModalOpen) {
+      setErrors({});
+    }
+  }, [isAddModalOpen]);
 
   const handleAddClick = () => {
     setEditingMember(null);
@@ -37,7 +45,14 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
   };
 
   const handleSave = () => {
-    if (!formData.username || !formData.mail) return;
+    setErrors({});
+    if (!formData.username || !formData.mail) {
+      const newErrors: Record<string, string> = {};
+      if (!formData.username) newErrors.username = 'Username is required';
+      if (!formData.mail) newErrors.mail = 'Email is required';
+      setErrors(newErrors);
+      return;
+    }
 
     if (editingMember) {
       onUpdate({ ...editingMember, ...formData } as MemberDTO);
@@ -50,10 +65,14 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
 
     setIsAddModalOpen(false);
     setFormData({});
+    setErrors({});
   };
 
   return (
     <div className="space-y-4">
+      {/* Error display example for username */}
+      {errors.username && <div className="text-red-500 text-sm">{errors.username}</div>}
+      {errors.mail && <div className="text-red-500 text-sm">{errors.mail}</div>}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Members Management</h2>
         <Button onClick={handleAddClick} className="gap-2">
