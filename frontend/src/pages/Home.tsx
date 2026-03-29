@@ -17,37 +17,48 @@ import { repoService } from '@/services/repo-service';
 
 import { useEffect as useReactEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { MembersTable } from '@/components/members-table';
+import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 
+
+type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces';
 interface HomePageProps {
-  activeTab?: 'repos' | 'deployments';
+  activeTab?: HomeTab;
 }
 
-export default function HomePage({ activeTab: initialTab }: HomePageProps) {
+function HomePage({ activeTab: initialTab }: HomePageProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [activeTab, setActiveTab] = useState<'repos' | 'deployments'>(initialTab || 'repos');
+  const [activeTab, setActiveTab] = useState<HomeTab>(initialTab || 'repos');
   const [repos, setRepos] = useState<GitRepoDetailDTO[]>([]);
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
   const [members, setMembers] = useState<MemberDTO[]>([]);
-
 
   useReactEffect(() => {
     if (pathname === '/repositories' && activeTab !== 'repos') {
       setActiveTab('repos');
     } else if (pathname === '/deployments' && activeTab !== 'deployments') {
       setActiveTab('deployments');
+    } else if (pathname === '/members' && activeTab !== 'members') {
+      setActiveTab('members');
+    } else if ((pathname === '/spaces' || pathname === '/clickup-spaces') && activeTab !== 'spaces') {
+      setActiveTab('spaces');
     }
     // eslint-disable-next-line
   }, [pathname]);
 
   // Navigue lors du changement d'onglet
-  const handleTabChange = (tab: 'repos' | 'deployments') => {
+  const handleTabChange = (tab: HomeTab) => {
     setActiveTab(tab);
     if (tab === 'repos') {
       navigate('/repositories');
-    } else {
+    } else if (tab === 'deployments') {
       navigate('/deployments');
+    } else if (tab === 'members') {
+      navigate('/members');
+    } else if (tab === 'spaces') {
+      navigate('/spaces');
     }
   };
 
@@ -131,9 +142,57 @@ export default function HomePage({ activeTab: initialTab }: HomePageProps) {
             />
           </div>
         )}
+
+        {activeTab === 'members' && (
+          <div className="animate-in fade-in duration-300">
+            <MembersTable
+              members={members}
+              onUpdate={async (member) => {
+                const nextMember = await memberService.updateMember(member);
+                if (!nextMember) return;
+                setMembers((prev) => prev.map((m) => (m.id === nextMember.id ? nextMember : m)));
+              }}
+              onDelete={async (id) => {
+                const deleted = await memberService.deleteMember(id);
+                if (!deleted) return;
+                setMembers((prev) => prev.filter((m) => m.id !== id));
+              }}
+              onAdd={async (newMember) => {
+                const createdMember = await memberService.createMember(newMember);
+                if (!createdMember) return;
+                setMembers((prev) => [...prev, createdMember]);
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab === 'spaces' && (
+          <div className="animate-in fade-in duration-300">
+            <ClickUpSpacesTable
+              spaces={clickUpSpaces}
+              onUpdate={async (space) => {
+                const nextSpace = await clickUpService.updateSpace(space);
+                if (!nextSpace) return;
+                setClickUpSpaces((prev) => prev.map((s) => (s.id === nextSpace.id ? nextSpace : s)));
+              }}
+              onDelete={async (id) => {
+                const deleted = await clickUpService.deleteSpace(id);
+                if (!deleted) return;
+                setClickUpSpaces((prev) => prev.filter((s) => s.id !== id));
+              }}
+              onAdd={async (newSpace) => {
+                const createdSpace = await clickUpService.createSpace(newSpace);
+                if (!createdSpace) return;
+                setClickUpSpaces((prev) => [...prev, createdSpace]);
+              }}
+            />
+          </div>
+        )}
       </main>
 
       <AppFooter />
     </div>
   );
 }
+
+export default HomePage;

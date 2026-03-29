@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { GitBranch, Zap, Users, Boxes } from 'lucide-react';
 
 
+
+type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces';
 interface NavigationProps {
-  activeTab?: 'repos' | 'deployments';
-  onTabChange?: (tab: 'repos' | 'deployments') => void;
+  activeTab?: HomeTab;
+  onTabChange?: (tab: HomeTab) => void;
 }
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
