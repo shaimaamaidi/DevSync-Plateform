@@ -15,10 +15,12 @@ import { deploymentService } from '@/services/deployment-service';
 import { memberService } from '@/services/member-service';
 import { repoService } from '@/services/repo-service';
 
+
 import { useEffect as useReactEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
+import { showSuccessToast } from '@/components/global-success-toaster';
 
 
 type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces';
@@ -86,24 +88,28 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     };
   }, []);
 
+
   const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoDetailDTO) => {
     const nextRepo = await repoService.updateRepo(updatedRepo);
     if (!nextRepo) return;
     setRepos((prevRepos) =>
       prevRepos.map((repo) => (repo.id === nextRepo.id ? nextRepo : repo))
     );
+    showSuccessToast('Repository updated successfully');
   }, []);
 
   const handleDeleteRepo = useCallback(async (id: number) => {
     const deleted = await repoService.deleteRepo(id);
     if (!deleted) return;
     setRepos((prevRepos) => prevRepos.filter((repo) => repo.id !== id));
+    showSuccessToast('Repository deleted successfully');
   }, []);
 
   const handleAddRepo = useCallback(async (newRepo: GitRepoDetailDTO) => {
     const createdRepo = await repoService.createRepo(newRepo);
     if (!createdRepo) return;
     setRepos((prevRepos) => [...prevRepos, createdRepo]);
+    showSuccessToast('Repository created successfully');
   }, []);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
@@ -151,16 +157,19 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                 const nextMember = await memberService.updateMember(member);
                 if (!nextMember) return;
                 setMembers((prev) => prev.map((m) => (m.id === nextMember.id ? nextMember : m)));
+                showSuccessToast('Member updated successfully');
               }}
               onDelete={async (id) => {
                 const deleted = await memberService.deleteMember(id);
                 if (!deleted) return;
                 setMembers((prev) => prev.filter((m) => m.id !== id));
+                showSuccessToast('Member deleted successfully');
               }}
               onAdd={async (newMember) => {
                 const createdMember = await memberService.createMember(newMember);
                 if (!createdMember) return;
                 setMembers((prev) => [...prev, createdMember]);
+                showSuccessToast('Member created successfully');
               }}
             />
           </div>
@@ -174,16 +183,19 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                 const nextSpace = await clickUpService.updateSpace(space);
                 if (!nextSpace) return;
                 setClickUpSpaces((prev) => prev.map((s) => (s.id === nextSpace.id ? nextSpace : s)));
+                showSuccessToast('ClickUp space updated successfully');
               }}
               onDelete={async (id) => {
                 const deleted = await clickUpService.deleteSpace(id);
                 if (!deleted) return;
                 setClickUpSpaces((prev) => prev.filter((s) => s.id !== id));
+                showSuccessToast('ClickUp space deleted successfully');
               }}
               onAdd={async (newSpace) => {
                 const createdSpace = await clickUpService.createSpace(newSpace);
                 if (!createdSpace) return;
                 setClickUpSpaces((prev) => [...prev, createdSpace]);
+                showSuccessToast('ClickUp space created successfully');
               }}
             />
           </div>
