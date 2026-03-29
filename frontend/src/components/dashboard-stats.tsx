@@ -18,13 +18,15 @@ export function DashboardStats({ repos, deployments, members }: DashboardStatsPr
   const successfulDeployments = deployments.filter((d) => d.state === 'success').length;
 
   return (
+
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Repos */}
       <Card className="p-6 border-border hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex flex-col justify-between min-h-[88px]">
             <p className="text-sm text-muted-foreground font-medium">Total Repositories</p>
             <p className="text-3xl font-bold text-foreground mt-2">{repos.length}</p>
+            <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
           </div>
           <div className="p-3 bg-primary/10 rounded-lg">
             <GitBranch className="w-6 h-6 text-primary" />
@@ -35,9 +37,10 @@ export function DashboardStats({ repos, deployments, members }: DashboardStatsPr
       {/* Team Members */}
       <Card className="p-6 border-border hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
-          <div>
+          <div className="flex flex-col justify-between min-h-[88px]">
             <p className="text-sm text-muted-foreground font-medium">Team Members</p>
             <p className="text-3xl font-bold text-foreground mt-2">{totalMembers}</p>
+            <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
           </div>
           <div className="p-3 bg-blue-500/10 rounded-lg">
             <Users className="w-6 h-6 text-blue-600" />
