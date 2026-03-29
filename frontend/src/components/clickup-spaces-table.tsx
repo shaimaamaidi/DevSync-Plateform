@@ -208,11 +208,11 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
       {/* Add/Edit Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="w-full max-w-md border-border shadow-2xl">
+          <Card className="w-[400px] border-border shadow-2xl">
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-foreground">
-                  {editingSpace ? 'Edit Space' : 'Add New Space'}
+                  {editingSpace ? 'Edit Click Up Space' : 'Add New Click Up Space'}
                 </h2>
                 <Button
                   variant="ghost"
@@ -256,7 +256,9 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
 
                 <div>
                   <Label className="text-foreground font-medium">Linked Repository</Label>
-                  <Select value={formData.repo?.id?.toString() || 'none'} onValueChange={(repoId) => {
+                  <Select
+                    value={formData.repo?.id?.toString() || 'none'}
+                    onValueChange={(repoId) => {
                     if (repoId === 'none') {
                       setFormData({ ...formData, repo: null });
                     } else {
@@ -269,10 +271,10 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                       });
                     }
                   }}>
-                    <SelectTrigger className="mt-2 bg-input border-border text-foreground">
+                    <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
                       <SelectValue placeholder="Select a repository..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-card border-border">
+                    <SelectContent className="bg-card border-border w-full">
                       <SelectItem value="none">No repository</SelectItem>
                       {repoOptions.map((repo, repoIndex) => (
                         <SelectItem
