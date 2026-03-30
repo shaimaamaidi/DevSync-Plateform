@@ -1,4 +1,12 @@
-"""Application service for deployment queries."""
+"""
+Deployment service module.
+
+This module provides the DeploymentService class, which handles deployment-related queries, such as listing deployments for a repository.
+It coordinates with the GitHub service port to fetch deployment data.
+
+Classes:
+    DeploymentService: Main service for deployment read operations.
+"""
 
 import logging
 from typing import List
@@ -11,23 +19,32 @@ logger = logging.getLogger(__name__)
 
 
 class DeploymentService:
-    """Provide deployment read use cases."""
+    """
+    Application service for deployment-related queries, such as listing deployments for a repository.
+
+    Coordinates with the GitHub service port to fetch deployment data.
+
+    Attributes:
+        _github (IGitHubService): GitHub service port.
+    """
     def __init__(self, github_service: IGitHubService):
-        """Initialize the service with a GitHub adapter.
+        """
+        Initialize the service with a GitHub adapter.
 
         Args:
-            github_service: GitHub service port.
+            github_service (IGitHubService): GitHub service port.
         """
         self._github = github_service
 
     def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
-        """List deployments for a repository URL.
+        """
+        List deployments for a repository URL.
 
         Args:
-            repo_url: GitHub repository URL.
+            repo_url (str): GitHub repository URL.
 
         Returns:
-            Deployment DTO list.
+            List[DeploymentDTO]: List of deployment DTOs for the repository.
         """
         logger.info("Fetching deployments for repository: repo_url=%s.", repo_url)
         

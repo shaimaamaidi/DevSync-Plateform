@@ -1,4 +1,14 @@
-"""Associator API routes."""
+"""
+Associator API routes.
+
+This module defines API endpoints for associating ClickUp spaces and members with repositories.
+
+Routes:
+    POST /space: Associate a ClickUp space with a repository.
+    POST /members: Replace repository members with a provided list.
+    POST /members/add: Add members to a repository.
+    POST /members/remove: Remove members from a repository.
+"""
 
 import logging
 from fastapi import APIRouter, Depends
@@ -24,7 +34,16 @@ def associate_space(
     request: AssociateClickUpSpaceRequest,
     container: Container = Depends(get_container),
 ) -> AssociateClickUpSpaceResponse:
-    """Associate a ClickUp space with a repository."""
+    """
+    Associate a ClickUp space with a repository.
+
+    Args:
+        request (AssociateClickUpSpaceRequest): The association request payload.
+        container (Container): Dependency injection container.
+
+    Returns:
+        AssociateClickUpSpaceResponse: The association result.
+    """
     logger.info(
         "Associating ClickUp space with repository: repo_url=%s, space_code=%s.",
         request.repo_url,
@@ -48,7 +67,16 @@ def associate_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
-    """Replace repository members with the provided list."""
+    """
+    Replace repository members with the provided list.
+
+    Args:
+        request (RepoMembersRequest): The request containing repository and member list.
+        container (Container): Dependency injection container.
+
+    Returns:
+        AssociateMembersResponse: The association result.
+    """
     logger.info(
         "Associating members with repository: repo_url=%s, members_count=%s.",
         request.repo_url,
@@ -72,7 +100,16 @@ def add_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
-    """Add members to a repository."""
+    """
+    Add members to a repository.
+
+    Args:
+        request (RepoMembersRequest): The request containing repository and member list.
+        container (Container): Dependency injection container.
+
+    Returns:
+        AssociateMembersResponse: The result of adding members.
+    """
     logger.info(
         "Adding members to repository: repo_url=%s, members_count=%s.",
         request.repo_url,
@@ -96,7 +133,16 @@ def remove_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
 ) -> AssociateMembersResponse:
-    """Remove members from a repository."""
+    """
+    Remove members from a repository.
+
+    Args:
+        request (RepoMembersRequest): The request containing repository and member list.
+        container (Container): Dependency injection container.
+
+    Returns:
+        AssociateMembersResponse: The result of removing members.
+    """
     logger.info(
         "Removing members from repository: repo_url=%s, members_count=%s.",
         request.repo_url,

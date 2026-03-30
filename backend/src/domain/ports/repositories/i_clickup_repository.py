@@ -1,4 +1,8 @@
-"""Repository port for ClickUp space persistence."""
+"""
+Repository port for ClickUp space persistence.
+
+This module defines the IClickUpRepository interface, which specifies persistence operations for ClickUp space entities.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List
@@ -13,7 +17,9 @@ from backend.src.domain.entities.clickup_space import (
 
 
 class IClickUpRepository(ABC):
-    """Define persistence operations for ClickUp spaces."""
+    """
+    Define persistence operations for ClickUp spaces.
+    """
     @abstractmethod
     def save(self, space: ClickUpSpaceCreateDTO) -> ClickUpSpaceDTO:
         """Persist a new ClickUp space.

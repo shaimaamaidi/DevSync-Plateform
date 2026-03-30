@@ -1,9 +1,19 @@
-"""Invalid GitHub URL exception."""
+"""
+Invalid GitHub URL exception.
+
+This module defines the InvalidGitHubUrlException, raised when a GitHub URL fails validation.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
+
 class InvalidGitHubUrlException(AppException):
-    """Raised when a GitHub URL fails validation."""
+    """
+    Exception raised when a GitHub URL fails validation.
+
+    Args:
+        url: GitHub URL that failed validation.
+    """
     def __init__(self, url: str):
         """Initialize an invalid GitHub URL exception.
 

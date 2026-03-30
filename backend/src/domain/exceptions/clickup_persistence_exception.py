@@ -1,10 +1,19 @@
-"""ClickUp persistence error exception."""
+"""
+ClickUp persistence error exception.
+
+This module defines the ClickUpPersistenceException, raised when ClickUp storage operations fail.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class ClickUpPersistenceException(AppException):
-    """Raised when ClickUp storage operations fail."""
+    """
+    Exception raised when ClickUp storage operations fail.
+
+    Args:
+        msg: Error message override.
+    """
     def __init__(self, msg: str = "Error occurred while accessing ClickUp space data"):
         """Initialize a ClickUp persistence exception.
 

@@ -1,10 +1,19 @@
-"""Member persistence exception."""
+"""
+Member persistence exception.
+
+This module defines the MemberPersistenceException, raised when member persistence operations fail.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class MemberPersistenceException(AppException):
-    """Raised when member persistence fails."""
+    """
+    Exception raised when member persistence fails.
+
+    Args:
+        msg: Error message override.
+    """
     def __init__(self, msg: str = "Error occurred while accessing member data"):
         """Initialize a member persistence exception.
 

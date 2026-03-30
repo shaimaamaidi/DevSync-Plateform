@@ -1,4 +1,17 @@
-"""Repository API routes."""
+"""
+Repository API routes.
+
+This module defines API endpoints for managing repositories, including creation, retrieval, update, and deletion.
+
+Routes:
+    GET /all: Return all repositories.
+    GET /details: Return repositories with details.
+    POST /: Create a new repository.
+    GET /{repo_id}: Fetch a repository by id.
+    GET /by-name/{name}: Fetch a repository by name.
+    PUT /{repo_id}: Update a repository by id.
+    DELETE /{repo_id}: Delete a repository by id.
+"""
 
 import logging
 from typing import List
@@ -25,7 +38,15 @@ router = APIRouter()
 
 @router.get("/all", response_model=List[GitRepoDTO])
 def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepoDTO]:
-    """Return all repositories."""
+    """
+    Return all repositories.
+
+    Args:
+        container (Container): Dependency injection container.
+
+    Returns:
+        List[GitRepoDTO]: List of all repositories.
+    """
     logger.info("Fetching all repositories.")
 
     service = container.repo_service
@@ -38,7 +59,15 @@ def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepo
 
 @router.get("/details", response_model=List[GitRepoDetailDTO])
 def get_all_with_details(container: Container = Depends(get_container)) -> List[GitRepoDetailDTO]:
-    """Return repositories with details."""
+    """
+    Return repositories with details.
+
+    Args:
+        container (Container): Dependency injection container.
+
+    Returns:
+        List[GitRepoDetailDTO]: List of repositories with details.
+    """
     logger.info("Fetching all repositories with details.")
 
     service = container.repo_service
@@ -50,7 +79,16 @@ def get_all_with_details(container: Container = Depends(get_container)) -> List[
 
 @router.post("/", response_model=GitRepoDTO)
 def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_container)) -> GitRepoDTO:
-    """Create a new repository."""
+    """
+    Create a new repository.
+
+    Args:
+        repo (GitRepoCreateDTO): The repository creation payload.
+        container (Container): Dependency injection container.
+
+    Returns:
+        GitRepoDTO: The created repository.
+    """
     logger.info(
         "Creating or updating repository: name=%s, url=%s.",
     
@@ -71,7 +109,16 @@ def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_containe
 
 @router.get("/{repo_id}", response_model=GitRepoDetailDTO)
 def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
-    """Fetch a repository by id."""
+    """
+    Fetch a repository by id.
+
+    Args:
+        repo_id (int): The repository ID.
+        container (Container): Dependency injection container.
+
+    Returns:
+        GitRepoDetailDTO: The repository details.
+    """
     logger.info("Fetching repository by id: repo_id=%s.", repo_id)
     
     service = container.repo_service
@@ -83,7 +130,16 @@ def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) 
 
 @router.get("/by-name/{name}", response_model=GitRepoDetailDTO)
 def get_repo_by_name(name: str, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
-    """Fetch a repository by name."""
+    """
+    Fetch a repository by name.
+
+    Args:
+        name (str): The repository name.
+        container (Container): Dependency injection container.
+
+    Returns:
+        GitRepoDetailDTO: The repository details.
+    """
     logger.info("Fetching repository by name: name=%s.", name)
     
     service = container.repo_service
@@ -97,7 +153,17 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
 
 @router.put("/{repo_id}", response_model=GitRepoDetailDTO)
 def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
-    """Update a repository by id."""
+    """
+    Update a repository by id.
+
+    Args:
+        repo_id (int): The repository ID.
+        repo (GitRepoUpdateDTO): The update payload.
+        container (Container): Dependency injection container.
+
+    Returns:
+        GitRepoDetailDTO: The updated repository details.
+    """
     logger.info(
         "Updating repository: repo_id=%s, new_name=%s, new_url=%s.",
     
@@ -116,7 +182,16 @@ def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Dep
 
 @router.delete("/{repo_id}", response_model=bool)
 def delete_repo(repo_id: int, container: Container = Depends(get_container)) -> bool:
-    """Delete a repository by id."""
+    """
+    Delete a repository by id.
+
+    Args:
+        repo_id (int): The repository ID.
+        container (Container): Dependency injection container.
+
+    Returns:
+        bool: True if deletion was successful.
+    """
     logger.info("Deleting repository: repo_id=%s.", repo_id)
     
     service = container.repo_service

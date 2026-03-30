@@ -1,10 +1,16 @@
-"""Database session exception."""
+"""
+Database session exception.
+
+This module defines the DatabaseSessionException, raised when database session creation fails.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class DatabaseSessionException(AppException):
-    """Raised when database session creation fails."""
+    """
+    Exception raised when database session creation fails.
+    """
     def __init__(self):
         """Initialize a database session exception."""
         super().__init__(

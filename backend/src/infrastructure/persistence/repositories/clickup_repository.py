@@ -1,4 +1,8 @@
-"""SQLAlchemy repository for ClickUp spaces."""
+"""
+SQLAlchemy repository for ClickUp spaces.
+
+This module provides a repository implementation for ClickUp space persistence using SQLAlchemy ORM.
+"""
 
 import logging
 from typing import List
@@ -77,9 +81,17 @@ def _model_to_light_dto(m: ClickUpSpaceModel) -> ClickUpSpaceLightDTO:
 
 
 class SqlAlchemyClickUpRepository(IClickUpRepository):
-    """SQLAlchemy-backed ClickUp repository."""
+    """
+    SQLAlchemy implementation of IClickUpRepository for ClickUp space persistence.
+
+    This repository handles CRUD operations for ClickUp spaces using SQLAlchemy ORM.
+
+    Attributes:
+        _session (Session): SQLAlchemy session for database operations.
+    """
     def __init__(self, session):
-        """Initialize the repository with a session.
+        """
+        Initialize the repository with a session.
 
         Args:
             session: SQLAlchemy session.
@@ -87,13 +99,18 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         self._session = session
 
     def save(self, space: ClickUpSpaceCreateDTO) -> ClickUpSpaceDTO:
-        """Create a ClickUp space record.
+        """
+        Create a ClickUp space record.
 
         Args:
             space: ClickUp space create DTO.
 
         Returns:
             Created ClickUp space DTO.
+
+        Raises:
+            InvalidInputException: If required arguments are missing or space already exists.
+            ClickUpPersistenceException: For database errors during persistence.
         """
         logger.info(
             "Creating ClickUp space (name=%s, space_code=%s).",
@@ -145,13 +162,19 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpPersistenceException(str(e)) from e
 
     def update(self, space: ClickUpSpaceUpdateDTO) -> ClickUpSpaceDetailDTO:
-        """Update a ClickUp space record.
+        """
+        Update a ClickUp space record.
 
         Args:
             space: ClickUp space update DTO.
 
         Returns:
             Updated ClickUp space detail DTO.
+
+        Raises:
+            InvalidInputException: If required arguments are missing or invalid association.
+            ClickUpSpaceNotFoundException: If the ClickUp space is not found.
+            ClickUpPersistenceException: For database errors during update.
         """
         logger.info("Updating clickup space (id=%s).", space.id)
 
@@ -236,13 +259,18 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpPersistenceException(str(e)) from e
 
     def find_by_id(self, space_id: int) -> ClickUpSpaceDetailDTO:
-        """Fetch a ClickUp space by id.
+        """
+        Fetch a ClickUp space by id.
 
         Args:
             space_id: ClickUp space id.
 
         Returns:
             ClickUp space detail DTO.
+
+        Raises:
+            ClickUpSpaceNotFoundException: If the ClickUp space is not found.
+            ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching clickup space by id=%s.", space_id)
         
@@ -270,13 +298,18 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         return _model_to_detail_dto(m)
 
     def find_by_space_code(self, space_code: str) -> ClickUpSpaceDTO:
-        """Fetch a ClickUp space by space code.
+        """
+        Fetch a ClickUp space by space code.
 
         Args:
             space_code: ClickUp space code.
 
         Returns:
             ClickUp space DTO.
+
+        Raises:
+            ClickUpSpaceNotFoundException: If the ClickUp space is not found.
+            ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching clickup space by space ID (space_code=%s).", space_code)
         
@@ -304,10 +337,14 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         return _model_to_dto(m)
 
     def find_all(self) -> List[ClickUpSpaceDTO]:
-        """Return all ClickUp spaces.
+        """
+        Return all ClickUp spaces.
 
         Returns:
             List of ClickUp space DTOs.
+
+        Raises:
+            ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching all clickup spaces.")
         
@@ -329,10 +366,14 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpPersistenceException(str(e)) from e
 
     def find_all_light(self) -> List[ClickUpSpaceLightDTO]:
-        """Return all ClickUp spaces in light form.
+        """
+        Return all ClickUp spaces in light form.
 
         Returns:
             List of ClickUp space light DTOs.
+
+        Raises:
+            ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching all clickup spaces (light).")
 
@@ -358,13 +399,18 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise ClickUpPersistenceException(str(e)) from e
 
     def delete(self, space_id: int) -> bool:
-        """Delete a ClickUp space by id.
+        """
+        Delete a ClickUp space by id.
 
         Args:
             space_id: ClickUp space id.
 
         Returns:
             True when deletion succeeds.
+
+        Raises:
+            ClickUpSpaceNotFoundException: If the ClickUp space is not found.
+            ClickUpPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting clickup space (id=%s).", space_id)
         

@@ -1,4 +1,16 @@
-"""ClickUp space API routes."""
+"""
+ClickUp space API routes.
+
+This module defines API endpoints for managing ClickUp spaces, including creation, retrieval, update, and deletion.
+
+Routes:
+    GET /: Return all ClickUp spaces.
+    GET /light: Return all ClickUp spaces in light form.
+    GET /{space_id}: Fetch a ClickUp space by id.
+    POST /: Create a ClickUp space.
+    PUT /{space_id}: Update a ClickUp space by id.
+    DELETE /{space_id}: Delete a ClickUp space by id.
+"""
 
 import logging
 
@@ -22,7 +34,15 @@ router = APIRouter()
 
 @router.get("/", response_model=list[ClickUpSpaceDTO])
 def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickUpSpaceDTO]:
-    """Return all ClickUp spaces."""
+    """
+    Return all ClickUp spaces.
+
+    Args:
+        container (Container): Dependency injection container.
+
+    Returns:
+        list[ClickUpSpaceDTO]: List of all ClickUp spaces.
+    """
     logger.info("[ClickUp] Fetching all ClickUp spaces.")
     
     service = container.clickup_service
@@ -34,7 +54,15 @@ def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickU
 
 @router.get("/light", response_model=list[ClickUpSpaceLightDTO])
 def get_all_light(container: Container = Depends(get_container)) -> list[ClickUpSpaceLightDTO]:
-    """Return all ClickUp spaces in light form."""
+    """
+    Return all ClickUp spaces in light form.
+
+    Args:
+        container (Container): Dependency injection container.
+
+    Returns:
+        list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
+    """
     logger.info("[ClickUp] Fetching all ClickUp spaces (light version).")
 
     service = container.clickup_service
@@ -46,7 +74,16 @@ def get_all_light(container: Container = Depends(get_container)) -> list[ClickUp
 
 @router.get("/{space_id}", response_model=ClickUpSpaceDetailDTO)
 def get_space_by_id(space_id: int, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
-    """Fetch a ClickUp space by id."""
+    """
+    Fetch a ClickUp space by id.
+
+    Args:
+        space_id (int): The ClickUp space ID.
+        container (Container): Dependency injection container.
+
+    Returns:
+        ClickUpSpaceDetailDTO: The ClickUp space details.
+    """
     logger.info("[ClickUp] Fetching ClickUp space by id=%s.", space_id)
 
     service = container.clickup_service
@@ -58,7 +95,16 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
 
 @router.post("/", response_model=ClickUpSpaceDTO)
 def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDTO:
-    """Create a ClickUp space."""
+    """
+    Create a ClickUp space.
+
+    Args:
+        space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.
+        container (Container): Dependency injection container.
+
+    Returns:
+        ClickUpSpaceDTO: The created ClickUp space.
+    """
     logger.info(
         "[ClickUp] Creating ClickUp space: space_code=%s, name=%s.",
         space.space_code,
@@ -77,7 +123,17 @@ def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(ge
 
 @router.put("/{space_id}", response_model=ClickUpSpaceDetailDTO)
 def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
-    """Update a ClickUp space by id."""
+    """
+    Update a ClickUp space by id.
+
+    Args:
+        space_id (int): The ClickUp space ID.
+        space (ClickUpSpaceUpdateDTO): The update payload.
+        container (Container): Dependency injection container.
+
+    Returns:
+        ClickUpSpaceDetailDTO: The updated ClickUp space details.
+    """
     logger.info(
         "[ClickUp] Updating ClickUp space: id=%s.",
     
@@ -97,7 +153,16 @@ def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Contain
 
 @router.delete("/{space_id}", response_model=bool)
 def delete_space(space_id: int, container: Container = Depends(get_container)) -> bool:
-    """Delete a ClickUp space by id."""
+    """
+    Delete a ClickUp space by id.
+
+    Args:
+        space_id (int): The ClickUp space ID.
+        container (Container): Dependency injection container.
+
+    Returns:
+        bool: True if deletion was successful.
+    """
     logger.info("[ClickUp] Deleting ClickUp space: id=%s.", space_id)
 
     service = container.clickup_service

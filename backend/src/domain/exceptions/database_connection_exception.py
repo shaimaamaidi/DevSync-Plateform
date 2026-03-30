@@ -1,10 +1,16 @@
-"""Database connection exception."""
+"""
+Database connection exception.
+
+This module defines the DatabaseConnectionException, raised when database connection fails.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class DatabaseConnectionException(AppException):
-    """Raised when database connection fails."""
+    """
+    Exception raised when database connection fails.
+    """
     def __init__(self):
         """Initialize a database connection exception."""
         super().__init__(

@@ -1,4 +1,12 @@
-"""Application service for repository associations."""
+"""
+Associator service module.
+
+This module provides the AssociatorService class, which manages associations between repositories, ClickUp spaces, and members.
+It coordinates the logic for linking repositories to ClickUp spaces and members, and delegates persistence and business logic to the appropriate services.
+
+Classes:
+    AssociatorService: Main service for managing repository associations with ClickUp and members.
+"""
 
 import logging
 
@@ -21,27 +29,38 @@ logger = logging.getLogger(__name__)
 
 
 class AssociatorService:
-    """Associate repositories with ClickUp spaces and members."""
-    def __init__(self, repo_service: RepoService, clickup_service: ClickUpService, member_service:MemberService):
-        """Initialize the service with dependent services.
+    """
+    Application service for managing associations between repositories, ClickUp spaces, and members.
+
+    Coordinates the logic for linking repositories to ClickUp spaces and members, delegating persistence and business logic to the appropriate services.
+
+    Attributes:
+        _repo (RepoService): Repository application service.
+        _clickup (ClickUpService): ClickUp application service.
+        _member (MemberService): Member application service.
+    """
+    def __init__(self, repo_service: RepoService, clickup_service: ClickUpService, member_service: MemberService):
+        """
+        Initialize the service with dependent services.
 
         Args:
-            repo_service: Repository application service.
-            clickup_service: ClickUp application service.
-            member_service: Member application service.
+            repo_service (RepoService): Repository application service.
+            clickup_service (ClickUpService): ClickUp application service.
+            member_service (MemberService): Member application service.
         """
         self._repo = repo_service
         self._clickup = clickup_service
         self._member = member_service
 
-    def associate_clickup_space(self, request: AssociateClickUpSpaceRequest):
-        """Associate a ClickUp space with a repository.
+    def associate_clickup_space(self, request: AssociateClickUpSpaceRequest) -> AssociateClickUpSpaceResponse:
+        """
+        Associate a ClickUp space with a repository.
 
         Args:
-            request: Association request payload.
+            request (AssociateClickUpSpaceRequest): Association request payload.
 
         Returns:
-            ClickUp space association response.
+            AssociateClickUpSpaceResponse: ClickUp space association response.
         """
         logger.info(
             "Associating ClickUp space with repository: repo_url=%s, space_code=%s.",
@@ -74,14 +93,18 @@ class AssociatorService:
             clickup_space=clickup_space,
         )
 
-    def add_members(self, request: RepoMembersRequest):
-        """Add members to a repository.
+    def add_members(self, request: RepoMembersRequest) -> AssociateMembersResponse:
+        """
+        Add members to a repository.
 
         Args:
-            request: Repository members request.
+            request (RepoMembersRequest): Repository members request.
 
         Returns:
-            Members association response.
+            AssociateMembersResponse: Members association response.
+
+        Raises:
+            InvalidMemberDataException: If a member is missing required fields.
         """
         logger.info(
             "Adding members to repository: repo_url=%s, members_count=%s.",
@@ -111,14 +134,18 @@ class AssociatorService:
         updated_repo = self._repo.update_repo(update_payload)
         return self._build_members_response(updated_repo)
 
-    def remove_members(self, request: RepoMembersRequest):
-        """Remove members from a repository.
+    def remove_members(self, request: RepoMembersRequest) -> AssociateMembersResponse:
+        """
+        Remove members from a repository.
 
         Args:
-            request: Repository members request.
+            request (RepoMembersRequest): Repository members request.
 
         Returns:
-            Members association response.
+            AssociateMembersResponse: Members association response.
+
+        Raises:
+            InvalidMemberDataException: If a member is missing required fields.
         """
         logger.info(
             "Removing members from repository: repo_url=%s, members_count=%s.",
@@ -148,14 +175,15 @@ class AssociatorService:
         return AssociatorService._build_members_response(updated_repo)
 
     @staticmethod
-    def _build_members_response(updated_repo):
-        """Build a members association response from a repo detail.
+    def _build_members_response(updated_repo) -> AssociateMembersResponse:
+        """
+        Build a members association response from a repo detail.
 
         Args:
             updated_repo: Repository detail DTO.
 
         Returns:
-            Members association response DTO.
+            AssociateMembersResponse: Members association response DTO.
         """
         repo_dto = AssociatorRepoDTO(
             id=updated_repo.id,
@@ -173,14 +201,18 @@ class AssociatorService:
         ]
         return AssociateMembersResponse(repo=repo_dto, members=members)
 
-    def update_members(self, request: RepoMembersRequest):
-        """Replace repository members with the provided list.
+    def update_members(self, request: RepoMembersRequest) -> AssociateMembersResponse:
+        """
+        Replace repository members with the provided list.
 
         Args:
-            request: Repository members request.
+            request (RepoMembersRequest): Repository members request.
 
         Returns:
-            Members association response.
+            AssociateMembersResponse: Members association response.
+
+        Raises:
+            InvalidMemberDataException: If a member is missing required fields.
         """
         logger.info(
             "Updating repository members list: repo_url=%s, members_count=%s.",

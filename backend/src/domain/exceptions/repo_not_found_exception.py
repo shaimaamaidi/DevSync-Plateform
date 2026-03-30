@@ -1,10 +1,19 @@
-"""Repository not found exception."""
+"""
+Repository not found exception.
+
+This module defines the RepoNotFoundException, raised when a repository cannot be found.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class RepoNotFoundException(AppException):
-    """Raised when a repository cannot be found."""
+    """
+    Exception raised when a repository cannot be found.
+
+    Args:
+        message: Error message override.
+    """
     def __init__(self, message=f"Repository not found with ID/URL/Name"):
         """Initialize a repository not found exception.
 

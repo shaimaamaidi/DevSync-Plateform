@@ -1,4 +1,8 @@
-"""Service port for repository association workflows."""
+"""
+Service port for repository association workflows.
+
+This module defines the IAssociatorService interface, which specifies operations for associating repositories, members, and ClickUp spaces.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List
@@ -7,7 +11,9 @@ from backend.src.domain.entities.member import MemberDTO
 
 
 class IAssociatorService(ABC):
-    """Define association operations for repositories."""
+    """
+    Define association operations for repositories, members, and ClickUp spaces.
+    """
     @abstractmethod
     def associate_space(self, repo: GitRepoDTO, space_name: str, space_code: str):
         """Associate a ClickUp space by name and code.

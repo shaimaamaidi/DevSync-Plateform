@@ -1,4 +1,11 @@
-"""FastAPI exception handlers for domain errors."""
+"""
+FastAPI exception handlers for domain errors.
+
+This module provides centralized exception handling for FastAPI applications, mapping domain and validation errors to structured JSON responses and logging them appropriately.
+
+Classes:
+    FastAPIExceptionHandler: Static methods for handling domain, validation, and generic exceptions in FastAPI.
+"""
 
 import logging
 from fastapi import Request
@@ -25,6 +32,7 @@ _PERSISTENCE_CODES = {
     "DATABASE_CONNECTION_ERROR",
     "DATABASE_INITIALIZATION_ERROR",
     "DATABASE_SESSION_ERROR",
+    "REFRESH_TOKEN_PERSISTENCE_ERROR",
 }
 
 _VALIDATION_CODES = {
@@ -37,20 +45,32 @@ _RUNTIME_CODES = {
     "GITHUB_RATE_LIMIT",
 }
 
+_AUTH_CODES = {
+    "INVALID_TOKEN",
+    "MISSING_ENV_VARIABLE",
+}
+
 
 class FastAPIExceptionHandler:
-    """Centralized exception handling for FastAPI."""
+    """
+    Centralized exception handling for FastAPI.
+
+    Provides static methods to handle domain-specific, validation, and generic exceptions, returning JSON responses and logging errors.
+    """
+
     @staticmethod
     async def handle_app_exception(request: Request, exc: AppException) -> JSONResponse:
-        """Handle domain application exceptions.
+        """
+        Handle domain application exceptions.
 
         Args:
-            request: Incoming request.
-            exc: Application exception instance.
+            request (Request): The incoming FastAPI request.
+            exc (AppException): The domain application exception to handle.
 
         Returns:
-            JSON response with error payload.
+            JSONResponse: JSON response with error code and message.
         """
+
         if exc.code in _NOT_FOUND_CODES:
             logger.warning(
                 "Not Found Error [%s]: %s.",
@@ -76,6 +96,12 @@ class FastAPIExceptionHandler:
                 exc.code,
                 exc.message,
             )
+        elif exc.code in _AUTH_CODES:
+            logger.warning(
+                "Auth Error [%s]: %s.",
+                exc.code,
+                exc.message,
+            )
         else:
             logger.error(
                 "Unknown Application Error [%s]: %s.",
@@ -96,14 +122,15 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def handle_validation_exception(request: Request, exc: RequestValidationError) -> JSONResponse:
-        """Handle request validation errors.
+        """
+        Handle request validation errors.
 
         Args:
-            request: Incoming request.
-            exc: Validation error from FastAPI.
+            request (Request): The incoming FastAPI request.
+            exc (RequestValidationError): The validation exception to handle.
 
         Returns:
-            JSON response with validation details.
+            JSONResponse: JSON response with validation error details.
         """
         logger.info(
             "Validation Error on request %s: %s.",
@@ -123,14 +150,15 @@ class FastAPIExceptionHandler:
 
     @staticmethod
     async def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
-        """Handle unexpected exceptions.
+        """
+        Handle unexpected exceptions.
 
         Args:
-            request: Incoming request.
-            exc: Unhandled exception.
+            request (Request): The incoming FastAPI request.
+            exc (Exception): The unexpected exception to handle.
 
         Returns:
-            JSON response with generic error payload.
+            JSONResponse: JSON response with internal server error details.
         """
         logger.error(
             "Unhandled exception on request %s: %s.",

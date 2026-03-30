@@ -1,4 +1,12 @@
-"""Application service for member operations."""
+"""
+Member service module.
+
+This module provides the MemberService class, which manages member-related operations such as creation, update, retrieval, and listing.
+It coordinates persistence and business logic for member management.
+
+Classes:
+    MemberService: Main service for member operations.
+"""
 
 import logging
 from typing import List
@@ -12,23 +20,32 @@ logger = logging.getLogger(__name__)
 
 
 class MemberService:
-    """Coordinate member use cases."""
+    """
+    Application service for member operations: creation, update, retrieval, and listing.
+
+    Coordinates persistence and business logic for member management.
+
+    Attributes:
+        _repo (IMemberRepository): Member persistence port.
+    """
     def __init__(self, member_repo: IMemberRepository):
-        """Initialize the service with a repository port.
+        """
+        Initialize the service with a repository port.
 
         Args:
-            member_repo: Member persistence port.
+            member_repo (IMemberRepository): Member persistence port.
         """
         self._repo = member_repo
 
     def add_member(self, member: MemberCreateDTO) -> MemberDTO:
-        """Create a new member.
+        """
+        Create a new member.
 
         Args:
-            member: Member create payload.
+            member (MemberCreateDTO): Member create payload.
 
         Returns:
-            Created member DTO.
+            MemberDTO: Created member DTO.
         """
         logger.info("Adding new member: username=%s, mail=%s.", member.username, member.mail)
         
@@ -39,13 +56,14 @@ class MemberService:
         return result
 
     def update_member(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
-        """Update an existing member.
+        """
+        Update an existing member.
 
         Args:
-            member: Member update payload.
+            member (MemberUpdateDTO): Member update payload.
 
         Returns:
-            Updated member with repositories DTO.
+            MemberWithReposDTO: Updated member with repositories DTO.
         """
         logger.info("Updating member: id=%s, username=%s.", member.id, member.username)
 
@@ -56,13 +74,14 @@ class MemberService:
         return result
 
     def get_members_by_repo(self, repo: GitRepoDTO) -> List[MemberDTO]:
-        """Fetch members associated with a repository.
+        """
+        Fetch members associated with a repository.
 
         Args:
-            repo: Repository DTO used to resolve membership.
+            repo (GitRepoDTO): Repository DTO used to resolve membership.
 
         Returns:
-            List of member DTOs.
+            List[MemberDTO]: List of member DTOs.
         """
         logger.info("Fetching members for repository: repo_id=%s, repo_url=%s.", repo.id, repo.url)
         
@@ -73,13 +92,14 @@ class MemberService:
         return results
 
     def get_member_by_mail(self, mail: str) -> MemberWithReposDTO:
-        """Fetch a member by email address.
+        """
+        Fetch a member by email address.
 
         Args:
-            mail: Member email.
+            mail (str): Member email.
 
         Returns:
-            Member DTO with repositories.
+            MemberWithReposDTO: Member DTO with repositories.
         """
         logger.info("Fetching member by mail: %s.", mail)
         
@@ -90,10 +110,11 @@ class MemberService:
         return result
 
     def get_all_with_repos(self) -> List[MemberWithReposDTO]:
-        """Return all members with their repositories.
+        """
+        Return all members with their repositories.
 
         Returns:
-            List of members with repositories.
+            List[MemberWithReposDTO]: List of members with repositories.
         """
         logger.info("Fetching all members with their repositories.")
 
@@ -104,13 +125,14 @@ class MemberService:
         return results
 
     def delete(self, member_id: int) -> bool:
-        """Delete a member by id.
+        """
+        Delete a member by id.
 
         Args:
-            member_id: Member identifier.
+            member_id (int): Member identifier.
 
         Returns:
-            True when deletion succeeds.
+            bool: True when deletion succeeds.
         """
         logger.info("Deleting member: id=%s.", member_id)
         

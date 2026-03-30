@@ -1,11 +1,15 @@
-"""SQLAlchemy repository for members."""
+"""
+SQLAlchemy repository for members.
+
+This module provides a repository implementation for member persistence using SQLAlchemy ORM.
+"""
 
 import logging
 from typing import List
 
 from passlib.context import CryptContext
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from backend.src.domain.entities.member import (
     MemberCreateDTO,
@@ -13,6 +17,7 @@ from backend.src.domain.entities.member import (
     MemberUpdateDTO,
     MemberWithReposDTO,
     RepoSummary,
+    MemberCredentialsDTO,
 )
 from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
@@ -50,7 +55,15 @@ def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
 
 
 class SqlAlchemyMemberRepository(IMemberRepository):
-    """SQLAlchemy-backed member repository."""
+    """
+    SQLAlchemy implementation of IMemberRepository for member persistence.
+
+    This repository handles CRUD operations for members using SQLAlchemy ORM.
+
+    Attributes:
+        _session (Session): SQLAlchemy session for database operations.
+        pwd_context (CryptContext): Password hashing context using bcrypt.
+    """
     def __init__(self, session):
         """Initialize the repository with a session.
 
@@ -60,14 +73,53 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         self._session = session
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+    def find_credentials_by_mail(self, mail: str) -> MemberCredentialsDTO:
+        """
+        Fetch member credentials for authentication by mail address.
+
+        Args:
+            mail: Member mail address.
+
+        Returns:
+            MemberCredentialsDTO: Credentials (id, mail, hashed_password) for authentication.
+
+        Raises:
+            InvalidInputException: If mail is not provided.
+            MemberNotFoundException: If no member is found with the given mail.
+            MemberPersistenceException: For database errors during fetch.
+        """
+        if not mail:
+            raise InvalidInputException("Mail is required.")
+
+        try:
+            m = self._session.query(MemberModel).filter_by(mail=mail).first()
+
+            if not m:
+                logger.warning("Member not found for auth (mail=%s).", mail)
+                raise MemberNotFoundException(f"Member not found with mail: {mail}")
+
+            logger.info("Credentials fetched successfully (mail=%s).", mail)
+            return MemberCredentialsDTO(id=m.id, mail=m.mail, hashed_password=m.password)
+
+        except (InvalidInputException, MemberNotFoundException):
+            raise
+        except SQLAlchemyError as e:
+            logger.error("Failed to fetch credentials (mail=%s): %s.", mail, str(e))
+            raise MemberPersistenceException(str(e)) from e
+
     def save(self, member: MemberCreateDTO) -> MemberDTO:
-        """Create a member record.
+        """
+        Create a member record.
 
         Args:
             member: Member create DTO.
 
         Returns:
             Created member DTO.
+
+        Raises:
+            InvalidInputException: If required arguments are missing or member already exists.
+            MemberPersistenceException: For database errors during persistence.
         """
         logger.info(
             "Creating new member (username=%s, mail=%s).",
@@ -115,13 +167,19 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def update(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
-        """Update a member record.
+        """
+        Update a member record.
 
         Args:
             member: Member update DTO.
 
         Returns:
             Updated member with repositories.
+
+        Raises:
+            InvalidInputException: If required arguments are missing or invalid association.
+            MemberNotFoundException: If the member is not found.
+            MemberPersistenceException: For database errors during update.
         """
         logger.info("Updating member (id=%s).", member.id)
 
@@ -230,13 +288,18 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def find_by_id(self, member_id: int) -> MemberDTO:
-        """Fetch a member by id.
+        """
+        Fetch a member by id.
 
         Args:
             member_id: Member id.
 
         Returns:
             Member DTO.
+
+        Raises:
+            MemberNotFoundException: If the member is not found.
+            MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching member by id=%s.", member_id)
 
@@ -264,13 +327,18 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         return _model_to_dto(m)
 
     def find_by_mail(self, mail: str) -> MemberWithReposDTO:
-        """Fetch a member by email.
+        """
+        Fetch a member by mail.
 
         Args:
-            mail: Member email.
+            mail: Member mail.
 
         Returns:
             Member with repositories DTO.
+
+        Raises:
+            MemberNotFoundException: If the member is not found.
+            MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching member by mail (mail=%s).", mail)
         
@@ -299,13 +367,17 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         return _model_to_with_repos_dto(m)
 
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
-        """Fetch members by repository id.
+        """
+        Fetch members by repository id.
 
         Args:
             repo_id: Repository id.
 
         Returns:
             List of member DTOs.
+
+        Raises:
+            MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching members by repository ID (repo_id=%s).", repo_id)
 
@@ -335,10 +407,14 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def find_all_with_repos(self) -> List[MemberWithReposDTO]:
-        """Fetch all members with repositories.
+        """
+        Fetch all members with repositories.
 
         Returns:
             List of members with repositories.
+
+        Raises:
+            MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching all members with their repositories.")
         
@@ -363,13 +439,18 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             raise MemberPersistenceException(str(e)) from e
 
     def delete(self, member_id: int) -> bool:
-        """Delete a member by id.
+        """
+        Delete a member by id.
 
         Args:
             member_id: Member id.
 
         Returns:
             True when deletion succeeds.
+
+        Raises:
+            MemberNotFoundException: If the member is not found.
+            MemberPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting member (id=%s).", member_id)
         

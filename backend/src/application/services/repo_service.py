@@ -1,4 +1,12 @@
-"""Application service for Git repository operations."""
+"""
+Repository service module.
+
+This module provides the RepoService class, which manages Git repository operations such as creation, update, retrieval, and listing.
+It coordinates persistence and business logic for repository management.
+
+Classes:
+    RepoService: Main service for Git repository operations.
+"""
 
 import logging
 from typing import List
@@ -18,23 +26,32 @@ logger = logging.getLogger(__name__)
 
 
 class RepoService:
-    """Coordinate Git repository use cases."""
+    """
+    Application service for Git repository operations: creation, update, retrieval, and listing.
+
+    Coordinates persistence and business logic for repository management.
+
+    Attributes:
+        _repo (IRepoRepository): Repository persistence port.
+    """
     def __init__(self, repo_repo: IRepoRepository):
-        """Initialize the service with a repository port.
+        """
+        Initialize the service with a repository port.
 
         Args:
-            repo_repo: Repository persistence port.
+            repo_repo (IRepoRepository): Repository persistence port.
         """
         self._repo = repo_repo
 
     def add_repo(self, repo: GitRepoCreateDTO) -> GitRepoDTO:
-        """Create a new repository.
+        """
+        Create a new repository.
 
         Args:
-            repo: Repository create payload.
+            repo (GitRepoCreateDTO): Repository create payload.
 
         Returns:
-            Created repository DTO.
+            GitRepoDTO: Created repository DTO.
         """
         logger.info("Adding new repository: name=%s, url=%s.", repo.name, repo.url)
 
@@ -45,13 +62,14 @@ class RepoService:
         return result
 
     def update_repo(self, repo: GitRepoUpdateDTO) -> GitRepoDetailDTO:
-        """Update an existing repository.
+        """
+        Update an existing repository.
 
         Args:
-            repo: Repository update payload.
+            repo (GitRepoUpdateDTO): Repository update payload.
 
         Returns:
-            Updated repository detail DTO.
+            GitRepoDetailDTO: Updated repository detail DTO.
         """
         logger.info("Updating repository: id=%s, name=%s.", repo.id, repo.name)
 
@@ -62,13 +80,14 @@ class RepoService:
         return result
 
     def get_by_id(self, repo: GitRepoIdDTO) -> GitRepoDetailDTO:
-        """Fetch a repository by id.
+        """
+        Fetch a repository by id.
 
         Args:
-            repo: Repository id wrapper.
+            repo (GitRepoIdDTO): Repository id wrapper.
 
         Returns:
-            Repository detail DTO.
+            GitRepoDetailDTO: Repository detail DTO.
         """
         logger.info("Fetching repository by id: %s.", repo.id)
 
@@ -79,13 +98,14 @@ class RepoService:
         return result
 
     def get_by_name(self, repo: GitRepoNameDTO) -> GitRepoDetailDTO:
-        """Fetch a repository by name.
+        """
+        Fetch a repository by name.
 
         Args:
-            repo: Repository name wrapper.
+            repo (GitRepoNameDTO): Repository name wrapper.
 
         Returns:
-            Repository detail DTO.
+            GitRepoDetailDTO: Repository detail DTO.
         """
         logger.info("Fetching repository by name: %s.", repo.name)
 
@@ -96,13 +116,14 @@ class RepoService:
         return result
 
     def get_by_url(self, url: str) -> GitRepoDTO:
-        """Fetch a repository by URL.
+        """
+        Fetch a repository by URL.
 
         Args:
-            url: Repository URL.
+            url (str): Repository URL.
 
         Returns:
-            Repository DTO.
+            GitRepoDTO: Repository DTO.
         """
         logger.info("Fetching repository by URL: %s.", url)
 
@@ -113,10 +134,11 @@ class RepoService:
         return result
 
     def get_all(self) -> List[GitRepoDTO]:
-        """Return all repositories.
+        """
+        Return all repositories.
 
         Returns:
-            List of repository DTOs.
+            List[GitRepoDTO]: List of repository DTOs.
         """
         logger.info("Fetching all repositories.")
 
@@ -127,10 +149,11 @@ class RepoService:
         return results
 
     def get_all_with_details(self) -> List[GitRepoDetailDTO]:
-        """Return all repositories with details.
+        """
+        Return all repositories with details.
 
         Returns:
-            List of repository detail DTOs.
+            List[GitRepoDetailDTO]: List of repository detail DTOs.
         """
         logger.info("Fetching all repositories with details.")
 
@@ -141,13 +164,14 @@ class RepoService:
         return results
 
     def delete(self, repo: GitRepoIdDTO) -> bool:
-        """Delete a repository by id.
+        """
+        Delete a repository by id.
 
         Args:
-            repo: Repository id wrapper.
+            repo (GitRepoIdDTO): Repository id wrapper.
 
         Returns:
-            True when deletion succeeds.
+            bool: True when deletion succeeds.
         """
         logger.info("Deleting repository: id=%s.", repo.id)
 

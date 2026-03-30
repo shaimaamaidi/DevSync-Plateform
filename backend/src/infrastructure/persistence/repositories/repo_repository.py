@@ -1,4 +1,8 @@
-"""SQLAlchemy repository for Git repositories."""
+"""
+SQLAlchemy repository for Git repositories.
+
+This module provides a repository implementation for Git repository persistence using SQLAlchemy ORM.
+"""
 
 import logging
 from typing import List
@@ -20,6 +24,7 @@ from backend.src.domain.ports.repositories.i_repo_repository import IRepoReposit
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
 from backend.src.infrastructure.persistence.models.member_model import MemberModel
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +71,14 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
 
 
 class SqlAlchemyRepoRepository(IRepoRepository):
-    """SQLAlchemy-backed Git repository."""
+    """
+    SQLAlchemy implementation of IRepoRepository for Git repository persistence.
+
+    This repository handles CRUD operations for Git repositories using SQLAlchemy ORM.
+
+    Attributes:
+        _session (Session): SQLAlchemy session for database operations.
+    """
     def __init__(self, session):
         """Initialize the repository with a session.
 
@@ -76,13 +88,18 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         self._session = session
 
     def save(self, repo: GitRepoCreateDTO) -> GitRepoDTO:
-        """Create a repository record.
+        """
+        Create a repository record.
 
         Args:
             repo: Repository create DTO.
 
         Returns:
             Created repository DTO.
+
+        Raises:
+            InvalidInputException: If required arguments are missing or repository already exists.
+            RepoPersistenceException: For database errors during persistence.
         """
         logger.info(
             "Creating new repository (name=%s, url=%s).",
@@ -131,13 +148,19 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def update(self, repo: GitRepoUpdateDTO) -> GitRepoDetailDTO:
-        """Update a repository record.
+        """
+        Update a repository record.
 
         Args:
             repo: Repository update DTO.
 
         Returns:
             Updated repository detail DTO.
+
+        Raises:
+            InvalidInputException: If required arguments are missing or invalid association.
+            RepoNotFoundException: If the repository is not found.
+            RepoPersistenceException: For database errors during update.
         """
         logger.info("Updating repository (id=%s).", repo.id)
 
@@ -312,13 +335,18 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def find_by_id(self, repo_id: int) -> GitRepoDetailDTO:
-        """Fetch a repository by id.
+        """
+        Fetch a repository by id.
 
         Args:
             repo_id: Repository id.
 
         Returns:
             Repository detail DTO.
+
+        Raises:
+            RepoNotFoundException: If the repository is not found.
+            RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching repository (id=%s).", repo_id)
 
@@ -346,13 +374,18 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         return _model_to_detail_dto(m)
 
     def find_by_url(self, url: str) -> GitRepoDTO:
-        """Fetch a repository by URL.
+        """
+        Fetch a repository by URL.
 
         Args:
             url: Repository URL.
 
         Returns:
             Repository DTO.
+
+        Raises:
+            RepoNotFoundException: If the repository is not found.
+            RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching repository by url (url=%s).", url)
 
@@ -380,13 +413,18 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         return _model_to_dto(m)
 
     def find_by_name(self, name: str) -> GitRepoDetailDTO:
-        """Fetch a repository by name.
+        """
+        Fetch a repository by name.
 
         Args:
             name: Repository name.
 
         Returns:
             Repository detail DTO.
+
+        Raises:
+            RepoNotFoundException: If the repository is not found.
+            RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching repository by name (name=%s).", name)
 
@@ -414,10 +452,14 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         return _model_to_detail_dto(m)
 
     def find_all(self) -> List[GitRepoDTO]:
-        """Fetch all repositories.
+        """
+        Fetch all repositories.
 
         Returns:
             List of repository DTOs.
+
+        Raises:
+            RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching all repositories.")
 
@@ -439,10 +481,14 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def find_all_with_details(self) -> List[GitRepoDetailDTO]:
-        """Fetch all repositories with details.
+        """
+        Fetch all repositories with details.
 
         Returns:
             List of repository detail DTOs.
+
+        Raises:
+            RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching all repositories with details.")
         
@@ -464,13 +510,18 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             raise RepoPersistenceException(str(e)) from e
 
     def delete(self, repo_id: int) -> bool:
-        """Delete a repository by id.
+        """
+        Delete a repository by id.
 
         Args:
             repo_id: Repository id.
 
         Returns:
             True when deletion succeeds.
+
+        Raises:
+            RepoNotFoundException: If the repository is not found.
+            RepoPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting repository (id=%s).", repo_id)
         

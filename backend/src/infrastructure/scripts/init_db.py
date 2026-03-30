@@ -1,4 +1,11 @@
-"""Database initialization script."""
+"""
+Database initialization script.
+
+This script initializes the database and creates all required tables if they do not exist, using SQLAlchemy models and the MySQLConnector utility.
+
+Functions:
+    init_db: Initializes the database and creates tables.
+"""
 
 import logging
 
@@ -9,6 +16,8 @@ from backend.src.infrastructure.persistence.models.git_repo_model import GitRepo
 from backend.src.infrastructure.persistence.models.member_model import MemberModel
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 from backend.src.infrastructure.persistence.models.member_repo_association import member_repo_association
+from backend.src.infrastructure.persistence.models.refresh_token_model import RefreshTokenModel
+
 
 from backend.src.domain.exceptions.app_exception import AppException
 
@@ -17,7 +26,15 @@ logger = logging.getLogger(__name__)
 
 
 def init_db():
-    """Create database and tables if they do not exist."""
+    """
+    Create database and tables if they do not exist.
+
+    Initializes the MySQL database and creates all tables defined in the SQLAlchemy metadata.
+
+    Raises:
+        AppException: If a domain-specific application error occurs during initialization.
+        Exception: For any other unexpected errors during initialization.
+    """
     logger.info("Starting database initialization.")
     
     try:

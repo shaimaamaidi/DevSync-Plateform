@@ -1,10 +1,19 @@
-"""Member not found exception."""
+"""
+Member not found exception.
+
+This module defines the MemberNotFoundException, raised when a member cannot be found.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class MemberNotFoundException(AppException):
-    """Raised when a member cannot be found."""
+    """
+    Exception raised when a member cannot be found.
+
+    Args:
+        message: Error message override.
+    """
     def __init__(self, message=f"Member not found with ID/email"):
         """Initialize a member not found exception.
 

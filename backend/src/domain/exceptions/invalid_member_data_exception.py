@@ -1,10 +1,20 @@
-"""Invalid member data exception."""
+"""
+Invalid member data exception.
+
+This module defines the InvalidMemberDataException, raised when a member payload misses required fields.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class InvalidMemberDataException(AppException):
-    """Raised when member payload misses required fields."""
+    """
+    Exception raised when member payload misses required fields.
+
+    Args:
+        missing_fields: Required fields that are missing.
+        data: Optional payload to include in the message.
+    """
     def __init__(self, missing_fields: list[str], data: dict = None):
         """Initialize an invalid member data exception.
 

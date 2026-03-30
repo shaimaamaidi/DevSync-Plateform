@@ -1,10 +1,20 @@
-"""Invalid input exception."""
+"""
+Invalid input exception.
+
+This module defines the InvalidInputException, raised when input validation fails.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class InvalidInputException(AppException):
-    """Raised when input validation fails."""
+    """
+    Exception raised when input validation fails.
+
+    Args:
+        message: Error message override.
+        details: Extra validation details.
+    """
     def __init__(self, message: str = "Invalid input", details: dict = None):
         """Initialize an invalid input exception.
 

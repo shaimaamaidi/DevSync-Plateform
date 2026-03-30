@@ -1,4 +1,8 @@
-"""Repository port for Git repository persistence."""
+"""
+Repository port for Git repository persistence.
+
+This module defines the IRepoRepository interface, which specifies persistence operations for Git repository entities.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List
@@ -7,7 +11,9 @@ from backend.src.domain.entities.git_repo import GitRepoCreateDTO, GitRepoDTO, G
 
 
 class IRepoRepository(ABC):
-    """Define repository persistence operations for Git repos."""
+    """
+    Define repository persistence operations for Git repositories.
+    """
     @abstractmethod
     def save(self, repo: GitRepoCreateDTO) -> GitRepoDTO:
         """Persist a new repository.

@@ -1,13 +1,33 @@
-"""Repository port for member persistence."""
+"""
+Repository port for member persistence.
+
+This module defines the IMemberRepository interface, which specifies persistence operations for member entities.
+"""
 
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
+from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO, \
+    MemberCredentialsDTO
 
 
 class IMemberRepository(ABC):
-    """Define persistence operations for members."""
+    """
+    Define persistence operations for members.
+    """
+    @abstractmethod
+    def find_credentials_by_mail(self, mail: str) -> MemberCredentialsDTO:
+        """
+        Retrieve member credentials by email address.
+
+        Args:
+            mail: Member email address.
+
+        Returns:
+            MemberCredentialsDTO: Credentials for authentication (id, mail, hashed_password).
+        """
+        pass
+
     @abstractmethod
     def save(self, member: MemberCreateDTO) -> MemberDTO:
         """Persist a new member.
@@ -31,7 +51,7 @@ class IMemberRepository(ABC):
             Updated member with repositories.
         """
         pass
-        
+
     @abstractmethod
     def find_by_id(self, member_id: int) -> MemberDTO:
         """Find a member by id.
@@ -43,7 +63,7 @@ class IMemberRepository(ABC):
             Member DTO.
         """
         pass
-        
+
     @abstractmethod
     def find_by_mail(self, mail: str) -> MemberWithReposDTO:
         """Find a member by email.
@@ -55,7 +75,7 @@ class IMemberRepository(ABC):
             Member with repositories.
         """
         pass
-        
+
     @abstractmethod
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
         """Find members by repository id.
@@ -87,4 +107,4 @@ class IMemberRepository(ABC):
         Returns:
             True when deletion succeeds.
         """
-        pass        
+        pass

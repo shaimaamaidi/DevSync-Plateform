@@ -1,10 +1,19 @@
-"""Repository persistence exception."""
+"""
+Repository persistence exception.
+
+This module defines the RepoPersistenceException, raised when repository persistence operations fail.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class RepoPersistenceException(AppException):
-    """Raised when repository persistence fails."""
+    """
+    Exception raised when repository persistence fails.
+
+    Args:
+        msg: Error message override.
+    """
     def __init__(self, msg: str = "Error occurred while accessing repository data"):
         """Initialize a repository persistence exception.
 

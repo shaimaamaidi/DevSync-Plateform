@@ -1,7 +1,15 @@
-"""Association table between members and repositories."""
+"""
+Association table between members and repositories.
+
+This module defines the member_repo_association table, which creates a many-to-many relationship between MemberModel and GitRepoModel.
+
+Tables:
+    member_repo_association: Association table with member_id and repo_id as composite primary keys.
+"""
 
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from backend.src.infrastructure.persistence.base import Base
+
 
 member_repo_association = Table(
     "member_repo",

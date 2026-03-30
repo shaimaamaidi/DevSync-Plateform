@@ -1,10 +1,19 @@
-"""GitHub repository not found exception."""
+"""
+GitHub repository not found exception.
+
+This module defines the GitHubRepoNotFoundException, raised when a GitHub repository cannot be found.
+"""
 
 from backend.src.domain.exceptions.app_exception import AppException
 
 
 class GitHubRepoNotFoundException(AppException):
-    """Raised when a GitHub repository cannot be found."""
+    """
+    Exception raised when a GitHub repository cannot be found.
+
+    Args:
+        repo_url: GitHub repository URL.
+    """
     def __init__(self, repo_url: str):
         """Initialize a repository not found exception.
 

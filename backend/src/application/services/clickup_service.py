@@ -1,4 +1,12 @@
-"""Application service for ClickUp spaces."""
+"""
+ClickUp service module.
+
+This module provides the ClickUpService class, which handles use cases related to ClickUp spaces, such as creation, update, retrieval, and listing.
+It coordinates persistence and business logic for ClickUp space management.
+
+Classes:
+    ClickUpService: Main service for ClickUp space operations.
+"""
 
 import logging
 from typing import List
@@ -17,23 +25,32 @@ logger = logging.getLogger(__name__)
 
 
 class ClickUpService:
-    """Coordinate ClickUp space use cases."""
+    """
+    Application service for ClickUp space use cases: creation, update, retrieval, and listing.
+
+    Coordinates persistence and business logic for ClickUp space management.
+
+    Attributes:
+        _repo (IClickUpRepository): ClickUp persistence port.
+    """
     def __init__(self, clickup_repo: IClickUpRepository):
-        """Initialize the service with a ClickUp repository port.
+        """
+        Initialize the service with a ClickUp repository port.
 
         Args:
-            clickup_repo: ClickUp persistence port.
+            clickup_repo (IClickUpRepository): ClickUp persistence port.
         """
         self._repo = clickup_repo
         
     def add_space(self, space: ClickUpSpaceCreateDTO) -> ClickUpSpaceDTO:
-        """Create a new ClickUp space.
+        """
+        Create a new ClickUp space.
 
         Args:
-            space: ClickUp space create payload.
+            space (ClickUpSpaceCreateDTO): ClickUp space create payload.
 
         Returns:
-            Created space DTO.
+            ClickUpSpaceDTO: Created space DTO.
         """
         logger.info("Adding new ClickUp space: space_code=%s, name=%s.", space.space_code, space.name)
         
@@ -44,13 +61,14 @@ class ClickUpService:
         return result
 
     def update_space(self, space: ClickUpSpaceUpdateDTO) -> ClickUpSpaceDetailDTO:
-        """Update an existing ClickUp space.
+        """
+        Update an existing ClickUp space.
 
         Args:
-            space: ClickUp space update payload.
+            space (ClickUpSpaceUpdateDTO): ClickUp space update payload.
 
         Returns:
-            Updated space detail DTO.
+            ClickUpSpaceDetailDTO: Updated space detail DTO.
         """
         logger.info("Updating ClickUp space: id=%s, space_code=%s.", space.id, space.space_code)
         
@@ -61,13 +79,14 @@ class ClickUpService:
         return result
 
     def get_by_id(self, space_id: int) -> ClickUpSpaceDetailDTO:
-        """Fetch a ClickUp space by id.
+        """
+        Fetch a ClickUp space by id.
 
         Args:
-            space_id: ClickUp space identifier.
+            space_id (int): ClickUp space identifier.
 
         Returns:
-            ClickUp space detail DTO.
+            ClickUpSpaceDetailDTO: ClickUp space detail DTO.
         """
         logger.info("Fetching ClickUp space by ID: id=%s.", space_id)
         
@@ -78,13 +97,14 @@ class ClickUpService:
         return result
 
     def get_by_space_code(self, space_code: str) -> ClickUpSpaceDTO:
-        """Fetch a ClickUp space by space code.
+        """
+        Fetch a ClickUp space by space code.
 
         Args:
-            space_code: ClickUp space code.
+            space_code (str): ClickUp space code.
 
         Returns:
-            ClickUp space DTO.
+            ClickUpSpaceDTO: ClickUp space DTO.
         """
         logger.info("Fetching ClickUp space by space_code: %s.", space_code)
 
@@ -95,10 +115,11 @@ class ClickUpService:
         return result
 
     def get_all(self) -> List[ClickUpSpaceDTO]:
-        """Return all ClickUp spaces.
+        """
+        Return all ClickUp spaces.
 
         Returns:
-            List of ClickUp space DTOs.
+            List[ClickUpSpaceDTO]: List of ClickUp space DTOs.
         """
         logger.info("Fetching all ClickUp spaces.")
 
@@ -109,10 +130,11 @@ class ClickUpService:
         return results
 
     def get_all_light(self) -> List[ClickUpSpaceLightDTO]:
-        """Return all ClickUp spaces in light form.
+        """
+        Return all ClickUp spaces in light form.
 
         Returns:
-            List of ClickUp space light DTOs.
+            List[ClickUpSpaceLightDTO]: List of ClickUp space light DTOs.
         """
         logger.info("Fetching all ClickUp spaces (light).")
 
@@ -123,13 +145,14 @@ class ClickUpService:
         return results
 
     def delete(self, space_id: int) -> bool:
-        """Delete a ClickUp space by id.
+        """
+        Delete a ClickUp space by id.
 
         Args:
-            space_id: ClickUp space identifier.
+            space_id (int): ClickUp space identifier.
 
         Returns:
-            True when deletion succeeds.
+            bool: True when deletion succeeds.
         """
         logger.info("Deleting ClickUp space: id=%s.", space_id)
         

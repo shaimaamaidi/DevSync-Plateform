@@ -1,4 +1,11 @@
-"""Deployment API routes."""
+"""
+Deployment API routes.
+
+This module defines API endpoints for listing deployments associated with a repository.
+
+Routes:
+    GET /list: List deployments for a repository URL.
+"""
 
 import logging
 from typing import List
@@ -21,7 +28,16 @@ def list_deployments(
     repo_url: str,
     container: Container = Depends(get_container),
 ) -> List[DeploymentDTO]:
-    """List deployments for a repository URL."""
+    """
+    List deployments for a repository URL.
+
+    Args:
+        repo_url (str): The repository URL to fetch deployments for.
+        container (Container): Dependency injection container.
+
+    Returns:
+        List[DeploymentDTO]: List of deployments for the repository.
+    """
     logger.info(
         "[Deployment] Fetching deployments for repository: repo_url=%s.",
         repo_url,
