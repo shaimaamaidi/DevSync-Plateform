@@ -1,4 +1,6 @@
-"""Integration tests for exception-to-response mapping."""
+"""
+Integration tests for exception-to-response mapping.
+"""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -203,6 +205,9 @@ def test_exception_routes(
     status,
     code,
 ) -> None:
+    """
+    Test that exceptions raised by services are mapped to the correct HTTP status and error code in the API response.
+    """
     service = getattr(container, service_name)
     getattr(service, method).side_effect = exc
 

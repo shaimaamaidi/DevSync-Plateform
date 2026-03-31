@@ -1,4 +1,6 @@
-"""Unit tests for FastAPI exception handler."""
+"""
+Unit tests for FastAPI exception handler.
+"""
 
 import asyncio
 
@@ -10,6 +12,9 @@ from backend.src.infrastructure.handlers.exception_handler import FastAPIExcepti
 
 
 def _make_request() -> Request:
+    """
+    Helper to create a minimal FastAPI Request object for testing.
+    """
     scope = {
         "type": "http",
         "method": "GET",
@@ -20,6 +25,9 @@ def _make_request() -> Request:
 
 
 def test_handle_app_exception_returns_json() -> None:
+    """
+    Test that AppException is handled and returns a JSON response with status 400.
+    """
     request = _make_request()
     exc = AppException("Boom")
 
@@ -30,6 +38,9 @@ def test_handle_app_exception_returns_json() -> None:
 
 
 def test_handle_app_exception_maps_not_found() -> None:
+    """
+    Test that RepoNotFoundException is handled and returns a JSON response with status 404.
+    """
     request = _make_request()
     exc = RepoNotFoundException("Missing")
 

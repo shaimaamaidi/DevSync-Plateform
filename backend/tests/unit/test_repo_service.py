@@ -1,4 +1,6 @@
-"""Unit tests for RepoService."""
+"""
+Unit tests for RepoService.
+"""
 
 from unittest.mock import MagicMock
 
@@ -7,6 +9,9 @@ from backend.src.domain.entities.git_repo import GitRepoCreateDTO, GitRepoDTO, G
 
 
 def test_add_repo_calls_repository_save() -> None:
+    """
+    Test that adding a repo calls the repository's save method and returns the correct DTO.
+    """
     repo_repo = MagicMock()
     repo_repo.save.return_value = GitRepoDTO(id=1, name="repo", url="https://example.com/repo")
     service = RepoService(repo_repo)
@@ -18,6 +23,9 @@ def test_add_repo_calls_repository_save() -> None:
 
 
 def test_delete_repo_calls_repository_delete() -> None:
+    """
+    Test that deleting a repo calls the repository's delete method and returns True.
+    """
     repo_repo = MagicMock()
     repo_repo.delete.return_value = True
     service = RepoService(repo_repo)

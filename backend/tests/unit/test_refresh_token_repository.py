@@ -1,4 +1,6 @@
-"""Unit tests for SqlAlchemyRefreshTokenRepository."""
+"""
+Unit tests for SqlAlchemyRefreshTokenRepository.
+"""
 
 from unittest.mock import MagicMock
 import pytest
@@ -9,6 +11,9 @@ from backend.src.domain.exceptions.refresh_token_persistence_exception import Re
 
 
 def test_save_refresh_token_success():
+    """
+    Test that a refresh token is saved successfully and session methods are called.
+    """
     session = MagicMock()
     repo = SqlAlchemyRefreshTokenRepository(session)
     repo.save_refresh_token(1, "token", datetime.now(timezone.utc) + timedelta(days=1))
@@ -17,6 +22,9 @@ def test_save_refresh_token_success():
 
 
 def test_save_refresh_token_invalid_input():
+    """
+    Test that saving a refresh token with invalid input raises InvalidInputException.
+    """
     session = MagicMock()
     repo = SqlAlchemyRefreshTokenRepository(session)
     with pytest.raises(InvalidInputException):
@@ -24,8 +32,13 @@ def test_save_refresh_token_invalid_input():
 
 
 def test_save_refresh_token_db_error():
+    """
+    Test that a database error during save raises RefreshTokenPersistenceException.
+    """
     session = MagicMock()
     session.commit.side_effect = Exception()
     repo = SqlAlchemyRefreshTokenRepository(session)
+    # Patch add to not raise, only commit raises
+    session.add.return_value = None
     with pytest.raises(RefreshTokenPersistenceException):
         repo.save_refresh_token(1, "token", datetime.now(timezone.utc) + timedelta(days=1))

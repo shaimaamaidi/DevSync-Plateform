@@ -1,4 +1,6 @@
-"""Shared pytest fixtures for backend tests."""
+"""
+Shared pytest fixtures for backend tests.
+"""
 
 from __future__ import annotations
 
@@ -24,6 +26,7 @@ from backend.src.domain.exceptions.app_exception import AppException
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.presentation.api import deps
 from backend.src.presentation.api.routers import (
+    auth_router,
     associator_router,
     clickup_router,
     deployment_router,
@@ -33,7 +36,9 @@ from backend.src.presentation.api.routers import (
 
 
 class _Container:
-    """Simple container object for test dependency overrides."""
+    """
+    Simple container object for test dependency overrides.
+    """
 
     def __init__(self) -> None:
         self.repo_service = MagicMock()
@@ -41,18 +46,24 @@ class _Container:
         self.clickup_service = MagicMock()
         self.associator_service = MagicMock()
         self.deployment_service = MagicMock()
+        self.auth_service = MagicMock()
 
 
 @pytest.fixture
 def container() -> _Container:
-    """Provide a mocked service container."""
+    """
+    Provide a mocked service container.
+    """
     return _Container()
 
 
 @pytest.fixture
 def app(container: _Container) -> FastAPI:
-    """Create a FastAPI app with dependency overrides for tests."""
+    """
+    Create a FastAPI app with dependency overrides for tests.
+    """
     app = FastAPI()
+    app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])
     app.include_router(associator_router.router, prefix="/associate", tags=["Associator"])
     app.include_router(repo_router.router, prefix="/repo", tags=["Repo"])
@@ -72,19 +83,25 @@ def app(container: _Container) -> FastAPI:
 
 @pytest.fixture
 def client(app: FastAPI) -> TestClient:
-    """Create a test client for the API."""
+    """
+    Create a test client for the API.
+    """
     return TestClient(app)
 
 
 @pytest.fixture
 def repo_dto() -> GitRepoDTO:
-    """Sample repository DTO for tests."""
+    """
+    Sample repository DTO for tests.
+    """
     return GitRepoDTO(id=1, name="repo-one", url="https://github.com/org/repo-one")
 
 
 @pytest.fixture
 def repo_detail_dto() -> GitRepoDetailDTO:
-    """Sample repository detail DTO for tests."""
+    """
+    Sample repository detail DTO for tests.
+    """
     return GitRepoDetailDTO(
         id=1,
         name="repo-one",
@@ -96,13 +113,17 @@ def repo_detail_dto() -> GitRepoDetailDTO:
 
 @pytest.fixture
 def member_dto() -> MemberDTO:
-    """Sample member DTO for tests."""
+    """
+    Sample member DTO for tests.
+    """
     return MemberDTO(id=10, username="alice", mail="alice@example.com")
 
 
 @pytest.fixture
 def member_with_repos_dto() -> MemberWithReposDTO:
-    """Sample member DTO with repos for tests."""
+    """
+    Sample member DTO with repos for tests.
+    """
     return MemberWithReposDTO(
         id=10,
         username="alice",
@@ -113,13 +134,17 @@ def member_with_repos_dto() -> MemberWithReposDTO:
 
 @pytest.fixture
 def clickup_space_dto() -> ClickUpSpaceDTO:
-    """Sample ClickUp space DTO for tests."""
+    """
+    Sample ClickUp space DTO for tests.
+    """
     return ClickUpSpaceDTO(id=2, name="Platform", space_code="PLT")
 
 
 @pytest.fixture
 def deployment_dto() -> DeploymentDTO:
-    """Sample deployment DTO for tests."""
+    """
+    Sample deployment DTO for tests.
+    """
     return DeploymentDTO(
         dep_id=42,
         environment="prod",

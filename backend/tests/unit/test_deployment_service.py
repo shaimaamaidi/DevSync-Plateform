@@ -1,4 +1,6 @@
-"""Unit tests for DeploymentService."""
+"""
+Unit tests for DeploymentService.
+"""
 
 from unittest.mock import MagicMock
 
@@ -7,6 +9,9 @@ from backend.src.domain.entities.deployment import DeploymentDTO
 
 
 def test_list_deployments_delegates_to_github_service() -> None:
+    """
+    Test that listing deployments delegates to the GitHub service and returns the correct DTOs.
+    """
     github_service = MagicMock()
     github_service.get_deployments.return_value = [
         DeploymentDTO(

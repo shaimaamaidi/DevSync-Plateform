@@ -1,4 +1,6 @@
-"""Unit tests for ClickUpService."""
+"""
+Unit tests for ClickUpService.
+"""
 
 from unittest.mock import MagicMock
 
@@ -7,6 +9,9 @@ from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, Cli
 
 
 def test_add_space_calls_repository_save() -> None:
+    """
+    Test that adding a ClickUp space calls the repository's save method and returns the correct DTO.
+    """
     repo = MagicMock()
     repo.save.return_value = ClickUpSpaceDTO(id=1, name="Platform", space_code="PLT")
     service = ClickUpService(repo)

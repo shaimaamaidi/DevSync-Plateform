@@ -1,4 +1,6 @@
-"""Integration tests for repository routes."""
+"""
+Integration tests for repository routes.
+"""
 
 from fastapi.testclient import TestClient
 
@@ -7,6 +9,9 @@ from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundE
 
 
 def test_get_all_repos(client: TestClient, container) -> None:
+    """
+    Test getting all repositories via the API returns the correct list.
+    """
     container.repo_service.get_all.return_value = [
         GitRepoDTO(id=1, name="repo-one", url="https://github.com/org/repo-one")
     ]
@@ -19,6 +24,9 @@ def test_get_all_repos(client: TestClient, container) -> None:
 
 
 def test_add_repo(client: TestClient, container) -> None:
+    """
+    Test adding a repository via the API returns the correct DTO.
+    """
     container.repo_service.add_repo.return_value = GitRepoDTO(
         id=2,
         name="repo-two",
@@ -36,6 +44,9 @@ def test_add_repo(client: TestClient, container) -> None:
 
 
 def test_get_repo_by_id_returns_not_found(client: TestClient, container) -> None:
+    """
+    Test getting a repo by ID that does not exist returns a 404 error.
+    """
     container.repo_service.get_by_id.side_effect = RepoNotFoundException(
         message="Repository not found with ID: 99"
     )

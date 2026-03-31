@@ -1,4 +1,6 @@
-"""Unit tests for domain exception classes."""
+"""
+Unit tests for domain exception classes.
+"""
 
 import pytest
 
@@ -40,6 +42,9 @@ from backend.src.domain.exceptions.repo_persistence_exception import RepoPersist
     ],
 )
 def test_exception_metadata(exc, code, status) -> None:
+    """
+    Test that all custom exceptions have the correct code, HTTP status, and message type.
+    """
     assert exc.code == code
     assert exc.http_status == status
     assert isinstance(exc.message, str)

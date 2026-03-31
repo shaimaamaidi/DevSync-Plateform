@@ -93,6 +93,10 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
             self._session.rollback()
             logger.exception("Failed to save refresh token (member_id=%s).", member_id)
             raise RefreshTokenPersistenceException(str(e)) from e
+        except Exception as e:
+            self._session.rollback()
+            logger.exception("Unexpected error while saving refresh token (member_id=%s).", member_id)
+            raise RefreshTokenPersistenceException(str(e)) from e
 
     def get_refresh_token(self, refresh_token: str) -> RefreshTokenDTO | None:
         """
