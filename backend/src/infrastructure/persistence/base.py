@@ -1,4 +1,6 @@
-"""SQLAlchemy base metadata for persistence models."""
+"""
+SQLAlchemy base metadata for persistence models.
+"""
 
 import logging
 

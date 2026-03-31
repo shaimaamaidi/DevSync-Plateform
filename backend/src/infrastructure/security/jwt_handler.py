@@ -16,6 +16,7 @@ from jose import JWTError, jwt, ExpiredSignatureError
 from dotenv import load_dotenv
 from jose.exceptions import JWTClaimsError
 
+from backend.src.domain.exceptions.app_exception import AppException
 from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
 from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
@@ -54,7 +55,7 @@ class JWTHandler(IJWTHandler):
             self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
             self.refresh_token_expire_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
         except ValueError as e:
-            logger.error("Invalid JWT config values: %s", str(e))
+            logger.exception("Invalid JWT config values.")
             raise MissingEnvVariableException(
                 "ACCESS_TOKEN_EXPIRE_MINUTES or REFRESH_TOKEN_EXPIRE_DAYS must be integers.") from e
 
@@ -69,50 +70,74 @@ class JWTHandler(IJWTHandler):
         Generate a JWT access token.
 
         Args:
-            data (dict): The payload data to encode in the token.
+            data (dict): Payload containing at least keys "sub" (member_id) and "mail" (email). 
 
         Returns:
             str: Encoded JWT access token.
 
         Raises:
             InvalidTokenException: If token data is empty or encoding fails.
+            AppException: For unexpected errors during token creation (e.g., runtime issues).
         """
-        if not data:
-            raise InvalidTokenException("Token data cannot be empty.")
+        logger.info("Starting creating access token.")
 
         try:
+            if not data:
+                logger.error("Token data cannot be empty for access token creation.")
+                raise InvalidTokenException("Token data cannot be empty.")
+
             to_encode = data.copy()
             expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
             to_encode.update({"exp": expire})
-            return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+            token = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+
+            logger.info("Access token created successfully.")
+
+            return token
+
         except JWTError as e:
-            logger.error("Failed to create access token: %s", str(e))
+            logger.exception("Failed to create access token." )
             raise InvalidTokenException("Failed to create access token.") from e
+        except Exception as e:
+            logger.exception("Unexpected error during create_access_token.")
+            raise AppException("Unexpected error during create_access_token.") from e
 
     def create_refresh_token(self, data: dict) -> tuple[str, datetime]:
         """
         Generate a JWT refresh token.
 
         Args:
-            data (dict): The payload data to encode in the token.
+            data (dict): Payload containing at least keys "sub" (member_id) and "mail" (email).
 
         Returns:
             tuple[str, datetime]: Encoded JWT refresh token and its expiration datetime.
 
         Raises:
             InvalidTokenException: If token data is empty or encoding fails.
+            AppException: For unexpected errors during token creation (e.g., runtime issues).
         """
-        if not data:
-            raise InvalidTokenException("Token data cannot be empty.")
+        logger.info("Starting creating refresh token.")
 
         try:
+            if not data:
+                logger.error("Token data cannot be empty for refresh token creation.")
+                raise InvalidTokenException("Token data cannot be empty.")
+
             to_encode = data.copy()
             expire_at = datetime.now(timezone.utc) + timedelta(days=self.refresh_token_expire_days)
             to_encode.update({"exp": expire_at, "type": "refresh"})
-            return jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm), expire_at
+            token = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
+
+            logger.info("Refreshing token created successfully.")
+
+            return token, expire_at
+
         except JWTError as e:
-            logger.error("Failed to create refresh token: %s", str(e))
+            logger.exception("Failed to create refresh token.")
             raise InvalidTokenException("Failed to create refresh token.") from e
+        except Exception as e:
+            logger.exception("Unexpected error during create_refresh_token.")
+            raise AppException("Unexpected error during create_refresh_token.") from e
 
     def verify_token(self, token: str) -> dict:
         """
@@ -126,20 +151,34 @@ class JWTHandler(IJWTHandler):
 
         Raises:
             InvalidTokenException: If the token is empty, expired, has invalid claims, or verification fails.
+            AppException: For unexpected errors during token verification (e.g., runtime issues).
         """
-        if not token:
-            raise InvalidTokenException("Token cannot be empty.")
+        logger.info("Starting verifying token.")
+
         try:
+            if not token:
+                logger.error("Token cannot be empty for verification.")
+                raise InvalidTokenException("Token cannot be empty.")
+
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
+
             if not payload.get("sub") or not payload.get("mail"):
+                logger.error("Token missing required claims.")
                 raise InvalidTokenException("Token missing required claims.")
+
+            logger.info("Token verified successfully (member_id=%s).", payload.get("sub"))
+
             return payload
+
         except ExpiredSignatureError as e:
             logger.warning("Token has expired.")
             raise InvalidTokenException("Token has expired.") from e
         except JWTClaimsError as e:
-            logger.warning("Invalid token claims: %s", str(e))
+            logger.warning("Invalid token claims.")
             raise InvalidTokenException("Invalid token claims.") from e
         except JWTError as e:
-            logger.warning("Token verification failed: %s", str(e))
+            logger.warning("Token verification failed.")
             raise InvalidTokenException("Invalid token.") from e
+        except Exception as e:
+            logger.exception("Unexpected error during verify_token.")
+            raise AppException("Unexpected error during verify_token.") from e

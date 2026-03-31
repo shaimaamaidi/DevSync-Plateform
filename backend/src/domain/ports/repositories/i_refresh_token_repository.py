@@ -20,9 +20,12 @@ class IRefreshTokenRepository(ABC):
         Persist a refresh token.
 
         Args:
-            member_id: ID of the member.
-            refresh_token: The refresh token string.
-            expires_at: Expiration datetime.
+            member_id (int): ID of the member.
+            refresh_token (str): The refresh token string.
+            expires_at (datetime): Expiration datetime.
+
+        Returns:
+            None: This method does not return a value; it saves the token in the persistence layer.
         """
         pass
 
@@ -32,7 +35,7 @@ class IRefreshTokenRepository(ABC):
         Fetch a refresh token record.
 
         Args:
-            refresh_token: The refresh token string.
+            refresh_token (str): The refresh token string.
 
         Returns:
             RefreshTokenDTO: The refresh token record.
@@ -45,7 +48,10 @@ class IRefreshTokenRepository(ABC):
         Revoke a refresh token.
 
         Args:
-            refresh_token: The refresh token string.
+            refresh_token (str): The refresh token string.
+
+        Returns:
+            None: This method does not return a value; it revokes the token in the persistence layer.
         """
         pass
 

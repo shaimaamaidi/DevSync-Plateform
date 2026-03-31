@@ -28,7 +28,6 @@ from backend.src.presentation.api.routers import associator_router, clickup_rout
 logger = logging.getLogger(__name__)
 
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """

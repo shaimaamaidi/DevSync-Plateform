@@ -30,19 +30,23 @@ def get_container(request: Request) -> Generator[Container, None, None]:
         Container: Configured with the request session.
 
     Raises:
-        Exception: For any other unexpected errors during container creation.
+        AppException: If a known application exception occurs (propagated).
+        Exception: For unexpected errors during container creation.
     """
+    logger.info("Creating DI container for request: %s", request.url.path)
+
     session = request.app.state.db.get_session()
     try:
         yield Container(session)
     except AppException:
         raise
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Error while creating container for request: %s.",
             str(e),
-            exc_info=e,
         )
         raise
     finally:
         session.close()
+
+        logger.info("Closed DI container for request: %s", request.url.path)

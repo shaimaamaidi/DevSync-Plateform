@@ -39,7 +39,7 @@ def list_deployments(
         List[DeploymentDTO]: List of deployments for the repository.
     """
     logger.info(
-        "[Deployment] Fetching deployments for repository: repo_url=%s.",
+        "Fetching deployments for repository: repo_url=%s.",
         repo_url,
     )
 
@@ -47,7 +47,7 @@ def list_deployments(
     results = service.list_deployments(repo_url)
 
     logger.info(
-        "[Deployment] Retrieved %d deployments for repo_url=%s.",
+        "Retrieved %d deployments for repo_url=%s.",
         len(results),
         repo_url,
     )

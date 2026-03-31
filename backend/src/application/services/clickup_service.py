@@ -125,7 +125,7 @@ class ClickUpService:
 
         results = self._repo.find_all()
 
-        logger.info("Fetched %s ClickUp spaces successfully.", len(results))
+        logger.info("ClickUp spaces %s Fetched successfully.", len(results))
 
         return results
 
@@ -140,7 +140,7 @@ class ClickUpService:
 
         results = self._repo.find_all_light()
 
-        logger.info("Fetched %s ClickUp spaces (light) successfully.", len(results))
+        logger.info("ClickUp spaces (light) %s Fetched successfully.", len(results))
 
         return results
 

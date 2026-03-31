@@ -11,6 +11,7 @@ import logging
 
 from backend.src.application.services.auth_service import AuthService
 from backend.src.application.services.member_service import MemberService
+from backend.src.domain.exceptions.app_exception import AppException
 from backend.src.infrastructure.external.github_deployments import GitHubDeploymentAdapter
 from backend.src.infrastructure.persistence.repositories.clickup_repository import SqlAlchemyClickUpRepository
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
@@ -49,10 +50,10 @@ class Container:
         Initialize dependencies using a shared session.
 
         Args:
-            session: SQLAlchemy session used for repository instantiation.
+            session (Session): SQLAlchemy session used for repository instantiation.
 
         Raises:
-            Exception: If any dependency fails to initialize.
+            AppException: If container initialization fails.
         """
         logger.info("Initializing application container.")
 
@@ -83,9 +84,9 @@ class Container:
             self.clickup_service = ClickUpService(self.clickup_repo)
 
             self.associator_service = AssociatorService(
-                self.repo_service,
-                self.clickup_service,
-                self.member_service,
+                self.repo_repo,
+                self.clickup_repo,
+                self.member_repo,
             )
 
             self.auth_service = AuthService(
@@ -99,8 +100,5 @@ class Container:
             logger.info("Application container initialized successfully.")
 
         except Exception as e:
-            logger.error(
-                "Failed to initialize application container: %s.",
-                str(e),
-            )
-            raise
+            logger.exception("Failed to initialize application container.")
+            raise AppException("CONTAINER_INIT_ERROR", "Failed to initialize container") from e

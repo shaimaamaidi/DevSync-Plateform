@@ -33,7 +33,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         Initialize the repository with a session.
 
         Args:
-            session: SQLAlchemy session.
+            session (Session): SQLAlchemy session.
         """
         self._session = session
 
@@ -42,15 +42,27 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         Persist a refresh token.
 
         Args:
-            member_id: The ID of the member.
-            refresh_token: The refresh token string.
-            expires_at: Expiration datetime for the token.
+            member_id (int): The ID of the member.
+            refresh_token (str): The refresh token string.
+            expires_at (datetime): Expiration datetime for the token.
+
+        Returns:
+            None: This method does not return a value; it saves the token in the persistence layer.
 
         Raises:
-            InvalidInputException: If required arguments are missing or token already exists.
-            RefreshTokenPersistenceException: For database errors during persistence.
+            InvalidInputException: If required arguments are missing.
+            InvalidInputException: If token already exists (IntegrityError triggers rollback).
+            RefreshTokenPersistenceException: For other database errors (rollback performed).
         """
+        logger.info("Starting saving refresh token (member_id=%s).", member_id)
+
         if not member_id or not refresh_token or not expires_at:
+            logger.error(
+                "Save failed: Missing arguments (member_id=%s, has_token=%s, has_expiry=%s)",
+                member_id,
+                bool(refresh_token),
+                bool(expires_at),
+            )
             raise InvalidInputException("member_id, refresh_token and expires_at are required.")
 
         try:
@@ -64,17 +76,22 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
                 expires_at=expires_at,
                 is_revoked=False,
             )
+
             self._session.add(record)
             self._session.commit()
-            logger.info("Refresh token saved (member_id=%s).", member_id)
+
+            logger.info("Refresh token saved successfully (member_id=%s, expires_at=%s).",
+            member_id,
+                expires_at
+            )
 
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("Refresh token already exists (member_id=%s).", member_id)
+            logger.exception("Integrity error: token already exists (member_id=%s).", member_id)
             raise InvalidInputException("Refresh token already exists.") from e
         except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error("Failed to save refresh token (member_id=%s): %s.", member_id, str(e))
+            logger.exception("Failed to save refresh token (member_id=%s).", member_id)
             raise RefreshTokenPersistenceException(str(e)) from e
 
     def get_refresh_token(self, refresh_token: str) -> RefreshTokenDTO | None:
@@ -82,7 +99,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         Fetch a refresh token record.
 
         Args:
-            refresh_token: The refresh token string to fetch.
+            refresh_token (str): The refresh token string to fetch.
 
         Returns:
             RefreshTokenDTO if found, otherwise None.
@@ -91,6 +108,8 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
             InvalidInputException: If refresh_token is missing.
             RefreshTokenPersistenceException: For database errors during fetch.
         """
+        logger.info("Fetching refresh token.")
+
         if not refresh_token:
             raise InvalidInputException("refresh_token is required.")
 
@@ -100,39 +119,43 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
                 is_revoked=False,
             ).first()
 
-            if not record:
-                logger.warning("Refresh token not found or already revoked.")
-                return None
-
-            return RefreshTokenDTO(
-                id=record.id,
-                member_id=record.member_id,
-                refresh_token=record.refresh_token,
-                expires_at=record.expires_at,
-                is_revoked=record.is_revoked,
-            )
-
         except SQLAlchemyError as e:
-            logger.error("Failed to fetch refresh token: %s.", str(e))
+            logger.exception("Failed to fetch refresh token.")
             raise RefreshTokenPersistenceException(str(e)) from e
+
+        if not record:
+            logger.warning("Refresh token not found or already revoked.")
+            return None
+
+        return RefreshTokenDTO(
+            id=record.id,
+            member_id=record.member_id,
+            refresh_token=record.refresh_token,
+            expires_at=record.expires_at,
+            is_revoked=record.is_revoked,
+        )
 
     def revoke_refresh_token(self, refresh_token: str) -> None:
         """
         Revoke a refresh token.
 
         Args:
-            refresh_token: The refresh token string to revoke.
+            refresh_token (str): The refresh token string to revoke.
 
+        Returns:
+            None: This method does not return a value; it revokes the token in the persistence layer.
         Raises:
             InvalidInputException: If refresh_token is missing or not found.
             RefreshTokenPersistenceException: For database errors during revocation.
         """
+        logger.info("Revoking refresh token.")
+
         if not refresh_token:
             raise InvalidInputException("refresh_token is required.")
 
         try:
             updated = self._session.query(RefreshTokenModel).filter_by(
-                refresh_token=refresh_token
+                refresh_token=refresh_token, is_revoked=False
             ).update({"is_revoked": True})
 
             if not updated:
@@ -140,13 +163,12 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
                 raise InvalidInputException("Refresh token not found.")
 
             self._session.commit()
+
             logger.info("Refresh token revoked successfully.")
 
-        except InvalidInputException:
-            raise
         except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error("Failed to revoke refresh token: %s.", str(e))
+            logger.exception("Failed to revoke refresh token.")
             raise RefreshTokenPersistenceException(str(e)) from e
 
     def delete_expired(self) -> int:
@@ -154,21 +176,25 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         Delete all expired refresh tokens.
 
         Returns:
-            The number of deleted refresh tokens.
+            int: The number of deleted refresh tokens.
 
         Raises:
             RefreshTokenPersistenceException: For database errors during deletion.
         """
+        logger.info("Deleting expired refresh tokens.")
+
         try:
             deleted = self._session.query(RefreshTokenModel).filter(
                 RefreshTokenModel.expires_at < datetime.now(timezone.utc)
             ).delete(synchronize_session=False)
 
             self._session.commit()
+
             logger.info("Deleted %d expired refresh tokens.", deleted)
+
             return deleted
 
         except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error("Failed to delete expired refresh tokens: %s.", str(e))
+            logger.exception("Failed to delete expired refresh tokens.")
             raise RefreshTokenPersistenceException(str(e)) from e

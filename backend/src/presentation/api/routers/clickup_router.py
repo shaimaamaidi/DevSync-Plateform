@@ -43,12 +43,12 @@ def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickU
     Returns:
         list[ClickUpSpaceDTO]: List of all ClickUp spaces.
     """
-    logger.info("[ClickUp] Fetching all ClickUp spaces.")
+    logger.info("Fetching all ClickUp spaces.")
     
     service = container.clickup_service
     results = service.get_all()
 
-    logger.info("[ClickUp] Retrieved %d ClickUp spaces.", len(results))
+    logger.info("Retrieved %d ClickUp spaces.", len(results))
 
     return results
 
@@ -63,12 +63,12 @@ def get_all_light(container: Container = Depends(get_container)) -> list[ClickUp
     Returns:
         list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
     """
-    logger.info("[ClickUp] Fetching all ClickUp spaces (light version).")
+    logger.info("Fetching all ClickUp spaces (light version).")
 
     service = container.clickup_service
     results = service.get_all_light()
 
-    logger.info("[ClickUp] Retrieved %d ClickUp spaces (light).", len(results))
+    logger.info("Retrieved %d ClickUp spaces (light).", len(results))
 
     return results
 
@@ -84,12 +84,12 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
     Returns:
         ClickUpSpaceDetailDTO: The ClickUp space details.
     """
-    logger.info("[ClickUp] Fetching ClickUp space by id=%s.", space_id)
+    logger.info("Fetching ClickUp space by id=%s.", space_id)
 
     service = container.clickup_service
     result = service.get_by_id(space_id)
 
-    logger.info("[ClickUp] ClickUp space retrieved successfully: id=%s.", space_id)
+    logger.info("ClickUp space retrieved successfully: id=%s.", space_id)
 
     return result
 
@@ -106,7 +106,7 @@ def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(ge
         ClickUpSpaceDTO: The created ClickUp space.
     """
     logger.info(
-        "[ClickUp] Creating ClickUp space: space_code=%s, name=%s.",
+        "Creating ClickUp space: space_code=%s, name=%s.",
         space.space_code,
         space.name,
     )
@@ -115,7 +115,7 @@ def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(ge
     result = service.add_space(space)
 
     logger.info(
-        "[ClickUp] ClickUp space created successfully: space_code=%s.",
+        "ClickUp space created successfully: space_code=%s.",
         result.space_code,
     )
 
@@ -135,7 +135,7 @@ def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Contain
         ClickUpSpaceDetailDTO: The updated ClickUp space details.
     """
     logger.info(
-        "[ClickUp] Updating ClickUp space: id=%s.",
+        "Updating ClickUp space: id=%s.",
     
         space_id,
     )
@@ -145,7 +145,7 @@ def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Contain
     result = service.update_space(space)
 
     logger.info(
-        "[ClickUp] ClickUp space updated successfully: id=%s.",
+        "ClickUp space updated successfully: id=%s.",
         space_id,
     )
 
@@ -163,11 +163,11 @@ def delete_space(space_id: int, container: Container = Depends(get_container)) -
     Returns:
         bool: True if deletion was successful.
     """
-    logger.info("[ClickUp] Deleting ClickUp space: id=%s.", space_id)
+    logger.info("Deleting ClickUp space: id=%s.", space_id)
 
     service = container.clickup_service
     result = service.delete(space_id)
 
-    logger.info("[ClickUp] ClickUp space deleted successfully: id=%s.", space_id)
+    logger.info("ClickUp space deleted successfully: id=%s.", space_id)
 
     return result

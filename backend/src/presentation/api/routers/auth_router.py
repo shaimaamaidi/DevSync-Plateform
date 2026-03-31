@@ -36,11 +36,11 @@ def login(credentials: MemberAuthDTO, container: Container = Depends(get_contain
     Returns:
         MemberTokensDTO: The authentication tokens.
     """
-    logger.info("[Auth] Login attempt: mail=%s.", credentials.mail)
+    logger.info("Login attempt: mail=%s.", credentials.mail)
 
     result = container.auth_service.login(credentials)
 
-    logger.info("[Auth] Member logged in successfully: mail=%s.", credentials.mail)
+    logger.info("Member logged in successfully: mail=%s.", credentials.mail)
 
     return result
 
@@ -57,11 +57,11 @@ def refresh(refresh_token: str, container: Container = Depends(get_container)) -
     Returns:
         MemberTokensDTO: The new authentication tokens.
     """
-    logger.info("[Auth] Refresh token attempt.")
+    logger.info("Refresh token attempt.")
 
     result = container.auth_service.refresh(refresh_token)
 
-    logger.info("[Auth] Tokens refreshed successfully.")
+    logger.info("Tokens refreshed successfully.")
 
     return result
 
@@ -78,10 +78,10 @@ def logout(refresh_token: str, container: Container = Depends(get_container)) ->
     Returns:
         bool: True if logout was successful.
     """
-    logger.info("[Auth] Logout attempt.")
+    logger.info("Logout attempt.")
 
     container.auth_service.logout(refresh_token)
 
-    logger.info("[Auth] Member logged out successfully.")
+    logger.info("Member logged out successfully.")
 
     return True

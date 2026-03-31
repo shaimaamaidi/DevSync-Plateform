@@ -46,13 +46,15 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         Raises:
             InvalidTokenException: If the JWT token is missing, malformed, or invalid (handled and returned as 401 response).
         """
+        logger.info("Processing request: %s", request.url.path)
+
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
 
         if not auth_header or not auth_header.startswith("Bearer "):
-            logger.warning("[Auth] Missing or malformed Authorization header: %s.", request.url.path)
+            logger.warning("Missing or malformed Authorization header: %s.", request.url.path)
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"error": {"code": "UNAUTHORIZED", "message": "Missing or invalid Authorization header."}},
@@ -62,17 +64,15 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         token = auth_header.split(" ")[1]
 
         try:
-            session = request.app.state.db.get_session()
-            try:
+            with request.app.state.db.get_session() as session:
                 container = Container(session)
                 payload = container.jwt_handler.verify_token(token)
                 request.state.current_member = payload
-                logger.info("[Auth] Token verified (member_id=%s).", payload.get("sub"))
-            finally:
-                session.close()
+
+                logger.info("Token verified (member_id=%s).", payload.get("sub"))
 
         except InvalidTokenException as e:
-            logger.warning("[Auth] Invalid token on %s: %s.", request.url.path, str(e))
+            logger.exception("Invalid token on %s.", request.url.path)
             return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"error": {"code": "INVALID_TOKEN", "message": str(e)}},

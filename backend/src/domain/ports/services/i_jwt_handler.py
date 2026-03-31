@@ -20,7 +20,7 @@ class IJWTHandler(ABC):
         Generate a JWT access token.
 
         Args:
-            data: Claims to encode in the token (e.g., user id, email).
+            data (dict): Claims to encode in the token (e.g., user id, email).
 
         Returns:
             str: Encoded JWT access token.
@@ -33,7 +33,7 @@ class IJWTHandler(ABC):
         Generate a JWT refresh token and its expiration.
 
         Args:
-            data: Claims to encode in the token.
+            data (dict): Claims to encode in the token.
 
         Returns:
             tuple[str, datetime]: The refresh token and its expiration datetime.
@@ -46,7 +46,7 @@ class IJWTHandler(ABC):
         Decode and verify a JWT token.
 
         Args:
-            token: Encoded JWT token string.
+            token (str): Encoded JWT token string.
 
         Returns:
             dict: Decoded claims if the token is valid.

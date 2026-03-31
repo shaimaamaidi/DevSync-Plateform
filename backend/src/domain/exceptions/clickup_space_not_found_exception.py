@@ -11,14 +11,17 @@ class ClickUpSpaceNotFoundException(AppException):
     """
     Exception raised when a ClickUp space does not exist.
 
-    Args:
-        message: Error message override.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
-    def __init__(self, message="ClickUp space not found with ID/SPACE_CODE"):
-        """Initialize a ClickUp space not found exception.
+    def __init__(self, message="ClickUp space not found with ID/SPACE_CODE."):
+        """
+        Initialize a ClickUp space not found exception.
 
         Args:
-            message: Error message override.
+            message (str): Error message (default: "ClickUp space not found with ID/SPACE_CODE.").
         """
         super().__init__(
             message=message,

@@ -10,9 +10,16 @@ from backend.src.domain.exceptions.app_exception import AppException
 class DatabaseConnectionException(AppException):
     """
     Exception raised when database connection fails.
+
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self):
-        """Initialize a database connection exception."""
+        """
+        Initialize a database connection exception.
+        """
         super().__init__(
             message="Failed to connect to the database",
             code="DB_CONNECTION_ERROR",

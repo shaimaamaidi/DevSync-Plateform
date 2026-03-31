@@ -11,14 +11,17 @@ class GitHubRepoNotFoundException(AppException):
     """
     Exception raised when a GitHub repository cannot be found.
 
-    Args:
-        repo_url: GitHub repository URL.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self, repo_url: str):
-        """Initialize a repository not found exception.
+        """
+        Initialize a repository not found exception.
 
         Args:
-            repo_url: GitHub repository URL.
+            repo_url (str): GitHub repository URL.
         """
         super().__init__(
             message=f"GitHub repository not found: {repo_url}",

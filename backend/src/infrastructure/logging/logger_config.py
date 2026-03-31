@@ -1,4 +1,6 @@
-"""Logging configuration for the API server."""
+"""
+Logging configuration for the API server.
+"""
 
 import logging
 
@@ -6,16 +8,18 @@ from backend.src.infrastructure.logging.request_id import RequestIdFilter
 
 
 class _LoggerNameFilter(logging.Filter):
-    """Normalize logger names for consistent output."""
+    """
+    Normalize logger names for consistent output.
+    """
     
     def filter(self, record: logging.LogRecord) -> bool:
         """Adjust logger name values for display.
 
         Args:
-            record: Log record instance.
+            record (logging.LogRecord): Log record instance.
 
         Returns:
-            True to keep the record.
+            bool: True to keep the record.
         """
         
         if record.name == "uvicorn.error":
@@ -24,7 +28,9 @@ class _LoggerNameFilter(logging.Filter):
 
 
 def setup_logger() -> None:
-    """Configure the root logger and common libraries."""
+    """
+    Configure the root logger and common libraries.
+    """
     
     root_logger = logging.getLogger()
 

@@ -11,17 +11,20 @@ class DatabaseInitializationException(AppException):
     """
     Exception raised when database initialization fails.
 
-    Args:
-        msg: Error message override.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
-    def __init__(self, msg: str = "Failed to initialize or create the database"):
-        """Initialize a database initialization exception.
+    def __init__(self, message: str = "Failed to initialize or create the database."):
+        """
+        Initialize a database initialization exception.
 
         Args:
-            msg: Error message override.
+            message (str): Error message (default: "Failed to initialize or create the database.").
         """
         super().__init__(
-            message=msg,
+            message=message,
             code="DB_INIT_ERROR",
             http_status=500
         )

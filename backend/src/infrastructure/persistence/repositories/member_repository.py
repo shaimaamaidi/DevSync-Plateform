@@ -31,24 +31,26 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: MemberModel) -> MemberDTO:
-    """Convert a member model to a DTO.
+    """
+    Convert a member model to a DTO.
 
     Args:
-        m: Member ORM model.
+        m (MemberModel): Member ORM model.
 
     Returns:
-        Member DTO.
+        MemberDTO: Member DTO.
     """
     return MemberDTO(id=m.id, username=m.username, mail=m.mail)
 
 def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
-    """Convert a member model to a DTO with repos.
+    """
+    Convert a member model to a DTO with repos.
 
     Args:
-        m: Member ORM model.
+        m (MemberModel): Member ORM model.
 
     Returns:
-        Member DTO with repositories.
+        MemberWithReposDTO: Member DTO with repositories.
     """
     repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos]
     return MemberWithReposDTO(id=m.id, username=m.username, mail=m.mail, repos=repos)
@@ -68,7 +70,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         """Initialize the repository with a session.
 
         Args:
-            session: SQLAlchemy session.
+            session (Session): SQLAlchemy session.
         """
         self._session = session
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -78,7 +80,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         Fetch member credentials for authentication by mail address.
 
         Args:
-            mail: Member mail address.
+            mail (str): Member mail address.
 
         Returns:
             MemberCredentialsDTO: Credentials (id, mail, hashed_password) for authentication.
@@ -88,34 +90,36 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberNotFoundException: If no member is found with the given mail.
             MemberPersistenceException: For database errors during fetch.
         """
-        if not mail:
+        logger.info("Fetching credentials for authentication (mail=%s).", mail)
+
+        if not mail or not mail.strip():
+            logger.warning("Credential fetch failed: missing mail.")
             raise InvalidInputException("Mail is required.")
 
         try:
             m = self._session.query(MemberModel).filter_by(mail=mail).first()
 
-            if not m:
-                logger.warning("Member not found for auth (mail=%s).", mail)
-                raise MemberNotFoundException(f"Member not found with mail: {mail}")
-
-            logger.info("Credentials fetched successfully (mail=%s).", mail)
-            return MemberCredentialsDTO(id=m.id, mail=m.mail, hashed_password=m.password)
-
-        except (InvalidInputException, MemberNotFoundException):
-            raise
         except SQLAlchemyError as e:
-            logger.error("Failed to fetch credentials (mail=%s): %s.", mail, str(e))
+            logger.exception("Failed to fetch credentials (mail=%s).", mail)
             raise MemberPersistenceException(str(e)) from e
+
+        if not m:
+            logger.warning("Member not found for auth (mail=%s).", mail)
+            raise MemberNotFoundException(message=f"Member not found with mail: {mail}")
+
+        logger.info("Credentials fetched successfully (mail=%s).", mail)
+
+        return MemberCredentialsDTO(id=m.id, mail=m.mail, hashed_password=m.password)
 
     def save(self, member: MemberCreateDTO) -> MemberDTO:
         """
         Create a member record.
 
         Args:
-            member: Member create DTO.
+            member (MemberCreateDTO): Member create DTO.
 
         Returns:
-            Created member DTO.
+            MemberDTO: Created member DTO.
 
         Raises:
             InvalidInputException: If required arguments are missing or member already exists.
@@ -155,14 +159,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             self._session.rollback()
             logger.warning("Member already exists (mail=%s).", member.mail)
             raise InvalidInputException("Member with this mail already exists.") from e
-        except MemberPersistenceException:
-            raise
-        except Exception as e:
+        except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error(
-                "Failed to create member (mail=%s): %s.",
-                member.mail,
-                str(e)
+            logger.exception(
+                "Failed to create member (mail=%s).",
+                member.mail
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -171,10 +172,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         Update a member record.
 
         Args:
-            member: Member update DTO.
+            member (MemberUpdateDTO): Member update DTO.
 
         Returns:
-            Updated member with repositories.
+            MemberWithReposDTO: Updated member with repositories.
 
         Raises:
             InvalidInputException: If required arguments are missing or invalid association.
@@ -187,8 +188,8 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.warning("Update failed: missing member ID.")
             raise InvalidInputException("Member must have a valid database ID for update.")
 
-        if not member.username and not member.mail and (member.repos is None or not member.repos):
-            logger.warning("Update failed: no fileds provided (id=%s).", member.id)
+        if not any([member.username, member.mail, member.repos]):
+            logger.warning("Update failed: no fields provided (id=%s).", member.id)
             raise InvalidInputException(
                 "Member must have a valid 'username' or 'mail' or repo's list for update."
             )
@@ -196,72 +197,96 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         try:
             m = self._session.query(MemberModel).filter_by(id=member.id).first()
 
-            if not m:
-                logger.warning("Member not found for update (id=%s).", member.id)
-                raise MemberNotFoundException(message=f"Member not found with ID: {member.id}")
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Failed to update member (id=%s).",
+                member.id
+            )
+            raise MemberPersistenceException(str(e)) from e
 
-            if member.username:
-                m.username = member.username
-            if member.mail:
-                m.mail = member.mail
+        if not m:
+            logger.warning("Member not found for update (id=%s).", member.id)
+            raise MemberNotFoundException(message=f"Member not found with ID: {member.id}")
 
-            if member.repos is not None:
-                if not member.repos:
-                    logger.info(
-                        "Repo list is empty; skipping repos update for member (id=%s).",
-                        member.id,
+        if member.username:
+            m.username = member.username
+
+        if member.mail:
+            m.mail = member.mail
+
+        if member.repos is not None:
+            if not member.repos:
+                logger.info(
+                    "Repository list is empty; skipping repos update for member (id=%s).",
+                    member.id,
+                )
+            else:
+                if not any(r.id or r.url for r in member.repos):
+                    raise InvalidInputException(
+                        "Repository list must include at least one 'id' or 'url'."
                     )
+
+                repo_ids = [r.id for r in member.repos if r.id]
+                repo_urls = [r.url for r in member.repos if r.url]
+
+                repos_from_db = []
+                if not (repo_ids or repo_urls):
+                    repos_from_db = []
                 else:
-                    if not any(r.id or r.url for r in member.repos):
-                        raise InvalidInputException(
-                            "Repo list must include at least one 'id' or 'url'."
-                        )
+                    query = self._session.query(GitRepoModel)
 
-                    repos = []
-                    missing_ids = set()
-                    missing_urls = set()
+                    if repo_ids and repo_urls:
+                        repos_from_db = query.filter(
+                            (GitRepoModel.id.in_(repo_ids)) |
+                            (GitRepoModel.url.in_(repo_urls))
+                        ).all()
+                    elif repo_ids:
+                        repos_from_db = query.filter(GitRepoModel.id.in_(repo_ids)).all()
+                    elif repo_urls:
+                        repos_from_db = query.filter(GitRepoModel.url.in_(repo_urls)).all()
 
-                    for repo in member.repos:
-                        repo_model = None
+                repos_by_id = {r.id: r for r in repos_from_db}
+                repos_by_url = {r.url: r for r in repos_from_db}
+
+                repos = []
+                missing_ids = set()
+                missing_urls = set()
+
+                for repo in member.repos:
+                    repo_model = None
+
+                    if repo.id and repo.id in repos_by_id:
+                        repo_model = repos_by_id[repo.id]
+                    elif repo.url and repo.url in repos_by_url:
+                        repo_model = repos_by_url[repo.url]
+
+                    if repo_model:
+                        repos.append(repo_model)
+                    else:
                         if repo.id:
-                            repo_model = (
-                                self._session.query(GitRepoModel)
-                                .filter(GitRepoModel.id == repo.id)
-                                .first()
-                            )
-                        if not repo_model and repo.url:
-                            repo_model = (
-                                self._session.query(GitRepoModel)
-                                .filter(GitRepoModel.url == repo.url)
-                                .first()
-                            )
+                            missing_ids.add(repo.id)
+                        if repo.url:
+                            missing_urls.add(repo.url)
 
-                        if repo_model:
-                            repos.append(repo_model)
-                        else:
-                            if repo.id:
-                                missing_ids.add(repo.id)
-                            if repo.url:
-                                missing_urls.add(repo.url)
+                if missing_ids or missing_urls:
+                    missing_info = []
+                    if missing_ids:
+                        missing_info.append(f"ids={missing_ids}")
+                    if missing_urls:
+                        missing_info.append(f"urls={missing_urls}")
 
-                    if missing_ids or missing_urls:
-                        missing_info = []
-                        if missing_ids:
-                            missing_info.append(f"ids={missing_ids}")
-                        if missing_urls:
-                            missing_info.append(f"urls={missing_urls}")
-                        raise InvalidInputException(
-                            "Repos not found for update (%s)." % ", ".join(missing_info)
-                        )
-
-                    m.repos = list({r.id: r for r in repos}.values())
-
-                    logger.info(
-                        "Updating member-repo associations (member_id=%s, repo_count=%s).",
-                        member.id,
-                        len(m.repos),
+                    raise InvalidInputException(
+                        "Repositories not found for update (%s)." % ", ".join(missing_info)
                     )
 
+                m.repos = list({r.id: r for r in repos}.values())
+
+                logger.info(
+                    "Updating member-repo associations (member_id=%s, repo_count=%s).",
+                    member.id,
+                    len(m.repos),
+                )
+        try:
             self._session.commit()
             self._session.refresh(m)
 
@@ -276,14 +301,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             self._session.rollback()
             logger.warning("Member mail already exists (mail=%s).", member.mail)
             raise InvalidInputException("Member with this mail already exists.") from e
-        except MemberPersistenceException:
-            raise
-        except Exception as e:
+        except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error(
-                "Failed to update member (id=%s): %s.",
-                member.id,
-                str(e),
+            logger.exception(
+                "Failed to update member (id=%s).",
+                member.id
             )
             raise MemberPersistenceException(str(e)) from e
 
@@ -292,10 +314,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         Fetch a member by id.
 
         Args:
-            member_id: Member id.
+            member_id (int): Member id.
 
         Returns:
-            Member DTO.
+            MemberDTO: Member DTO.
 
         Raises:
             MemberNotFoundException: If the member is not found.
@@ -305,25 +327,25 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         try:
             m = self._session.query(MemberModel).filter_by(id=member_id).first()
-        except Exception as e:
-            logger.error(
-                "Error fetching member (id=%s): %s.",
-                member_id,
-                str(e)
+
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error fetching member (id=%s).",
+                member_id
             )
             raise MemberPersistenceException(str(e)) from e
 
         if not m:
             logger.warning("Member not found (id=%s).", member_id)
             raise MemberNotFoundException(message=f"Member not found with ID: {member_id}")
-        
+
         logger.info(
             "Member fetched successfully (id=%s, username=%s, mail=%s).",
             m.id,
             m.username,
             m.mail
         )
-        
+
         return _model_to_dto(m)
 
     def find_by_mail(self, mail: str) -> MemberWithReposDTO:
@@ -331,10 +353,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         Fetch a member by mail.
 
         Args:
-            mail: Member mail.
+            mail (str): Member mail.
 
         Returns:
-            Member with repositories DTO.
+            MemberWithReposDTO: Member with repositories DTO.
 
         Raises:
             MemberNotFoundException: If the member is not found.
@@ -345,16 +367,15 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         try:
             m = self._session.query(MemberModel).filter_by(mail=mail).first()
 
-        except Exception as e:
-            logger.error(
-                "Error fetching member by mail (mail=%s): %s.",
-                mail,
-                str(e)
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error fetching member by mail (mail=%s).",
+                mail
             )
             raise MemberPersistenceException(str(e)) from e
 
         if not m:
-            logger.warning("Repository not found (mail=%s).", mail)
+            logger.warning("Member not found (mail=%s).", mail)
             raise MemberNotFoundException(message=f"Member not found with mail: {mail}")
 
         logger.info(
@@ -363,7 +384,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             m.username,
             m.mail
         )
-        
+
         return _model_to_with_repos_dto(m)
 
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
@@ -371,10 +392,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         Fetch members by repository id.
 
         Args:
-            repo_id: Repository id.
+            repo_id (int): Repository id.
 
         Returns:
-            List of member DTOs.
+            List[MemberDTO]: List of member DTOs.
 
         Raises:
             MemberPersistenceException: For database errors during fetch.
@@ -384,34 +405,32 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         try:
             repo = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
 
-            if not repo:
-                logger.warning("Repository not found when fetching members (repo_id=%s).", repo_id)
-                return []
-
-            members = [_model_to_dto(m) for m in repo.members]
-
-            logger.info(
-                "Members fetched successfully for repo_id=%s (count=%s).",
-                repo_id,
-                len(members),
-            )
-            
-            return members
-
-        except Exception as e:
-            logger.error(
-                "Failed to fetching members by repository ID (repo_id=%s): %s.",
-                repo_id,
-                str(e)
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Failed to fetch members by repository ID (repo_id=%s).", repo_id
             )
             raise MemberPersistenceException(str(e)) from e
+
+        if not repo:
+            logger.warning("Repository not found when fetching members (repo_id=%s).", repo_id)
+            raise MemberNotFoundException(message=f"Repository not found with ID: {repo_id}")
+
+        members = [_model_to_dto(m) for m in repo.members]
+
+        logger.info(
+            "Members fetched successfully for repo_id=%s (count=%s).",
+            repo_id,
+            len(members),
+        )
+
+        return members
 
     def find_all_with_repos(self) -> List[MemberWithReposDTO]:
         """
         Fetch all members with repositories.
 
         Returns:
-            List of members with repositories.
+            List[MemberWithReposDTO]: List of members with repositories.
 
         Raises:
             MemberPersistenceException: For database errors during fetch.
@@ -420,33 +439,30 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         
         try:
             rows = self._session.query(MemberModel).all()
-            results = [_model_to_with_repos_dto(m) for m in rows]
 
-            logger.info(
-                "Fetched all members with repos successfully (count=%s).",
-                len(results),
-            )
-
-            return results
-
-        except MemberPersistenceException:
-            raise
-        except Exception as e:
-            logger.error(
-                "Failed to fetch members with repositories: %s.",
-                str(e),
-            )
+        except SQLAlchemyError as e:
+            logger.exception("Failed to fetch members with repositories.")
             raise MemberPersistenceException(str(e)) from e
+
+        results = [_model_to_with_repos_dto(m) for m in rows]
+
+        logger.info(
+        "Fetched all members with repos successfully (count=%s).",
+        len(results),
+        )
+
+        return results
+
 
     def delete(self, member_id: int) -> bool:
         """
         Delete a member by id.
 
         Args:
-            member_id: Member id.
+            member_id (int): Member id.
 
         Returns:
-            True when deletion succeeds.
+            bool: True when deletion succeeds.
 
         Raises:
             MemberNotFoundException: If the member is not found.
@@ -456,12 +472,9 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         
         try:
             m = self._session.query(MemberModel).filter_by(id=member_id).first()
-        except Exception as e:
-            logger.error(
-                "Error deleting member (id=%s): %s.",
-                member_id,
-                str(e)
-            )
+
+        except SQLAlchemyError as e:
+            logger.exception("Failed to delete member (id=%s).", member_id)
             raise MemberPersistenceException(str(e)) from e
 
         if not m:
@@ -472,17 +485,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             self._session.delete(m)
             self._session.commit()
 
-            logger.info("Member deleted successfully (id=%s).", m.id)
-
-            return True
-
-        except MemberPersistenceException:
-            raise
-        except Exception as e:
+        except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error(
-                "Failed to delete member (id=%s): %s.",
-                member_id,
-                str(e)
-            )
+            logger.exception("Failed to delete member (id=%s).", member_id)
             raise MemberPersistenceException(str(e)) from e
+
+        logger.info("Member deleted successfully (id=%s).", m.id)
+
+        return True

@@ -11,16 +11,18 @@ class InvalidInputException(AppException):
     """
     Exception raised when input validation fails.
 
-    Args:
-        message: Error message override.
-        details: Extra validation details.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
-    def __init__(self, message: str = "Invalid input", details: dict = None):
-        """Initialize an invalid input exception.
+    def __init__(self, message: str = "Invalid input.", details: dict = None):
+        """
+        Initialize an invalid input exception.
 
         Args:
-            message: Error message override.
-            details: Extra validation details.
+            message (str): Error message (default: "Invalid input.").
+            details (dict): Extra validation details.
         """
         super().__init__(message=message, code="INVALID_INPUT", http_status=422)
         self.details = details or {}        

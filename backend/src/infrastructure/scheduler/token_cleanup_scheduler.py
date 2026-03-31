@@ -15,6 +15,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from dotenv import load_dotenv
 
+from backend.src.domain.exceptions.app_exception import AppException
 from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
@@ -51,11 +52,14 @@ class TokenCleanupScheduler:
             MissingEnvVariableException: If TOKEN_CLEANUP_INTERVAL_HOURS is missing or not an integer.
         """
         load_dotenv(_DOTENV_PATH)
+
         self._db = db
+
         try:
             self._interval_hours = int(os.getenv("TOKEN_CLEANUP_INTERVAL_HOURS", 24))
+
         except ValueError as e:
-            logger.error(
+            logger.exception(
                 "Failed to parse TOKEN_CLEANUP_INTERVAL_HOURS='%s'. Expected an integer. Error: %s",
                 os.getenv("TOKEN_CLEANUP_INTERVAL_HOURS"),
                 e
@@ -72,16 +76,21 @@ class TokenCleanupScheduler:
         This method is called by the scheduler to remove expired refresh tokens.
 
         Raises:
-            Exception: If cleanup fails for any reason (logged, not propagated).
+            AppException: If cleanup fails for any reason (logged, not propagated).
         """
-        logger.info("[Scheduler] Starting expired refresh token cleanup.")
+        logger.info("Starting expired refresh token cleanup.")
+
         session = self._db.get_session()
         try:
             repo = SqlAlchemyRefreshTokenRepository(session)
             deleted = repo.delete_expired()
-            logger.info("[Scheduler] Cleanup done — %d tokens deleted.", deleted)
+
+            logger.info("Cleaning up done — %d tokens deleted.", deleted)
+
         except Exception as e:
-            logger.error("[Scheduler] Cleanup failed: %s.", str(e))
+            logger.exception("Cleaning up failed: %s.", str(e))
+            raise AppException("Failed to clean expired tokens") from e
+
         finally:
             session.close()
 
@@ -101,8 +110,9 @@ class TokenCleanupScheduler:
             replace_existing=True,
         )
         self._scheduler.start()
+
         logger.info(
-            "[Scheduler] Token cleanup scheduler started (every %dh).",
+            "Token cleanup scheduler started (every %dh).",
             self._interval_hours
         )
 
@@ -116,4 +126,5 @@ class TokenCleanupScheduler:
             Exception: If the scheduler fails to shut down (logged, not propagated).
         """
         self._scheduler.shutdown()
-        logger.info("[Scheduler] Token cleanup scheduler stopped.")
+
+        logger.info("Token cleanup scheduler stopped.")

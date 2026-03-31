@@ -11,16 +11,18 @@ class InvalidMemberDataException(AppException):
     """
     Exception raised when member payload misses required fields.
 
-    Args:
-        missing_fields: Required fields that are missing.
-        data: Optional payload to include in the message.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self, missing_fields: list[str], data: dict = None):
-        """Initialize an invalid member data exception.
+        """
+        Initialize an invalid member data exception.
 
         Args:
-            missing_fields: Required fields that are missing.
-            data: Optional payload to include in the message.
+            missing_fields (list[str]): Required fields that are missing.
+            data (dict): Optional payload to include in the message.
         """
         fields = ", ".join(missing_fields)
         detail = f" — received: {data}" if data else ""

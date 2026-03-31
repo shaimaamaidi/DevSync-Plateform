@@ -7,7 +7,7 @@ This module provides a repository implementation for ClickUp space persistence u
 import logging
 from typing import List
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload
 
 from backend.src.domain.entities.clickup_space import (
@@ -30,31 +30,33 @@ logger = logging.getLogger(__name__)
 
 
 def _model_to_dto(m: ClickUpSpaceModel) -> ClickUpSpaceDTO:
-    """Convert a ClickUp space model to a DTO.
+    """
+    Convert a ClickUp space model to a DTO.
 
     Args:
-        m: ClickUp space ORM model.
+        m (ClickUpSpaceModel): ClickUp space ORM model.
 
     Returns:
-        ClickUp space DTO.
+        ClickUpSpaceDTO: ClickUp space DTO.
     """
     return ClickUpSpaceDTO(id=m.id, name=m.name, space_code=m.space_code)
 
 def _model_to_detail_dto(m: ClickUpSpaceModel) -> ClickUpSpaceDetailDTO:
-    """Convert a ClickUp space model to a detailed DTO.
+    """
+    Convert a ClickUp space model to a detailed DTO.
 
     Args:
-        m: ClickUp space ORM model.
+        m (ClickUpSpaceModel): ClickUp space ORM model.
 
     Returns:
-        ClickUp space detail DTO.
+        ClickUpSpaceDetailDTO: ClickUp space detail DTO.
     """
     repo = (
         ClickUpRepoDTO(id=m.repo.id, name=m.repo.name, url=m.repo.url)
-    
         if m.repo
         else None
     )
+
     return ClickUpSpaceDetailDTO(
         id=m.id,
         name=m.name,
@@ -63,20 +65,21 @@ def _model_to_detail_dto(m: ClickUpSpaceModel) -> ClickUpSpaceDetailDTO:
     )
 
 def _model_to_light_dto(m: ClickUpSpaceModel) -> ClickUpSpaceLightDTO:
-    """Convert a ClickUp space model to a light DTO.
+    """
+    Convert a ClickUp space model to a light DTO.
 
     Args:
-        m: ClickUp space ORM model.
+        m (ClickUpSpaceModel): ClickUp space ORM model.
 
     Returns:
-        ClickUp space light DTO.
+        CClickUpSpaceLightDTO: lickUp space light DTO.
     """
     repo = (
         ClickUpRepoDTO(id=m.repo.id, name=m.repo.name, url=m.repo.url)
-    
         if m.repo
         else None
     )
+
     return ClickUpSpaceLightDTO(id=m.id, space_code=m.space_code, name=m.name, repo=repo)
 
 
@@ -94,7 +97,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         Initialize the repository with a session.
 
         Args:
-            session: SQLAlchemy session.
+            session (Session): SQLAlchemy session.
         """
         self._session = session
 
@@ -103,10 +106,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         Create a ClickUp space record.
 
         Args:
-            space: ClickUp space create DTO.
+            space (ClickUpSpaceCreateDTO): ClickUp space create DTO.
 
         Returns:
-            Created ClickUp space DTO.
+            ClickUpSpaceDTO: Created ClickUp space DTO.
 
         Raises:
             InvalidInputException: If required arguments are missing or space already exists.
@@ -141,23 +144,13 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
         except IntegrityError as e:
             self._session.rollback()
-            error_code = getattr(getattr(e, "orig", None), "errno", None)
-            if error_code == 1062:
-                logger.warning("ClickUp space already exists (space_code=%s) in another resource.", space.space_code)
-                raise InvalidInputException("ClickUp space with this space_code already exists in another resource.") from e
-            if error_code == 1452:
-                logger.warning("Invalid repo reference for clickup space.")
-                raise InvalidInputException("Repository reference does not exist.") from e
-            logger.error("Integrity error while creating clickup space: %s.", str(e))
-            raise ClickUpPersistenceException(str(e)) from e
-        except ClickUpPersistenceException:
-            raise
-        except Exception as e:
+            logger.warning("ClickUp space already exists (space_code=%s) in another resource.", space.space_code)
+            raise InvalidInputException("ClickUp space with this space_code already exists in another resource.") from e
+        except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error(
-                "Failed to create clickup space (space_code=%s): %s.",
-                space.space_code,
-                str(e)
+            logger.exception(
+                "Failed to create clickup space (space_code=%s).",
+                space.space_code
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -166,10 +159,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         Update a ClickUp space record.
 
         Args:
-            space: ClickUp space update DTO.
+            space (ClickUpSpaceUpdateDTO): ClickUp space update DTO.
 
         Returns:
-            Updated ClickUp space detail DTO.
+            ClickUpSpaceDetailDTO: Updated ClickUp space detail DTO.
 
         Raises:
             InvalidInputException: If required arguments are missing or invalid association.
@@ -183,49 +176,59 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             raise InvalidInputException("ClickUp space must have a valid database ID for update.")
 
         if not space.space_code and not space.name and not space.repo:
-            logger.warning("Update failed: no fileds provided (id=%s).", space.id)
+            logger.warning("Update failed: no fields provided (id=%s).", space.id)
             raise InvalidInputException("ClickUp space must have a valid 'name' or 'space_code' or 'repo' for update.")
 
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space.id).first()
 
-            if not m:
-                logger.warning("Clickup space not found for update (id=%s).", space.id)
-                raise ClickUpSpaceNotFoundException(message=f"ClickUp space not found with ID: {space.id}")
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Failed to update clickup space (id=%s).",
+                space.id
+            )
+            raise ClickUpPersistenceException(str(e)) from e
 
-            if space.name:
-                m.name = space.name
-            if space.space_code:
-                m.space_code = space.space_code
-            if space.repo is not None:
-                if not space.repo.id and not space.repo.url:
-                    raise InvalidInputException("Repo must include 'id' or 'url' for update.")
+        if not m:
+            logger.warning("Clickup space not found for update (id=%s).", space.id)
+            raise ClickUpSpaceNotFoundException(message=f"ClickUp space not found with ID: {space.id}")
 
-                repo_model = None
-                if space.repo.id:
-                    repo_model = (
-                        self._session.query(GitRepoModel)
-                        .filter(GitRepoModel.id == space.repo.id)
-                        .first()
-                    )
+        if space.name:
+            m.name = space.name
 
-                if not repo_model and space.repo.url:
-                    repo_model = (
-                        self._session.query(GitRepoModel)
-                        .filter(GitRepoModel.url == space.repo.url)
-                        .first()
-                    )
+        if space.space_code:
+            m.space_code = space.space_code
 
-                if not repo_model:
-                    raise InvalidInputException("Repository reference does not exist.")
+        if space.repo is not None:
+            if not (space.repo.id or space.repo.url):
+                raise InvalidInputException("Repository must include 'id' or 'url' for update.")
 
-                if repo_model.clickup_space and repo_model.clickup_space.id != m.id:
-                    raise InvalidInputException(
-                        "Repository is already associated with another ClickUp space."
-                    )
+            repo_model = None
+            if space.repo.id:
+                repo_model = (
+                    self._session.query(GitRepoModel)
+                    .filter(GitRepoModel.id == space.repo.id)
+                    .first()
+                )
 
-                m.repo = repo_model
+            if not repo_model and space.repo.url:
+                repo_model = (
+                    self._session.query(GitRepoModel)
+                    .filter(GitRepoModel.url == space.repo.url)
+                    .first()
+                )
 
+            if not repo_model:
+                raise InvalidInputException("Repository reference does not exist.")
+
+            if repo_model.clickup_space and repo_model.clickup_space.id != m.id:
+                raise InvalidInputException(
+                    "Repository is already associated with another ClickUp space."
+                )
+
+            m.repo = repo_model
+
+        try:
             self._session.commit()
             self._session.refresh(m)
 
@@ -238,35 +241,26 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
         except IntegrityError as e:
             self._session.rollback()
-            error_code = getattr(getattr(e, "orig", None), "errno", None)
-            if error_code == 1062:
-                logger.warning("ClickUp space already exists (space_code=%s) in another resource.", space.space_code)
-                raise InvalidInputException("ClickUp space with this space_code already exists in another resource.") from e
-            if error_code == 1452:
-                logger.warning("Invalid repo reference for clickup space.")
-                raise InvalidInputException("Repository reference does not exist.") from e
-            logger.error("Integrity error while updating clickup space: %s.", str(e))
-            raise ClickUpPersistenceException(str(e)) from e
-        except ClickUpPersistenceException:
-            raise
-        except Exception as e:
+            logger.warning("ClickUp space already exists (space_code=%s) in another resource.", space.space_code)
+            raise InvalidInputException("ClickUp space with this space_code already exists in another resource.") from e
+        except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error(
-                "Failed to update clickup space (id=%s): %s.",
-                space.id,
-                str(e),
+            logger.exception(
+                "Failed to update clickup space (id=%s).",
+                space.id
             )
             raise ClickUpPersistenceException(str(e)) from e
+
 
     def find_by_id(self, space_id: int) -> ClickUpSpaceDetailDTO:
         """
         Fetch a ClickUp space by id.
 
         Args:
-            space_id: ClickUp space id.
+            space_id (int): ClickUp space id.
 
         Returns:
-            ClickUp space detail DTO.
+            ClickUpSpaceDetailDTO: ClickUp space detail DTO.
 
         Raises:
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
@@ -276,11 +270,11 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
-        except Exception as e:
-            logger.error(
-                "Error fetching clickup space (id=%s): %s.",
-                space_id,
-                str(e)
+
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error fetching clickup space (id=%s).",
+                space_id
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -302,10 +296,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         Fetch a ClickUp space by space code.
 
         Args:
-            space_code: ClickUp space code.
+            space_code (str): ClickUp space code.
 
         Returns:
-            ClickUp space DTO.
+            ClickUpSpaceDTO: ClickUp space DTO.
 
         Raises:
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
@@ -315,11 +309,11 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(space_code=space_code).first()
-        except Exception as e:
-            logger.error(
-                "Error fetching clickup space by space code (space_code=%s): %s.",
-                space_code,
-                str(e)
+
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error fetching clickup space by space code (space_code=%s).",
+                space_code
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -341,7 +335,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         Return all ClickUp spaces.
 
         Returns:
-            List of ClickUp space DTOs.
+            List[ClickUpSpaceDTO]: List of ClickUp space DTOs.
 
         Raises:
             ClickUpPersistenceException: For database errors during fetch.
@@ -351,26 +345,25 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         try:
             results = [_model_to_dto(m) for m in self._session.query(ClickUpSpaceModel).all()]
 
-            logger.info(
-                "Fetched all ClickUp spaces successfully (count=%s).",
-                len(results),
-            )
-
-            return results
-
-        except Exception as e:
-            logger.error(
-                "Error fetching all clickup spaces: %s.",
-                str(e)
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error fetching all clickup spaces."
             )
             raise ClickUpPersistenceException(str(e)) from e
+
+        logger.info(
+            "Fetched all ClickUp spaces successfully (count=%s).",
+            len(results),
+        )
+
+        return results
 
     def find_all_light(self) -> List[ClickUpSpaceLightDTO]:
         """
         Return all ClickUp spaces in light form.
 
         Returns:
-            List of ClickUp space light DTOs.
+            List[ClickUpSpaceLightDTO]: List of ClickUp space light DTOs.
 
         Raises:
             ClickUpPersistenceException: For database errors during fetch.
@@ -384,29 +377,28 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
                 .all()
             )
 
-            logger.info(
-                "Fetched (light) all ClickUp spaces successfully (count=%s).",
-                len(rows),
-            )
-
-            return [_model_to_light_dto(r) for r in rows]
-
-        except Exception as e:
-            logger.error(
-                "Error fetching all clickup spaces (light): %s.",
-                str(e)
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error fetching all clickup spaces (light)."
             )
             raise ClickUpPersistenceException(str(e)) from e
+
+        logger.info(
+            "Fetched (light) all ClickUp spaces successfully (count=%s).",
+            len(rows),
+        )
+
+        return [_model_to_light_dto(r) for r in rows]
 
     def delete(self, space_id: int) -> bool:
         """
         Delete a ClickUp space by id.
 
         Args:
-            space_id: ClickUp space id.
+            space_id (int): ClickUp space id.
 
         Returns:
-            True when deletion succeeds.
+            bool: True when deletion succeeds.
 
         Raises:
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
@@ -416,11 +408,11 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
-        except Exception as e:
-            logger.error(
-                "Error deleting clickup space (id=%s): %s.",
-                space_id,
-                str(e)
+
+        except SQLAlchemyError as e:
+            logger.exception(
+                "Error deleting clickup space (id=%s).",
+                space_id
             )
             raise ClickUpPersistenceException(str(e)) from e
 
@@ -436,13 +428,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
             return True
 
-        except ClickUpPersistenceException:
-            raise
-        except Exception as e:
+        except SQLAlchemyError as e:
             self._session.rollback()
-            logger.error(
-                "Failed to delete clickup space (id=%s): %s.",
-                space_id,
-                str(e)
+            logger.exception(
+                "Failed to delete clickup space (id=%s).",
+                space_id
             )
             raise ClickUpPersistenceException(str(e)) from e

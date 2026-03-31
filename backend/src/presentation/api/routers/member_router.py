@@ -44,7 +44,7 @@ def add_member(member: MemberCreateDTO, container: Container = Depends(get_conta
         Exception: If creation fails (handled by global exception handler).
     """
     logger.info(
-        "[Member] Creating member: mail=%s, username=%s.",
+        "Creating member: mail=%s, username=%s.",
         member.mail,
         member.username,
     )
@@ -52,7 +52,7 @@ def add_member(member: MemberCreateDTO, container: Container = Depends(get_conta
     result = container.member_service.add_member(member)
 
     logger.info(
-        "[Member] Member created successfully: id=%s, mail=%s.",
+        "Member created successfully: id=%s, mail=%s.",
         result.id,
         result.mail,
     )
@@ -74,13 +74,13 @@ def get_members_by_repo(repo_id: int, container: Container = Depends(get_contain
     Raises:
         Exception: If retrieval fails (handled by global exception handler).
     """
-    logger.info("[Member] Fetching members for repository: repo_id=%s.", repo_id)
+    logger.info("Fetching members for repository: repo_id=%s.", repo_id)
 
     repo = container.repo_service.get_by_id(GitRepoIdDTO(id=repo_id))
     results = container.member_service.get_members_by_repo(repo)
 
     logger.info(
-        "[Member] Retrieved %d members for repo_id=%s.",
+        "Retrieved %d members for repo_id=%s.",
         len(results),
         repo_id,
     )
@@ -101,13 +101,13 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
     Raises:
         Exception: If retrieval fails (handled by global exception handler).
     """
-    logger.info("[Member] Fetching all members with their repositories.")
+    logger.info("Fetching all members with their repositories.")
 
     service = container.member_service
     results = service.get_all_with_repos()
 
     logger.info(
-        "[Member] Retrieved %d members with repositories.",
+        "Retrieved %d members with repositories.",
         len(results),
     )
 
@@ -129,14 +129,14 @@ def update_member(member_id: int, member: MemberUpdateDTO, container: Container 
     Raises:
         Exception: If update fails (handled by global exception handler).
     """
-    logger.info("[Member] Updating member: id=%s.", member_id)
+    logger.info("Updating member: id=%s.", member_id)
 
     service = container.member_service
     member.id = member_id
     result = service.update_member(member)
 
     logger.info(
-        "[Member] Member updated successfully: id=%s.",
+        "Member updated successfully: id=%s.",
         member_id,
     )
 
@@ -157,13 +157,13 @@ def delete_member(member_id: int, container: Container = Depends(get_container))
     Raises:
         Exception: If deletion fails (handled by global exception handler).
     """
-    logger.info("[Member] Deleting member: id=%s.", member_id)
+    logger.info("Deleting member: id=%s.", member_id)
     
     service = container.member_service
     result = service.delete(member_id)
 
     logger.info(
-        "[Member] Member deleted successfully: id=%s.",
+        "Member deleted successfully: id=%s.",
         member_id,
     )
 

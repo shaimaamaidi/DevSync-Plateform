@@ -16,13 +16,14 @@ class IGitHubService(ABC):
     """
     @abstractmethod
     def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
-        """Fetch deployments for a repository URL.
+        """
+        Fetch deployments for a repository URL.
 
         Args:
-            repo_url: GitHub repository URL.
+            repo_url (str): GitHub repository URL.
 
         Returns:
-            List of deployment DTOs.
+            List[DeploymentDTO]: List of deployment DTOs.
         """
         pass
     

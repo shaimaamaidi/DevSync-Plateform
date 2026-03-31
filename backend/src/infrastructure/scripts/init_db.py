@@ -57,22 +57,20 @@ def init_db():
         logger.info("Database initialization completed successfully.")
 
     except AppException as e:
-        logger.error(
-            "Application error during database initialization [%s]: %s.",
-            e.code,
-            e.message,
-            exc_info=e,
+        logger.exception(
+            "Application error during database initialization [%s].",
+            str(e),
+            exc_info=e
         )
-        raise
+        raise AppException("Database initialization failed") from e
 
     except Exception as e:
-        logger.error(
-            "Application error during database initialization [%s]: %s.",
-            e.code,
-            e.message,
-            exc_info=e,
+        logger.exception(
+            "Application error during database initialization [%s].",
+            str(e),
+            exc_info=e
         )
-        raise
+        raise RuntimeError("Unexpected error during database initialization") from e
 
 if __name__ == "__main__":
     init_db()

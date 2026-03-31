@@ -69,6 +69,9 @@ class FastAPIExceptionHandler:
 
         Returns:
             JSONResponse: JSON response with error code and message.
+
+        Raises:
+            AppException: If a domain-specific error occurs.
         """
 
         if exc.code in _NOT_FOUND_CODES:
@@ -82,7 +85,7 @@ class FastAPIExceptionHandler:
                 "Persistence/Database Error [%s]: %s.",
                 exc.code,
                 exc.message,
-                exc_info=exc,
+                exc_info=exc
             )
         elif exc.code in _VALIDATION_CODES:
             logger.info(
@@ -107,7 +110,7 @@ class FastAPIExceptionHandler:
                 "Unknown Application Error [%s]: %s.",
                 exc.code,
                 exc.message,
-                exc_info=exc,
+                exc_info=exc
             )
 
         return JSONResponse(
@@ -160,18 +163,17 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: JSON response with internal server error details.
         """
-        logger.error(
+        logger.exception(
             "Unhandled exception on request %s: %s.",
             request.url.path,
             str(exc),
-            exc_info=exc,
         )
         return JSONResponse(
             status_code=500,
             content={
                 "error": {
                     "code": "INTERNAL_SERVER_ERROR",
-                    "message": str(exc),
+                    "message": "Internal server error",
                 }
             },
         )

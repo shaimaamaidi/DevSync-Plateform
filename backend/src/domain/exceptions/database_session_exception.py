@@ -10,11 +10,18 @@ from backend.src.domain.exceptions.app_exception import AppException
 class DatabaseSessionException(AppException):
     """
     Exception raised when database session creation fails.
+
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self):
-        """Initialize a database session exception."""
+        """
+        Initialize a database session exception.
+        """
         super().__init__(
-            message="Failed to create or retrieve database session",
+            message="Failed to create or retrieve database session.",
             code="DB_SESSION_ERROR",
             http_status=500
         )

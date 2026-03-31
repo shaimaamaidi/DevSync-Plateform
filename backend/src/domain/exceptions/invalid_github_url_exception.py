@@ -11,14 +11,17 @@ class InvalidGitHubUrlException(AppException):
     """
     Exception raised when a GitHub URL fails validation.
 
-    Args:
-        url: GitHub URL that failed validation.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self, url: str):
-        """Initialize an invalid GitHub URL exception.
+        """
+        Initialize an invalid GitHub URL exception.
 
         Args:
-            url: GitHub URL that failed validation.
+            url (str): GitHub URL that failed validation.
         """
         super().__init__(
             message=f"Invalid GitHub URL: {url}",

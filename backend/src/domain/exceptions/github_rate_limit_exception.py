@@ -11,14 +11,17 @@ class GitHubRateLimitException(AppException):
     """
     Exception raised when GitHub API rate limit is exceeded.
 
-    Args:
-        reset_time: UTC reset time from GitHub headers.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self, reset_time: str = None):
-        """Initialize a GitHub rate limit exception.
+        """
+        Initialize a GitHub rate limit exception.
 
         Args:
-            reset_time: UTC reset time from GitHub headers.
+            reset_time (str): UTC reset time from GitHub headers.
         """
         msg = "GitHub API rate limit exceeded."
         if reset_time:

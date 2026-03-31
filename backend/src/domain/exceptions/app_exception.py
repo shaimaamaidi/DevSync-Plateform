@@ -9,18 +9,19 @@ class AppException(Exception):
     """
     Base exception carrying a code and HTTP status for application errors.
 
-    Args:
-        message: Human readable error message.
-        code: Stable error code.
-        http_status: HTTP status to return.
+    Attributes:
+        message (str): Human readable error message.
+        code (str): Stable error code.
+        http_status (int): HTTP status to return.
     """
     def __init__(self, message: str, code: str = "APP_ERROR", http_status: int = 400):
-        """Initialize an application exception.
+        """
+        Initialize an application exception.
 
         Args:
-            message: Human readable error message.
-            code: Stable error code.
-            http_status: HTTP status to return.
+            message (str): Human readable error message.
+            code (str): Stable error code.
+            http_status (int): HTTP status to return.
         """
         self.message = message
         self.code = code

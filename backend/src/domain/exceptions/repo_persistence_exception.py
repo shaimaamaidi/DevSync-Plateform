@@ -11,17 +11,20 @@ class RepoPersistenceException(AppException):
     """
     Exception raised when repository persistence fails.
 
-    Args:
-        msg: Error message override.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
-    def __init__(self, msg: str = "Error occurred while accessing repository data"):
-        """Initialize a repository persistence exception.
+    def __init__(self, message: str = "Error occurred while accessing repository data."):
+        """
+        Initialize a repository persistence exception.
 
         Args:
-            msg: Error message override.
+            message (str): Error message (default: "Error occurred while accessing repository data.").
         """
         super().__init__(
-            message=msg,
+            message=message,
             code="REPO_PERSISTENCE_ERROR",
             http_status=500
         )

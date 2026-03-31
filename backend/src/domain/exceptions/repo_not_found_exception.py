@@ -11,14 +11,17 @@ class RepoNotFoundException(AppException):
     """
     Exception raised when a repository cannot be found.
 
-    Args:
-        message: Error message override.
+    Attributes:
+        message (str): Error message override.
+        code (str): Error code.
+        http_status (int): HTTP status to return.
     """
-    def __init__(self, message=f"Repository not found with ID/URL/Name"):
-        """Initialize a repository not found exception.
+    def __init__(self, message="Repository not found with ID/URL/Name."):
+        """
+        Initialize a repository not found exception.
 
         Args:
-            message: Error message override.
+            message (str): Error message (default: "Repository not found with ID/URL/Name.").
         """
         super().__init__(
             message=message,

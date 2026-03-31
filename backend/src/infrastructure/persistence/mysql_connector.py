@@ -6,10 +6,11 @@ This module provides the MySQLConnector class for managing SQLAlchemy engine and
 
 import logging
 from pathlib import Path
+from typing import Tuple
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, Engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
@@ -39,7 +40,7 @@ class MySQLConnector:
         port (str): MySQL port loaded from environment variables.
         db (str): Target database name loaded from environment variables.
         engine (Engine | None): SQLAlchemy engine instance once connected.
-        Session (sessionmaker | None): SQLAlchemy session factory once connected.
+        Session (sessionmaker[Session] | None): SQLAlchemy session factory once connected.
     """
     def __init__(self):
         """
@@ -109,20 +110,19 @@ class MySQLConnector:
             logger.info("Database '%s' is ready.", self.db)
 
         except SQLAlchemyError as e:
-            logger.error(
+            logger.exception(
                 "Failed to create or verify database '%s': %s.",
                 self.db,
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise DatabaseInitializationException() from e
 
-    def connect(self):
+    def connect(self) -> Tuple[Engine, sessionmaker]:
         """
         Create a SQLAlchemy engine and session factory.
 
         Returns:
-            Tuple of (engine, sessionmaker).
+             Tuple[Engine, sessionmaker]: Tuple of (engine, sessionmaker).
 
         Raises:
             DatabaseConnectionException: If engine or session factory creation fails.
@@ -144,21 +144,20 @@ class MySQLConnector:
             return self.engine, self.Session
 
         except SQLAlchemyError as e:
-            logger.error(
+            logger.exception(
                 "Database connection failed (host=%s, db=%s): %s.",
                 self.host,
                 self.db,
-                str(e),
-                exc_info=e,
+                str(e)
             )
             raise DatabaseConnectionException() from e
 
-    def get_session(self):
+    def get_session(self) -> Session:
         """
         Create a new SQLAlchemy session.
 
         Returns:
-            SQLAlchemy session instance.
+            Session: SQLAlchemy session instance.
 
         Raises:
             DatabaseSessionException: If session creation fails.
@@ -178,9 +177,8 @@ class MySQLConnector:
         except AppException:
             raise
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Failed to create database session: %s.",
-                str(e),
-                exc_info=e
+                str(e)
             )
             raise DatabaseSessionException() from e

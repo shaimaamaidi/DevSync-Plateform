@@ -68,7 +68,13 @@ class AuthService:
         Raises:
             InvalidInputException: If mail or password is missing/invalid.
         """
+        logger.info(
+            "Login attempt started for member: mail=%s.",
+            member.mail
+        )
+
         if not member.mail or not member.password:
+            logger.warning("Mail and password are required.")
             raise InvalidInputException("Mail and password are required.")
 
         credentials = self._repo.find_credentials_by_mail(member.mail)
@@ -84,6 +90,7 @@ class AuthService:
         self._refresh_token_repo.save_refresh_token(credentials.id, refresh_token, expires_at)
 
         logger.info("Member logged in successfully (id=%s).", credentials.id)
+
         return MemberTokensDTO(access_token=access_token, refresh_token=refresh_token)
 
     def refresh(self, refresh_token: str) -> MemberTokensDTO:
@@ -100,7 +107,13 @@ class AuthService:
             InvalidInputException: If refresh token is missing.
             InvalidTokenException: If the token is invalid, expired, or revoked.
         """
+        logger.info(
+            "Token refresh attempt started: refresh_token=%s.",
+            refresh_token[:8] + "..." if refresh_token else None
+        )
+
         if not refresh_token:
+            logger.warning("Refresh token is required.")
             raise InvalidInputException("Refresh token is required.")
 
         payload = self._jwt_handler.verify_token(refresh_token)
@@ -110,6 +123,7 @@ class AuthService:
             raise InvalidTokenException("Invalid token type.")
 
         if not payload.get("sub") or not payload.get("mail"):
+            logger.warning("Token missing required claims.")
             raise InvalidTokenException("Token missing required claims.")
 
         record = self._refresh_token_repo.get_refresh_token(refresh_token)
@@ -138,6 +152,7 @@ class AuthService:
         self._refresh_token_repo.save_refresh_token(record.member_id, new_refresh_token, expires_at)
 
         logger.info("Tokens refreshed successfully (member_id=%s).", record.member_id)
+
         return MemberTokensDTO(access_token=new_access_token, refresh_token=new_refresh_token)
 
     def logout(self, refresh_token: str) -> None:
@@ -148,13 +163,20 @@ class AuthService:
             refresh_token (str): The refresh token to revoke.
 
         Returns:
-            None
+            None: Operation revokes the refresh token (logout).
 
         Raises:
             InvalidInputException: If refresh token is missing or not found.
         """
+        logger.info(
+            "Logout attempt started for refresh_token=%s.",
+            refresh_token[:8] + "..." if refresh_token else None
+        )
+
         if not refresh_token:
+            logger.warning("Refresh token is required.")
             raise InvalidInputException("Refresh token is required.")
 
         self._refresh_token_repo.revoke_refresh_token(refresh_token)
+
         logger.info("Member logged out successfully.")
