@@ -42,9 +42,6 @@ async def lifespan(app: FastAPI):
     # ── Startup ──
     logger.info("Application starting up.")
 
-    db = MySQLConnector()
-    db.create_db_if_not_exists()
-
     app.state.db = MySQLConnector()
 
     scheduler = TokenCleanupScheduler(db=app.state.db)

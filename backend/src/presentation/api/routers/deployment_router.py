@@ -24,7 +24,7 @@ router = APIRouter()
 
 
 @router.get("/list")
-def list_deployments(
+async def list_deployments(
     repo_url: str,
     container: Container = Depends(get_container),
 ) -> List[DeploymentDTO]:
@@ -44,7 +44,7 @@ def list_deployments(
     )
 
     service = container.deployment_service
-    results = service.list_deployments(repo_url)
+    results = await service.list_deployments(repo_url)
 
     logger.info(
         "Retrieved %d deployments for repo_url=%s.",

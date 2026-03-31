@@ -7,11 +7,12 @@ It coordinates with the GitHub service port to fetch deployment data.
 Classes:
     DeploymentService: Main service for deployment read operations.
 """
-
+import asyncio
 import logging
 from typing import List
 
 from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 from backend.src.domain.ports.services.i_github_service import IGitHubService
 
 
@@ -25,20 +26,27 @@ class DeploymentService:
     Coordinates with the GitHub service port to fetch deployment data.
 
     Attributes:
+         _repo (IRepoRepository): Repository persistence port.
         _github (IGitHubService): GitHub service port.
     """
-    def __init__(self, github_service: IGitHubService):
+    def __init__(self, repo_repo: IRepoRepository, github_service: IGitHubService):
         """
         Initialize the service with a GitHub adapter.
 
         Args:
             github_service (IGitHubService): GitHub service port.
         """
+        self._repo = repo_repo
         self._github = github_service
 
-    def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+    async def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
         """
-        List deployments for a repository URL.
+        Retrieve deployments associated with a GitHub repository.
+
+        This method first verifies that the repository exists in the local
+        database using its URL. If found, it delegates to the GitHub service
+        to fetch deployment data from external sources (GitHub Deployments API
+        and GitHub Actions).
 
         Args:
             repo_url (str): GitHub repository URL.
@@ -47,8 +55,10 @@ class DeploymentService:
             List[DeploymentDTO]: List of deployment DTOs for the repository.
         """
         logger.info("Fetching deployments for repository: repo_url=%s.", repo_url)
-        
-        results = self._github.get_deployments(repo_url)
+
+        result = self._repo.find_by_url(repo_url)
+
+        results = asyncio.run(self._github.get_deployments(result.url))
 
         logger.info(
             "Fetched %s deployments for repository successfully: repo_url=%s.",

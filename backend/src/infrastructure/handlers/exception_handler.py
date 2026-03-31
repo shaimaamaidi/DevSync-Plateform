@@ -41,8 +41,9 @@ _VALIDATION_CODES = {
     "INVALID_GITHUB_URL",
 }
 
-_RUNTIME_CODES = {
+_GITHUB_CODES = {
     "GITHUB_RATE_LIMIT",
+    "GITHUB_API_ERROR",
 }
 
 _AUTH_CODES = {
@@ -93,9 +94,9 @@ class FastAPIExceptionHandler:
                 exc.code,
                 exc.message,
             )
-        elif exc.code in _RUNTIME_CODES:
+        elif exc.code in _GITHUB_CODES:
             logger.warning(
-                "Runtime Error [%s]: %s.",
+                "GitHub API Error [%s]: %s.",
                 exc.code,
                 exc.message,
             )

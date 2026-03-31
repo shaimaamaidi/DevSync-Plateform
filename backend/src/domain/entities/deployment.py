@@ -8,6 +8,7 @@ Main classes:
 """
 
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -31,7 +32,7 @@ class DeploymentDTO:
     ref: str
     sha: str
     creator: str
-    created_at: str
+    created_at: datetime
     description: str
     state: str
     log_url: str

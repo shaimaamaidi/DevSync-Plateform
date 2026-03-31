@@ -15,7 +15,7 @@ class IGitHubService(ABC):
     Define GitHub service behavior required by the application.
     """
     @abstractmethod
-    def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+    async def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
         """
         Fetch deployments for a repository URL.
 
