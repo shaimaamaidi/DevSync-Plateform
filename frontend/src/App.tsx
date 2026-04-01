@@ -6,6 +6,7 @@ import LoginPage from './pages/Login';
 import SignupPage from './pages/Signup';
 import { GlobalApiAlert } from './components/global-api-alert';
 import { GlobalSuccessToaster } from './components/global-success-toaster';
+import SettingsPage from './pages/Settings';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/spaces" element={<HomePage activeTab="spaces" />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
