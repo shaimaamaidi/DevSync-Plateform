@@ -14,7 +14,6 @@ export const deploymentService = {
   },
 
   async listAll(): Promise<DeploymentDTO[]> {
-    // On récupère tous les repos, puis on agrège tous les déploiements
     try {
       const { repoService } = await import('./repo-service');
       const repos = await repoService.getAllReposWithDetails();

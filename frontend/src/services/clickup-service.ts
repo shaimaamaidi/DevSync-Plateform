@@ -77,7 +77,8 @@ export const clickUpService = {
 };
 
 const mapDetailToLight = (detail: ClickUpSpaceDetailDTO | null): ClickUpSpaceLightDTO | null => {
-  if (!detail) return null;
+  if (!detail) 
+    return null;
   return {
     id: detail.id ?? null,
     name: detail.name ?? null,

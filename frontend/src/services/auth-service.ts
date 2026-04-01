@@ -33,12 +33,14 @@ class AuthService {
     if (refreshToken) {
       deleteRefreshTokenCookie();
     }
-    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+    if (this.refreshTimeout) 
+        clearTimeout(this.refreshTimeout);
   }
 
   async refresh(): Promise<void> {
     const refreshToken = getRefreshTokenCookie();
-    if (!refreshToken) throw new Error('No refresh token');
+    if (!refreshToken) 
+        throw new Error('No refresh token');
     const api = new AuthApi();
     const { data } = await api.refreshAuthRefreshPost(refreshToken);
     setRefreshTokenCookie(data.refresh_token);
@@ -46,7 +48,8 @@ class AuthService {
   }
 
   private scheduleRefresh() {
-    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+    if (this.refreshTimeout) 
+        clearTimeout(this.refreshTimeout);
     this.refreshTimeout = setTimeout(() => this.refresh(), 29 * 60 * 1000);
   }
 
