@@ -2,6 +2,8 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import HomePage from './pages/Home';
 import NotFoundPage from './pages/NotFound';
+import LoginPage from './pages/Login';
+import SignupPage from './pages/Signup';
 import { GlobalApiAlert } from './components/global-api-alert';
 import { GlobalSuccessToaster } from './components/global-success-toaster';
 
@@ -17,6 +19,8 @@ export default function App() {
           <Route path="/deployments" element={<HomePage activeTab="deployments" />} />
           <Route path="/members" element={<HomePage activeTab="members" />} />
           <Route path="/spaces" element={<HomePage activeTab="spaces" />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
