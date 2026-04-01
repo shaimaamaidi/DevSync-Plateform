@@ -1,6 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GitBranch, Zap, Users, Boxes } from 'lucide-react';
+import { GitBranch, Zap, Users, Boxes, LogOut, Settings } from 'lucide-react';
 
 
 
@@ -36,10 +36,9 @@ export function Navigation({ onTabChange }: NavigationProps) {
             </div>
           </button>
 
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs + Config + Logout */}
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-
               <Button
                 variant={isRepositoriesPage ? 'default' : 'ghost'}
                 onClick={() => {
@@ -51,7 +50,6 @@ export function Navigation({ onTabChange }: NavigationProps) {
                 <GitBranch className="w-4 h-4" />
                 <span className="hidden sm:inline">Repositories</span>
               </Button>
-
               <Button
                 variant={isDeploymentsPage ? 'default' : 'ghost'}
                 onClick={() => {
@@ -63,7 +61,6 @@ export function Navigation({ onTabChange }: NavigationProps) {
                 <Zap className="w-4 h-4" />
                 <span className="hidden sm:inline">Deployments</span>
               </Button>
-
               <Button
                 variant={isMembersPage ? 'default' : 'ghost'}
                 onClick={() => navigate('/members')}
@@ -72,7 +69,6 @@ export function Navigation({ onTabChange }: NavigationProps) {
                 <Users className="w-4 h-4" />
                 <span className="hidden sm:inline">Members</span>
               </Button>
-
               <Button
                 variant={isSpacesPage ? 'default' : 'ghost'}
                 onClick={() => navigate('/spaces')}
@@ -82,6 +78,29 @@ export function Navigation({ onTabChange }: NavigationProps) {
                 <span className="hidden sm:inline">Spaces</span>
               </Button>
             </div>
+            {/* Config button */}
+            <Button
+              variant="ghost"
+              className="gap-2 ml-2"
+              onClick={() => navigate('/settings')}
+              title="Update password"
+            >
+              <Settings className="w-5 h-5" />
+              <span className="hidden sm:inline">Config</span>
+            </Button>
+            {/* Logout button */}
+            <Button
+              variant="ghost"
+              className="gap-2 ml-2"
+              onClick={() => {
+                // TODO: call logout logic
+                navigate('/login');
+              }}
+              title="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="hidden sm:inline">Logout</span>
+            </Button>
           </div>
         </div>
       </div>
