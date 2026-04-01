@@ -54,7 +54,6 @@ export class RequiredError extends Error {
         this.name = "RequiredError";
     }
 };
-
 interface ServerMap {
     [key: string]: {
         url: string,

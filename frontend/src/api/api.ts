@@ -599,7 +599,7 @@ export class AssociatorApi extends BaseAPI {
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
          * @summary Login
          * @param {MemberAuthDTO} memberAuthDTO 
          * @param {*} [options] Override http request option.
@@ -671,7 +671,7 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
          * @summary Refresh
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
@@ -717,7 +717,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
-         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
          * @summary Login
          * @param {MemberAuthDTO} memberAuthDTO 
          * @param {*} [options] Override http request option.
@@ -743,7 +743,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
          * @summary Refresh
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
@@ -765,7 +765,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = AuthApiFp(configuration)
     return {
         /**
-         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
          * @summary Login
          * @param {MemberAuthDTO} memberAuthDTO 
          * @param {*} [options] Override http request option.
@@ -785,7 +785,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.logoutAuthLogoutPost(refreshToken, options).then((request) => request(axios, basePath));
         },
         /**
-         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
          * @summary Refresh
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
@@ -802,7 +802,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  */
 export class AuthApi extends BaseAPI {
     /**
-     * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+     * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
      * @summary Login
      * @param {MemberAuthDTO} memberAuthDTO 
      * @param {*} [options] Override http request option.
@@ -824,7 +824,7 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+     * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
      * @summary Refresh
      * @param {string} refreshToken 
      * @param {*} [options] Override http request option.

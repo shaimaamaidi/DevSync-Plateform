@@ -19,7 +19,7 @@ export const memberService = {
       mail: member.mail ?? null,
     };
   },
-  async createMember(member: MemberDTO): Promise<MemberDTO | null> {
+  async createMember(member: MemberCreateDTO): Promise<MemberDTO | null> {
     const payload: MemberCreateDTO = {
       username: member.username ?? null,
       mail: member.mail ?? null,

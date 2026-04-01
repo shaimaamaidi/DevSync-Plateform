@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { authService } from '@/services/auth-service';
+import { memberService } from '@/services/member-service';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { showSuccessToast } from '@/components/global-success-toaster';
+import type { MemberCreateDTO } from '@/api/api';
 
 export default function SignupPage() {
   const [mail, setMail] = useState('');
@@ -20,7 +22,14 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      await authService.login({ mail, password }); 
+      const member: MemberCreateDTO = {
+        username,
+        mail,
+        password
+      };
+      const created = await memberService.createMember(member);
+      if (!created) throw new Error('Account creation failed');
+      await authService.login({ mail, password });
       showSuccessToast('Account created! You are now logged in.');
       navigate('/repositories');
     } catch (err: any) {
