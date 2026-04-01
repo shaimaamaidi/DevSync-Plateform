@@ -58,10 +58,28 @@ This is the backend service for the project, built with **FastAPI**, **SQLAlchem
      ```
    - Edit `.env` and fill in all required variables (see below).
 
-5. **Run the application:**
-   ```bash
-   uvicorn src.presentation.api.main:app --reload
-   ```
+
+---
+
+### ⚙️ Initialisation du Backend
+
+Avant de lancer le serveur, deux scripts doivent être exécutés pour préparer l'application :
+
+1. **Initialisation de la base de données**
+  ```bash
+  python scripts/init_db.py
+  ```
+  Crée les tables et les relations nécessaires.
+
+2. **Création d’un membre admin**
+  ```bash
+  python scripts/create_admin.py
+  ```
+  Crée un utilisateur administrateur initial pour pouvoir accéder aux services backend depuis l’extérieur (sécurité).
+
+Ces scripts doivent être exécutés avant de lancer le serveur backend.
+
+---
 
 ---
 
@@ -135,11 +153,13 @@ Below are the main endpoints provided by the backend, with required parameters a
   - **Returns:** User info for the authenticated user
 
 ### Members
+### Members
 - **GET `/member/all`**
   - **Returns:** List of all members
 - **POST `/member/`**
   - **Body:** `{ "username": string, ... }`
   - **Returns:** Created member
+  - ⚠️ **Note:** New members can only be added **after logging in** as an authenticated user. Use the Members page in the frontend to manage users.
 
 ### ClickUp Integration
 - **GET `/clickup/spaces`**
