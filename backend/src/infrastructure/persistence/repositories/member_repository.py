@@ -127,7 +127,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         """
         logger.info(
             "Creating new member (username=%s, mail=%s).",
-        
             member.username,
             member.mail
         )
