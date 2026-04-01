@@ -52,16 +52,18 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
-
-        if not auth_header or not auth_header.startswith("Bearer "):
-            logger.warning("Missing or malformed Authorization header: %s.", request.url.path)
-            return JSONResponse(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                content={"error": {"code": "UNAUTHORIZED", "message": "Missing or invalid Authorization header."}},
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        token = auth_header.split(" ")[1]
+        token = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+        else:
+            token = request.cookies.get("access_token")
+            if not token:
+                logger.warning("Missing Authorization header and access_token cookie: %s.", request.url.path)
+                return JSONResponse(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    content={"error": {"code": "UNAUTHORIZED", "message": "Missing Authorization header and access_token cookie."}},
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
 
         try:
             with request.app.state.db.get_session() as session:
