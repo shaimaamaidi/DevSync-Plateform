@@ -24,28 +24,28 @@ import type { RequestArgs } from './base';
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
 /**
- * Request payload for associating a ClickUp space.
+ * Request payload for associating a ClickUp space.  Attributes:     repo_url: Repository URL.     space_code: ClickUp space code.
  */
 export interface AssociateClickUpSpaceRequest {
     'repo_url'?: string | null;
     'space_code'?: string | null;
 }
 /**
- * Response payload for ClickUp space association.
+ * Response payload for ClickUp space association.  Attributes:     repo: Repository summary.     clickup_space: Associated ClickUp space DTO.
  */
 export interface AssociateClickUpSpaceResponse {
     'repo': AssociatorRepoDTO;
     'clickup_space'?: ClickUpSpaceDTO | null;
 }
 /**
- * Response payload for member association operations.
+ * Response payload for member association operations.  Attributes:     repo: Repository summary.     members: List of associated member DTOs.
  */
 export interface AssociateMembersResponse {
     'repo': AssociatorRepoDTO;
     'members'?: Array<AssociatorMemberDTO>;
 }
 /**
- * Member summary returned in association responses.
+ * Member summary returned in association responses.  Attributes:     id: Member identifier.     name: Member name.     mail: Member email address.
  */
 export interface AssociatorMemberDTO {
     'id'?: number | null;
@@ -53,7 +53,7 @@ export interface AssociatorMemberDTO {
     'mail'?: string | null;
 }
 /**
- * Repository summary returned in association responses.
+ * Repository summary returned in association responses.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface AssociatorRepoDTO {
     'id'?: number | null;
@@ -61,7 +61,7 @@ export interface AssociatorRepoDTO {
     'url'?: string | null;
 }
 /**
- * Repository details embedded in ClickUp space responses.
+ * Repository details embedded in ClickUp space responses.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface ClickUpRepoDTO {
     'id'?: number | null;
@@ -69,21 +69,21 @@ export interface ClickUpRepoDTO {
     'url'?: string | null;
 }
 /**
- * Reference to a repository linked to a ClickUp space.
+ * Reference to a repository linked to a ClickUp space.  Attributes:     id: Repository identifier.     url: Repository URL.
  */
 export interface ClickUpRepoRefDTO {
     'id'?: number | null;
     'url'?: string | null;
 }
 /**
- * Payload for ClickUp space creation.
+ * Payload for ClickUp space creation.  Attributes:     name: ClickUp space name.     space_code: ClickUp space code.
  */
 export interface ClickUpSpaceCreateDTO {
     'name'?: string | null;
     'space_code'?: string | null;
 }
 /**
- * ClickUp space DTO with minimal fields.
+ * ClickUp space DTO with minimal fields.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.
  */
 export interface ClickUpSpaceDTO {
     'id'?: number | null;
@@ -91,7 +91,7 @@ export interface ClickUpSpaceDTO {
     'space_code'?: string | null;
 }
 /**
- * Detailed ClickUp space DTO with repository data.
+ * Detailed ClickUp space DTO with repository data.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.     repo: Associated repository details.
  */
 export interface ClickUpSpaceDetailDTO {
     'id'?: number | null;
@@ -100,7 +100,7 @@ export interface ClickUpSpaceDetailDTO {
     'repo'?: ClickUpRepoDTO | null;
 }
 /**
- * ClickUp space DTO with repo summary.
+ * ClickUp space DTO with repository summary.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.     name: ClickUp space name.     repo: Associated repository details.
  */
 export interface ClickUpSpaceLightDTO {
     'id'?: number | null;
@@ -109,7 +109,7 @@ export interface ClickUpSpaceLightDTO {
     'repo'?: ClickUpRepoDTO | null;
 }
 /**
- * Payload for ClickUp space updates.
+ * Payload for ClickUp space updates.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.     repo: Reference to associated repository.
  */
 export interface ClickUpSpaceUpdateDTO {
     'id'?: number | null;
@@ -129,14 +129,14 @@ export interface DeploymentDTO {
     'log_url': string;
 }
 /**
- * Payload for repository creation.
+ * Payload for repository creation.  Attributes:     name: Repository name.     url: Repository URL.
  */
 export interface GitRepoCreateDTO {
     'name'?: string | null;
     'url'?: string | null;
 }
 /**
- * Repository DTO with minimal fields.
+ * Repository DTO with minimal fields.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface GitRepoDTO {
     'id'?: number | null;
@@ -144,7 +144,7 @@ export interface GitRepoDTO {
     'url'?: string | null;
 }
 /**
- * Detailed repository DTO with members and ClickUp space.
+ * Detailed repository DTO with members and ClickUp space.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.     members: List of member details.     clickup_space: Associated ClickUp space details.
  */
 export interface GitRepoDetailDTO {
     'id'?: number | null;
@@ -154,7 +154,7 @@ export interface GitRepoDetailDTO {
     'clickup_space'?: RepoClickUpSpaceDTO | null;
 }
 /**
- * Payload for repository updates.
+ * Payload for repository updates.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.     members: List of member references.     clickup_space: Reference to associated ClickUp space.
  */
 export interface GitRepoUpdateDTO {
     'id'?: number | null;
@@ -169,14 +169,22 @@ export interface HTTPValidationError {
 export interface LocationInner {
 }
 /**
- * Payload for member creation.
+ * Payload for a member authentication request.  Attributes:     mail: Member email address.     password: Member password.
+ */
+export interface MemberAuthDTO {
+    'mail': string;
+    'password': string;
+}
+/**
+ * Payload for member creation.  Attributes:     username: Username.     mail: Email address.     password: Password.
  */
 export interface MemberCreateDTO {
     'username'?: string | null;
     'mail'?: string | null;
+    'password'?: string | null;
 }
 /**
- * Member data transfer object.
+ * Main DTO for representing a member.  Attributes:     id: Member identifier.     username: Username.     mail: Email address.
  */
 export interface MemberDTO {
     'id'?: number | null;
@@ -184,13 +192,21 @@ export interface MemberDTO {
     'mail'?: string | null;
 }
 /**
- * Minimal member payload containing email address.
+ * Minimal member payload containing email address.  Attributes:     mail: Member email address.
  */
 export interface MemberMailDTO {
     'mail'?: string | null;
 }
 /**
- * Payload for member updates.
+ * Authentication response containing access and refresh tokens.  Attributes:     access_token: JWT access token.     refresh_token: JWT refresh token.     token_type: Token type (default \'bearer\').
+ */
+export interface MemberTokensDTO {
+    'access_token': string;
+    'refresh_token': string;
+    'token_type'?: string;
+}
+/**
+ * Payload for member update.  Attributes:     id: Member identifier.     username: Username.     mail: Email address.     repos: List of associated repositories.
  */
 export interface MemberUpdateDTO {
     'id'?: number | null;
@@ -199,7 +215,7 @@ export interface MemberUpdateDTO {
     'repos'?: Array<RepoRefDTO> | null;
 }
 /**
- * Member DTO enriched with repositories.
+ * Member DTO enriched with the list of associated repositories.  Attributes:     id: Member identifier.     username: Username.     mail: Email address.     repos: List of repositories (RepoSummary).
  */
 export interface MemberWithReposDTO {
     'id'?: number | null;
@@ -208,7 +224,7 @@ export interface MemberWithReposDTO {
     'repos'?: Array<RepoSummary>;
 }
 /**
- * ClickUp space details associated with a repository.
+ * ClickUp space details associated with a repository.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.     name: ClickUp space name.
  */
 export interface RepoClickUpSpaceDTO {
     'id'?: number | null;
@@ -216,14 +232,14 @@ export interface RepoClickUpSpaceDTO {
     'name'?: string | null;
 }
 /**
- * ClickUp space reference by id or space code.
+ * Reference to a ClickUp space by id or space code.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.
  */
 export interface RepoClickUpSpaceRefDTO {
     'id'?: number | null;
     'space_code'?: string | null;
 }
 /**
- * Member details inside repository responses.
+ * Member details included in repository responses.  Attributes:     id: Member identifier.     username: Username.     mail: Email address.
  */
 export interface RepoMemberDTO {
     'id'?: number | null;
@@ -231,28 +247,28 @@ export interface RepoMemberDTO {
     'mail'?: string | null;
 }
 /**
- * Member reference by id or email.
+ * Reference to a member by id or email.  Attributes:     id: Member identifier.     mail: Email address.
  */
 export interface RepoMemberRefDTO {
     'id'?: number | null;
     'mail'?: string | null;
 }
 /**
- * Request payload for associating repository members.
+ * Request payload for associating repository members.  Attributes:     repo_url: Repository URL.     members: List of member mail DTOs.
  */
 export interface RepoMembersRequest {
     'repo_url'?: string | null;
     'members'?: Array<MemberMailDTO>;
 }
 /**
- * Reference to a repository by id or URL.
+ * Reference to a repository by id or URL.  Attributes:     id: Repository identifier.     url: Repository URL.
  */
 export interface RepoRefDTO {
     'id'?: number | null;
     'url'?: string | null;
 }
 /**
- * Summary view of a repository linked to a member.
+ * Summary view of a repository linked to a member.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface RepoSummary {
     'id'?: number | null;
@@ -273,7 +289,7 @@ export interface ValidationError {
 export const AssociatorApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Add members to a repository.
+         * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
          * @summary Add Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -308,7 +324,7 @@ export const AssociatorApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Replace repository members with the provided list.
+         * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
          * @summary Associate Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -343,7 +359,7 @@ export const AssociatorApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Associate a ClickUp space with a repository.
+         * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
          * @summary Associate Space
          * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
          * @param {*} [options] Override http request option.
@@ -378,7 +394,7 @@ export const AssociatorApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Remove members from a repository.
+         * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
          * @summary Remove Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -422,7 +438,7 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AssociatorApiAxiosParamCreator(configuration)
     return {
         /**
-         * Add members to a repository.
+         * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
          * @summary Add Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -435,7 +451,7 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Replace repository members with the provided list.
+         * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
          * @summary Associate Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -448,7 +464,7 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Associate a ClickUp space with a repository.
+         * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
          * @summary Associate Space
          * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
          * @param {*} [options] Override http request option.
@@ -461,7 +477,7 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Remove members from a repository.
+         * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
          * @summary Remove Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -483,7 +499,7 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
     const localVarFp = AssociatorApiFp(configuration)
     return {
         /**
-         * Add members to a repository.
+         * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
          * @summary Add Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -493,7 +509,7 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
             return localVarFp.addMembersAssociateMembersAddPost(repoMembersRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Replace repository members with the provided list.
+         * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
          * @summary Associate Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -503,7 +519,7 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
             return localVarFp.associateMembersAssociateMembersPost(repoMembersRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Associate a ClickUp space with a repository.
+         * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
          * @summary Associate Space
          * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
          * @param {*} [options] Override http request option.
@@ -513,7 +529,7 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
             return localVarFp.associateSpaceAssociateSpacePost(associateClickUpSpaceRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Remove members from a repository.
+         * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
          * @summary Remove Members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
@@ -530,7 +546,7 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
  */
 export class AssociatorApi extends BaseAPI {
     /**
-     * Add members to a repository.
+     * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
      * @summary Add Members
      * @param {RepoMembersRequest} repoMembersRequest 
      * @param {*} [options] Override http request option.
@@ -541,7 +557,7 @@ export class AssociatorApi extends BaseAPI {
     }
 
     /**
-     * Replace repository members with the provided list.
+     * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
      * @summary Associate Members
      * @param {RepoMembersRequest} repoMembersRequest 
      * @param {*} [options] Override http request option.
@@ -552,7 +568,7 @@ export class AssociatorApi extends BaseAPI {
     }
 
     /**
-     * Associate a ClickUp space with a repository.
+     * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
      * @summary Associate Space
      * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
      * @param {*} [options] Override http request option.
@@ -563,7 +579,7 @@ export class AssociatorApi extends BaseAPI {
     }
 
     /**
-     * Remove members from a repository.
+     * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
      * @summary Remove Members
      * @param {RepoMembersRequest} repoMembersRequest 
      * @param {*} [options] Override http request option.
@@ -577,12 +593,256 @@ export class AssociatorApi extends BaseAPI {
 
 
 /**
+ * AuthApi - axios parameter creator
+ */
+export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+         * @summary Login
+         * @param {MemberAuthDTO} memberAuthDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        loginAuthLoginPost: async (memberAuthDTO: MemberAuthDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'memberAuthDTO' is not null or undefined
+            assertParamExists('loginAuthLoginPost', 'memberAuthDTO', memberAuthDTO)
+            const localVarPath = `/auth/login`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(memberAuthDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
+         * @summary Logout
+         * @param {string} refreshToken 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logoutAuthLogoutPost: async (refreshToken: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'refreshToken' is not null or undefined
+            assertParamExists('logoutAuthLogoutPost', 'refreshToken', refreshToken)
+            const localVarPath = `/auth/logout`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (refreshToken !== undefined) {
+                localVarQueryParameter['refresh_token'] = refreshToken;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+         * @summary Refresh
+         * @param {string} refreshToken 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshAuthRefreshPost: async (refreshToken: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'refreshToken' is not null or undefined
+            assertParamExists('refreshAuthRefreshPost', 'refreshToken', refreshToken)
+            const localVarPath = `/auth/refresh`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (refreshToken !== undefined) {
+                localVarQueryParameter['refresh_token'] = refreshToken;
+            }
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * AuthApi - functional programming interface
+ */
+export const AuthApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+         * @summary Login
+         * @param {MemberAuthDTO} memberAuthDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async loginAuthLoginPost(memberAuthDTO: MemberAuthDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MemberTokensDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.loginAuthLoginPost(memberAuthDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.loginAuthLoginPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
+         * @summary Logout
+         * @param {string} refreshToken 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async logoutAuthLogoutPost(refreshToken: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.logoutAuthLogoutPost(refreshToken, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.logoutAuthLogoutPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+         * @summary Refresh
+         * @param {string} refreshToken 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async refreshAuthRefreshPost(refreshToken: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MemberTokensDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.refreshAuthRefreshPost(refreshToken, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.refreshAuthRefreshPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * AuthApi - factory interface
+ */
+export const AuthApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = AuthApiFp(configuration)
+    return {
+        /**
+         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+         * @summary Login
+         * @param {MemberAuthDTO} memberAuthDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        loginAuthLoginPost(memberAuthDTO: MemberAuthDTO, options?: RawAxiosRequestConfig): AxiosPromise<MemberTokensDTO> {
+            return localVarFp.loginAuthLoginPost(memberAuthDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
+         * @summary Logout
+         * @param {string} refreshToken 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        logoutAuthLogoutPost(refreshToken: string, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.logoutAuthLogoutPost(refreshToken, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+         * @summary Refresh
+         * @param {string} refreshToken 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        refreshAuthRefreshPost(refreshToken: string, options?: RawAxiosRequestConfig): AxiosPromise<MemberTokensDTO> {
+            return localVarFp.refreshAuthRefreshPost(refreshToken, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * AuthApi - object-oriented interface
+ */
+export class AuthApi extends BaseAPI {
+    /**
+     * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
+     * @summary Login
+     * @param {MemberAuthDTO} memberAuthDTO 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public loginAuthLoginPost(memberAuthDTO: MemberAuthDTO, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).loginAuthLoginPost(memberAuthDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
+     * @summary Logout
+     * @param {string} refreshToken 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public logoutAuthLogoutPost(refreshToken: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).logoutAuthLogoutPost(refreshToken, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
+     * @summary Refresh
+     * @param {string} refreshToken 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public refreshAuthRefreshPost(refreshToken: string, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).refreshAuthRefreshPost(refreshToken, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * ClickUpApi - axios parameter creator
  */
 export const ClickUpApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a ClickUp space.
+         * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
          * @summary Create Space
          * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
          * @param {*} [options] Override http request option.
@@ -617,7 +877,7 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Delete a ClickUp space by id.
+         * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
          * @summary Delete Space
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
@@ -651,7 +911,7 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Return all ClickUp spaces in light form.
+         * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
          * @summary Get All Light
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -681,7 +941,7 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Return all ClickUp spaces.
+         * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
          * @summary Get All Spaces
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -711,7 +971,7 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Fetch a ClickUp space by id.
+         * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
          * @summary Get Space By Id
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
@@ -745,7 +1005,7 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Update a ClickUp space by id.
+         * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
          * @summary Update Space
          * @param {number} spaceId 
          * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
@@ -793,7 +1053,7 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ClickUpApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a ClickUp space.
+         * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
          * @summary Create Space
          * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
          * @param {*} [options] Override http request option.
@@ -806,7 +1066,7 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a ClickUp space by id.
+         * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
          * @summary Delete Space
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
@@ -819,7 +1079,7 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all ClickUp spaces in light form.
+         * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
          * @summary Get All Light
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -831,7 +1091,7 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all ClickUp spaces.
+         * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
          * @summary Get All Spaces
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -843,7 +1103,7 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Fetch a ClickUp space by id.
+         * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
          * @summary Get Space By Id
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
@@ -856,7 +1116,7 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a ClickUp space by id.
+         * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
          * @summary Update Space
          * @param {number} spaceId 
          * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
@@ -879,7 +1139,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = ClickUpApiFp(configuration)
     return {
         /**
-         * Create a ClickUp space.
+         * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
          * @summary Create Space
          * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
          * @param {*} [options] Override http request option.
@@ -889,7 +1149,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.createSpaceClickupPost(clickUpSpaceCreateDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a ClickUp space by id.
+         * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
          * @summary Delete Space
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
@@ -899,7 +1159,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.deleteSpaceClickupSpaceIdDelete(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all ClickUp spaces in light form.
+         * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
          * @summary Get All Light
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -908,7 +1168,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getAllLightClickupLightGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all ClickUp spaces.
+         * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
          * @summary Get All Spaces
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -917,7 +1177,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getAllSpacesClickupGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Fetch a ClickUp space by id.
+         * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
          * @summary Get Space By Id
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
@@ -927,7 +1187,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getSpaceByIdClickupSpaceIdGet(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a ClickUp space by id.
+         * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
          * @summary Update Space
          * @param {number} spaceId 
          * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
@@ -945,7 +1205,7 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
  */
 export class ClickUpApi extends BaseAPI {
     /**
-     * Create a ClickUp space.
+     * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
      * @summary Create Space
      * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
      * @param {*} [options] Override http request option.
@@ -956,7 +1216,7 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Delete a ClickUp space by id.
+     * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
      * @summary Delete Space
      * @param {number} spaceId 
      * @param {*} [options] Override http request option.
@@ -967,7 +1227,7 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Return all ClickUp spaces in light form.
+     * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
      * @summary Get All Light
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -977,7 +1237,7 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Return all ClickUp spaces.
+     * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
      * @summary Get All Spaces
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -987,7 +1247,7 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Fetch a ClickUp space by id.
+     * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
      * @summary Get Space By Id
      * @param {number} spaceId 
      * @param {*} [options] Override http request option.
@@ -998,7 +1258,7 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Update a ClickUp space by id.
+     * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
      * @summary Update Space
      * @param {number} spaceId 
      * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
@@ -1018,7 +1278,7 @@ export class ClickUpApi extends BaseAPI {
 export const DeploymentApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * List deployments for a repository URL.
+         * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
          * @summary List Deployments
          * @param {string} repoUrl 
          * @param {*} [options] Override http request option.
@@ -1064,7 +1324,7 @@ export const DeploymentApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = DeploymentApiAxiosParamCreator(configuration)
     return {
         /**
-         * List deployments for a repository URL.
+         * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
          * @summary List Deployments
          * @param {string} repoUrl 
          * @param {*} [options] Override http request option.
@@ -1086,7 +1346,7 @@ export const DeploymentApiFactory = function (configuration?: Configuration, bas
     const localVarFp = DeploymentApiFp(configuration)
     return {
         /**
-         * List deployments for a repository URL.
+         * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
          * @summary List Deployments
          * @param {string} repoUrl 
          * @param {*} [options] Override http request option.
@@ -1103,7 +1363,7 @@ export const DeploymentApiFactory = function (configuration?: Configuration, bas
  */
 export class DeploymentApi extends BaseAPI {
     /**
-     * List deployments for a repository URL.
+     * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
      * @summary List Deployments
      * @param {string} repoUrl 
      * @param {*} [options] Override http request option.
@@ -1122,7 +1382,7 @@ export class DeploymentApi extends BaseAPI {
 export const MemberApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a new member.
+         * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
          * @summary Add Member
          * @param {MemberCreateDTO} memberCreateDTO 
          * @param {*} [options] Override http request option.
@@ -1157,7 +1417,7 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Delete a member by id.
+         * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
          * @summary Delete Member
          * @param {number} memberId 
          * @param {*} [options] Override http request option.
@@ -1191,7 +1451,7 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Return all members with repositories.
+         * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
          * @summary Get All With Repos
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1221,7 +1481,7 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Return members for a repository.
+         * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
          * @summary Get Members By Repo
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1255,7 +1515,7 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Update a member by id.
+         * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
          * @summary Update Member
          * @param {number} memberId 
          * @param {MemberUpdateDTO} memberUpdateDTO 
@@ -1303,7 +1563,7 @@ export const MemberApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = MemberApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a new member.
+         * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
          * @summary Add Member
          * @param {MemberCreateDTO} memberCreateDTO 
          * @param {*} [options] Override http request option.
@@ -1316,7 +1576,7 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a member by id.
+         * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
          * @summary Delete Member
          * @param {number} memberId 
          * @param {*} [options] Override http request option.
@@ -1329,7 +1589,7 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all members with repositories.
+         * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
          * @summary Get All With Repos
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1341,7 +1601,7 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return members for a repository.
+         * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
          * @summary Get Members By Repo
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1354,7 +1614,7 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a member by id.
+         * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
          * @summary Update Member
          * @param {number} memberId 
          * @param {MemberUpdateDTO} memberUpdateDTO 
@@ -1377,7 +1637,7 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = MemberApiFp(configuration)
     return {
         /**
-         * Create a new member.
+         * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
          * @summary Add Member
          * @param {MemberCreateDTO} memberCreateDTO 
          * @param {*} [options] Override http request option.
@@ -1387,7 +1647,7 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.addMemberMemberPost(memberCreateDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a member by id.
+         * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
          * @summary Delete Member
          * @param {number} memberId 
          * @param {*} [options] Override http request option.
@@ -1397,7 +1657,7 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.deleteMemberMemberMemberIdDelete(memberId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all members with repositories.
+         * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
          * @summary Get All With Repos
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1406,7 +1666,7 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.getAllWithReposMemberAllWithReposGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Return members for a repository.
+         * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
          * @summary Get Members By Repo
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1416,7 +1676,7 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.getMembersByRepoMemberByRepoRepoIdGet(repoId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a member by id.
+         * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
          * @summary Update Member
          * @param {number} memberId 
          * @param {MemberUpdateDTO} memberUpdateDTO 
@@ -1434,7 +1694,7 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
  */
 export class MemberApi extends BaseAPI {
     /**
-     * Create a new member.
+     * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
      * @summary Add Member
      * @param {MemberCreateDTO} memberCreateDTO 
      * @param {*} [options] Override http request option.
@@ -1445,7 +1705,7 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Delete a member by id.
+     * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
      * @summary Delete Member
      * @param {number} memberId 
      * @param {*} [options] Override http request option.
@@ -1456,7 +1716,7 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Return all members with repositories.
+     * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
      * @summary Get All With Repos
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1466,7 +1726,7 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Return members for a repository.
+     * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
      * @summary Get Members By Repo
      * @param {number} repoId 
      * @param {*} [options] Override http request option.
@@ -1477,7 +1737,7 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Update a member by id.
+     * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
      * @summary Update Member
      * @param {number} memberId 
      * @param {MemberUpdateDTO} memberUpdateDTO 
@@ -1497,7 +1757,7 @@ export class MemberApi extends BaseAPI {
 export const RepoApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a new repository.
+         * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
          * @summary Add Repo
          * @param {GitRepoCreateDTO} gitRepoCreateDTO 
          * @param {*} [options] Override http request option.
@@ -1532,7 +1792,7 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Delete a repository by id.
+         * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
          * @summary Delete Repo
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1566,7 +1826,7 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Return all repositories.
+         * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
          * @summary Get All Repos
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1596,7 +1856,7 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Return repositories with details.
+         * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
          * @summary Get All With Details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1626,7 +1886,7 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Fetch a repository by id.
+         * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
          * @summary Get Repo By Id
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1660,7 +1920,7 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Fetch a repository by name.
+         * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
          * @summary Get Repo By Name
          * @param {string} name 
          * @param {*} [options] Override http request option.
@@ -1694,7 +1954,7 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Update a repository by id.
+         * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
          * @summary Update Repo
          * @param {number} repoId 
          * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
@@ -1742,7 +2002,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = RepoApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a new repository.
+         * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
          * @summary Add Repo
          * @param {GitRepoCreateDTO} gitRepoCreateDTO 
          * @param {*} [options] Override http request option.
@@ -1755,7 +2015,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a repository by id.
+         * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
          * @summary Delete Repo
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1768,7 +2028,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all repositories.
+         * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
          * @summary Get All Repos
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1780,7 +2040,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return repositories with details.
+         * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
          * @summary Get All With Details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1792,7 +2052,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Fetch a repository by id.
+         * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
          * @summary Get Repo By Id
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1805,7 +2065,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Fetch a repository by name.
+         * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
          * @summary Get Repo By Name
          * @param {string} name 
          * @param {*} [options] Override http request option.
@@ -1818,7 +2078,7 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a repository by id.
+         * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
          * @summary Update Repo
          * @param {number} repoId 
          * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
@@ -1841,7 +2101,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = RepoApiFp(configuration)
     return {
         /**
-         * Create a new repository.
+         * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
          * @summary Add Repo
          * @param {GitRepoCreateDTO} gitRepoCreateDTO 
          * @param {*} [options] Override http request option.
@@ -1851,7 +2111,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.addRepoRepoPost(gitRepoCreateDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a repository by id.
+         * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
          * @summary Delete Repo
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1861,7 +2121,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.deleteRepoRepoRepoIdDelete(repoId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all repositories.
+         * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
          * @summary Get All Repos
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1870,7 +2130,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getAllReposRepoAllGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Return repositories with details.
+         * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
          * @summary Get All With Details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1879,7 +2139,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getAllWithDetailsRepoDetailsGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Fetch a repository by id.
+         * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
          * @summary Get Repo By Id
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
@@ -1889,7 +2149,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getRepoByIdRepoRepoIdGet(repoId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Fetch a repository by name.
+         * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
          * @summary Get Repo By Name
          * @param {string} name 
          * @param {*} [options] Override http request option.
@@ -1899,7 +2159,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getRepoByNameRepoByNameNameGet(name, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a repository by id.
+         * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
          * @summary Update Repo
          * @param {number} repoId 
          * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
@@ -1917,7 +2177,7 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
  */
 export class RepoApi extends BaseAPI {
     /**
-     * Create a new repository.
+     * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
      * @summary Add Repo
      * @param {GitRepoCreateDTO} gitRepoCreateDTO 
      * @param {*} [options] Override http request option.
@@ -1928,7 +2188,7 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Delete a repository by id.
+     * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
      * @summary Delete Repo
      * @param {number} repoId 
      * @param {*} [options] Override http request option.
@@ -1939,7 +2199,7 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Return all repositories.
+     * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
      * @summary Get All Repos
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1949,7 +2209,7 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Return repositories with details.
+     * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
      * @summary Get All With Details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1959,7 +2219,7 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Fetch a repository by id.
+     * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
      * @summary Get Repo By Id
      * @param {number} repoId 
      * @param {*} [options] Override http request option.
@@ -1970,7 +2230,7 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Fetch a repository by name.
+     * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
      * @summary Get Repo By Name
      * @param {string} name 
      * @param {*} [options] Override http request option.
@@ -1981,7 +2241,7 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Update a repository by id.
+     * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
      * @summary Update Repo
      * @param {number} repoId 
      * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 

@@ -1,25 +1,20 @@
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Virtual environments
 .venv/
 venv/
 ENV/
 
-# Environment variables
 .env
 .env.*
 !backend/.env.exemple
 !frontend/.env.exemple
 
-# Build artifacts
 dist/
 build/
 *.egg-info/
 
-# Node/Vite
 node_modules/
 dist-ssr/
 .vite/
@@ -35,14 +30,12 @@ lerna-debug.log*
 .npm/
 .yarn/
 
-# OpenAPI generator artifacts (frontend)
 frontend/src/api/.openapi-generator/
 frontend/src/api/.openapi-generator-ignore
 frontend/src/api/.npmignore
 frontend/src/api/git_push.sh
 frontend/src/api/docs/
 
-# Test and tooling caches
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
@@ -50,13 +43,12 @@ frontend/src/api/docs/
 .coverage.*
 htmlcov/
 
-# IDEs and editors
 .vscode/
 .idea/
 
-# OS files
 .DS_Store
 Thumbs.db
 
+wwwroot/*.js
+typings
 
-UNUSED_COMPONENTS.txt
