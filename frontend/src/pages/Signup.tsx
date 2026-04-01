@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authService } from '@/services/auth-service';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,10 +20,9 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      // TODO: call signup API
-      // await authService.signup({ mail, username, password });
-      showSuccessToast('Account created! You can now log in.');
-      navigate('/login');
+      await authService.login({ mail, password }); 
+      showSuccessToast('Account created! You are now logged in.');
+      navigate('/repositories');
     } catch (err: any) {
       setError('Signup failed');
     } finally {

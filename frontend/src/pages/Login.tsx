@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { authService } from '@/services/auth-service';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,8 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      // TODO: call login API
-      // await authService.login({ mail, password });
+      await authService.login({ mail, password });
       showSuccessToast('Login successful!');
       navigate('/repositories');
     } catch (err: any) {
