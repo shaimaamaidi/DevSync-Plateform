@@ -1,22 +1,18 @@
 import type { MemberAuthDTO } from '@/api/api';
 import { AuthApi } from '@/api/api';
 
-function setCookie(name: string, value: string, options: { maxAge?: number; path?: string; sameSite?: 'Lax' | 'Strict'; secure?: boolean } = {}) {
-  let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-  if (options.maxAge) cookie += `; max-age=${options.maxAge}`;
-  if (options.path) cookie += `; path=${options.path}`;
-  if (options.sameSite) cookie += `; SameSite=${options.sameSite}`;
-  if (options.secure) cookie += `; Secure`;
-  document.cookie = cookie;
+
+function setRefreshTokenCookie(value: string) {
+  document.cookie = `refresh_token=${encodeURIComponent(value)}; max-age=${REFRESH_TOKEN_MAX_AGE}; path=/; SameSite=Lax; Secure`;
 }
 
-function deleteCookie(name: string) {
-  document.cookie = `${encodeURIComponent(name)}=; max-age=0; path=/`;
+function deleteRefreshTokenCookie() {
+  document.cookie = `refresh_token=; max-age=0; path=/`;
 }
 
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
+function getRefreshTokenCookie(): string | null {
+  const match = document.cookie.match(/(?:^|; )refresh_token=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : null;
 }
 
 const REFRESH_TOKEN_COOKIE = 'refresh_token';
@@ -28,47 +24,34 @@ class AuthService {
   async login(credentials: MemberAuthDTO): Promise<void> {
     const api = new AuthApi();
     const { data } = await api.loginAuthLoginPost(credentials);
-    setCookie(REFRESH_TOKEN_COOKIE, data.refresh_token, { maxAge: REFRESH_TOKEN_MAX_AGE, path: '/', sameSite: 'Lax', secure: true });
-    this.scheduleRefresh(data.access_token);
+    setRefreshTokenCookie(data.refresh_token);
+    this.scheduleRefresh();
   }
 
-  async logout(): Promise<void> {
-    const refreshToken = getCookie(REFRESH_TOKEN_COOKIE);
+  logout(): void {
+    const refreshToken = getRefreshTokenCookie();
     if (refreshToken) {
-      const api = new AuthApi();
-      await api.logoutAuthLogoutPost(refreshToken);
-      deleteCookie(REFRESH_TOKEN_COOKIE);
+      deleteRefreshTokenCookie();
     }
-    if (this.refreshTimeout) 
-        clearTimeout(this.refreshTimeout);
+    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
   }
 
   async refresh(): Promise<void> {
-    const refreshToken = getCookie(REFRESH_TOKEN_COOKIE);
-    if (!refreshToken) 
-        throw new Error('No refresh token');
+    const refreshToken = getRefreshTokenCookie();
+    if (!refreshToken) throw new Error('No refresh token');
     const api = new AuthApi();
     const { data } = await api.refreshAuthRefreshPost(refreshToken);
-    setCookie(REFRESH_TOKEN_COOKIE, data.refresh_token, { maxAge: REFRESH_TOKEN_MAX_AGE, path: '/', sameSite: 'Lax', secure: true });
-    this.scheduleRefresh(data.access_token);
+    setRefreshTokenCookie(data.refresh_token);
+    this.scheduleRefresh();
   }
 
-  private scheduleRefresh(accessToken: string) {
-    try {
-      const payload = JSON.parse(atob(accessToken.split('.')[1]));
-      const exp = payload.exp * 1000; 
-      const now = Date.now();
-      const delay = Math.max(exp - now - 60 * 1000, 0); 
-      if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
-      this.refreshTimeout = setTimeout(() => this.refresh(), delay);
-    } catch (e) {
-      if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
-      this.refreshTimeout = setTimeout(() => this.refresh(), 29 * 60 * 1000);
-    }
+  private scheduleRefresh() {
+    if (this.refreshTimeout) clearTimeout(this.refreshTimeout);
+    this.refreshTimeout = setTimeout(() => this.refresh(), 29 * 60 * 1000);
   }
 
   isAuthenticated(): boolean {
-    return !!getCookie(REFRESH_TOKEN_COOKIE);
+    return !!getRefreshTokenCookie();
   }
 }
 

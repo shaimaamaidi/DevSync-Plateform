@@ -1,5 +1,6 @@
 
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
+import { RequireAuth } from './components/RequireAuth';
 import HomePage from './pages/Home';
 import NotFoundPage from './pages/NotFound';
 import LoginPage from './pages/Login';
@@ -16,13 +17,13 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/repositories" replace />} />
-          <Route path="/repositories" element={<HomePage activeTab="repos" />} />
-          <Route path="/deployments" element={<HomePage activeTab="deployments" />} />
-          <Route path="/members" element={<HomePage activeTab="members" />} />
-          <Route path="/spaces" element={<HomePage activeTab="spaces" />} />
+          <Route path="/repositories" element={<RequireAuth><HomePage activeTab="repos" /></RequireAuth>} />
+          <Route path="/deployments" element={<RequireAuth><HomePage activeTab="deployments" /></RequireAuth>} />
+          <Route path="/members" element={<RequireAuth><HomePage activeTab="members" /></RequireAuth>} />
+          <Route path="/spaces" element={<RequireAuth><HomePage activeTab="spaces" /></RequireAuth>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>

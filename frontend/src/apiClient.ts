@@ -6,12 +6,15 @@ import {
   MemberApi,
   RepoApi,
 } from './api';
+import { setupAxiosInterceptors } from './api/axios-interceptor';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000';
 
 export const apiConfig = new Configuration({
   basePath: apiBaseUrl,
 });
+
+setupAxiosInterceptors();
 
 export const associatorApi = new AssociatorApi(apiConfig);
 export const clickUpApi = new ClickUpApi(apiConfig);
