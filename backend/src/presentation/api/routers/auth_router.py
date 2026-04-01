@@ -31,6 +31,7 @@ def login(credentials: MemberAuthDTO, response: Response, container: Container =
 
     Args:
         credentials (MemberAuthDTO): Member login credentials.
+        response (Response): FastAPI response object (used to set cookies).
         container (Container): Dependency injection container.
 
     Returns:
@@ -61,6 +62,7 @@ def refresh(refresh_token: str, response: Response, container: Container = Depen
 
     Args:
         refresh_token (str): The refresh token string.
+        response (Response): FastAPI response object (used to set cookies).
         container (Container): Dependency injection container.
 
     Returns:
