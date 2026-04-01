@@ -1,10 +1,11 @@
+
 ![Node.js](https://img.shields.io/badge/node-%3E=18.0.0-brightgreen)
 ![Vite](https://img.shields.io/badge/vite-5.x-blue)
 ![React](https://img.shields.io/badge/react-18.x-blue)
 
 # Frontend
 
-Ceci est le frontend de la plateforme, développé avec **React**, **TypeScript**, **Vite** et **Tailwind CSS**. Il consomme l’API backend pour la gestion des membres, dépôts, déploiements et intégrations ClickUp.
+This is the frontend for the platform, built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**. It consumes the backend API for managing members, repositories, deployments, and ClickUp integrations.
 
 ---
 
@@ -12,7 +13,30 @@ Ceci est le frontend de la plateforme, développé avec **React**, **TypeScript*
 
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
+- [API Documentation](#api-documentation)
+   - [Authentication with Cookies](#authentication-with-cookies)
 - [API Client & Auth](#api-client--auth)
+---
+
+## 📄 API Documentation
+
+The frontend consumes the backend REST API documented at:
+
+- Swagger UI: `http://localhost:8000/docs`
+- Redoc: `http://localhost:8000/redoc`
+
+---
+
+## 🍪 Authentication with Cookies
+
+Since 2026, authentication uses **HttpOnly/Secure/SameSite cookies** for the JWT access token:
+
+- On login (`/auth/login`), the backend sets the access token in a secure cookie (HttpOnly, Secure, SameSite=Lax).
+- The frontend cannot access this cookie via JavaScript; it is sent automatically by the browser with each API request.
+- The refresh token is managed client-side (cookie or localStorage).
+- Protected endpoints check the access token in the cookie **or** in the `Authorization` header.
+
+> **Note:** To test protected endpoints with curl or Postman, you can use either the `Authorization: Bearer <access_token>` header or send the `access_token` cookie.
 - [Main Features](#main-features)
 - [Environment Variables](#environment-variables)
 - [Running Tests](#running-tests)
@@ -24,27 +48,28 @@ Ceci est le frontend de la plateforme, développé avec **React**, **TypeScript*
 
 ## 🚀 Quick Start
 
-1. **Cloner le dépôt et aller dans le dossier frontend :**
+1. **Clone the repository and go to the frontend folder:**
    ```bash
    git clone <repo-url>
    cd frontend
    ```
 
-2. **Installer les dépendances :**
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Configurer les variables d’environnement :**
-   - Copier `openapitools.json` et `.env.example` si besoin.
-   - Adapter les variables dans `.env` (voir section dédiée).
+3. **Configure environment variables:**
+   - Copy `.env.example` in `.env`.
+   - Edit variables in `.env` (see dedicated section).
+   - Copy `openapitools.json` **only if you need to regenerate the API client** (see below).
 
-4. **Générer le client API (si modif backend) :**
+4. **Generate the API client (if backend changed):**
    ```bash
    npm run generate:api
    ```
 
-5. **Lancer l’application en développement :**
+5. **Start the development server:**
    ```bash
    npm run dev
    ```
@@ -56,62 +81,54 @@ Ceci est le frontend de la plateforme, développé avec **React**, **TypeScript*
 ```
 frontend/
   src/
-    api/           # Client API généré (OpenAPI)
-    components/    # Composants React (UI, tables, modals...)
+    api/           # Generated API client (OpenAPI)
+    components/    # React components (UI, tables, modals...)
     hooks/         # Custom React hooks
-    lib/           # Fonctions utilitaires
-    pages/         # Pages principales (Home, NotFound...)
-    services/      # Services métiers (auth, membres, dépôts...)
+    lib/           # Utility functions
+    pages/         # Main pages (Home, NotFound...)
+    services/      # Business logic services (auth, members, repos...)
     assets/        # Images, logos, etc.
-    App.tsx        # Point d’entrée principal
-    main.tsx       # Bootstrap React
-  public/          # Fichiers statiques
-  index.html       # HTML principal
-  package.json     # Dépendances et scripts
-  vite.config.ts   # Config Vite
-  tailwind.config.js # Config Tailwind
+    App.tsx        # Main entry point
+    main.tsx       # React bootstrap
+  public/          # Static files
+  index.html       # Main HTML
+  package.json     # Dependencies and scripts
+  vite.config.ts   # Vite config
+  tailwind.config.js # Tailwind config
 ```
 
 ---
 
 ## 🔐 API Client & Auth
 
-- **Client API** généré automatiquement depuis le backend (OpenAPI) : voir `src/api/` et `src/apiClient.ts`.
-- **Authentification** :
-  - Utilise JWT en cookie HttpOnly/Secure/SameSite pour le token d’accès (géré automatiquement par le navigateur).
-  - Le token de rafraîchissement est stocké côté client (cookie ou localStorage).
-  - Intercepteur Axios pour rafraîchir automatiquement le token d’accès en cas de 401.
-  - Les routes frontend sont protégées selon l’état d’authentification.
+- **API client** is auto-generated from the backend (OpenAPI): see `src/api/` and `src/apiClient.ts`.
+- **Authentication**:
+  - Uses JWT in HttpOnly/Secure/SameSite cookie for the access token (handled automatically by the browser).
+  - The refresh token is stored client-side (cookie or localStorage).
+  - Axios interceptor automatically refreshes the access token on 401 errors.
+  - Frontend routes are protected based on authentication state.
 
 ---
 
 ## ✨ Main Features
 
-- Gestion des membres (inscription, connexion, édition)
-- Gestion des dépôts GitHub
-- Suivi des déploiements
-- Intégration ClickUp (espaces, associations)
-- UI moderne et responsive (Tailwind CSS)
-- Notifications d’erreur et succès globales
+- Member management (login, edit)
+   - ⚠️ New members must be created via the Members page after logging in with an existing admin account.
+- GitHub repository management
+- Deployment tracking
+- ClickUp integration (spaces, associations)
+- Modern, responsive UI (Tailwind CSS)
+- Global error and success notifications
 
 ---
 
 ## ⚙️ Environment Variables
 
-Créer un fichier `.env` à la racine du frontend si besoin. Principales variables :
+Create a `.env` file at the root of the frontend if needed. Main variables:
 
-| Variable           | Description                        | Exemple                |
+| Variable           | Description                        | Example                |
 |--------------------|------------------------------------|------------------------|
-| VITE_API_BASE_URL  | URL de l’API backend               | http://localhost:8000  |
-
----
-
-## 🧪 Running Tests
-
-Lancer les tests unitaires (si présents) :
-```bash
-npm run test
-```
+| VITE_API_BASE_URL  | Backend API URL                    | http://localhost:8000  |
 
 ---
 
@@ -126,18 +143,17 @@ npm run test
 - @tanstack/react-query
 - openapi-typescript-codegen
 
-Voir `package.json` pour la liste complète.
+See `package.json` for the full list.
 
 ---
 
 ## 📚 Additional Notes
 
-- Le code est typé TypeScript et suit les bonnes pratiques React modernes.
-- Le client API doit être régénéré (`npm run generate:api`) après toute modification du backend.
-- Pour toute question ou bug, ouvrir une issue ou contacter le mainteneur.
+- The code is fully typed with TypeScript and follows modern React best practices.
+- The API client must be regenerated (`npm run generate:api`) after any backend change.
 
 ---
 
 ## 📞 Contact
 
-Pour toute question ou support, contacter : amaidi.shaima@gmail.com
+For any questions or support, contact: amaidi.shaima@gmail.com
