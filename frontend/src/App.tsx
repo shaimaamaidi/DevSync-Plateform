@@ -4,7 +4,6 @@ import { RequireAuth } from './components/RequireAuth';
 import HomePage from './pages/Home';
 import NotFoundPage from './pages/NotFound';
 import LoginPage from './pages/Login';
-import SignupPage from './pages/Signup';
 import { GlobalApiAlert } from './components/global-api-alert';
 import { GlobalSuccessToaster } from './components/global-success-toaster';
 import SettingsPage from './pages/Settings';
@@ -22,7 +21,6 @@ export default function App() {
           <Route path="/members" element={<RequireAuth><HomePage activeTab="members" /></RequireAuth>} />
           <Route path="/spaces" element={<RequireAuth><HomePage activeTab="spaces" /></RequireAuth>} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
           <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

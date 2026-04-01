@@ -62,12 +62,6 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
-        <div className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Button variant="link" type="button" onClick={() => navigate('/signup')}>
-            Sign up
-          </Button>
-        </div>
       </Card>
     </div>
   );

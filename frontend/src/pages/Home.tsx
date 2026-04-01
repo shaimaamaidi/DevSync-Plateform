@@ -47,10 +47,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     } else if ((pathname === '/spaces' || pathname === '/clickup-spaces') && activeTab !== 'spaces') {
       setActiveTab('spaces');
     }
-    // eslint-disable-next-line
   }, [pathname]);
 
-  // Navigue lors du changement d'onglet
   const handleTabChange = (tab: HomeTab) => {
     setActiveTab(tab);
     if (tab === 'repos') {
@@ -65,7 +63,6 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
   };
 
 
-  // Fonction centralisée pour refresh toutes les données
   const refreshAllData = useCallback(async () => {
     const [reposData, spacesData, membersData] = await Promise.all([
       repoService.getAllReposWithDetails(),
