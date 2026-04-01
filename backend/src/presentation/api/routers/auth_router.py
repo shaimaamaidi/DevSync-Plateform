@@ -11,7 +11,7 @@ Routes:
 
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO
 from backend.src.infrastructure.di.container import Container
@@ -25,7 +25,7 @@ router = APIRouter()
 
 
 @router.post("/login", response_model=MemberTokensDTO)
-def login(credentials: MemberAuthDTO, container: Container = Depends(get_container)) -> MemberTokensDTO:
+def login(credentials: MemberAuthDTO, response: Response, container: Container = Depends(get_container)) -> MemberTokensDTO:
     """
     Authenticate a member and return tokens.
 
@@ -40,13 +40,22 @@ def login(credentials: MemberAuthDTO, container: Container = Depends(get_contain
 
     result = container.auth_service.login(credentials)
 
+    response.set_cookie(
+        key="access_token",
+        value=result.access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=30*60  # 30 minutes
+    )
+
     logger.info("Member logged in successfully: mail=%s.", credentials.mail)
 
     return result
 
 
 @router.post("/refresh", response_model=MemberTokensDTO)
-def refresh(refresh_token: str, container: Container = Depends(get_container)) -> MemberTokensDTO:
+def refresh(refresh_token: str, response: Response, container: Container = Depends(get_container)) -> MemberTokensDTO:
     """
     Issue new tokens from a valid refresh token.
 
@@ -60,6 +69,15 @@ def refresh(refresh_token: str, container: Container = Depends(get_container)) -
     logger.info("Refresh token attempt.")
 
     result = container.auth_service.refresh(refresh_token)
+
+    response.set_cookie(
+        key="access_token",
+        value=result.access_token,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=30*60  # 30 minutes
+    )
 
     logger.info("Tokens refreshed successfully.")
 
