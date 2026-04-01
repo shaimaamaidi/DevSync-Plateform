@@ -95,7 +95,7 @@ class Container:
                 refresh_token_repository=self.refresh_token_repo,
             )
 
-            self.deployment_service = DeploymentService(self.github_service)
+            self.deployment_service = DeploymentService(self.repo_repo, self.github_service)
 
             logger.info("Application container initialized successfully.")
 

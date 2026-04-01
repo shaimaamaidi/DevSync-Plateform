@@ -5,6 +5,7 @@ Shared pytest fixtures for backend tests.
 from __future__ import annotations
 
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Generator
 from unittest.mock import MagicMock
@@ -151,7 +152,7 @@ def deployment_dto() -> DeploymentDTO:
         ref="main",
         sha="abc1234",
         creator="octo",
-        created_at="2024-01-01 00:00 UTC",
+        created_at=datetime(2024, 1, 1),
         description="release",
         state="success",
         log_url="https://example.com/log",

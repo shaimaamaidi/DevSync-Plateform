@@ -1,34 +1,46 @@
 """
 Unit tests for DeploymentService.
 """
+from datetime import datetime
 
-from unittest.mock import MagicMock
+import pytest
+from unittest.mock import MagicMock, AsyncMock
 
 from backend.src.application.services.deployment_service import DeploymentService
 from backend.src.domain.entities.deployment import DeploymentDTO
 
 
-def test_list_deployments_delegates_to_github_service() -> None:
+@pytest.mark.asyncio
+async def test_list_deployments_delegates_to_github_service():
     """
     Test that listing deployments delegates to the GitHub service and returns the correct DTOs.
     """
-    github_service = MagicMock()
-    github_service.get_deployments.return_value = [
+    repo_url = "https://github.com/org/repo"
+    repo_repo = MagicMock()
+    repo_repo.find_by_url.return_value = MagicMock(url=repo_url)
+
+    expected_deployments = [
         DeploymentDTO(
             dep_id=1,
             environment="prod",
             ref="main",
             sha="abc123",
             creator="octo",
-            created_at="2024-01-01",
+            created_at=datetime(2024, 1, 1),
             description="release",
             state="success",
             log_url="https://example.com/log",
         )
     ]
-    service = DeploymentService(github_service)
 
-    result = service.list_deployments("https://github.com/org/repo")
+    github_service = MagicMock()
+    github_service.get_deployments = AsyncMock(return_value=expected_deployments)
 
-    github_service.get_deployments.assert_called_once_with("https://github.com/org/repo")
-    assert result[0].dep_id == 1
+    service = DeploymentService(repo_repo, github_service)
+
+    result = await service.list_deployments(repo_url)
+
+    repo_repo.find_by_url.assert_called_once_with(repo_url)
+    github_service.get_deployments.assert_awaited_once_with(repo_url)
+
+    assert result == expected_deployments

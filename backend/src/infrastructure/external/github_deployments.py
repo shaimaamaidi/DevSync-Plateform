@@ -85,7 +85,7 @@ class GitHubDeploymentAdapter(IGitHubService):
             raise MissingEnvVariableException(
                 "TOKEN_CLEANUP_INTERVAL_HOURS must be integers.") from e
 
-        self.GITHUB_TIMEOUT = httpx.Timeout(connect=CONNECT_TIMEOUT, read=READ_TIMEOUT)
+        self.GITHUB_TIMEOUT = httpx.Timeout(connect=CONNECT_TIMEOUT, read=READ_TIMEOUT, write=READ_TIMEOUT, pool=CONNECT_TIMEOUT)
 
         self.GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 

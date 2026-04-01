@@ -7,7 +7,6 @@ It coordinates with the GitHub service port to fetch deployment data.
 Classes:
     DeploymentService: Main service for deployment read operations.
 """
-import asyncio
 import logging
 from typing import List
 
@@ -58,7 +57,7 @@ class DeploymentService:
 
         result = self._repo.find_by_url(repo_url)
 
-        results = asyncio.run(self._github.get_deployments(result.url))
+        results = await self._github.get_deployments(result.url)
 
         logger.info(
             "Fetched %s deployments for repository successfully: repo_url=%s.",
