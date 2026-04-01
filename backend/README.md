@@ -1,6 +1,5 @@
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.95.0-green)
-![Build Status](https://img.shields.io/github/actions/workflow/status/<user>/<repo>/pytest.yml)
 ![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
 
 # Backend
@@ -16,6 +15,7 @@ This is the backend service for the project, built with **FastAPI**, **SQLAlchem
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
+  - [Authentification par Cookies](#authentification-par-cookies)
 - [API Endpoints Overview](#api-endpoints-overview)
 - [Error Handling / Response Codes](#error-handling--response-codes)
 - [Main Dependencies](#main-dependencies)
@@ -83,8 +83,22 @@ backend/
 
 ## 📄 API Documentation
 
+
 Swagger UI: `http://localhost:8000/docs`  
 Redoc: `http://localhost:8000/redoc`
+
+---
+
+## 🍪 Authentification par Cookies
+
+Depuis 2026, l'authentification utilise **aussi des cookies HttpOnly/Secure/SameSite** pour le token d'accès JWT :
+
+- Lors de la connexion (`/auth/login`), le backend place le token d'accès dans un cookie sécurisé (HttpOnly, Secure, SameSite=Lax).
+- Le frontend n'a pas accès à ce cookie via JavaScript : il est envoyé automatiquement par le navigateur à chaque requête API.
+- Le token de rafraîchissement reste géré côté client (stocké en cookie ou localStorage selon l'implémentation frontend).
+- Les endpoints protégés vérifient le token d'accès dans le cookie **ou** dans le header `Authorization`.
+
+> **Remarque** : Pour tester les endpoints protégés avec curl ou Postman, il est possible d'utiliser soit le header `Authorization: Bearer <access_token>`, soit d'envoyer le cookie `access_token`.
 
 ---
 
