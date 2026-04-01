@@ -211,6 +211,7 @@ export interface MemberTokensDTO {
 export interface MemberUpdateDTO {
     'id'?: number | null;
     'username'?: string | null;
+    'password'?: string | null;
     'mail'?: string | null;
     'repos'?: Array<RepoRefDTO> | null;
 }

@@ -188,10 +188,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.warning("Update failed: missing member ID.")
             raise InvalidInputException("Member must have a valid database ID for update.")
 
-        if not any([member.username, member.mail, member.repos]):
+        if not any([member.username, member.mail, member.password, member.repos]):
             logger.warning("Update failed: no fields provided (id=%s).", member.id)
             raise InvalidInputException(
-                "Member must have a valid 'username' or 'mail' or repo's list for update."
+                "Member must have a valid 'username' or 'mail' or 'password' or repo's list for update."
             )
 
         try:
@@ -214,6 +214,9 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         if member.mail:
             m.mail = member.mail
 
+        if member.password:
+            hashed_password = self.pwd_context.hash(member.password)
+            m.password = hashed_password
         if member.repos is not None:
             if not member.repos:
                 logger.info(

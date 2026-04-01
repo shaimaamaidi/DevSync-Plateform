@@ -111,6 +111,7 @@ class MemberUpdateDTO(BaseModel):
     """
     id: Optional[int] = None
     username: Optional[str] = None
+    password: Optional[str] = None
     mail: Optional[str] = None
     repos: Optional[List[RepoRefDTO]] = None
 

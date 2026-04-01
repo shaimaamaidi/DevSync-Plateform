@@ -50,10 +50,10 @@ export class RequiredError extends Error {
 
     constructor(field: string, msg?: string) {
         super(msg);
-    this.field = field;
-        this.name = "RequiredError"
+        this.field = field;
+        this.name = "RequiredError";
     }
-}
+};
 
 interface ServerMap {
     [key: string]: {
