@@ -7,11 +7,13 @@ an admin user if it does not already exist.
 
 import logging
 
+from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.di.container import Container
 from backend.src.domain.entities.member import MemberCreateDTO
 
 
+setup_logger()
 logger = logging.getLogger(__name__)
 
 
@@ -29,14 +31,6 @@ def create_admin():
         container = Container(session)
         member_service = container.member_service
 
-        logger.info("Checking if admin member already exists (mail=admin@gmail.com).")
-
-        existing = member_service.get_member_by_mail("admin@gmail.com")
-
-        if existing:
-            logger.info("Admin member already exists (id=%s).", existing.id)
-            return
-
         logger.info("Creating admin member.")
 
         member = MemberCreateDTO(
@@ -45,7 +39,7 @@ def create_admin():
             password="admin",
         )
 
-        created = member_service.create_member(member)
+        created = member_service.add_member(member)
 
         logger.info("Admin member created successfully (id=%s).", created.id)
 

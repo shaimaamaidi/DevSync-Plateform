@@ -9,6 +9,7 @@ Functions:
 
 import logging
 
+from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.base import Base
 
@@ -22,6 +23,7 @@ from backend.src.infrastructure.persistence.models.refresh_token_model import Re
 from backend.src.domain.exceptions.app_exception import AppException
 
 
+setup_logger()
 logger = logging.getLogger(__name__)
 
 

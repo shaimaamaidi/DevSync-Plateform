@@ -7,8 +7,6 @@ This module provides a repository implementation for member persistence using SQ
 import logging
 from typing import List
 
-from passlib.context import CryptContext
-
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from backend.src.domain.entities.member import (
@@ -25,7 +23,7 @@ from backend.src.domain.exceptions.member_persistence_exception import MemberPer
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
 from backend.src.infrastructure.persistence.models.member_model import MemberModel
-
+from backend.src.shared.helpers.password_helper import hash_password
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +62,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
     Attributes:
         _session (Session): SQLAlchemy session for database operations.
-        pwd_context (CryptContext): Password hashing context using bcrypt.
     """
     def __init__(self, session):
         """Initialize the repository with a session.
@@ -73,7 +70,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             session (Session): SQLAlchemy session.
         """
         self._session = session
-        self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def find_credentials_by_mail(self, mail: str) -> MemberCredentialsDTO:
         """
@@ -142,7 +138,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             )
 
         try:
-            hashed_password = self.pwd_context.hash(member.password)
+            hashed_password = hash_password(member.password)
 
             m = MemberModel(username=member.username, mail=member.mail, password=hashed_password)
             self._session.add(m)
@@ -214,7 +210,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             m.mail = member.mail
 
         if member.password:
-            hashed_password = self.pwd_context.hash(member.password)
+            hashed_password = hash_password(member.password)
             m.password = hashed_password
         if member.repos is not None:
             if not member.repos:

@@ -221,7 +221,7 @@ Key libraries used in this backend:
 - pydantic
 - uvicorn
 - python-dotenv
-- passlib
+- bcrypt
 - apscheduler
 - python-jose
 - starlette
@@ -245,7 +245,7 @@ All required environment variables are documented in `.env.exemple`. Here are th
 | MYSQL_HOST                    | MySQL host address                               | localhost                            |
 | MYSQL_PORT                    | MySQL port                                       | 3306                                 |
 | MYSQL_DB                      | MySQL database name                              | mydb                                 |
-| SECRET_KEY                    | Secret key for JWT signing                       | <random string>                      |
+| JWT_SECRET_KEY                | Secret key for JWT signing                       | <random string>                      |
 | ALGORITHM                     | JWT algorithm (e.g., HS256)                      | HS256                                |
 | ACCESS_TOKEN_EXPIRE_MINUTES   | JWT access token expiration (minutes)            | 30                                   |
 | REFRESH_TOKEN_EXPIRE_DAYS     | JWT refresh token expiration (days)              | 7                                    |

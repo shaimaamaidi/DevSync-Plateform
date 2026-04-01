@@ -11,15 +11,13 @@ Classes:
 import logging
 from datetime import datetime, timezone
 
-from passlib.context import CryptContext
-
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.repositories.i_refresh_token_repository import IRefreshTokenRepository
 from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
 from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO
 from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
-
+from backend.src.shared.helpers.password_helper import verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +32,6 @@ class AuthService:
         _repo (IMemberRepository): Persistence port for member credentials.
         _jwt_handler (IJWTHandler): JWT handler service port.
         _refresh_token_repo (IRefreshTokenRepository): Persistence port for refresh tokens.
-        _pwd_context (CryptContext): Password hashing context.
     """
     def __init__(
         self,
@@ -53,7 +50,6 @@ class AuthService:
         self._repo = member_repository
         self._jwt_handler = jwt_handler
         self._refresh_token_repo = refresh_token_repository
-        self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     def login(self, member: MemberAuthDTO) -> MemberTokensDTO:
         """
@@ -79,7 +75,7 @@ class AuthService:
 
         credentials = self._repo.find_credentials_by_mail(member.mail)
 
-        if not self._pwd_context.verify(member.password, credentials.hashed_password):
+        if not verify_password(member.password, credentials.hashed_password):
             logger.warning("Invalid password attempt (mail=%s).", member.mail)
             raise InvalidInputException("Invalid mail or password.")
 
