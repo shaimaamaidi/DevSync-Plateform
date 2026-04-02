@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { GitBranch, Zap, Users, Boxes, LogOut, Settings } from 'lucide-react';
+import { authService } from '@/services/auth-service';
 
 
 
@@ -23,22 +24,25 @@ export function Navigation({ onTabChange }: NavigationProps) {
     <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Title */}
           <button
             onClick={() => navigate('/')}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 border border-primary/30">
-              <GitBranch className="w-6 h-6 text-primary" />
+            <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
+              <div className="grid grid-cols-2 gap-[3px] w-[18px]">
+                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-90" />
+                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
+                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
+                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-30" />
+              </div>
             </div>
             <div className="text-left">
               <h1 className="text-lg font-bold text-foreground tracking-tight">GitHub & Deployments</h1>
             </div>
           </button>
 
-          {/* Navigation Tabs + Config + Logout */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+          <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-1 p-1 bg-muted rounded-lg ml-10">
               <Button
                 variant={isRepositoriesPage ? 'default' : 'ghost'}
                 onClick={() => {
@@ -78,28 +82,24 @@ export function Navigation({ onTabChange }: NavigationProps) {
                 <span className="hidden sm:inline">Spaces</span>
               </Button>
             </div>
-            {/* Config button */}
             <Button
               variant="ghost"
               className="gap-2 ml-2"
-              onClick={() => navigate('/settings')}
-              title="Update password"
+              onClick={() => navigate('/profile')}
+              title="Profile"
             >
               <Settings className="w-5 h-5" />
-              <span className="hidden sm:inline">Config</span>
             </Button>
-            {/* Logout button */}
             <Button
               variant="ghost"
               className="gap-2 ml-2"
               onClick={() => {
-                // TODO: call logout logic
+                authService.logout();
                 navigate('/login');
               }}
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
-              <span className="hidden sm:inline">Logout</span>
             </Button>
           </div>
         </div>

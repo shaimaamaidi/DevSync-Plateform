@@ -45,7 +45,7 @@ def login(credentials: MemberAuthDTO, response: Response, container: Container =
         key="access_token",
         value=result.access_token,
         httponly=True,
-        secure=True,
+        secure=False,  # False en local, à remettre à True en prod
         samesite="lax",
         max_age=30*60  # 30 minutes
     )
@@ -76,7 +76,7 @@ def refresh(refresh_token: str, response: Response, container: Container = Depen
         key="access_token",
         value=result.access_token,
         httponly=True,
-        secure=True,
+        secure=False,  # False en local, à remettre à True en prod
         samesite="lax",
         max_age=30*60  # 30 minutes
     )

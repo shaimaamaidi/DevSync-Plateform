@@ -15,7 +15,6 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      // Place at top right, compact width, margin from top and right
       'fixed right-6 z-[100] flex max-h-screen w-full max-w-[360px] flex-col p-2',
       className,
     )}
@@ -30,8 +29,8 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: 'border bg-background text-foreground',
-        destructive:
-          'destructive group border-destructive bg-destructive text-destructive-foreground',
+        destructive: 'destructive group border-destructive bg-destructive',
+        success: 'border bg-background text-green-700',
       },
     },
     defaultVariants: {
@@ -91,15 +90,21 @@ ToastClose.displayName = ToastPrimitives.Close.displayName
 
 const ToastTitle = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Title>,
-  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title>
->(({ className, ...props }, ref) => (
-  <ToastPrimitives.Title
-    ref={ref}
-    className={cn('text-base font-semibold', className)}
-    {...props}
-  />
-))
-ToastTitle.displayName = ToastPrimitives.Title.displayName
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Title> & { variant?: 'default' | 'destructive' | 'success' }
+>(({ className, variant, ...props }, ref) => {
+  let colorClass = '';
+  if (variant === 'destructive') colorClass = 'text-red-600';
+  else if (variant === 'success') colorClass = 'text-green-700';
+  else colorClass = 'text-foreground';
+  return (
+    <ToastPrimitives.Title
+      ref={ref}
+      className={cn('text-base font-semibold', colorClass, className)}
+      {...props}
+    />
+  );
+});
+ToastTitle.displayName = ToastPrimitives.Title.displayName;
 
 const ToastDescription = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Description>,

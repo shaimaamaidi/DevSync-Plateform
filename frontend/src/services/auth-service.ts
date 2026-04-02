@@ -28,9 +28,15 @@ class AuthService {
     this.scheduleRefresh();
   }
 
-  logout(): void {
+  async logout(): Promise<void> {
     const refreshToken = getRefreshTokenCookie();
     if (refreshToken) {
+      try {
+        const api = new AuthApi();
+        await api.logoutAuthLogoutPost(refreshToken);
+      } catch (e) {
+        // Optionally log or handle error
+      }
       deleteRefreshTokenCookie();
     }
     if (this.refreshTimeout) 

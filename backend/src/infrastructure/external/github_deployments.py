@@ -527,5 +527,5 @@ class GitHubDeploymentAdapter(IGitHubService):
         return {
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
-            "Authorization": f"Bearer {self.GITHUB_TOKEN}",
+            "Authorization": f"token {self.GITHUB_TOKEN}",
         }

@@ -1,4 +1,7 @@
 import axios from 'axios';
+
+// Toujours envoyer les cookies (access_token) avec chaque requête API
+axios.defaults.withCredentials = true;
 import { authService } from '@/services/auth-service';
 
 function redirectToLogin() {

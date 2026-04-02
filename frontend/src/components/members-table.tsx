@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import type { MemberDTO } from '@/api/api';
+import type { MemberDTO, MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 
 export interface MembersTableProps {
   members: MemberDTO[];
-  onUpdate: (member: MemberDTO) => void;
+  onUpdate: (member: MemberUpdateDTO) => void;
   onDelete: (id: number) => void;
   onAdd: (member: MemberDTO) => void;
 }
@@ -25,11 +25,10 @@ export interface MembersTableProps {
 export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTableProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
-  const [formData, setFormData] = useState<Partial<MemberDTO & { password?: string }>>({});
+  const [formData, setFormData] = useState<Partial<MemberUpdateDTO & { password?: string }>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteConfirmMemberId, setDeleteConfirmMemberId] = useState<number | null>(null);
 
-  // Reset errors when modal is opened or closed
   useEffect(() => {
     if (!isAddModalOpen) {
       setErrors({});
@@ -41,7 +40,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
     setIsAddModalOpen(true);
   };
 
-  // Reset formData when opening add modal
   useEffect(() => {
     if (isAddModalOpen && editingMember === null) {
       setFormData({ username: '', mail: '', password: '' });
@@ -50,7 +48,12 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
 
   const handleEditClick = (member: MemberDTO) => {
     setEditingMember(member);
-    setFormData(member);
+    setFormData({
+      id: member.id,
+      username: member.username,
+      mail: member.mail,
+      password: '',
+    });
     setIsAddModalOpen(true);
   };
 
@@ -76,7 +79,12 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
     }
 
     if (editingMember) {
-      onUpdate({ ...editingMember, ...formData } as MemberDTO);
+      onUpdate({
+        id: editingMember.id,
+        username: formData.username,
+        mail: formData.mail,
+        password: formData.password,
+      } as MemberUpdateDTO);
     } else {
       onAdd({
         username: formData.username,
@@ -211,21 +219,22 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                     <div className="text-red-500 text-xs mt-1">{errors.mail}</div>
                   )}
                 </div>
-                {!editingMember && (
-                  <div>
-                    <Label className="text-foreground font-medium">Password</Label>
-                    <Input
-                      type="password"
-                      placeholder="Mot de passe"
-                      value={formData.password || ''}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="mt-2 bg-input border-border text-foreground"
-                    />
-                    {errors.password && (
-                      <div className="text-red-500 text-xs mt-1">{errors.password}</div>
-                    )}
-                  </div>
-                )}
+                <div>
+                  <Label className="text-foreground font-medium">Password</Label>
+                  <Input
+                    type="password"
+                    placeholder="Mot de passe (laisser vide pour ne pas changer)"
+                    value={formData.password || ''}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="mt-2 bg-input border-border text-foreground"
+                  />
+                  {editingMember && (
+                    <div className="text-muted-foreground text-xs mt-1">Laisser vide pour ne pas changer le mot de passe</div>
+                  )}
+                  {errors.password && (
+                    <div className="text-red-500 text-xs mt-1">{errors.password}</div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-2 pt-4 border-t border-border">
@@ -244,7 +253,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
           </Card>
         </div>
       )}
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmMemberId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmMemberId(null); }}>
         <DialogContent>
           <DialogHeader>

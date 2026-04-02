@@ -23,6 +23,7 @@ export const memberService = {
     const payload: MemberCreateDTO = {
       username: member.username ?? null,
       mail: member.mail ?? null,
+      password: member.password ?? null,
     };
 
     try {
@@ -33,7 +34,7 @@ export const memberService = {
       return null;
     }
   },
-  async updateMember(member: MemberDTO): Promise<MemberDTO | null> {
+  async updateMember(member: MemberUpdateDTO): Promise<MemberDTO | null> {
     if (typeof member.id !== 'number') {
       handleApiError(new Error('Missing member id'), 'Unable to update member');
       return null;
@@ -43,6 +44,7 @@ export const memberService = {
       id: member.id,
       username: member.username ?? null,
       mail: member.mail ?? null,
+      password: member.password ?? undefined, 
     };
 
     try {

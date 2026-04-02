@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
 import HomePage from './pages/Home';
@@ -7,6 +6,7 @@ import LoginPage from './pages/Login';
 import { GlobalApiAlert } from './components/global-api-alert';
 import { GlobalSuccessToaster } from './components/global-success-toaster';
 import SettingsPage from './pages/Settings';
+import ProfilePage from './pages/Profile';
 
 export default function App() {
   return (
@@ -22,6 +22,7 @@ export default function App() {
           <Route path="/spaces" element={<RequireAuth><HomePage activeTab="spaces" /></RequireAuth>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+          <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
