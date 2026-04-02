@@ -25,8 +25,19 @@ export default function LoginPage() {
       toast({ title: 'Login', description: 'You are now logged in.', variant: 'success' });
       navigate('/repositories');
     } catch (err: any) {
-      setInvalidCredentials(true);
-      toast({ title: 'Login failed', description: 'Invalid credentials', variant: 'destructive' });
+      const isNetworkError = err?.code === 'ERR_NETWORK' || !err?.response;
+      if (isNetworkError) {
+        setError(null); 
+        setInvalidCredentials(false);
+        toast({
+          title: 'Connection problem',
+          description: 'Unable to connect to the server. Please try again in a few minutes.',
+          variant: 'destructive',
+        });
+      } else {
+        setInvalidCredentials(true);
+        toast({ title: 'Login failed', description: 'Invalid credentials', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
