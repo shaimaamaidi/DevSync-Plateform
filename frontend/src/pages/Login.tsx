@@ -25,19 +25,8 @@ export default function LoginPage() {
       toast({ title: 'Login', description: 'You are now logged in.', variant: 'success' });
       navigate('/repositories');
     } catch (err: any) {
-      const isNetworkError = err?.code === 'ERR_NETWORK' || !err?.response;
-      if (isNetworkError) {
-        setError(null); 
-        setInvalidCredentials(false);
-        toast({
-          title: 'Connection problem',
-          description: 'Unable to connect to the server. Please try again in a few minutes.',
-          variant: 'destructive',
-        });
-      } else {
-        setInvalidCredentials(true);
-        toast({ title: 'Login failed', description: 'Invalid credentials', variant: 'destructive' });
-      }
+      setInvalidCredentials(true);
+      toast({ title: 'Login failed', description: 'Invalid credentials', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -81,6 +70,7 @@ export default function LoginPage() {
           </div>
         )}
 
+        
         {error && (
           <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/30 text-destructive text-[13px] rounded-lg px-3.5 py-2.5 mb-5">
             <svg className="w-3.5 h-3.5 flex-shrink-0 fill-current" viewBox="0 0 16 16">
@@ -89,6 +79,7 @@ export default function LoginPage() {
             {error}
           </div>
         )}
+        
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div className="space-y-1.5">

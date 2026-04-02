@@ -60,8 +60,6 @@ class Container:
         self.session = session
 
         try:
-            # Technical Service
-            self.jwt_handler = JWTHandler()
 
             # Repositories
             logger.info("Initializing repositories.")
@@ -70,6 +68,9 @@ class Container:
             self.repo_repo = SqlAlchemyRepoRepository(self.session)
             self.member_repo = SqlAlchemyMemberRepository(self.session)
             self.clickup_repo = SqlAlchemyClickUpRepository(self.session)
+
+            # Technical Service
+            self.jwt_handler = JWTHandler(self.member_repo)
 
             # External services
             logger.info("Initializing external services.")
