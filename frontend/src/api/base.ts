@@ -20,7 +20,8 @@ import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
 
 import axios from 'axios';
 
-const globalAxios = axios.create({ withCredentials: true });
+axios.defaults.withCredentials = true;
+export const globalAxios = axios;
 
 // Utilise la variable d'environnement VITE_API_BASE_URL définie dans .env, fallback sur http://127.0.0.1:8000
 export const BASE_PATH = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");

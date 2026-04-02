@@ -23,6 +23,7 @@ class AuthService {
 
   async login(credentials: MemberAuthDTO): Promise<void> {
     const api = new AuthApi();
+    console.log('hi')
     const { data } = await api.loginAuthLoginPost(credentials);
     setRefreshTokenCookie(data.refresh_token);
     this.scheduleRefresh();
@@ -44,6 +45,7 @@ class AuthService {
   }
 
   async refresh(): Promise<void> {
+    console.log("refresh");
     const refreshToken = getRefreshTokenCookie();
     if (!refreshToken) 
         throw new Error('No refresh token');

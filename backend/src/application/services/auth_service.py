@@ -128,7 +128,7 @@ class AuthService:
             logger.warning("Refresh token not found or already revoked.")
             raise InvalidTokenException("Refresh token not found or already revoked.")
 
-        if record.expires_at < datetime.now(timezone.utc):
+        if record.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
             logger.warning("Refresh token expired (member_id=%s).", record.member_id)
             self._refresh_token_repo.revoke_refresh_token(refresh_token)
             raise InvalidTokenException("Refresh token has expired.")

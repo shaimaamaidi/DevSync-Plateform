@@ -47,7 +47,8 @@ def login(credentials: MemberAuthDTO, response: Response, container: Container =
         httponly=True,
         secure=False,  # False en local, à remettre à True en prod
         samesite="lax",
-        max_age=30*60  # 30 minutes
+        max_age=30*60,  # 30 minutes
+        domain = "localhost",
     )
 
     logger.info("Member logged in successfully: mail=%s.", credentials.mail)
@@ -78,7 +79,8 @@ def refresh(refresh_token: str, response: Response, container: Container = Depen
         httponly=True,
         secure=False,  # False en local, à remettre à True en prod
         samesite="lax",
-        max_age=30*60  # 30 minutes
+        max_age=30*60,  # 30 minutes
+        domain="localhost",
     )
 
     logger.info("Tokens refreshed successfully.")

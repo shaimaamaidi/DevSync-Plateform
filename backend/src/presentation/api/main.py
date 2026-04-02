@@ -61,8 +61,8 @@ def create_app() -> FastAPI:
     Returns:
         FastAPI: Configured FastAPI instance.
     """
-    
-    setup_logger() 
+
+    setup_logger()
 
     app = FastAPI(
         title="ClickUp Integration API",
@@ -70,6 +70,9 @@ def create_app() -> FastAPI:
         version="1.0.0",
         lifespan=lifespan,
     )
+
+    # Auth Middleware
+    app.add_middleware(JWTAuthMiddleware)
 
     app.add_middleware(
         CORSMiddleware,
@@ -84,9 +87,6 @@ def create_app() -> FastAPI:
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
     app.add_exception_handler(Exception, FastAPIExceptionHandler.handle_generic_exception)
-
-    # Auth Middleware
-    app.add_middleware(JWTAuthMiddleware)
 
     # Routers
     app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
