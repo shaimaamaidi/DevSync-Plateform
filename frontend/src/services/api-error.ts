@@ -49,9 +49,12 @@ const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
 
 const isAuthError = (error: ErrorLike | unknown, includeValidation = false): boolean => {
   const status = (error as ErrorLike)?.response?.status;
-  if (includeValidation) 
-    return status === 401 || status === 403 || status === 422;
-  return status === 401 || status === 403;
+  if (status === 401 || status === 403) 
+    return true;
+  
+  if (includeValidation && (status === 422 || status === 404)) 
+    return true;
+  return false;
 };
 
 const isServerError = (error: ErrorLike | unknown): boolean => {
