@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { memberService } from '@/services/member-service';
 import type { MemberWithReposDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/default-on-error';
+import { defaultOnError } from '@/lib/error-utils';
 import { useNavigate } from 'react-router-dom';
 
 export function useCurrentUser() {
