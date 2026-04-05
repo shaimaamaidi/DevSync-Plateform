@@ -30,6 +30,14 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
 
+  const hasChanges = editingSpace
+    ? (
+      formData.name !== editingSpace.name ||
+      formData.space_code !== editingSpace.space_code ||
+      (formData.repo?.id !== editingSpace.repo?.id)
+    )
+  : true;
+  
   const inputClass = (hasError: boolean) =>
     `w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 ${
       hasError
@@ -310,7 +318,11 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSave} className="flex-1 gap-2">
+                <Button
+                  onClick={handleSave}
+                  className="flex-1 gap-2"
+                  disabled={editingSpace ? !hasChanges : false}
+                >
                   <CheckCircle2 className="w-4 h-4" />
                   {editingSpace ? 'Update' : 'Create'} Space
                 </Button>

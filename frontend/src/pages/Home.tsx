@@ -8,7 +8,9 @@ import type {
   ClickUpSpaceLightDTO,
   DeploymentDTO,
   GitRepoDetailDTO,
+  MemberCreateDTO,
   MemberDTO,
+  MemberUpdateDTO,
 } from '@/api/api';
 import { clickUpService } from '@/services/clickup-service';
 import { deploymentService } from '@/services/deployment-service';
@@ -96,6 +98,33 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     return Promise.resolve(true);
   }, [refreshAllData]);
 
+  const handleUpdateMember = useCallback(async (member: MemberUpdateDTO) => {
+    const result = await withErrorHandling(
+      () => memberService.updateMember(member),
+      'Update member',
+      defaultOnError(navigate),
+  );
+  if (!result) 
+    return Promise.resolve(false);
+  await refreshAllData();
+  showSuccessToast('Member updated successfully');
+  return Promise.resolve(true);
+  }, [refreshAllData]);
+  
+  const handleUpdateClickUpSpace = useCallback(async (space: ClickUpSpaceLightDTO) => {
+    const result = await withErrorHandling(
+      () => clickUpService.updateSpace(space),
+      'Update clickup space',
+      defaultOnError(navigate),
+    );
+    if (!result) 
+      return Promise.resolve(false);
+    await refreshAllData();
+    showSuccessToast('ClickUp space updated successfully');
+    return Promise.resolve(true);
+  }, [refreshAllData]);
+
+  
   const handleDeleteRepo = useCallback(async (id: number) => {
     const result = await withErrorHandling(
       () => repoService.deleteRepo(id),
@@ -105,6 +134,30 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     if (!result) return;
     await refreshAllData();
     showSuccessToast('Repository deleted successfully');
+  }, [refreshAllData]);
+
+  const handleDeleteMember = useCallback(async (id: number) => {
+    const result = await withErrorHandling(
+      () => memberService.deleteMember(id),
+      'Delete member',
+      defaultOnError(navigate),
+    );
+    
+    if (!result)
+      return;
+    await refreshAllData();
+    showSuccessToast('Member deleted successfully');    
+  }, [refreshAllData]);
+
+  const handleDeleteClickUpSpace = useCallback(async (id: number) => {
+    const result = await withErrorHandling(
+      () => clickUpService.deleteSpace(id),
+      'Delete clickup space',
+      defaultOnError(navigate),
+    );
+    if (!result) return;
+    await refreshAllData();
+    showSuccessToast('ClickUp space deleted successfully');
   }, [refreshAllData]);
 
   const handleAddRepo = useCallback(async (newRepo: GitRepoDetailDTO) => {
@@ -117,6 +170,32 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
       return Promise.resolve(false);
     await refreshAllData();
     showSuccessToast('Repository created successfully');
+    return Promise.resolve(true);
+  }, [refreshAllData]);
+
+  const handleAddMember = useCallback(async (newMember: MemberCreateDTO) => {
+    const result = await withErrorHandling(
+      () => memberService.createMember(newMember),
+      'Create member',
+      defaultOnError(navigate),
+    );
+    if (!result)
+      return Promise.resolve(false);
+    await refreshAllData();
+    showSuccessToast('Member created successfully');
+    return Promise.resolve(true);
+  }, [refreshAllData]);
+
+  const handleAddClickUpSpace = useCallback(async (newSpace: ClickUpSpaceLightDTO) => {
+    const result = await withErrorHandling(
+      () => clickUpService.createSpace(newSpace),
+      'Create clickup space',
+      defaultOnError(navigate),
+    );
+    if (!result) 
+      return Promise.resolve(false);
+    await refreshAllData();
+    showSuccessToast('ClickUp space created successfully');
     return Promise.resolve(true);
   }, [refreshAllData]);
 
@@ -166,41 +245,9 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
           <div className="animate-in fade-in duration-300">
             <MembersTable
               members={members}
-              onUpdate={async (member) => {
-                const result = await withErrorHandling(
-                  () => memberService.updateMember(member),
-                  'Update member',
-                  defaultOnError(navigate),
-                );
-                if (!result) 
-                  return Promise.resolve(false);
-                await refreshAllData();
-                showSuccessToast('Member updated successfully');
-                return Promise.resolve(true);
-              }}
-              onDelete={async (id) => {
-                const result = await withErrorHandling(
-                  () => memberService.deleteMember(id),
-                  'Delete member',
-                  defaultOnError(navigate),
-                );
-                if (!result)
-                  return;
-                await refreshAllData();
-                showSuccessToast('Member deleted successfully');
-              }}
-              onAdd={async (newMember) => {
-                const result = await withErrorHandling(
-                  () => memberService.createMember(newMember),
-                  'Create member',
-                  defaultOnError(navigate),
-                );
-                if (!result)
-                  return Promise.resolve(false);
-                await refreshAllData();
-                showSuccessToast('Member created successfully');
-                return Promise.resolve(true);
-              }}
+              onUpdate={handleUpdateMember}
+              onDelete={handleDeleteMember}
+              onAdd={handleAddMember}
             />
           </div>
         )}
@@ -209,41 +256,9 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
           <div className="animate-in fade-in duration-300">
             <ClickUpSpacesTable
               spaces={clickUpSpaces}
-              onUpdate={async (space) => {
-                const result = await withErrorHandling(
-                  () => clickUpService.updateSpace(space),
-                  'Update clickup space',
-                  defaultOnError(navigate),
-                );
-                if (!result) 
-                  return Promise.resolve(false);
-                await refreshAllData();
-                showSuccessToast('ClickUp space updated successfully');
-                return Promise.resolve(true);
-              }}
-              onDelete={async (id) => {
-                const result = await withErrorHandling(
-                  () => clickUpService.deleteSpace(id),
-                  'Delete clickup space',
-                  defaultOnError(navigate),
-                );
-                if (!result) return;
-                await refreshAllData();
-                showSuccessToast('ClickUp space deleted successfully');
-              }}
-              onAdd={async (newSpace) => {
-                const result = await withErrorHandling(
-                  () => clickUpService.createSpace(newSpace),
-                  'Create clickup space',
-                  defaultOnError(navigate),
-                );
-                if (!result) 
-                  return Promise.resolve(false);
-                await refreshAllData();
-                showSuccessToast('ClickUp space created successfully');
-                return Promise.resolve(true);
-
-              }}
+              onUpdate={handleUpdateClickUpSpace}
+              onDelete={handleDeleteClickUpSpace}
+              onAdd={handleAddClickUpSpace}
             />
           </div>
         )}

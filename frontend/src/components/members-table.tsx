@@ -35,6 +35,14 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
       : 'border-border/60 focus:border-foreground/40 focus:ring-foreground/8'
   }`;
 
+  const hasChanges = editingMember
+    ? (
+        formData.username !== editingMember.username ||
+        formData.mail !== editingMember.mail ||
+        (formData.password && formData.password.length > 0)
+      )
+    : true;
+
   useEffect(() => {
     if (!isAddModalOpen) {
       setErrors({});
@@ -253,7 +261,11 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSave} className="flex-1">
+                <Button
+                  onClick={handleSave}
+                  className="flex-1"
+                  disabled={editingMember ? !hasChanges : false}
+                >
                   <CheckCircle2 className="w-4 h-4 mr-2" />
                   {editingMember ? 'Update' : 'Create'} Member
                 </Button>
