@@ -1,7 +1,6 @@
 import type { MemberAuthDTO } from '@/api/api';
 import { AuthApi } from '@/api/api';
 
-
 function setRefreshTokenCookie(value: string) {
   document.cookie = `refresh_token=${encodeURIComponent(value)}; max-age=${REFRESH_TOKEN_MAX_AGE}; path=/; SameSite=Lax; Secure`;
 }
@@ -15,18 +14,14 @@ function getRefreshTokenCookie(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-//const REFRESH_TOKEN_COOKIE = 'refresh_token';
-const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const REFRESH_TOKEN_EXPIRE_DAYS = Number(import.meta.env.VITE_REFRESH_TOKEN_EXPIRE_DAYS || 7);
+const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS;
 
 class AuthService {
-  private refreshTimeout: ReturnType<typeof setTimeout> | null = null;
-
   async login(credentials: MemberAuthDTO): Promise<void> {
     const api = new AuthApi();
-    console.log('hi')
     const { data } = await api.loginAuthLoginPost(credentials);
     setRefreshTokenCookie(data.refresh_token);
-    this.scheduleRefresh();
   }
 
   async logout(): Promise<void> {
@@ -35,37 +30,24 @@ class AuthService {
       try {
         const api = new AuthApi();
         await api.logoutAuthLogoutPost(refreshToken);
-      } catch (e) {
-        // Optionally log or handle error
+      } catch {
+        // échec silencieux voulu
       }
-      deleteRefreshTokenCookie();
     }
-    this.clearSession();
+    deleteRefreshTokenCookie();
   }
 
   async refresh(): Promise<void> {
     const refreshToken = getRefreshTokenCookie();
-    if (!refreshToken) 
-      throw new Error('[AuthService] refresh called without a valid refresh token');    const api = new AuthApi();
+    if (!refreshToken)
+      throw new Error('[AuthService] No refresh token available');
+    const api = new AuthApi();
     const { data } = await api.refreshAuthRefreshPost(refreshToken);
     setRefreshTokenCookie(data.refresh_token);
-    this.scheduleRefresh();
-  }
-
-  private scheduleRefresh() {
-    if (this.refreshTimeout) 
-        clearTimeout(this.refreshTimeout);
-    this.refreshTimeout = setTimeout(() => this.refresh(), 29 * 60 * 1000);
   }
 
   isAuthenticated(): boolean {
     return !!getRefreshTokenCookie();
-  }
-
-  private clearSession() {
-    deleteRefreshTokenCookie();
-    if (this.refreshTimeout)
-      clearTimeout(this.refreshTimeout);
   }
 }
 
