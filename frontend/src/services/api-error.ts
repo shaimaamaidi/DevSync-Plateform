@@ -6,7 +6,7 @@ type ErrorLike = {
   };
 };
 
-export type ApiErrorType = 'auth_error' | 'server_error';
+export type ApiErrorType = 'auth_error' | 'server_error' | 'backend_error';
 
 type ErrorListener = (msg: string) => void;
 const listeners: ErrorListener[] = [];
@@ -47,38 +47,46 @@ const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
   return 'Unknown error';
 };
 
-const isAuthError = (error: ErrorLike | unknown): boolean => {
+const isAuthError = (error: ErrorLike | unknown, includeValidation = false): boolean => {
   const status = (error as ErrorLike)?.response?.status;
+  if (includeValidation) 
+    return status === 401 || status === 403 || status === 422;
   return status === 401 || status === 403;
+};
+
+const isServerError = (error: ErrorLike | unknown): boolean => {
+  const status = (error as ErrorLike)?.response?.status;
+  return !status || status >= 500;
 };
 
 export const handleApiError = (
   error: ErrorLike | unknown,
-  context: string
+  context: string,
+  includeValidation = false,
 ): ApiErrorType => {
   const message = normalizeErrorMessage(error);
-  
-  if (isAuthError(error)) {
-    listeners.forEach((cb) => cb(`${context}: ${message}`));
-    return 'auth_error';
-  }
-
-  // Tout le reste (5xx, 4xx, network errors, erreurs inconnues) = server_error
   listeners.forEach((cb) => cb(`${context}: ${message}`));
-  return 'server_error';
+
+  if (isAuthError(error, includeValidation)) 
+    return 'auth_error';
+  if (isServerError(error)) 
+    return 'server_error';
+  return 'backend_error';
 };
 
 export const withErrorHandling = async <T>(
   fn: () => Promise<T>,
   context: string,
-  onError?: (errorType: ApiErrorType) => void,
+  onError?: (errorType: ApiErrorType, message: string) => void,
 ): Promise<T | null> => {
   try {
     return await fn();
   } catch (err) {
     const errorType = handleApiError(err, context);
+    const message = normalizeErrorMessage(err);
+
     if (onError) {
-      onError(errorType);
+      onError(errorType, message);
     }
     return null;
   }

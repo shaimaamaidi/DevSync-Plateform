@@ -168,6 +168,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                 const result = await withErrorHandling(
                   () => memberService.updateMember(member),
                   'Update member',
+                  defaultOnError(navigate),
                 );
                 if (!result) return;
                 await refreshAllData();

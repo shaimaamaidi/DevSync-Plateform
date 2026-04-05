@@ -40,11 +40,10 @@ export default function LoginPage() {
       showSuccessToast('Login successful!');
       navigate('/repositories');
     } catch (err: any) {
-      const errorType = handleApiError(err, 'Login');
+      const errorType = handleApiError(err, 'Login', true);
 
       if (errorType === 'auth_error') {
         setInvalidCredentials(true);
-        showErrorToast('Invalid credentials. Please try again.', 'Login failed');
       } else {
         showErrorToast('A server error occurred. Please try again later.', 'Something went wrong');
       }
