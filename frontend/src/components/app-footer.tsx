@@ -5,7 +5,6 @@ export function AppFooter() {
     <footer className="border-t border-border bg-card mt-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* About */}
           <div>
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <GitBranch className="w-5 h-5" />
@@ -16,7 +15,6 @@ export function AppFooter() {
             </p>
           </div>
 
-          {/* Features */}
           <div>
             <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
               <Info className="w-5 h-5" />
@@ -30,7 +28,6 @@ export function AppFooter() {
             </ul>
           </div>
 
-          {/* Status */}
           <div>
             <h3 className="font-semibold text-foreground mb-3">Status</h3>
             <div className="space-y-2 text-sm">

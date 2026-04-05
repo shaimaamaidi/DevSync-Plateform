@@ -6,7 +6,7 @@ import { memberService } from '@/services/member-service';
 import { withErrorHandling } from '@/services/api-error';
 import { showSuccessToast } from '@/components/global-success-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
-import { defaultOnError } from '@/utils/default-on-error';
+import { defaultOnError } from '@/lib/error-utils';
 
 export default function ProfilePage() {
   const { user } = useCurrentUser();

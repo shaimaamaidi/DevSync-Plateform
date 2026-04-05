@@ -10,6 +10,7 @@ import {
 import type { MemberDTO, MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 
@@ -178,7 +179,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
         </table>
       </div>
 
-      {/* Add/Edit Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <Card className="w-full max-w-md border-border shadow-2xl">
@@ -251,6 +251,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                   Cancel
                 </Button>
                 <Button onClick={handleSave} className="flex-1">
+                  <CheckCircle2 className="w-4 h-4 mr-2" />
                   {editingMember ? 'Update' : 'Add'} Member
                 </Button>
               </div>

@@ -34,7 +34,6 @@ export function RepoDetailsModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Repository Info Card */}
           <div className="border border-border rounded-lg p-4 space-y-4">
             <h3 className="font-semibold text-foreground">Repository Information</h3>
 
@@ -67,7 +66,6 @@ export function RepoDetailsModal({
             </div>
           </div>
 
-          {/* ClickUp Space */}
           <div className="border border-border rounded-lg p-4 space-y-4">
             <h3 className="font-semibold text-foreground flex items-center gap-2">
               <Tag className="w-5 h-5 text-primary" />
@@ -88,7 +86,6 @@ export function RepoDetailsModal({
             )}
           </div>
 
-          {/* Team Members */}
           <div className="border border-border rounded-lg p-4">
             <MembersList members={repo.members ?? []} />
           </div>

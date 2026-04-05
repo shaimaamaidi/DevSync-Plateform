@@ -65,7 +65,6 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
       <div className="flex items-center gap-2 flex-wrap">
         <Filter className="w-4 h-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Status:</span>
@@ -95,7 +94,6 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
         )}
       </div>
 
-      {/* Deployments List */}
       <div className="space-y-3">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-foreground text-center mb-2">
           <div>Branch</div>

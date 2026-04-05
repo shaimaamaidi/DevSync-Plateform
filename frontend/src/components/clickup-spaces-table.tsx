@@ -68,7 +68,6 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
     setIsAddModalOpen(true);
   };
 
-  // Reset formData when opening add modal
   useEffect(() => {
     if (isAddModalOpen && editingSpace === null) {
       setFormData({ name: '', space_code: '' });
@@ -210,7 +209,6 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
         </table>
       </div>
 
-      {/* Add/Edit Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <Card className="w-[400px] border-border shadow-2xl">
@@ -315,7 +313,6 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
           </Card>
         </div>
       )}
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmSpaceId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmSpaceId(null); }}>
         <DialogContent>
           <DialogHeader>

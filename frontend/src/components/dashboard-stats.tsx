@@ -20,7 +20,6 @@ export function DashboardStats({ repos, deployments, members }: DashboardStatsPr
   return (
 
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      {/* Total Repos */}
       <Card className="p-6 border-border hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
           <div className="flex flex-col justify-between min-h-[88px]">
@@ -34,7 +33,6 @@ export function DashboardStats({ repos, deployments, members }: DashboardStatsPr
         </div>
       </Card>
 
-      {/* Team Members */}
       <Card className="p-6 border-border hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
           <div className="flex flex-col justify-between min-h-[88px]">
@@ -48,7 +46,6 @@ export function DashboardStats({ repos, deployments, members }: DashboardStatsPr
         </div>
       </Card>
 
-      {/* ClickUp Spaces */}
       <Card className="p-6 border-border hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
           <div>
@@ -69,7 +66,6 @@ export function DashboardStats({ repos, deployments, members }: DashboardStatsPr
         </div>
       </Card>
 
-      {/* Successful Deployments */}
       <Card className="p-6 border-border hover:shadow-md transition-shadow">
         <div className="flex items-center justify-between">
           <div>

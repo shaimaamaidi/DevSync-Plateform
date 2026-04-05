@@ -187,7 +187,6 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
         </table>
       </div>
 
-      {/* Edit/Add Modal */}
       <RepoEditModalNew
         repo={selectedRepo}
         isOpen={isEditModalOpen || isAddModalOpen}
@@ -202,7 +201,6 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
         clickUpSpaces={clickUpSpaces}
         availableMembers={availableMembers}
       />
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmRepoId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmRepoId(null); }}>
         <DialogContent>
           <DialogHeader>

@@ -6,7 +6,7 @@ import { showSuccessToast } from '@/components/global-success-toaster';
 import { memberService } from '@/services/member-service';
 import type { MemberUpdateDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/default-on-error';
+import { defaultOnError } from '@/lib/error-utils';
 
 
 export default function SettingsPage() {
@@ -78,7 +78,6 @@ export default function SettingsPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <div className="w-full max-w-[420px] rounded-2xl border border-border/40 bg-background p-10 shadow-sm">
 
-        {/* Logo mark */}
         <div className="flex justify-center mb-8">
           <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
             <div className="grid grid-cols-2 gap-[3px] w-[18px]">

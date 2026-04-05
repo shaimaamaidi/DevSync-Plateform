@@ -22,7 +22,7 @@ import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-success-toaster';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/default-on-error';
+import { defaultOnError } from '@/lib/error-utils';
 
 
 type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces';

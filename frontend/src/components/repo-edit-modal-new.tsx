@@ -163,13 +163,10 @@ export function RepoEditModalNew({
     setErrors({});
     if (!validateForm()) return;
 
-    // Calculate final members list: (original - toRemove) + toAdd
     const originalMembers = repo?.members || [];
-    // Remove members present in membersToRemove
     const filteredMembers = originalMembers.filter((member) =>
       !membersToRemove.find((memberToRemove) => memberKey(memberToRemove) === memberKey(member))
     );
-    // Add new members (avoid duplicates)
     const allMembers = [
       ...filteredMembers,
       ...newMembers.filter((newM) => !filteredMembers.find((m) => memberKey(m) === memberKey(newM)))
@@ -202,7 +199,6 @@ export function RepoEditModalNew({
     <>
       <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl border-border shadow-2xl max-h-[90vh] flex flex-col">
-          {/* Header sticky */}
           <div className="sticky top-0 bg-card border-b border-border px-8 py-6 z-10">
             <div className="flex items-center justify-between">
               <div>
@@ -228,9 +224,7 @@ export function RepoEditModalNew({
             </div>
           </div>
 
-          {/* Content scrollable */}
           <div className="px-8 py-6 space-y-8 flex-1 overflow-y-auto">
-            {/* Repository Information */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <div className="w-1 h-6 bg-primary rounded-full" />
@@ -280,7 +274,6 @@ export function RepoEditModalNew({
               </div>
             </div>
 
-            {/* ClickUp Space Assignment */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <div className="w-1 h-6 bg-accent rounded-full" />
@@ -325,14 +318,12 @@ export function RepoEditModalNew({
               </div>
             </div>
 
-            {/* Team Members */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <div className="w-1 h-6 bg-blue-500 rounded-full" />
                 Team Members Management
               </h3>
 
-              {/* Original Members - Fixed List */}
               {(repo?.members && repo.members.length > 0) && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -371,7 +362,6 @@ export function RepoEditModalNew({
                 </div>
               )}
 
-              {/* Members To Remove Section */}
               {membersToRemove.length > 0 && (
                 <div className="space-y-3 p-4 rounded-lg border border-red-500/50 bg-red-500/10">
                   <div className="flex items-center gap-2">
@@ -403,7 +393,6 @@ export function RepoEditModalNew({
                 </div>
               )}
 
-              {/* Add Members Button */}
               <div>
                 <Button
                   type="button"
@@ -413,7 +402,6 @@ export function RepoEditModalNew({
                 >
                   {showAddMembersPanel ? 'Close' : '+ Add Members'}
                 </Button>
-                {/* Add Members Panel */}
                 {showAddMembersPanel && (
                   <div className="space-y-4 p-4 rounded-lg border border-primary/50 bg-primary/5">
                     <div className="flex items-center gap-2">
@@ -421,7 +409,6 @@ export function RepoEditModalNew({
                       <Label className="text-foreground font-semibold">Select Members to Add</Label>
                     </div>
 
-                    {/* Available Members Dropdown */}
                     <div>
                       <Label className="text-sm text-muted-foreground">All Available Members</Label>
                       <div className="mt-3 grid grid-cols-2 gap-2">
@@ -444,7 +431,6 @@ export function RepoEditModalNew({
                       )}
                     </div>
 
-                    {/* Selected New Members */}
                     {newMembers.length > 0 && (
                       <div className="p-3 bg-green-500/10 rounded-lg border border-green-500/30">
                         <p className="text-sm font-medium text-foreground mb-2">
@@ -475,7 +461,6 @@ export function RepoEditModalNew({
             </div>
           </div>
 
-          {/* Footer sticky */}
           <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-between z-10">
             <div className="text-sm text-muted-foreground">
               {hasChanges && (
