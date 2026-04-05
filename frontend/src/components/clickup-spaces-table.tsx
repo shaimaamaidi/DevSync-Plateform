@@ -11,6 +11,7 @@ import type { ClickUpSpaceLightDTO, GitRepoDTO } from '@/api/api';
 import { repoService } from '@/services/repo-service';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X, Link as LinkIcon } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -305,8 +306,9 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleSave} className="flex-1">
-                  {editingSpace ? 'Update' : 'Add'} Space
+                <Button onClick={handleSave} className="flex-1 gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  {editingSpace ? 'Update' : 'Create'} Space
                 </Button>
               </div>
             </div>

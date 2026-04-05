@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import type { MemberDTO, MemberUpdateDTO } from '@/api/api';
+import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { CheckCircle2 } from 'lucide-react';
@@ -90,15 +90,14 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
         username: formData.username,
         mail: formData.mail,
         password: formData.password,
-      } as MemberUpdateDTO);
+      } as MemberUpdateDTO)
     } else {
       onAdd({
         username: formData.username,
         mail: formData.mail,
         password: formData.password,
-      } as any);
+      } as MemberCreateDTO)
     }
-
     setIsAddModalOpen(false);
     setFormData({});
     setErrors({});
@@ -252,7 +251,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
                 </Button>
                 <Button onClick={handleSave} className="flex-1">
                   <CheckCircle2 className="w-4 h-4 mr-2" />
-                  {editingMember ? 'Update' : 'Add'} Member
+                  {editingMember ? 'Update' : 'Create'} Member
                 </Button>
               </div>
             </div>
