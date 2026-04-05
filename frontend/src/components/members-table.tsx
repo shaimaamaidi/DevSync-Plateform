@@ -16,9 +16,9 @@ import { Label } from '@/components/ui/label';
 
 export interface MembersTableProps {
   members: MemberDTO[];
-  onUpdate: (member: MemberUpdateDTO) => void;
+  onUpdate: (member: MemberUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (member: MemberDTO) => void;
+  onAdd: (member: MemberDTO) => Promise<boolean>;
 }
 
 
@@ -63,7 +63,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
     setIsAddModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async() => {
 
     setErrors({});
     const newErrors: Record<string, string> = {};
@@ -83,24 +83,28 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
       setErrors(newErrors);
       return;
     }
+    
+    let success = false;
 
     if (editingMember) {
-      onUpdate({
+      success = await onUpdate({
         id: editingMember.id,
         username: formData.username,
         mail: formData.mail,
         password: formData.password,
       } as MemberUpdateDTO)
     } else {
-      onAdd({
+      success = await onAdd({
         username: formData.username,
         mail: formData.mail,
         password: formData.password,
       } as MemberCreateDTO)
     }
-    setIsAddModalOpen(false);
-    setFormData({});
-    setErrors({});
+    if (success) {
+      setIsAddModalOpen(false);
+      setFormData({});
+      setErrors({});
+    }
   };
 
   return (

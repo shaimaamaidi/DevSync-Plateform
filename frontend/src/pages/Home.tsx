@@ -83,17 +83,17 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     refreshAllData();
   }, [refreshAllData]);
 
-
-
   const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoDetailDTO) => {
     const result = await withErrorHandling(
       () => repoService.updateRepo(updatedRepo),
       'Update repository',
       defaultOnError(navigate),
     );
-    if (!result) return;
+    if (!result) 
+      return Promise.resolve(false);
     await refreshAllData();
     showSuccessToast('Repository updated successfully');
+    return Promise.resolve(true);
   }, [refreshAllData]);
 
   const handleDeleteRepo = useCallback(async (id: number) => {
@@ -113,9 +113,11 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
       'Create repository',
       defaultOnError(navigate),
     );
-    if (!result) return;
+    if (!result) 
+      return Promise.resolve(false);
     await refreshAllData();
     showSuccessToast('Repository created successfully');
+    return Promise.resolve(true);
   }, [refreshAllData]);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
@@ -170,9 +172,11 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                   'Update member',
                   defaultOnError(navigate),
                 );
-                if (!result) return;
+                if (!result) 
+                  return Promise.resolve(false);
                 await refreshAllData();
                 showSuccessToast('Member updated successfully');
+                return Promise.resolve(true);
               }}
               onDelete={async (id) => {
                 const result = await withErrorHandling(
@@ -180,7 +184,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                   'Delete member',
                   defaultOnError(navigate),
                 );
-                if (!result) return;
+                if (!result)
+                  return;
                 await refreshAllData();
                 showSuccessToast('Member deleted successfully');
               }}
@@ -190,9 +195,11 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                   'Create member',
                   defaultOnError(navigate),
                 );
-                if (!result) return;
+                if (!result)
+                  return Promise.resolve(false);
                 await refreshAllData();
                 showSuccessToast('Member created successfully');
+                return Promise.resolve(true);
               }}
             />
           </div>
@@ -208,9 +215,11 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                   'Update clickup space',
                   defaultOnError(navigate),
                 );
-                if (!result) return;
+                if (!result) 
+                  return Promise.resolve(false);
                 await refreshAllData();
                 showSuccessToast('ClickUp space updated successfully');
+                return Promise.resolve(true);
               }}
               onDelete={async (id) => {
                 const result = await withErrorHandling(
@@ -228,9 +237,12 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
                   'Create clickup space',
                   defaultOnError(navigate),
                 );
-                if (!result) return;
+                if (!result) 
+                  return Promise.resolve(false);
                 await refreshAllData();
                 showSuccessToast('ClickUp space created successfully');
+                return Promise.resolve(true);
+
               }}
             />
           </div>

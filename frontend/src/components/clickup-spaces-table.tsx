@@ -18,9 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
-  onUpdate: (space: ClickUpSpaceLightDTO) => void;
+  onUpdate: (space: ClickUpSpaceLightDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (space: ClickUpSpaceLightDTO) => void;
+  onAdd: (space: ClickUpSpaceLightDTO) => Promise<boolean>;
 }
 
 export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickUpSpacesTableProps) {
@@ -81,7 +81,7 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
     setIsAddModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setErrors({});
     if (!formData.name || !formData.space_code) {
       const newErrors: Record<string, string> = {};
@@ -97,15 +97,19 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
       ...formData,
     };
 
+    let success = false;
+
     if (editingSpace) {
-      onUpdate(nextSpace);
+      success = await onUpdate(nextSpace);
     } else {
-      onAdd(nextSpace);
+      success= await onAdd(nextSpace);
     }
 
-    setIsAddModalOpen(false);
-    setFormData({});
-    setErrors({});
+    if(success){
+      setIsAddModalOpen(false);
+      setFormData({});
+      setErrors({});
+    }
   };
 
   return (

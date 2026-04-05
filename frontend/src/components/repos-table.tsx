@@ -18,9 +18,9 @@ interface ReposTableProps {
   repos: GitRepoDetailDTO[];
   clickUpSpaces: ClickUpSpaceLightDTO[];
   availableMembers: MemberDTO[];
-  onUpdate: (repo: GitRepoDetailDTO) => void;
+  onUpdate: (repo: GitRepoDetailDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (repo: GitRepoDetailDTO) => void;
+  onAdd: (repo: GitRepoDetailDTO) => Promise<boolean>;
 }
 
 export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd }: ReposTableProps) {
@@ -39,14 +39,17 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
     setIsAddModalOpen(true);
   };
 
-  const handleSave = (updatedRepo: GitRepoDetailDTO) => {
+  const handleSave = async (updatedRepo: GitRepoDetailDTO) => {
+    let success = false;
     if (selectedRepo) {
-      onUpdate(updatedRepo);
+      success = await onUpdate(updatedRepo);
     } else {
-      onAdd(updatedRepo);
+      success = await onAdd(updatedRepo);
     }
-    setIsEditModalOpen(false);
-    setIsAddModalOpen(false);
+    if(success){
+      setIsEditModalOpen(false);
+      setIsAddModalOpen(false);
+    }
   };
 
   return (
