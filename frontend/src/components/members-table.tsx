@@ -12,8 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-
 
 export interface MembersTableProps {
   members: MemberDTO[];
@@ -22,12 +20,19 @@ export interface MembersTableProps {
   onAdd: (member: MemberDTO) => void;
 }
 
+
 export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTableProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
   const [formData, setFormData] = useState<Partial<MemberUpdateDTO & { password?: string }>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteConfirmMemberId, setDeleteConfirmMemberId] = useState<number | null>(null);
+  const inputClass = (hasError: boolean) =>
+    `w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 ${
+    hasError
+      ? 'border-destructive/70 focus:border-destructive focus:ring-destructive/15'
+      : 'border-border/60 focus:border-foreground/40 focus:ring-foreground/8'
+  }`;
 
   useEffect(() => {
     if (!isAddModalOpen) {
@@ -194,45 +199,45 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
 
               <div className="space-y-4">
                 <div>
-                  <Label className="text-foreground font-medium">Username</Label>
-                  <Input
+                  <Label className="text-black font-medium">Username</Label>
+                  <input
                     type="text"
                     placeholder="john.dev"
                     value={formData.username || ''}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="mt-2 bg-input border-border text-foreground"
+                    className={inputClass(!!errors.username) + ' mt-2'}
                   />
                   {errors.username && (
-                    <div className="text-red-500 text-xs mt-1">{errors.username}</div>
+                    <div className="text-destructive text-xs mt-1 px-1">{errors.username}</div>
                   )}
                 </div>
                 <div>
-                  <Label className="text-foreground font-medium">Mail</Label>
-                  <Input
+                  <Label className="text-black font-medium">Mail</Label>
+                  <input
                     type="email"
                     placeholder="john.dev@company.com"
                     value={formData.mail || ''}
                     onChange={(e) => setFormData({ ...formData, mail: e.target.value })}
-                    className="mt-2 bg-input border-border text-foreground"
+                    className={inputClass(!!errors.mail) + ' mt-2'}
                   />
                   {errors.mail && (
-                    <div className="text-red-500 text-xs mt-1">{errors.mail}</div>
+                    <div className="text-destructive text-xs mt-1 px-1">{errors.mail}</div>
                   )}
                 </div>
                 <div>
-                  <Label className="text-foreground font-medium">Password</Label>
-                  <Input
+                  <Label className="text-black font-medium">Password</Label>
+                  <input
                     type="password"
                     placeholder="Mot de passe (laisser vide pour ne pas changer)"
                     value={formData.password || ''}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="mt-2 bg-input border-border text-foreground"
+                    className={inputClass(!!errors.password) + ' mt-2'}
                   />
                   {editingMember && (
                     <div className="text-muted-foreground text-xs mt-1">Laisser vide pour ne pas changer le mot de passe</div>
                   )}
                   {errors.password && (
-                    <div className="text-red-500 text-xs mt-1">{errors.password}</div>
+                    <div className="text-destructive text-xs mt-1 px-1">{errors.password}</div>
                   )}
                 </div>
               </div>

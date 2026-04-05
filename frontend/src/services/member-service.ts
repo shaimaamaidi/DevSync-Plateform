@@ -1,17 +1,7 @@
 import { memberApi } from '@/apiClient';
 import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO } from '@/api/api';
-import { handleApiError } from './api-error';
 
 export const memberService = {
-  async getAllWithRepos(): Promise<MemberWithReposDTO[]> {
-    try {
-      const response = await memberApi.getAllWithReposMemberAllWithReposGet();
-      return response.data ?? [];
-    } catch (error) {
-      handleApiError(error, 'Unable to load members');
-      return [];
-    }
-  },
   mapToMemberDTO(member: MemberWithReposDTO): MemberDTO {
     return {
       id: member.id ?? null,
@@ -19,6 +9,12 @@ export const memberService = {
       mail: member.mail ?? null,
     };
   },
+
+  async getAllWithRepos(): Promise<MemberWithReposDTO[]> {
+    const response = await memberApi.getAllWithReposMemberAllWithReposGet();
+    return response.data ?? [];
+  },
+
   async createMember(member: MemberCreateDTO): Promise<MemberDTO | null> {
     const payload: MemberCreateDTO = {
       username: member.username ?? null,
@@ -26,18 +22,13 @@ export const memberService = {
       password: member.password ?? null,
     };
 
-    try {
-      const response = await memberApi.addMemberMemberPost(payload);
-      return response.data ?? null;
-    } catch (error) {
-      handleApiError(error, 'Unable to create member');
-      return null;
-    }
+    const response = await memberApi.addMemberMemberPost(payload);
+    return response.data ?? null;
   },
+
   async updateMember(member: MemberUpdateDTO): Promise<MemberDTO | null> {
     if (typeof member.id !== 'number') {
-      handleApiError(new Error('Missing member id'), 'Unable to update member');
-      return null;
+      throw new Error('Missing member id');
     }
 
     const payload: MemberUpdateDTO = {
@@ -47,27 +38,18 @@ export const memberService = {
       password: member.password ?? undefined, 
     };
 
-    try {
-      const response = await memberApi.updateMemberMemberMemberIdPut(member.id, payload);
-      return response.data
-        ? {
-            id: response.data.id ?? null,
-            username: response.data.username ?? null,
-            mail: response.data.mail ?? null,
-          }
-        : null;
-    } catch (error) {
-      handleApiError(error, 'Unable to update member');
-      return null;
-    }
+    const response = await memberApi.updateMemberMemberMemberIdPut(member.id, payload);
+    return response.data
+      ? {
+          id: response.data.id ?? null,
+          username: response.data.username ?? null,
+          mail: response.data.mail ?? null,
+        }
+      : null;
   },
+
   async deleteMember(memberId: number): Promise<boolean> {
-    try {
-      const response = await memberApi.deleteMemberMemberMemberIdDelete(memberId);
-      return response.data ?? false;
-    } catch (error) {
-      handleApiError(error, 'Unable to delete member');
-      return false;
-    }
+    const response = await memberApi.deleteMemberMemberMemberIdDelete(memberId);
+    return response.data ?? false;
   },
 };

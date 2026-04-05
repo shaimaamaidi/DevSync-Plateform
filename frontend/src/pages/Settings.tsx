@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { showSuccessToast } from '@/components/global-success-toaster';
 import { memberService } from '@/services/member-service';
 import type { MemberUpdateDTO } from '@/api/api';
+import { withErrorHandling } from '@/services/api-error';
+import { defaultOnError } from '@/utils/default-on-error';
+
 
 export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
@@ -24,25 +27,34 @@ export default function SettingsPage() {
       setError('User not loaded');
       return;
     }
+
     setError(null);
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
+
     setLoading(true);
-    try {
-      const member: MemberUpdateDTO = {
-        id: userId,
-        password: newPassword,
-      };
-      await memberService.updateMember(member);
-      showSuccessToast('Password updated successfully!');
-      setNewPassword('');
-      setConfirmPassword('');
-      navigate('/repositories');
-    } catch (err: any) {
-      setError('Failed to update password');
-    } finally {
+
+    const member: MemberUpdateDTO = {
+      id: userId,
+      password: newPassword,
+    };
+
+    try{
+      const result = await withErrorHandling(
+        () => memberService.updateMember(member),
+        'Update password',
+        defaultOnError(navigate),
+      );
+      
+      if (result) {
+        showSuccessToast('Password updated successfully!');
+        setNewPassword('');
+        setConfirmPassword('');
+        navigate('/profile');
+      }
+    }finally{
       setLoading(false);
     }
   };

@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { KeyRound, User, Mail, Pen , Loader2, ArrowLeft } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { memberService } from '@/services/member-service';
-import { toast } from '@/hooks/use-toast';
+import { withErrorHandling } from '@/services/api-error';
+import { showSuccessToast } from '@/components/global-success-toaster';
+import type { MemberUpdateDTO } from '@/api/api';
+import { defaultOnError } from '@/utils/default-on-error';
 
 export default function ProfilePage() {
   const { user } = useCurrentUser();
@@ -22,12 +25,23 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!isDirty) return;
     setLoading(true);
-    try {
-      await memberService.updateMember({ id: user?.id, username, mail });
-      toast({ title: 'Profile updated successfully!' });
-    } catch (err: any) {
-      toast({ title: 'Update failed', description: err?.message || 'An error occurred', variant: 'destructive' });
-    } finally {
+    
+    const member: MemberUpdateDTO = {
+      id: user?.id,
+      username: username,
+      mail: mail,
+    };
+    
+    try{
+      const result = await withErrorHandling(
+        () => memberService.updateMember(member),
+        'Update profile',
+        defaultOnError(navigate),
+      );
+
+      if (result) 
+        showSuccessToast('Profile updated successfully!');
+    }finally{
       setLoading(false);
     }
   };

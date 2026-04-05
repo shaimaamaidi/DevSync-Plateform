@@ -7,7 +7,6 @@ import type {
   RepoMemberDTO,
 } from '@/api/api';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import {
@@ -45,7 +44,14 @@ export function RepoEditModalNew({
     clickup_space: null,
   };
   const [formData, setFormData] = useState<GitRepoDetailDTO>(repo || initialFormData);
-  // Reset formData when opening modal: fill with repo if editing, or empty if adding
+
+  const inputClass = (hasError: boolean) =>
+    `w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 ${
+      hasError
+        ? 'border-destructive/70 focus:border-destructive focus:ring-destructive/15'
+        : 'border-border/60 focus:border-foreground/40 focus:ring-foreground/8'
+  }`;
+
   useEffect(() => {
     if (isOpen) {
       if (repo) {
@@ -233,46 +239,42 @@ export function RepoEditModalNew({
 
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="name" className="text-foreground font-medium">
+                  <Label htmlFor="name" className="text-black font-medium">
                     Repository Name
                   </Label>
-                  <Input
+                  <input
                     id="name"
                     name="name"
                     value={formData.name || ''}
                     onChange={handleInputChange}
                     placeholder="e.g., next-commerce"
-                    className={`mt-2 bg-input border-border text-foreground ${
-                      errors.name ? 'border-destructive' : ''
-                    }`}
+                    className={inputClass(!!errors.name) + ' mt-2'}
                   />
                   {errors.name && (
-                    <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                    <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
                       <AlertCircle className="w-4 h-4" />
                       {errors.name}
-                    </p>
+                    </div>
                   )}
                 </div>
 
                 <div>
-                  <Label htmlFor="url" className="text-foreground font-medium">
+                  <Label htmlFor="url" className="text-black font-medium">
                     Repository URL
                   </Label>
-                  <Input
+                  <input
                     id="url"
                     name="url"
                     value={formData.url || ''}
                     onChange={handleInputChange}
                     placeholder="https://github.com/user/repo"
-                    className={`mt-2 bg-input border-border text-foreground ${
-                      errors.url ? 'border-destructive' : ''
-                    }`}
+                    className={inputClass(!!errors.url) + ' mt-2'}
                   />
                   {errors.url && (
-                    <p className="text-sm text-destructive mt-1 flex items-center gap-1">
+                    <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
                       <AlertCircle className="w-4 h-4" />
                       {errors.url}
-                    </p>
+                    </div>
                   )}
                 </div>
               </div>

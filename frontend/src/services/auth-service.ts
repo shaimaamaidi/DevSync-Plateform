@@ -40,16 +40,13 @@ class AuthService {
       }
       deleteRefreshTokenCookie();
     }
-    if (this.refreshTimeout) 
-        clearTimeout(this.refreshTimeout);
+    this.clearSession();
   }
 
   async refresh(): Promise<void> {
-    console.log("refresh");
     const refreshToken = getRefreshTokenCookie();
     if (!refreshToken) 
-        throw new Error('No refresh token');
-    const api = new AuthApi();
+      throw new Error('[AuthService] refresh called without a valid refresh token');    const api = new AuthApi();
     const { data } = await api.refreshAuthRefreshPost(refreshToken);
     setRefreshTokenCookie(data.refresh_token);
     this.scheduleRefresh();
@@ -63,6 +60,12 @@ class AuthService {
 
   isAuthenticated(): boolean {
     return !!getRefreshTokenCookie();
+  }
+
+  private clearSession() {
+    deleteRefreshTokenCookie();
+    if (this.refreshTimeout)
+      clearTimeout(this.refreshTimeout);
   }
 }
 

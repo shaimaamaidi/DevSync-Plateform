@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X, Link as LinkIcon } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export interface ClickUpSpacesTableProps {
@@ -30,7 +29,13 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
 
-  // Reset errors when modal is opened or closed
+  const inputClass = (hasError: boolean) =>
+    `w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 ${
+      hasError
+        ? 'border-destructive/70 focus:border-destructive focus:ring-destructive/15'
+        : 'border-border/60 focus:border-foreground/40 focus:ring-foreground/8'
+  }`;
+  
   useEffect(() => {
     if (!isAddModalOpen) {
       setErrors({});
@@ -227,30 +232,30 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
               <div className="space-y-4">
 
                 <div>
-                  <Label className="text-foreground font-medium">Space Name</Label>
-                  <Input
+                  <Label className="text-black font-medium">Space Name</Label>
+                  <input
                     type="text"
                     placeholder="My ClickUp Space"
                     value={formData.name || ''}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-2 bg-input border-border text-foreground"
+                    className={inputClass(!!errors.name) + ' mt-2'}
                   />
                   {errors.name && (
-                    <div className="text-red-500 text-xs mt-1">{errors.name}</div>
+                    <div className="text-destructive text-xs mt-1 px-1">{errors.name}</div>
                   )}
                 </div>
 
                 <div>
-                  <Label className="text-foreground font-medium">Space ID</Label>
-                  <Input
+                  <Label className="text-black font-medium">Space ID</Label>
+                  <input
                     type="text"
                     placeholder="cus_prod_001"
                     value={formData.space_code || ''}
                     onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
-                    className="mt-2 bg-input border-border text-foreground"
+                    className={inputClass(!!errors.space_code) + ' mt-2'}
                   />
                   {errors.space_code && (
-                    <div className="text-red-500 text-xs mt-1">{errors.space_code}</div>
+                    <div className="text-destructive text-xs mt-1 px-1">{errors.space_code}</div>
                   )}
                 </div>
 

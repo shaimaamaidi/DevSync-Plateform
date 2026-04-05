@@ -81,7 +81,8 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
             </tr>
           </thead>
           <tbody>
-            {repos.map((repo) => (
+            {repos.length > 0 ? (
+              repos.map((repo) => (
               <tr
                 key={repo.id ?? repo.url ?? repo.name}
                 className="border-b border-border hover:bg-muted/50 transition-colors"
@@ -174,7 +175,14 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
                   </div>
                 </td>
               </tr>
-            ))}
+            ))
+            ) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center">
+                  <p className="text-muted-foreground">No repositories yet. Create your first repository!</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

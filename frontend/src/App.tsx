@@ -3,16 +3,16 @@ import { RequireAuth } from './components/RequireAuth';
 import HomePage from './pages/Home';
 import NotFoundPage from './pages/NotFound';
 import LoginPage from './pages/Login';
-import { GlobalApiAlert } from './components/global-api-alert';
 import { GlobalSuccessToaster } from './components/global-success-toaster';
+import { GlobalErrorToaster } from './components/global-error-toaster';
 import SettingsPage from './pages/Settings';
 import ProfilePage from './pages/Profile';
 
 export default function App() {
   return (
     <>
-      <GlobalApiAlert />
       <GlobalSuccessToaster />
+      <GlobalErrorToaster/>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/repositories" replace />} />
