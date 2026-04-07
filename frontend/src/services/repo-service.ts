@@ -4,8 +4,6 @@ import type {
   GitRepoDetailDTO,
   GitRepoDTO,
   GitRepoUpdateDTO,
-  RepoClickUpSpaceRefDTO,
-  RepoMemberRefDTO,
 } from '@/api/api';
 
 export const repoService = {
