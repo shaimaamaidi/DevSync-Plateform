@@ -13,22 +13,17 @@ export const clickUpService = {
     return response.data ?? [];
   },
 
-  async createSpace(space: ClickUpSpaceLightDTO): Promise<ClickUpSpaceLightDTO | null> {
-    const payload: ClickUpSpaceCreateDTO = {
-      name: space.name ?? null,
-      space_code: space.space_code ?? null,
-    };
-
-    const response = await clickUpApi.createSpaceClickupPost(payload);
+  async createSpace(space: ClickUpSpaceCreateDTO): Promise<ClickUpSpaceLightDTO | null> {
+    const response = await clickUpApi.createSpaceClickupPost(space);
     return {
       id: response.data?.id ?? null,
       name: response.data?.name ?? null,
       space_code: response.data?.space_code ?? null,
       repo: null,
-    };
+    } as ClickUpSpaceLightDTO;
   },
 
-  async updateSpace(space: ClickUpSpaceLightDTO): Promise<ClickUpSpaceLightDTO | null> {
+  async updateSpace(space: ClickUpSpaceUpdateDTO): Promise<ClickUpSpaceLightDTO | null> {
     if (typeof space.id !== 'number') {
       throw new Error('Missing ClickUp space id');
     }

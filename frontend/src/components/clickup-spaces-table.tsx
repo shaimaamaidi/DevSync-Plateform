@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import type { ClickUpSpaceLightDTO, GitRepoDTO } from '@/api/api';
+import type { ClickUpSpaceCreateDTO, ClickUpSpaceLightDTO, ClickUpSpaceUpdateDTO, GitRepoDTO } from '@/api/api';
 import { repoService } from '@/services/repo-service';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, X, Link as LinkIcon } from 'lucide-react';
@@ -18,9 +18,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
-  onUpdate: (space: ClickUpSpaceLightDTO) => Promise<boolean>;
+  onUpdate: (space: ClickUpSpaceUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (space: ClickUpSpaceLightDTO) => Promise<boolean>;
+  onAdd: (space: ClickUpSpaceCreateDTO) => Promise<boolean>;
 }
 
 export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickUpSpacesTableProps) {
@@ -99,18 +99,20 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd }: ClickU
       return;
     }
 
-    const baseSpace = editingSpace ?? {};
-    const nextSpace: ClickUpSpaceLightDTO = {
-      ...baseSpace,
-      ...formData,
-    };
-
     let success = false;
 
     if (editingSpace) {
+      const baseSpace = editingSpace ?? {};
+      const nextSpace: ClickUpSpaceUpdateDTO = {
+        ...baseSpace,
+        ...formData,
+      };
       success = await onUpdate(nextSpace);
     } else {
-      success= await onAdd(nextSpace);
+      success= await onAdd({
+        name: formData.name,
+        space_code: formData.space_code,
+      } as ClickUpSpaceCreateDTO);
     }
 
     if(success){

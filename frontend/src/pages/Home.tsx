@@ -5,9 +5,13 @@ import { DeploymentsTracker } from '@/components/deployments-tracker';
 import { Navigation } from '@/components/navigation';
 import { ReposTable } from '@/components/repos-table';
 import type {
+  ClickUpSpaceCreateDTO,
   ClickUpSpaceLightDTO,
+  ClickUpSpaceUpdateDTO,
   DeploymentDTO,
+  GitRepoCreateDTO,
   GitRepoDetailDTO,
+  GitRepoUpdateDTO,
   MemberCreateDTO,
   MemberDTO,
   MemberUpdateDTO,
@@ -85,7 +89,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     refreshAllData();
   }, [refreshAllData]);
 
-  const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoDetailDTO) => {
+  const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoUpdateDTO) => {
     const result = await withErrorHandling(
       () => repoService.updateRepo(updatedRepo),
       'Update repository',
@@ -111,7 +115,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
   return Promise.resolve(true);
   }, [refreshAllData]);
   
-  const handleUpdateClickUpSpace = useCallback(async (space: ClickUpSpaceLightDTO) => {
+  const handleUpdateClickUpSpace = useCallback(async (space: ClickUpSpaceUpdateDTO) => {
     const result = await withErrorHandling(
       () => clickUpService.updateSpace(space),
       'Update clickup space',
@@ -160,7 +164,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     showSuccessToast('ClickUp space deleted successfully');
   }, [refreshAllData]);
 
-  const handleAddRepo = useCallback(async (newRepo: GitRepoDetailDTO) => {
+  const handleAddRepo = useCallback(async (newRepo: GitRepoCreateDTO) => {
     const result = await withErrorHandling(
       () => repoService.createRepo(newRepo),
       'Create repository',
@@ -186,7 +190,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     return Promise.resolve(true);
   }, [refreshAllData]);
 
-  const handleAddClickUpSpace = useCallback(async (newSpace: ClickUpSpaceLightDTO) => {
+  const handleAddClickUpSpace = useCallback(async (newSpace: ClickUpSpaceCreateDTO) => {
     const result = await withErrorHandling(
       () => clickUpService.createSpace(newSpace),
       'Create clickup space',

@@ -18,7 +18,7 @@ export interface MembersTableProps {
   members: MemberDTO[];
   onUpdate: (member: MemberUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (member: MemberDTO) => Promise<boolean>;
+  onAdd: (member: MemberCreateDTO) => Promise<boolean>;
 }
 
 

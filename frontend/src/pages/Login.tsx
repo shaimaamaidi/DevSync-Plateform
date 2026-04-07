@@ -5,6 +5,7 @@ import { showSuccessToast } from '@/components/global-success-toaster';
 import { Eye, EyeOff } from 'lucide-react';
 import { handleApiError } from '@/services/api-error';
 import { showErrorToast } from '@/components/global-error-toaster';
+import type { MemberAuthDTO } from '@/api/api';
 
 export default function LoginPage() {
   const [mail, setMail] = useState('');
@@ -36,7 +37,7 @@ export default function LoginPage() {
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
     try {
-      await authService.login({ mail, password });
+      await authService.login({ mail, password } as MemberAuthDTO);
       showSuccessToast('Login successful!');
       navigate('/repositories');
     } catch (err: any) {

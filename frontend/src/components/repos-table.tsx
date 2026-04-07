@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import type { ClickUpSpaceLightDTO, GitRepoDetailDTO, MemberDTO } from '@/api/api';
+import type { ClickUpSpaceLightDTO, GitRepoCreateDTO, GitRepoDetailDTO, GitRepoUpdateDTO, MemberDTO, RepoClickUpSpaceRefDTO, RepoMemberRefDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Edit2, Trash2, Plus, GitBranch, Users, Link as LinkIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -18,9 +18,9 @@ interface ReposTableProps {
   repos: GitRepoDetailDTO[];
   clickUpSpaces: ClickUpSpaceLightDTO[];
   availableMembers: MemberDTO[];
-  onUpdate: (repo: GitRepoDetailDTO) => Promise<boolean>;
+  onUpdate: (repo: GitRepoUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (repo: GitRepoDetailDTO) => Promise<boolean>;
+  onAdd: (repo: GitRepoCreateDTO) => Promise<boolean>;
 }
 
 export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd }: ReposTableProps) {
@@ -42,9 +42,31 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
   const handleSave = async (updatedRepo: GitRepoDetailDTO) => {
     let success = false;
     if (selectedRepo) {
-      success = await onUpdate(updatedRepo);
+      const members: RepoMemberRefDTO[] | null = updatedRepo.members
+        ? updatedRepo.members.map((member) => ({
+        id: member.id ?? undefined,
+        mail: member.mail ?? undefined,
+      }))
+      : null;
+      
+      const clickupSpace: RepoClickUpSpaceRefDTO | null = updatedRepo.clickup_space
+        ? {
+        id: updatedRepo.clickup_space.id ?? undefined,
+        space_code: updatedRepo.clickup_space.space_code ?? undefined,
+        }
+      : null;
+      success = await onUpdate({
+        id: updatedRepo.id,
+        name: updatedRepo.name ?? null,
+        url: updatedRepo.url ?? null,
+        members: members,
+        clickup_space: clickupSpace,
+      } as GitRepoUpdateDTO);
     } else {
-      success = await onAdd(updatedRepo);
+      success = await onAdd({
+        name: updatedRepo.name ?? null,
+        url: updatedRepo.url ?? null,
+      } as GitRepoCreateDTO);
     }
     if(success){
       setIsEditModalOpen(false);

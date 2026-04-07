@@ -24,13 +24,8 @@ export const repoService = {
     return response.data ?? null;
   },
 
-  async createRepo(repo: GitRepoDetailDTO): Promise<GitRepoDetailDTO | null> {
-    const payload: GitRepoCreateDTO = {
-      name: repo.name ?? null,
-      url: repo.url ?? null,
-    };
-
-    const response = await repoApi.addRepoRepoPost(payload);
+  async createRepo(repo: GitRepoCreateDTO): Promise<GitRepoDetailDTO | null> {
+    const response = await repoApi.addRepoRepoPost(repo);
     const created = response.data ?? null;
     if (created?.id != null) {
       return await repoService.getRepoById(created.id);
@@ -38,41 +33,18 @@ export const repoService = {
 
     return {
       id: created?.id ?? null,
-      name: created?.name ?? payload.name ?? null,
-      url: created?.url ?? payload.url ?? null,
+      name: created?.name ?? created.name ?? null,
+      url: created?.url ?? created.url ?? null,
       members: [],
       clickup_space: null,
     };
   },
 
-  async updateRepo(repo: GitRepoDetailDTO): Promise<GitRepoDetailDTO | null> {
+  async updateRepo(repo: GitRepoUpdateDTO): Promise<GitRepoDetailDTO | null> {
     if (typeof repo.id !== 'number') {
       throw new Error('Missing repository id');
     }
-    const members: RepoMemberRefDTO[] | null = repo.members
-      ? repo.members.map((member) => ({
-          id: member.id ?? undefined,
-          mail: member.mail ?? undefined,
-        }))
-      : null;
-
-    const clickupSpace: RepoClickUpSpaceRefDTO | null = repo.clickup_space
-      ? {
-          id: repo.clickup_space.id ?? undefined,
-          space_code: repo.clickup_space.space_code ?? undefined,
-        }
-      : null;
-
-    const payload: GitRepoUpdateDTO = {
-      id: repo.id,
-      name: repo.name ?? null,
-      url: repo.url ?? null,
-      members,
-      clickup_space: clickupSpace,
-    };
-
-    const payloadWithId = { ...payload, id: repo.id };
-    const response = await repoApi.updateRepoRepoRepoIdPut(repo.id, payloadWithId);
+    const response = await repoApi.updateRepoRepoRepoIdPut(repo.id, repo);
     return response.data ?? null;
   },
 
