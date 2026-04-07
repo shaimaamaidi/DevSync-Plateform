@@ -7,7 +7,7 @@ export const memberService = {
       id: member.id ?? null,
       username: member.username ?? null,
       mail: member.mail ?? null,
-    };
+    } as MemberDTO;
   },
 
   async getAllWithRepos(): Promise<MemberWithReposDTO[]> {
@@ -23,7 +23,7 @@ export const memberService = {
     };
 
     const response = await memberApi.addMemberMemberPost(payload);
-    return response.data ?? null;
+    return response.data as MemberDTO ?? null;
   },
 
   async updateMember(member: MemberUpdateDTO): Promise<MemberDTO | null> {
@@ -44,7 +44,7 @@ export const memberService = {
           id: response.data.id ?? null,
           username: response.data.username ?? null,
           mail: response.data.mail ?? null,
-        }
+        } as MemberDTO
       : null;
   },
 

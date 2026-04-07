@@ -35,7 +35,7 @@ export const repoService = {
       url: created?.url ?? created.url ?? null,
       members: [],
       clickup_space: null,
-    };
+    } as GitRepoDetailDTO;
   },
 
   async updateRepo(repo: GitRepoUpdateDTO): Promise<GitRepoDetailDTO | null> {
@@ -43,7 +43,7 @@ export const repoService = {
       throw new Error('Missing repository id');
     }
     const response = await repoApi.updateRepoRepoRepoIdPut(repo.id, repo);
-    return response.data ?? null;
+    return response.data as GitRepoDetailDTO ?? null;
   },
 
   async deleteRepo(repoId: number): Promise<boolean> {

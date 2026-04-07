@@ -1,6 +1,5 @@
 import { clickUpApi } from '@/apiClient';
 import type {
-  ClickUpRepoRefDTO,
   ClickUpSpaceCreateDTO,
   ClickUpSpaceDetailDTO,
   ClickUpSpaceLightDTO,
@@ -28,21 +27,7 @@ export const clickUpService = {
       throw new Error('Missing ClickUp space id');
     }
 
-    const repoRef: ClickUpRepoRefDTO | null = space.repo
-      ? {
-          id: space.repo.id ?? null,
-          url: space.repo.url ?? null,
-        }
-      : null;
-
-    const payload: ClickUpSpaceUpdateDTO = {
-      id: space.id,
-      name: space.name ?? null,
-      space_code: space.space_code ?? null,
-      repo: repoRef,
-    };
-
-    const response = await clickUpApi.updateSpaceClickupSpaceIdPut(space.id, payload);
+    const response = await clickUpApi.updateSpaceClickupSpaceIdPut(space.id, space);
     return mapDetailToLight(response.data ?? null);
   },
 
