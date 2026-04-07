@@ -27,16 +27,17 @@ The frontend consumes the backend REST API documented at:
 
 ---
 
-## 🍪 Authentication with Cookies
+## 🍪 Authentication & Cookies
 
-Since 2026, authentication uses **HttpOnly/Secure/SameSite cookies** for the JWT access token:
+L’application frontend utilise les **cookies** pour la gestion de l’authentification :
 
-- On login (`/auth/login`), the backend sets the access token in a secure cookie (HttpOnly, Secure, SameSite=Lax).
-- The frontend cannot access this cookie via JavaScript; it is sent automatically by the browser with each API request.
-- The refresh token is managed client-side (cookie or localStorage).
-- Protected endpoints check the access token in the cookie **or** in the `Authorization` header.
+- À la connexion (`/auth/login`), le backend place le token d’accès (JWT) dans un cookie sécurisé (**HttpOnly**, **Secure**, **SameSite=Lax**).
+- Ce cookie est automatiquement envoyé par le navigateur à chaque requête API (le frontend n’y a pas accès en JavaScript).
+- Le refresh token est géré côté client (cookie ou localStorage).
+- Les endpoints protégés vérifient le token d’accès dans le cookie **ou** dans l’en-tête `Authorization`.
+- **Aucune donnée d’authentification n’est stockée dans le localStorage pour l’accès principal.**
 
-> **Note:** To test protected endpoints with curl or Postman, you can use either the `Authorization: Bearer <access_token>` header or send the `access_token` cookie.
+> **Note :** Pour tester les endpoints protégés avec curl ou Postman, vous pouvez utiliser soit l’en-tête `Authorization: Bearer <access_token>`, soit envoyer le cookie `access_token`.
 - [Main Features](#main-features)
 - [Environment Variables](#environment-variables)
 - [Running Tests](#running-tests)
@@ -129,8 +130,10 @@ Create a `.env` file at the root of the frontend if needed. Main variables:
 | Variable           | Description                        | Example                |
 |--------------------|------------------------------------|------------------------|
 | VITE_API_BASE_URL  | Backend API URL                    | http://localhost:8000  |
+| VITE_REFRESH_TOKEN_EXPIRE_DAYS | Refresh token expiration (days) | 7 |
 
 ---
+
 
 ## 📦 Main Dependencies
 
@@ -142,8 +145,27 @@ Create a `.env` file at the root of the frontend if needed. Main variables:
 - axios
 - @tanstack/react-query
 - openapi-typescript-codegen
+- @radix-ui/react-* (UI components)
+- lucide-react (icons)
+- react-toastify (notifications)
 
 See `package.json` for the full list.
+
+---
+
+## 🎨 UI/UX
+
+- Interface moderne et responsive avec Tailwind CSS
+- Composants UI avancés via Radix UI (`@radix-ui/react-*`)
+- Icônes via Lucide
+- Notifications globales (succès/erreur) avec React Toastify
+
+---
+
+## 🛡️ Gestion des erreurs
+
+- Les erreurs API sont capturées et affichées via des toasts (voir `src/services/api-error.ts` et les composants `global-success-toaster.tsx`/`global-error-toaster.tsx`).
+- Les erreurs d’authentification déclenchent un rafraîchissement automatique du token ou une redirection vers la page de login.
 
 ---
 
