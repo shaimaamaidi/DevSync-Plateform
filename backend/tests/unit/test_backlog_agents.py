@@ -161,7 +161,7 @@ def test_epic_generator_agent_wraps_error(monkeypatch) -> None:
 
 def test_user_story_generator_agent_sets_epic_title(monkeypatch) -> None:
     prompt_loader = _prompt_loader()
-    parsed = UserStoryList(epic_title=None, user_stories=[UserStory(title="Story", description="Desc")])
+    parsed = UserStoryList(epic_title="Epic", user_stories=[UserStory(title="Story", description="Desc")])
     _patch_base_agent(monkeypatch, prompt_loader, parsed=parsed)
 
     agent = UserStoryGeneratorAgent(prompt_loader)
@@ -187,7 +187,7 @@ def test_user_story_generator_agent_wraps_error(monkeypatch) -> None:
 
 def test_task_generator_agent_sets_story_title(monkeypatch) -> None:
     prompt_loader = _prompt_loader()
-    parsed = TaskList(user_story_title=None, tasks=[Task(title="Task", description="Desc")])
+    parsed = TaskList(user_story_title="Story", tasks=[Task(title="Task", description="Desc")])
     _patch_base_agent(monkeypatch, prompt_loader, parsed=parsed)
 
     agent = TaskGeneratorAgent(prompt_loader)

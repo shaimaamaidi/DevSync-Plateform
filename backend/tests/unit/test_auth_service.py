@@ -2,7 +2,7 @@
 Unit tests for AuthService.
 """
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import pytest
 from backend.src.application.services.auth_service import AuthService
 from backend.src.domain.entities.member import MemberAuthDTO
@@ -26,12 +26,10 @@ def test_login_success() -> None:
     jwt_handler.create_access_token.return_value = "access"
     jwt_handler.create_refresh_token.return_value = ("refresh", "expiry")
     service = AuthService(member_repo, jwt_handler, refresh_token_repo)
-    # Patch password context
-    service._pwd_context = MagicMock()
-    service._pwd_context.verify.return_value = True
-
     credentials = MemberAuthDTO(mail="user@mail.com", password="pass")
-    result = service.login(credentials)
+
+    with patch("backend.src.application.services.auth_service.verify_password", return_value=True):
+        result = service.login(credentials)
 
     member_repo.find_credentials_by_mail.assert_called_once_with("user@mail.com")
     jwt_handler.create_access_token.assert_called_once()
@@ -53,12 +51,11 @@ def test_login_invalid_credentials() -> None:
     credentials_obj.mail = "user@mail.com"
     member_repo.find_credentials_by_mail.return_value = credentials_obj
     service = AuthService(member_repo, jwt_handler, refresh_token_repo)
-    service._pwd_context = MagicMock()
-    service._pwd_context.verify.return_value = False
-
     credentials = MemberAuthDTO(mail="user@mail.com", password="wrong")
-    with pytest.raises(InvalidInputException):
-        service.login(credentials)
+
+    with patch("backend.src.application.services.auth_service.verify_password", return_value=False):
+        with pytest.raises(InvalidInputException):
+            service.login(credentials)
 
 
 def test_refresh_invalid_token() -> None:

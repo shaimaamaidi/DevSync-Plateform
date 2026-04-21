@@ -125,8 +125,8 @@ def create_app() -> FastAPI:
     setup_logger()
 
     app = FastAPI(
-        title="ClickUp Integration API",
-        description="Manage repositories, members, ClickUp spaces and deployments.",
+        title="AI Backlog Generation & ClickUp Integration API",
+        description="REST API that orchestrates an AI-driven backlog generation workflow. It transforms product descriptions into structured epics, user stories, and tasks using market intelligence, then integrates the results with ClickUp for workspace, task, and team management automation.",
         version="1.0.0",
         lifespan=lifespan,
     )

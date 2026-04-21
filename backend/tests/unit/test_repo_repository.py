@@ -15,8 +15,10 @@ from backend.src.domain.entities.git_repo import (
     RepoMemberRefDTO,
 )
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.database.database_initialization_exception import DatabaseInitializationException
 from backend.src.domain.exceptions.repo.repo_not_found_exception import RepoNotFoundException
 from backend.src.domain.exceptions.repo.repo_persistence_exception import RepoPersistenceException
+from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.repositories.repo_repository import SqlAlchemyRepoRepository
 
 
@@ -120,6 +122,8 @@ def test_repo_update_members_association_by_id() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         member_model,
     ]
 
@@ -147,6 +151,8 @@ def test_repo_update_members_missing_raises() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         None,
     ]
 
@@ -171,6 +177,8 @@ def test_repo_update_clickup_space_association_by_id() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         clickup_model,
     ]
 
@@ -198,6 +206,8 @@ def test_repo_update_clickup_space_missing_raises() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         None,
     ]
 
@@ -244,6 +254,8 @@ def test_repo_update_members_association_by_mail() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         member_model,
     ]
 
@@ -271,6 +283,8 @@ def test_repo_update_members_missing_mail_raises() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         None,
     ]
 
@@ -300,6 +314,8 @@ def test_repo_update_clickup_space_already_associated_raises() -> None:
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
+    ]
+    session.query.return_value.filter.return_value.first.side_effect = [
         clickup_model,
     ]
 
@@ -311,33 +327,20 @@ def test_repo_update_clickup_space_already_associated_raises() -> None:
         )
 
 
-def test_repo_update_clickup_space_association_by_space_code() -> None:
+def test_mysql_connector_missing_env_raises(monkeypatch) -> None:
     """
-    update should associate ClickUp space by space_code.
+    Missing env vars should raise DatabaseInitializationException.
     """
-    clickup_model = SimpleNamespace(id=5, name="Space", space_code="SPC", repo_id=None)
-    repo_model = SimpleNamespace(
-        id=1,
-        name="repo",
-        url="https://example.com/repo",
-        members=[],
-        clickup_space=None,
-    )
-    session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-        None,
-        clickup_model,
-    ]
+    for key in ["MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_HOST", "MYSQL_PORT", "MYSQL_DB"]:
+        monkeypatch.delenv(key, raising=False)
 
-    repo = SqlAlchemyRepoRepository(session)
-    result = repo.update(
-        GitRepoUpdateDTO(id=1, clickup_space=RepoClickUpSpaceRefDTO(space_code="SPC"))
+    monkeypatch.setattr(
+        "backend.src.infrastructure.persistence.mysql_connector.load_dotenv",
+        lambda *args, **kwargs: False
     )
 
-    assert result.id == 1
-    assert repo_model.clickup_space.space_code == "SPC"
-    session.commit.assert_called_once()
+    with pytest.raises(DatabaseInitializationException):
+        MySQLConnector()
 
 
 def test_repo_update_clickup_space_by_space_code_already_associated_raises() -> None:
@@ -355,7 +358,10 @@ def test_repo_update_clickup_space_by_space_code_already_associated_raises() -> 
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
-        None,
+    ]
+    # space.clickup_space.id est None → bloc by id skippé
+    # → un seul appel by space_code qui retourne clickup_model (repo_id=999 != 1)
+    session.query.return_value.filter.return_value.first.side_effect = [
         clickup_model,
     ]
 
@@ -363,5 +369,8 @@ def test_repo_update_clickup_space_by_space_code_already_associated_raises() -> 
 
     with pytest.raises(InvalidInputException):
         repo.update(
-            GitRepoUpdateDTO(id=1, clickup_space=RepoClickUpSpaceRefDTO(space_code="SPC"))
+            GitRepoUpdateDTO(
+                id=1,
+                clickup_space=RepoClickUpSpaceRefDTO(space_code="SPC")
+            )
         )

@@ -51,6 +51,10 @@ class JWTHandler(IJWTHandler):
         self.secret_key = os.getenv("JWT_SECRET_KEY")
         self.algorithm = os.getenv("JWT_ALGORITHM", "HS256")
 
+        if not self.secret_key:
+            logger.error("JWTHandler initialization failed: JWT_SECRET_KEY is missing!")
+            raise MissingEnvVariableException("Missing required environment variable: JWT_SECRET_KEY")
+
         try:
             self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
             self.refresh_token_expire_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
@@ -59,10 +63,6 @@ class JWTHandler(IJWTHandler):
             raise MissingEnvVariableException(
                 "ACCESS_TOKEN_EXPIRE_MINUTES or REFRESH_TOKEN_EXPIRE_DAYS must be integers.") from e
 
-        if not self.secret_key:
-            logger.error("JWTHandler initialization failed: JWT_SECRET_KEY is missing!")
-            raise MissingEnvVariableException("Missing required environment variable: JWT_SECRET_KEY")
-
         logger.info("JWTHandler initialized successfully.")
 
     def create_access_token(self, data: dict) -> str:
@@ -70,7 +70,7 @@ class JWTHandler(IJWTHandler):
         Generate a JWT access token.
 
         Args:
-            data (dict): Payload containing at least keys "sub" (member_id) and "mail" (email). 
+            data (dict): Payload containing at least keys "sub" (member_id) and "mail" (email).
 
         Returns:
             str: Encoded JWT access token.

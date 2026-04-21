@@ -2,7 +2,6 @@
 Unit tests for MySQLConnector.
 """
 
-import os
 from unittest.mock import MagicMock
 
 import pytest
@@ -23,6 +22,8 @@ def _set_env(monkeypatch) -> None:
     monkeypatch.setenv("MYSQL_DB", "db")
 
 
+from unittest.mock import patch
+
 def test_mysql_connector_missing_env_raises(monkeypatch) -> None:
     """
     Missing env vars should raise DatabaseInitializationException.
@@ -30,8 +31,9 @@ def test_mysql_connector_missing_env_raises(monkeypatch) -> None:
     for key in ["MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_HOST", "MYSQL_PORT", "MYSQL_DB"]:
         monkeypatch.delenv(key, raising=False)
 
-    with pytest.raises(DatabaseInitializationException):
-        MySQLConnector()
+    with patch("backend.src.infrastructure.persistence.mysql_connector.load_dotenv", lambda *args, **kwargs: False):
+        with pytest.raises(DatabaseInitializationException):
+            MySQLConnector()
 
 
 def test_mysql_connector_connect_creates_engine(monkeypatch) -> None:

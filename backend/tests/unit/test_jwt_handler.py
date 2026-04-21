@@ -14,9 +14,13 @@ def test_missing_env_variables(monkeypatch):
     Test that JWTHandler raises an exception if required environment variables are missing.
     """
     monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
-    monkeypatch.delenv("JWT_ALGORITHM", raising=False)
-    monkeypatch.delenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", raising=False)
-    monkeypatch.delenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS", raising=False)
+    monkeypatch.delenv("ACCESS_TOKEN_EXPIRE_MINUTES", raising=False)
+    monkeypatch.delenv("REFRESH_TOKEN_EXPIRE_DAYS", raising=False)
+    monkeypatch.setattr(
+        "backend.src.infrastructure.security.jwt_handler.load_dotenv",
+        lambda *args, **kwargs: None
+    )
+
     with pytest.raises(MissingEnvVariableException):
         JWTHandler()
 

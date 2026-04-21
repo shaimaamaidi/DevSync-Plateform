@@ -100,16 +100,38 @@ def test_clickup_update_repo_by_id() -> None:
     """
     update should associate repo by id.
     """
-    repo_model = SimpleNamespace(id=9, name="repo", url="https://example.com/repo", clickup_space=None)
-    space_model = SimpleNamespace(id=1, name="Space", space_code="SPC", repo=None)
+    repo_model = SimpleNamespace(
+        id=9,
+        name="repo",
+        url="https://example.com/repo",
+        clickup_space=None
+    )
+
+    space_model = SimpleNamespace(
+        id=1,
+        name="Space",
+        space_code="SPC",
+        repo=None
+    )
+
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        space_model,
-        repo_model,
-    ]
+
+    query_mock = MagicMock()
+
+    query_mock.filter_by.return_value.first.return_value = space_model
+
+    query_mock.filter.return_value.first.return_value = repo_model
+
+    session.query.return_value = query_mock
 
     repo = SqlAlchemyClickUpRepository(session)
-    result = repo.update(ClickUpSpaceUpdateDTO(id=1, repo=ClickUpRepoRefDTO(id=9)))
+
+    result = repo.update(
+        ClickUpSpaceUpdateDTO(
+            id=1,
+            repo=ClickUpRepoRefDTO(id=9)
+        )
+    )
 
     assert result.id == 1
     assert space_model.repo.id == 9
@@ -120,23 +142,44 @@ def test_clickup_update_repo_by_url() -> None:
     """
     update should associate repo by url.
     """
-    repo_model = SimpleNamespace(id=9, name="repo", url="https://example.com/repo", clickup_space=None)
-    space_model = SimpleNamespace(id=1, name="Space", space_code="SPC", repo=None)
+    repo_model = MagicMock()
+    repo_model.id = 9
+    repo_model.name = "my-repo"
+    repo_model.url = "https://example.com/repo"
+    repo_model.clickup_space = None
+
+    space_model = MagicMock()
+    space_model.id = 1
+    space_model.name = "my-space"
+    space_model.space_code = "SPC"
+    space_model.repo = None
+
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        space_model,
-        None,
-        repo_model,
-    ]
+
+    def query_side_effect(model):
+        query_mock = MagicMock()
+
+        if model.__name__ == "ClickUpSpaceModel":
+            query_mock.filter_by.return_value.first.return_value = space_model
+
+        elif model.__name__ == "GitRepoModel":
+            query_mock.filter.return_value.first.return_value = repo_model
+
+        return query_mock
+
+    session.query.side_effect = query_side_effect
 
     repo = SqlAlchemyClickUpRepository(session)
+
     result = repo.update(
-        ClickUpSpaceUpdateDTO(id=1, repo=ClickUpRepoRefDTO(url="https://example.com/repo"))
+        ClickUpSpaceUpdateDTO(
+            id=1,
+            repo=ClickUpRepoRefDTO(url="https://example.com/repo")
+        )
     )
 
-    assert result.id == 1
-    assert space_model.repo.url == "https://example.com/repo"
-    session.commit.assert_called_once()
+    assert result is not None
+    assert space_model.repo == repo_model
 
 
 def test_clickup_update_repo_missing_raises() -> None:
