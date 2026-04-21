@@ -117,6 +117,9 @@ export interface ClickUpSpaceUpdateDTO {
     'space_code'?: string | null;
     'repo'?: ClickUpRepoRefDTO | null;
 }
+/**
+ * Deployment information returned by GitHub.  Attributes:     dep_id: Deployment identifier.     environment: Deployment environment.     ref: Git reference.     sha: Commit SHA.     creator: Creator username.     created_at: Creation timestamp.     description: Deployment description.     state: Deployment state.     log_url: URL to deployment logs.
+ */
 export interface DeploymentDTO {
     'dep_id': number;
     'environment': string;
@@ -225,6 +228,22 @@ export interface MemberWithReposDTO {
     'repos'?: Array<RepoSummary>;
 }
 /**
+ * Request payload for backlog refinement streaming.  This DTO is used when a user provides feedback on a generated backlog. It allows the system to continue the backlog refinement workflow in a streaming manner using the existing conversation thread.  Attributes:     thread_id: Identifier of the conversation thread.     user_result: User feedback or modifications on the backlog.     tool_result: Previous system/tool generated backlog output.
+ */
+export interface ReplyBacklogStreamRequest {
+    'thread_id': string;
+    'user_result': string;
+    'tool_result': string;
+}
+/**
+ * Request payload for streaming workflow reply.  This DTO is used when the user responds to a generated output (such as market intelligence) in order to validate, refine, or correct it within an ongoing conversation thread.  Attributes:     thread_id: Identifier of the conversation thread.     tool_result: Output produced by the system or tool that is being reviewed.     user_result: User feedback, corrections, or validation input.
+ */
+export interface ReplyStreamRequest {
+    'thread_id': string;
+    'tool_result': string;
+    'user_result': string;
+}
+/**
  * ClickUp space details associated with a repository.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.     name: ClickUp space name.
  */
 export interface RepoClickUpSpaceDTO {
@@ -276,12 +295,16 @@ export interface RepoSummary {
     'name'?: string | null;
     'url'?: string | null;
 }
+/**
+ * Request payload to start backlog generation.  This DTO represents the initial input provided by the user to start the backlog creation process. The description is used as the source input for generating epics, user stories, and tasks.  Attributes:     description: Raw functional or product description used to generate the backlog.
+ */
+export interface StartBacklogRequest {
+    'description': string;
+}
 export interface ValidationError {
     'loc': Array<LocationInner>;
     'msg': string;
     'type': string;
-    'input'?: any;
-    'ctx'?: object;
 }
 
 /**
@@ -832,6 +855,246 @@ export class AuthApi extends BaseAPI {
      */
     public refreshAuthRefreshPost(refreshToken: string, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).refreshAuthRefreshPost(refreshToken, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * BacklogApi - axios parameter creator
+ */
+export const BacklogApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
+         * @summary Reply Backlog
+         * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        replyBacklogBacklogReplyBacklogPost: async (replyBacklogStreamRequest: ReplyBacklogStreamRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'replyBacklogStreamRequest' is not null or undefined
+            assertParamExists('replyBacklogBacklogReplyBacklogPost', 'replyBacklogStreamRequest', replyBacklogStreamRequest)
+            const localVarPath = `/backlog/reply/backlog`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(replyBacklogStreamRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
+         * @summary Reply
+         * @param {ReplyStreamRequest} replyStreamRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        replyBacklogReplyPost: async (replyStreamRequest: ReplyStreamRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'replyStreamRequest' is not null or undefined
+            assertParamExists('replyBacklogReplyPost', 'replyStreamRequest', replyStreamRequest)
+            const localVarPath = `/backlog/reply`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(replyStreamRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
+         * @summary Start
+         * @param {StartBacklogRequest} startBacklogRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startBacklogStartPost: async (startBacklogRequest: StartBacklogRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'startBacklogRequest' is not null or undefined
+            assertParamExists('startBacklogStartPost', 'startBacklogRequest', startBacklogRequest)
+            const localVarPath = `/backlog/start`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(startBacklogRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * BacklogApi - functional programming interface
+ */
+export const BacklogApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = BacklogApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
+         * @summary Reply Backlog
+         * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest: ReplyBacklogStreamRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BacklogApi.replyBacklogBacklogReplyBacklogPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
+         * @summary Reply
+         * @param {ReplyStreamRequest} replyStreamRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async replyBacklogReplyPost(replyStreamRequest: ReplyStreamRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.replyBacklogReplyPost(replyStreamRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BacklogApi.replyBacklogReplyPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
+         * @summary Start
+         * @param {StartBacklogRequest} startBacklogRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async startBacklogStartPost(startBacklogRequest: StartBacklogRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.startBacklogStartPost(startBacklogRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BacklogApi.startBacklogStartPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * BacklogApi - factory interface
+ */
+export const BacklogApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = BacklogApiFp(configuration)
+    return {
+        /**
+         * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
+         * @summary Reply Backlog
+         * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest: ReplyBacklogStreamRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
+         * @summary Reply
+         * @param {ReplyStreamRequest} replyStreamRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        replyBacklogReplyPost(replyStreamRequest: ReplyStreamRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.replyBacklogReplyPost(replyStreamRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
+         * @summary Start
+         * @param {StartBacklogRequest} startBacklogRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        startBacklogStartPost(startBacklogRequest: StartBacklogRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.startBacklogStartPost(startBacklogRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * BacklogApi - object-oriented interface
+ */
+export class BacklogApi extends BaseAPI {
+    /**
+     * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
+     * @summary Reply Backlog
+     * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest: ReplyBacklogStreamRequest, options?: RawAxiosRequestConfig) {
+        return BacklogApiFp(this.configuration).replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
+     * @summary Reply
+     * @param {ReplyStreamRequest} replyStreamRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public replyBacklogReplyPost(replyStreamRequest: ReplyStreamRequest, options?: RawAxiosRequestConfig) {
+        return BacklogApiFp(this.configuration).replyBacklogReplyPost(replyStreamRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
+     * @summary Start
+     * @param {StartBacklogRequest} startBacklogRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public startBacklogStartPost(startBacklogRequest: StartBacklogRequest, options?: RawAxiosRequestConfig) {
+        return BacklogApiFp(this.configuration).startBacklogStartPost(startBacklogRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

@@ -17,7 +17,6 @@ import type { Configuration } from './configuration';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import type { AxiosPromise, AxiosInstance, RawAxiosRequestConfig } from 'axios';
-
 import axios from 'axios';
 
 axios.defaults.withCredentials = true;
@@ -59,6 +58,7 @@ export class RequiredError extends Error {
         this.name = "RequiredError";
     }
 };
+
 interface ServerMap {
     [key: string]: {
         url: string,
