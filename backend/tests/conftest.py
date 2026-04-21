@@ -33,6 +33,7 @@ from backend.src.presentation.api.routers import (
     deployment_router,
     member_router,
     repo_router,
+    backlog_router,
 )
 
 
@@ -48,6 +49,7 @@ class _Container:
         self.associator_service = MagicMock()
         self.deployment_service = MagicMock()
         self.auth_service = MagicMock()
+        self.backlog_use_case = MagicMock()
 
 
 @pytest.fixture
@@ -70,6 +72,7 @@ def app(container: _Container) -> FastAPI:
     app.include_router(repo_router.router, prefix="/repo", tags=["Repo"])
     app.include_router(member_router.router, prefix="/member", tags=["Member"])
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
+    app.include_router(backlog_router.router, prefix="/backlog", tags=["Backlog"])
 
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
@@ -79,6 +82,11 @@ def app(container: _Container) -> FastAPI:
         yield container
 
     app.dependency_overrides[deps.get_container] = override_get_container
+
+    def override_get_backlog_use_case() -> MagicMock:
+        return container.backlog_use_case
+
+    app.dependency_overrides[deps.get_backlog_use_case] = override_get_backlog_use_case
     return app
 
 

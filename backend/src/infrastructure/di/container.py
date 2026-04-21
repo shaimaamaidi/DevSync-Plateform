@@ -108,7 +108,7 @@ class Container:
 
         This includes infrastructure-level utilities such as JWT handling.
         """
-        self.jwt_handler = JWTHandler(self.member_repo)
+        self.jwt_handler = JWTHandler()
 
     # External services
     def _init_external_services(self):

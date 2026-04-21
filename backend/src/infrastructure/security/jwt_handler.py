@@ -17,10 +17,8 @@ from dotenv import load_dotenv
 from jose.exceptions import JWTClaimsError
 
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
-from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
 
 logger = logging.getLogger(__name__)
@@ -40,7 +38,7 @@ class JWTHandler(IJWTHandler):
         refresh_token_expire_days (int): Expiration time for refresh tokens (days).
     """
 
-    def __init__(self, member_repo: IMemberRepository):
+    def __init__(self):
         """
         Initialize the JWTHandler.
 
@@ -52,7 +50,6 @@ class JWTHandler(IJWTHandler):
         load_dotenv(_DOTENV_PATH)
         self.secret_key = os.getenv("JWT_SECRET_KEY")
         self.algorithm = os.getenv("JWT_ALGORITHM", "HS256")
-        self.member_repo = member_repo
 
         try:
             self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
@@ -173,13 +170,6 @@ class JWTHandler(IJWTHandler):
             if not member_id or not email:
                 logger.error("Token missing required claims.")
                 raise InvalidTokenException("Token missing required claims.")
-
-            try:
-                member = self.member_repo.find_by_id(member_id)
-
-            except MemberNotFoundException:
-                logger.warning("Token invalid: member not found (id=%s).", member_id)
-                raise InvalidTokenException("Token invalid: member does not exist.")
 
             logger.info("Token verified successfully (member_id=%s).", payload.get("sub"))
 

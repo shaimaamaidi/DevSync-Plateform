@@ -11,6 +11,7 @@ Classes:
 import logging
 from datetime import datetime, timezone
 
+from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.repositories.i_refresh_token_repository import IRefreshTokenRepository
 from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
@@ -102,8 +103,8 @@ class AuthService:
             MemberTokensDTO: DTO containing new access and refresh tokens.
 
         Raises:
-            InvalidInputException: If refresh token is missing.
-            InvalidTokenException: If the token is invalid, expired, or revoked.
+            InvalidTokenException: If the token is missing, invalid, expired, or revoked, or
+                member associated with the token does not exist.
         """
         logger.info(
             "Token refresh attempt started: refresh_token=%s.",
@@ -123,6 +124,12 @@ class AuthService:
         if not payload.get("sub") or not payload.get("mail"):
             logger.warning("Token missing required claims.")
             raise InvalidTokenException("Token missing required claims.")
+
+        try:
+            member = self._repo.find_by_id(payload.get("sub") )
+        except MemberNotFoundException:
+            logger.warning("Token invalid: member not found (id=%s).", payload.get("sub") )
+            raise InvalidTokenException("Token invalid: member does not exist.")
 
         record = self._refresh_token_repo.get_refresh_token(refresh_token)
 
