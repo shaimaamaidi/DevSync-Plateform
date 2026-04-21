@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Toujours envoyer les cookies (access_token) avec chaque requête API
 import { authService } from '@/services/auth-service';
 
 let isRefreshing = false;
