@@ -53,6 +53,7 @@ class GitHubDeploymentAdapter(IGitHubService):
         DEPLOYMENTS_MAX_ITEMS (int): Maximum number of deployments to fetch from GitHub Deployments API.
         GITHUB_TOKEN (str): Personal access token for authenticating GitHub API requests.
     """
+
     def __init__(self):
         """
         Initialize the GitHubDeploymentAdapter.
@@ -83,7 +84,7 @@ class GitHubDeploymentAdapter(IGitHubService):
                 e
             )
             raise MissingEnvVariableException(
-                "TOKEN_CLEANUP_INTERVAL_HOURS must be integers.") from e
+                message="TOKEN_CLEANUP_INTERVAL_HOURS must be integers.") from e
 
         self.GITHUB_TIMEOUT = httpx.Timeout(connect=CONNECT_TIMEOUT, read=READ_TIMEOUT, write=READ_TIMEOUT, pool=CONNECT_TIMEOUT)
 
@@ -91,7 +92,7 @@ class GitHubDeploymentAdapter(IGitHubService):
 
         if not self.GITHUB_TOKEN:
             logger.error("Missing required environment variable: GITHUB_TOKEN")
-            raise MissingEnvVariableException("GITHUB_TOKEN")
+            raise MissingEnvVariableException("Missing required environment variable: GITHUB_TOKEN")
 
     @staticmethod
     def _parse_repo(url: str) -> tuple[str, str]:

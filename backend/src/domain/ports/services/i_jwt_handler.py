@@ -1,7 +1,8 @@
 """
 Port for JWT token operations.
 
-This module defines the IJWTHandler interface, which specifies operations for creating and verifying JWT tokens.
+This module defines the IJWTHandler interface, which specifies operations for creating,
+signing, and verifying JWT tokens used for authentication and authorization.
 """
 
 from datetime import datetime
@@ -12,8 +13,10 @@ class IJWTHandler(ABC):
     """
     Define operations for creating and verifying JWT tokens.
 
-    This interface specifies methods for generating access and refresh tokens, and for verifying JWT tokens.
+    This interface represents the contract for JWT handling, including generation of access
+    and refresh tokens as well as verification and decoding of existing tokens.
     """
+
     @abstractmethod
     def create_access_token(self, data: dict) -> str:
         """
@@ -30,25 +33,25 @@ class IJWTHandler(ABC):
     @abstractmethod
     def create_refresh_token(self, data: dict) -> tuple[str, datetime]:
         """
-        Generate a JWT refresh token and its expiration.
+        Generate a JWT refresh token and its expiration time.
 
         Args:
             data (dict): Claims to encode in the token.
 
         Returns:
-            tuple[str, datetime]: The refresh token and its expiration datetime.
+            tuple[str, datetime]: Refresh token and its expiration datetime.
         """
         pass
 
     @abstractmethod
     def verify_token(self, token: str) -> dict:
         """
-        Decode and verify a JWT token.
+        Verify and decode a JWT token.
 
         Args:
             token (str): Encoded JWT token string.
 
         Returns:
-            dict: Decoded claims if the token is valid.
+            dict: Decoded token claims if valid.
         """
         pass

@@ -1,20 +1,30 @@
 """
 Repository port for member persistence.
 
-This module defines the IMemberRepository interface, which specifies persistence operations for member entities.
+This module defines the IMemberRepository interface, which specifies persistence operations
+for member entities, including authentication data retrieval, creation, update, lookup, and deletion.
 """
 
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO, \
-    MemberCredentialsDTO
+from backend.src.domain.entities.member import (
+    MemberCreateDTO,
+    MemberDTO,
+    MemberUpdateDTO,
+    MemberWithReposDTO,
+    MemberCredentialsDTO,
+)
 
 
 class IMemberRepository(ABC):
     """
     Define persistence operations for members.
+
+    This interface represents the contract for storing, retrieving, and managing member data
+    in a persistence layer such as a database, including relations with repositories.
     """
+
     @abstractmethod
     def find_credentials_by_mail(self, mail: str) -> MemberCredentialsDTO:
         """
@@ -24,7 +34,7 @@ class IMemberRepository(ABC):
             mail (str): Member email address.
 
         Returns:
-            MemberCredentialsDTO: Credentials for authentication (id, mail, hashed_password).
+            MemberCredentialsDTO: Credentials required for authentication.
         """
         pass
 
@@ -34,84 +44,84 @@ class IMemberRepository(ABC):
         Persist a new member.
 
         Args:
-            member (MemberCreateDTO): Member create DTO.
+            member (MemberCreateDTO): Member creation data.
 
         Returns:
-            MemberDTO: Created member DTO.
+            MemberDTO: Created member.
         """
         pass
 
     @abstractmethod
     def update(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
         """
-        Persist updates for a member.
+        Update an existing member.
 
         Args:
-            member (MemberUpdateDTO): Member update DTO.
+            member (MemberUpdateDTO): Member update data.
 
         Returns:
-            MemberWithReposDTO: Updated member with repositories.
+            MemberWithReposDTO: Updated member with associated repositories.
         """
         pass
 
     @abstractmethod
     def find_by_id(self, member_id: int) -> MemberDTO:
         """
-        Find a member by id.
+        Retrieve a member by its identifier.
 
         Args:
-            member_id (int): Member id.
+            member_id (int): Member identifier.
 
         Returns:
-            MemberDTO: Member DTO.
+            MemberDTO: Member data.
         """
         pass
 
     @abstractmethod
     def find_by_mail(self, mail: str) -> MemberWithReposDTO:
         """
-        Find a member by email.
+        Retrieve a member by email.
 
         Args:
-            mail (str): Member email.
+            mail (str): Member email address.
 
         Returns:
-            MemberWithReposDTO: Member with repositories.
+            MemberWithReposDTO: Member with associated repositories.
         """
         pass
 
     @abstractmethod
     def find_by_repo_id(self, repo_id: int) -> List[MemberDTO]:
         """
-        Find members by repository id.
+        Retrieve members associated with a repository.
 
         Args:
-            repo_id (int): Repository id.
+            repo_id (int): Repository identifier.
 
         Returns:
-            List[MemberDTO]: List of member DTOs.
+            List[MemberDTO]: List of members.
         """
         pass
 
     @abstractmethod
     def find_all_with_repos(self) -> List[MemberWithReposDTO]:
         """
-        Return all members with repositories.
+        Retrieve all members with their associated repositories.
 
         Returns:
-            List[MemberWithReposDTO]: List of members with repositories.
+            List[MemberWithReposDTO]: List of all members with repositories.
         """
         pass
 
     @abstractmethod
     def delete(self, member_id: int) -> bool:
         """
-        Delete a member by id.
+        Delete a member by its identifier.
 
         Args:
-            member_id (int): Member id.
+            member_id (int): Member identifier.
 
         Returns:
-            bool :True when deletion succeeds.
+            bool: True if deletion succeeds, otherwise False.
         """
         pass

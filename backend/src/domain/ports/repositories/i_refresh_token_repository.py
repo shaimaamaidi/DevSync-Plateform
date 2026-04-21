@@ -1,7 +1,8 @@
 """
-SQLAlchemy repository for ClickUp spaces.
+Repository port for refresh token persistence.
 
-This module provides a repository implementation for ClickUp space persistence using SQLAlchemy ORM.
+This module defines the IRefreshTokenRepository interface, which specifies persistence operations
+for managing refresh tokens, including creation, retrieval, revocation, and cleanup of expired tokens.
 """
 
 from abc import ABC, abstractmethod
@@ -13,32 +14,41 @@ from backend.src.domain.entities.refresh_token import RefreshTokenDTO
 class IRefreshTokenRepository(ABC):
     """
     Define persistence operations for refresh tokens.
+
+    This interface represents the contract for storing and managing refresh tokens in a persistence
+    layer such as a database, including lifecycle operations like revocation and cleanup.
     """
+
     @abstractmethod
-    def save_refresh_token(self, member_id: int, refresh_token: str, expires_at: datetime) -> None:
+    def save_refresh_token(
+        self,
+        member_id: int,
+        refresh_token: str,
+        expires_at: datetime,
+    ) -> None:
         """
         Persist a refresh token.
 
         Args:
-            member_id (int): ID of the member.
-            refresh_token (str): The refresh token string.
-            expires_at (datetime): Expiration datetime.
+            member_id (int): Identifier of the member owning the token.
+            refresh_token (str): Refresh token string.
+            expires_at (datetime): Expiration datetime of the token.
 
         Returns:
-            None: This method does not return a value; it saves the token in the persistence layer.
+            None
         """
         pass
 
     @abstractmethod
     def get_refresh_token(self, refresh_token: str) -> RefreshTokenDTO:
         """
-        Fetch a refresh token record.
+        Retrieve a refresh token record.
 
         Args:
-            refresh_token (str): The refresh token string.
+            refresh_token (str): Refresh token string.
 
         Returns:
-            RefreshTokenDTO: The refresh token record.
+            RefreshTokenDTO: Refresh token data.
         """
         pass
 
@@ -48,10 +58,10 @@ class IRefreshTokenRepository(ABC):
         Revoke a refresh token.
 
         Args:
-            refresh_token (str): The refresh token string.
+            refresh_token (str): Refresh token string to revoke.
 
         Returns:
-            None: This method does not return a value; it revokes the token in the persistence layer.
+            None
         """
         pass
 
@@ -61,6 +71,6 @@ class IRefreshTokenRepository(ABC):
         Delete all expired refresh tokens.
 
         Returns:
-            int: Number of deleted tokens.
+            int: Number of deleted expired tokens.
         """
         pass

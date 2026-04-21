@@ -34,6 +34,7 @@ class RepoService:
     Attributes:
         _repo (IRepoRepository): Repository persistence port.
     """
+
     def __init__(self, repo_repo: IRepoRepository):
         """
         Initialize the service with a repository port.

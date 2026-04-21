@@ -82,6 +82,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
     Attributes:
         _session (Session): SQLAlchemy session for database operations.
     """
+
     def __init__(self, session):
         """
         Initialize the repository with a session.

@@ -64,7 +64,7 @@ class JWTHandler(IJWTHandler):
 
         if not self.secret_key:
             logger.error("JWTHandler initialization failed: JWT_SECRET_KEY is missing!")
-            raise MissingEnvVariableException("JWT_SECRET_KEY")
+            raise MissingEnvVariableException("Missing required environment variable: JWT_SECRET_KEY")
 
         logger.info("JWTHandler initialized successfully.")
 

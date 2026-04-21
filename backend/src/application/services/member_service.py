@@ -28,6 +28,7 @@ class MemberService:
     Attributes:
         _repo (IMemberRepository): Member persistence port.
     """
+
     def __init__(self, member_repo: IMemberRepository):
         """
         Initialize the service with a repository port.

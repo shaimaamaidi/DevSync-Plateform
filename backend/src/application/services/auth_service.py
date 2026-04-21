@@ -19,6 +19,7 @@ from backend.src.domain.exceptions.invalid_input_exception import InvalidInputEx
 from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
 from backend.src.shared.helpers.password_helper import verify_password
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -33,6 +34,7 @@ class AuthService:
         _jwt_handler (IJWTHandler): JWT handler service port.
         _refresh_token_repo (IRefreshTokenRepository): Persistence port for refresh tokens.
     """
+
     def __init__(
         self,
         member_repository: IMemberRepository,

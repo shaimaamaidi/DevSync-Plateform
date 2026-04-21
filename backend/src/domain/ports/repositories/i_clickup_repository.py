@@ -1,7 +1,8 @@
 """
 Repository port for ClickUp space persistence.
 
-This module defines the IClickUpRepository interface, which specifies persistence operations for ClickUp space entities.
+This module defines the IClickUpRepository interface, which specifies persistence operations
+for ClickUp space entities, including creation, update, retrieval, listing, and deletion.
 """
 
 from abc import ABC, abstractmethod
@@ -19,14 +20,18 @@ from backend.src.domain.entities.clickup_space import (
 class IClickUpRepository(ABC):
     """
     Define persistence operations for ClickUp spaces.
+
+    This interface represents the contract for storing and retrieving ClickUp space data
+    from a persistence layer such as a database.
     """
+
     @abstractmethod
     def save(self, space: ClickUpSpaceCreateDTO) -> ClickUpSpaceDTO:
         """
         Persist a new ClickUp space.
 
         Args:
-            space (ClickUpSpaceCreateDTO): ClickUp space create DTO.
+            space (ClickUpSpaceCreateDTO): ClickUp space creation data.
 
         Returns:
             ClickUpSpaceDTO: Created ClickUp space DTO.
@@ -36,71 +41,71 @@ class IClickUpRepository(ABC):
     @abstractmethod
     def update(self, space: ClickUpSpaceUpdateDTO) -> ClickUpSpaceDetailDTO:
         """
-        Persist updates for a ClickUp space.
+        Update an existing ClickUp space.
 
         Args:
-            space (ClickUpSpaceUpdateDTO): ClickUp space update DTO.
+            space (ClickUpSpaceUpdateDTO): ClickUp space update data.
 
         Returns:
-            ClickUpSpaceDetailDTO: Updated ClickUp space detail DTO.
+            ClickUpSpaceDetailDTO: Updated ClickUp space details.
         """
         pass
 
     @abstractmethod
     def find_by_id(self, space_id: int) -> ClickUpSpaceDetailDTO:
         """
-        Find a ClickUp space by id.
+        Retrieve a ClickUp space by its identifier.
 
         Args:
-            space_id (int): ClickUp space id.
+            space_id (int): ClickUp space identifier.
 
         Returns:
-            ClickUpSpaceDetailDTO: ClickUp space detail DTO.
+            ClickUpSpaceDetailDTO: ClickUp space details.
         """
         pass
 
     @abstractmethod
     def find_by_space_code(self, space_code: str) -> ClickUpSpaceDTO:
         """
-        Find a ClickUp space by space code.
+        Retrieve a ClickUp space by its space code.
 
         Args:
             space_code (str): ClickUp space code.
 
         Returns:
-            ClickUpSpaceDTO: ClickUp space DTO.
+            ClickUpSpaceDTO: ClickUp space data.
         """
         pass
 
     @abstractmethod
     def find_all(self) -> List[ClickUpSpaceDTO]:
         """
-        Return all ClickUp spaces.
+        Retrieve all ClickUp spaces.
 
         Returns:
-            List[ClickUpSpaceDTO]: List of ClickUp space DTOs.
+            List[ClickUpSpaceDTO]: List of ClickUp spaces.
         """
         pass
 
     @abstractmethod
     def find_all_light(self) -> List[ClickUpSpaceLightDTO]:
         """
-        Return all ClickUp spaces in light form.
+        Retrieve all ClickUp spaces in lightweight form.
 
         Returns:
-            List[ClickUpSpaceLightDTO]: List of ClickUp space light DTOs.
+            List[ClickUpSpaceLightDTO]: List of simplified ClickUp spaces.
         """
         pass
 
     @abstractmethod
     def delete(self, space_id: int) -> bool:
         """
-        Delete a ClickUp space by id.
+        Delete a ClickUp space by its identifier.
 
         Args:
-            space_id (int): ClickUp space id.
+            space_id (int): ClickUp space identifier.
 
         Returns:
-            bool: True when deletion succeeds.
+            bool: True if deletion succeeds, otherwise False.
         """
-        pass        
+        pass

@@ -51,6 +51,36 @@ _AUTH_CODES = {
     "MISSING_ENV_VARIABLE",
 }
 
+_AZURE_CODES = {
+    "MISSING_AZURE_CONFIG",
+    "AZURE_AGENT_RUNTIME_ERROR",
+    "AZURE_STREAM_ERROR",
+    "TOOL_PARSING_ERROR",
+    "TOOL_EXECUTION_ERROR",
+    "INVALID_TOOL_ARGUMENT",
+    "STREAM_CANCELLED",
+    "STREAM_EXECUTION_ERROR"
+}
+
+_PROMPT_CODES = {
+    "PROMPT_RENDER_ERROR",
+    "PROMPT_FILE_READ_ERROR",
+    "PROMPT_FILE_NOT_FOUND",
+    "PROMPT_YAML_ERROR",
+    "PROMPT_SCHEMA_ERROR",
+    "PROMPT_TEMPLATES_DIR_NOT_FOUND",
+}
+
+_BACKLOG_CODES = {
+    "BACKLOG_GENERATION_ERROR",
+    "LLM_PARSING_ERROR",
+    "BACKLOG_REPLY_ERROR",
+    "REPLY_STREAM_ERROR",
+    "BACKLOG_STREAM_ERROR",
+    "SERVICE_UNAVAILABLE",
+
+}
+
 
 class FastAPIExceptionHandler:
     """
@@ -105,6 +135,27 @@ class FastAPIExceptionHandler:
                 "Auth Error [%s]: %s.",
                 exc.code,
                 exc.message,
+            )
+        elif exc.code in _AZURE_CODES:
+            logger.error(
+                "Azure Error [%s]: %s.",
+                exc.code,
+                exc.message,
+                exc_info=exc,
+            )
+        elif exc.code in _PROMPT_CODES:
+            logger.error(
+                "Prompt Error [%s]: %s.",
+                exc.code,
+                exc.message,
+                exc_info=exc,
+            )
+        elif exc.code in _BACKLOG_CODES:
+            logger.error(
+                "Backlog Generation Error [%s]: %s.",
+                exc.code,
+                exc.message,
+                exc_info=exc,
             )
         else:
             logger.error(

@@ -33,6 +33,7 @@ class ClickUpService:
     Attributes:
         _repo (IClickUpRepository): ClickUp persistence port.
     """
+
     def __init__(self, clickup_repo: IClickUpRepository):
         """
         Initialize the service with a ClickUp repository port.

@@ -38,6 +38,7 @@ class AssociatorService:
         _clickup (IClickUpRepository): ClickUp application service.
         _member (IMemberRepository): Member application service.
     """
+
     def __init__(self, repo_service: IRepoRepository, clickup_service: IClickUpRepository, member_service: IMemberRepository):
         """
         Initialize the service with dependent services.

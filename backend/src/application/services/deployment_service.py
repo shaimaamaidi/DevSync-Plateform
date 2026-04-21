@@ -7,6 +7,7 @@ It coordinates with the GitHub service port to fetch deployment data.
 Classes:
     DeploymentService: Main service for deployment read operations.
 """
+
 import logging
 from typing import List
 
@@ -28,6 +29,7 @@ class DeploymentService:
          _repo (IRepoRepository): Repository persistence port.
         _github (IGitHubService): GitHub service port.
     """
+
     def __init__(self, repo_repo: IRepoRepository, github_service: IGitHubService):
         """
         Initialize the service with a GitHub adapter.

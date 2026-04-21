@@ -1,10 +1,12 @@
 """
 Dependency container for application services.
 
-This module defines the Container class, which wires together repositories, adapters, and application services for dependency injection in the application layer.
+This module defines the Container class, which wires together repositories,
+technical services, external adapters, and application services for dependency
+injection within the application layer.
 
 Classes:
-    Container: Dependency injection container for repositories, adapters, and services.
+    Container: Request-scoped dependency injection container.
 """
 
 import logging
@@ -23,31 +25,45 @@ from backend.src.application.services.associator_service import AssociatorServic
 from backend.src.application.services.deployment_service import DeploymentService
 from backend.src.infrastructure.security.jwt_handler import JWTHandler
 
+
 logger = logging.getLogger(__name__)
 
 
 class Container:
     """
-    Dependency injection container for repositories, adapters, and services.
+    Request-scoped dependency injection container.
+
+    This container is responsible for initializing and wiring all dependencies
+    required for handling application use cases, including repositories,
+    technical services, external adapters, and application services.
 
     Attributes:
         session: SQLAlchemy session used for repository instantiation.
-        jwt_handler (JWTHandler): JWT handler for authentication.
-        refresh_token_repo (SqlAlchemyRefreshTokenRepository): Refresh token repository.
-        repo_repo (SqlAlchemyRepoRepository): Repository for Git repositories.
-        member_repo (SqlAlchemyMemberRepository): Repository for members.
-        clickup_repo (SqlAlchemyClickUpRepository): Repository for ClickUp spaces.
-        github_service (GitHubDeploymentAdapter): Adapter for GitHub deployments.
-        repo_service (RepoService): Application service for repositories.
-        member_service (MemberService): Application service for members.
-        clickup_service (ClickUpService): Application service for ClickUp.
-        associator_service (AssociatorService): Application service for associating repos, members, and ClickUp.
-        auth_service (AuthService): Application service for authentication.
-        deployment_service (DeploymentService): Application service for deployments.
+
+        # Repositories
+        refresh_token_repo (SqlAlchemyRefreshTokenRepository)
+        repo_repo (SqlAlchemyRepoRepository)
+        member_repo (SqlAlchemyMemberRepository)
+        clickup_repo (SqlAlchemyClickUpRepository)
+
+        # Technical services
+        jwt_handler (JWTHandler)
+
+        # External services
+        github_service (GitHubDeploymentAdapter)
+
+        # Application services
+        repo_service (RepoService)
+        member_service (MemberService)
+        clickup_service (ClickUpService)
+        associator_service (AssociatorService)
+        auth_service (AuthService)
+        deployment_service (DeploymentService)
     """
+
     def __init__(self, session):
         """
-        Initialize dependencies using a shared session.
+        Initialize container dependencies using a shared session.
 
         Args:
             session (Session): SQLAlchemy session used for repository instantiation.
@@ -55,51 +71,80 @@ class Container:
         Raises:
             AppException: If container initialization fails.
         """
-        logger.info("Initializing application container.")
+        logger.info("Initializing request container.")
 
         self.session = session
 
         try:
+            self._init_repositories()
+            self._init_technical_services()
+            self._init_external_services()
+            self._init_application_services()
 
-            # Repositories
-            logger.info("Initializing repositories.")
-
-            self.refresh_token_repo = SqlAlchemyRefreshTokenRepository(self.session)
-            self.repo_repo = SqlAlchemyRepoRepository(self.session)
-            self.member_repo = SqlAlchemyMemberRepository(self.session)
-            self.clickup_repo = SqlAlchemyClickUpRepository(self.session)
-
-            # Technical Service
-            self.jwt_handler = JWTHandler(self.member_repo)
-
-            # External services
-            logger.info("Initializing external services.")
-
-            self.github_service = GitHubDeploymentAdapter()
-
-            # Application services
-            logger.info("Initializing application services.")
-
-            self.repo_service = RepoService(self.repo_repo)
-            self.member_service = MemberService(self.member_repo)
-            self.clickup_service = ClickUpService(self.clickup_repo)
-
-            self.associator_service = AssociatorService(
-                self.repo_repo,
-                self.clickup_repo,
-                self.member_repo,
-            )
-
-            self.auth_service = AuthService(
-                member_repository=self.member_repo,
-                jwt_handler=self.jwt_handler,
-                refresh_token_repository=self.refresh_token_repo,
-            )
-
-            self.deployment_service = DeploymentService(self.repo_repo, self.github_service)
-
-            logger.info("Application container initialized successfully.")
+            logger.info("Request container initialized successfully.")
 
         except Exception as e:
-            logger.exception("Failed to initialize application container.")
-            raise AppException("CONTAINER_INIT_ERROR", "Failed to initialize container") from e
+            logger.exception("Failed to initialize request container.")
+            raise AppException( "Failed to initialize container.", "CONTAINER_INIT_ERROR") from e
+
+    # Repositories
+    def _init_repositories(self):
+        """
+        Initialize persistence repositories.
+
+        This method instantiates all database repositories using the shared session.
+        """
+        logger.info("Initializing repositories.")
+
+        self.refresh_token_repo = SqlAlchemyRefreshTokenRepository(self.session)
+        self.repo_repo = SqlAlchemyRepoRepository(self.session)
+        self.member_repo = SqlAlchemyMemberRepository(self.session)
+        self.clickup_repo = SqlAlchemyClickUpRepository(self.session)
+
+    # Technical services
+    def _init_technical_services(self):
+        """
+        Initialize technical services.
+
+        This includes infrastructure-level utilities such as JWT handling.
+        """
+        self.jwt_handler = JWTHandler(self.member_repo)
+
+    # External services
+    def _init_external_services(self):
+        """
+        Initialize external service adapters.
+
+        This includes integrations with third-party systems such as GitHub.
+        """
+        logger.info("Initializing external services.")
+
+        self.github_service = GitHubDeploymentAdapter()
+
+    # Application services
+    def _init_application_services(self):
+        """
+        Initialize application services.
+
+        This method wires repositories and external services into business-level
+        application services.
+        """
+        logger.info("Initializing application services.")
+
+        self.repo_service = RepoService(self.repo_repo)
+        self.member_service = MemberService(self.member_repo)
+        self.clickup_service = ClickUpService(self.clickup_repo)
+
+        self.associator_service = AssociatorService(
+            repo_service=self.repo_repo,
+            clickup_service=self.clickup_repo,
+            member_service=self.member_repo,
+        )
+
+        self.auth_service = AuthService(
+            member_repository=self.member_repo,
+            jwt_handler=self.jwt_handler,
+            refresh_token_repository=self.refresh_token_repo,
+        )
+
+        self.deployment_service = DeploymentService(self.repo_repo, self.github_service)

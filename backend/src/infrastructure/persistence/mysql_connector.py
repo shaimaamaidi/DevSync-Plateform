@@ -42,6 +42,7 @@ class MySQLConnector:
         engine (Engine | None): SQLAlchemy engine instance once connected.
         Session (sessionmaker[Session] | None): SQLAlchemy session factory once connected.
     """
+
     def __init__(self):
         """
         Initialize configuration from environment and validate it.
