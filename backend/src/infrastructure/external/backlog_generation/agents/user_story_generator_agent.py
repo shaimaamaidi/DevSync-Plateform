@@ -14,7 +14,7 @@ from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.backlog.user_story import UserStoryList
 from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm_parsing_exception import LLMParsingException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_strory_generator import IUserStoryGenerator
 from backend.src.infrastructure.external.backlog_generation.agents.base_agent import BaseAgent
 

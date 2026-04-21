@@ -16,8 +16,8 @@ from pydantic import ValidationError
 
 from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.invalid_tool_argument_exception import InvalidToolArgumentException
-from backend.src.domain.exceptions.tool_execution_exception import ToolExecutionException
+from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
+from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_generation_orchestrator import (
     IBacklogGenerationOrchestrator,
 )

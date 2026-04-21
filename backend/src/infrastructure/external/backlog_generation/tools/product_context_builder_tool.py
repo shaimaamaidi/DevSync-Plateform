@@ -12,7 +12,7 @@ IProductContextBuilder service.
 
 import logging
 
-from backend.src.domain.exceptions.tool_execution_exception import ToolExecutionException
+from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.iproduct_context_builder import (
     IProductContextBuilder,
 )

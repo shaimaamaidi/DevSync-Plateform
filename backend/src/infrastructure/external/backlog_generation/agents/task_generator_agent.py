@@ -15,7 +15,7 @@ from backend.src.domain.entities.backlog.task import TaskList
 from backend.src.domain.entities.backlog.user_story import UserStory
 from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm_parsing_exception import LLMParsingException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.itask_generator import ITaskGenerator
 from backend.src.infrastructure.external.backlog_generation.agents.base_agent import BaseAgent
 

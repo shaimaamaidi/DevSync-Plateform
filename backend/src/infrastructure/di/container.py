@@ -13,7 +13,7 @@ import logging
 
 from backend.src.application.services.auth_service import AuthService
 from backend.src.application.services.member_service import MemberService
-from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.external.github_deployments import GitHubDeploymentAdapter
 from backend.src.infrastructure.persistence.repositories.clickup_repository import SqlAlchemyClickUpRepository
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository

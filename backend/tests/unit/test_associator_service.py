@@ -9,7 +9,7 @@ from backend.src.domain.entities.associator import AssociateClickUpSpaceRequest,
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, RepoMemberDTO
 from backend.src.domain.entities.member import MemberWithReposDTO
-from backend.src.domain.exceptions.invalid_member_data_exception import InvalidMemberDataException
+from backend.src.domain.exceptions.member.invalid_member_data_exception import InvalidMemberDataException
 
 
 def test_associate_clickup_space_updates_repo() -> None:

@@ -16,8 +16,8 @@ from typing import Generator
 from fastapi import Request
 
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.service_unavailable_exception import ServiceUnavailableException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.infrastructure.di.container import Container
 
 

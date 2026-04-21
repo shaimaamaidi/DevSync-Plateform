@@ -17,9 +17,9 @@ from backend.src.domain.entities.git_repo import (
     RepoClickUpSpaceDTO,
     RepoMemberDTO,
 )
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
-from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
-from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.repo.repo_not_found_exception import RepoNotFoundException
+from backend.src.domain.exceptions.repo.repo_persistence_exception import RepoPersistenceException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel

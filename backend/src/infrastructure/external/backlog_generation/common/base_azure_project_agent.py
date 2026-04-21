@@ -16,8 +16,8 @@ from azure.identity.aio import ClientSecretCredential
 from azure.ai.projects.aio import AIProjectClient
 from dotenv import load_dotenv
 
-from backend.src.domain.exceptions.azure_agent_runtime_exception import AzureAgentRuntimeException
-from backend.src.domain.exceptions.missing_azure_config_exception import MissingAzureConfigException
+from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
+from backend.src.domain.exceptions.azure.missing_azure_config_exception import MissingAzureConfigException
 
 
 logger = logging.getLogger(__name__)

@@ -5,8 +5,8 @@ Unit tests for JWTHandler.
 import pytest
 import os
 from backend.src.infrastructure.security.jwt_handler import JWTHandler
-from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
-from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
+from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 
 
 def test_missing_env_variables(monkeypatch):

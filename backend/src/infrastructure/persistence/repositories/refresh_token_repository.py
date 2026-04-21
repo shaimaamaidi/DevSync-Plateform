@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from backend.src.domain.entities.refresh_token import RefreshTokenDTO
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
-from backend.src.domain.exceptions.refresh_token_persistence_exception import RefreshTokenPersistenceException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.auth.refresh_token_persistence_exception import RefreshTokenPersistenceException
 from backend.src.domain.ports.repositories.i_refresh_token_repository import IRefreshTokenRepository
 from backend.src.infrastructure.persistence.models.refresh_token_model import RefreshTokenModel
 

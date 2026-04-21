@@ -16,8 +16,8 @@ from typing import List
 from azure.ai.agents.models import BingGroundingTool
 from azure.core.exceptions import AzureError, ClientAuthenticationError, ServiceRequestError
 
-from backend.src.domain.exceptions.azure_agent_runtime_exception import AzureAgentRuntimeException
-from backend.src.domain.exceptions.missing_azure_config_exception import MissingAzureConfigException
+from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
+from backend.src.domain.exceptions.azure.missing_azure_config_exception import MissingAzureConfigException
 from backend.src.domain.ports.services.backlog_generation.agents.iweb_search import IWebSearch
 from backend.src.infrastructure.external.backlog_generation.common.azure_retry import AzureRetry
 from backend.src.infrastructure.external.backlog_generation.common.base_azure_project_agent import BaseAzureProjectAgent

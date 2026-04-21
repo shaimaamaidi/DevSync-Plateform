@@ -12,7 +12,7 @@ from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
+from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 from backend.src.infrastructure.di.container import Container
 
 logger = logging.getLogger(__name__)

@@ -22,12 +22,12 @@ from typing import AsyncGenerator
 
 from azure.core.exceptions import AzureError, ClientAuthenticationError, ServiceRequestError
 
-from backend.src.domain.exceptions.azure_agent_runtime_exception import AzureAgentRuntimeException
-from backend.src.domain.exceptions.azure_stream_exception import AzureStreamException
-from backend.src.domain.exceptions.invalid_tool_argument_exception import InvalidToolArgumentException
-from backend.src.domain.exceptions.stream_cancelled_exception import StreamCancelledException
-from backend.src.domain.exceptions.stream_execution_exception import StreamExecutionException
-from backend.src.domain.exceptions.tool_execution_exception import ToolExecutionException
+from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
+from backend.src.domain.exceptions.azure.azure_stream_exception import AzureStreamException
+from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
+from backend.src.domain.exceptions.stream.stream_cancelled_exception import StreamCancelledException
+from backend.src.domain.exceptions.stream.stream_execution_exception import StreamExecutionException
+from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.orchestrator.ibacklog_workflow_orchestrator import \
     IBacklogWorkflowOrchestrator
 from backend.src.domain.ports.services.backlog_generation.tools.ibacklog_generator_tool import IBacklogGeneratorTool

@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 from backend.src.application.services.auth_service import AuthService
 from backend.src.domain.entities.member import MemberAuthDTO
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
-from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 
 
 def test_login_success() -> None:

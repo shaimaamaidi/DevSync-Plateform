@@ -24,7 +24,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.di.backlog_container import BacklogContainer
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.logging.logger_config import setup_logger

@@ -4,21 +4,21 @@ Unit tests for domain exception classes.
 
 import pytest
 
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.clickup_persistence_exception import ClickUpPersistenceException
-from backend.src.domain.exceptions.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
-from backend.src.domain.exceptions.database_connection_exception import DatabaseConnectionException
-from backend.src.domain.exceptions.database_initialization_exception import DatabaseInitializationException
-from backend.src.domain.exceptions.database_session_exception import DatabaseSessionException
-from backend.src.domain.exceptions.github_rate_limit_exception import GitHubRateLimitException
-from backend.src.domain.exceptions.github_repo_not_found_exception import GitHubRepoNotFoundException
-from backend.src.domain.exceptions.invalid_github_url_exception import InvalidGitHubUrlException
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
-from backend.src.domain.exceptions.invalid_member_data_exception import InvalidMemberDataException
-from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
-from backend.src.domain.exceptions.member_persistence_exception import MemberPersistenceException
-from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
-from backend.src.domain.exceptions.repo_persistence_exception import RepoPersistenceException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.clickup.clickup_persistence_exception import ClickUpPersistenceException
+from backend.src.domain.exceptions.clickup.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
+from backend.src.domain.exceptions.database.database_connection_exception import DatabaseConnectionException
+from backend.src.domain.exceptions.database.database_initialization_exception import DatabaseInitializationException
+from backend.src.domain.exceptions.database.database_session_exception import DatabaseSessionException
+from backend.src.domain.exceptions.github.github_rate_limit_exception import GitHubRateLimitException
+from backend.src.domain.exceptions.github.github_repo_not_found_exception import GitHubRepoNotFoundException
+from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.member.invalid_member_data_exception import InvalidMemberDataException
+from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
+from backend.src.domain.exceptions.member.member_persistence_exception import MemberPersistenceException
+from backend.src.domain.exceptions.repo.repo_not_found_exception import RepoNotFoundException
+from backend.src.domain.exceptions.repo.repo_persistence_exception import RepoPersistenceException
 
 
 @pytest.mark.parametrize(

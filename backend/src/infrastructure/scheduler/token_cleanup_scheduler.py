@@ -15,8 +15,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from dotenv import load_dotenv
 
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
 

@@ -18,9 +18,9 @@ from backend.src.domain.entities.clickup_space import (
     ClickUpSpaceLightDTO,
     ClickUpSpaceUpdateDTO,
 )
-from backend.src.domain.exceptions.clickup_persistence_exception import ClickUpPersistenceException
-from backend.src.domain.exceptions.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.clickup.clickup_persistence_exception import ClickUpPersistenceException
+from backend.src.domain.exceptions.clickup.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.infrastructure.persistence.models.clickup_space_model import ClickUpSpaceModel
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel

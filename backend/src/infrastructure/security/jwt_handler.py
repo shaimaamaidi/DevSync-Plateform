@@ -16,10 +16,10 @@ from jose import JWTError, jwt, ExpiredSignatureError
 from dotenv import load_dotenv
 from jose.exceptions import JWTClaimsError
 
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
-from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
-from backend.src.domain.exceptions.invalid_token_exception import InvalidTokenException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
+from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
 

@@ -7,7 +7,7 @@ environment variables are missing from the application configuration.
 It specializes MissingEnvVariableException to handle Azure-specific configuration issues.
 """
 
-from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 
 
 class MissingAzureConfigException(MissingEnvVariableException):

@@ -6,8 +6,8 @@ import asyncio
 
 from fastapi import Request
 
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.repo.repo_not_found_exception import RepoNotFoundException
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 
 

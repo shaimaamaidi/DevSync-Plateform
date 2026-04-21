@@ -12,7 +12,7 @@ from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.domain.exceptions.base.app_exception import AppException
 
 
 logger = logging.getLogger(__name__)

@@ -16,7 +16,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
-from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 
 

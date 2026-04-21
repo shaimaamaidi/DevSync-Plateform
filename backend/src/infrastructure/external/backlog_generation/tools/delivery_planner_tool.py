@@ -15,8 +15,8 @@ import logging
 from pydantic import ValidationError
 
 from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
-from backend.src.domain.exceptions.invalid_tool_argument_exception import InvalidToolArgumentException
-from backend.src.domain.exceptions.tool_execution_exception import ToolExecutionException
+from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
+from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_prioritizer import (
     IBacklogPrioritizer,
 )

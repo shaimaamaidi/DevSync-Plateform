@@ -15,7 +15,7 @@ from backend.src.domain.entities.backlog.backlog_structure import BacklogStructu
 from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.backlog_generation_exception import BacklogGenerationException
+from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_generation_orchestrator import \
     IBacklogGenerationOrchestrator

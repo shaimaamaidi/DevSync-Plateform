@@ -14,10 +14,10 @@ from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 import os
 
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.database_connection_exception import DatabaseConnectionException
-from backend.src.domain.exceptions.database_initialization_exception import DatabaseInitializationException
-from backend.src.domain.exceptions.database_session_exception import DatabaseSessionException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.database.database_connection_exception import DatabaseConnectionException
+from backend.src.domain.exceptions.database.database_initialization_exception import DatabaseInitializationException
+from backend.src.domain.exceptions.database.database_session_exception import DatabaseSessionException
 
 
 logger = logging.getLogger(__name__)

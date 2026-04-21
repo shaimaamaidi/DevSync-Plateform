@@ -5,7 +5,7 @@ Integration tests for repository routes.
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.git_repo import GitRepoDTO
-from backend.src.domain.exceptions.repo_not_found_exception import RepoNotFoundException
+from backend.src.domain.exceptions.repo.repo_not_found_exception import RepoNotFoundException
 
 
 def test_get_all_repos(client: TestClient, container) -> None:

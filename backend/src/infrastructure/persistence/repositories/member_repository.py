@@ -17,9 +17,9 @@ from backend.src.domain.entities.member import (
     RepoSummary,
     MemberCredentialsDTO,
 )
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
-from backend.src.domain.exceptions.member_not_found_exception import MemberNotFoundException
-from backend.src.domain.exceptions.member_persistence_exception import MemberPersistenceException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
+from backend.src.domain.exceptions.member.member_persistence_exception import MemberPersistenceException
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.infrastructure.persistence.models.git_repo_model import GitRepoModel
 from backend.src.infrastructure.persistence.models.member_model import MemberModel

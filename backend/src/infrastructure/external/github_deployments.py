@@ -23,11 +23,11 @@ from typing import List
 from dotenv import load_dotenv
 
 from backend.src.domain.entities.deployment import DeploymentDTO
-from backend.src.domain.exceptions.github_api_exception import GitHubApiException
-from backend.src.domain.exceptions.github_rate_limit_exception import GitHubRateLimitException
-from backend.src.domain.exceptions.github_repo_not_found_exception import GitHubRepoNotFoundException
-from backend.src.domain.exceptions.invalid_github_url_exception import InvalidGitHubUrlException
-from backend.src.domain.exceptions.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.github.github_api_exception import GitHubApiException
+from backend.src.domain.exceptions.github.github_rate_limit_exception import GitHubRateLimitException
+from backend.src.domain.exceptions.github.github_repo_not_found_exception import GitHubRepoNotFoundException
+from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
+from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.ports.services.i_github_service import IGitHubService
 
 

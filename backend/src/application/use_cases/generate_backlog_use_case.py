@@ -16,10 +16,10 @@ from typing import AsyncGenerator
 from backend.src.domain.entities.backlog.reply_backlog_stream_request import ReplyBacklogStreamRequest
 from backend.src.domain.entities.backlog.reply_stream_request import ReplyStreamRequest
 from backend.src.domain.entities.backlog.start_backlog_request import StartBacklogRequest
-from backend.src.domain.exceptions.app_exception import AppException
-from backend.src.domain.exceptions.backlog_reply_exception import BacklogReplyException
-from backend.src.domain.exceptions.backlog_stream_exception import BacklogStreamException
-from backend.src.domain.exceptions.reply_stream_exception import ReplyStreamException
+from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.backlog.backlog_reply_exception import BacklogReplyException
+from backend.src.domain.exceptions.backlog.backlog_stream_exception import BacklogStreamException
+from backend.src.domain.exceptions.stream.reply_stream_exception import ReplyStreamException
 from backend.src.domain.ports.services.backlog_generation.orchestrator.ibacklog_workflow_orchestrator import \
     IBacklogWorkflowOrchestrator
 

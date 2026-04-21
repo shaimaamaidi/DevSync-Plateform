@@ -16,7 +16,7 @@ from openai.types.chat import (
 
 from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
 from backend.src.domain.entities.backlog.backlog_validation import BacklogValidation
-from backend.src.domain.exceptions.llm_parsing_exception import LLMParsingException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_backlog_fixer import IUserBacklogFixer
 from backend.src.infrastructure.external.backlog_generation.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog

@@ -4,7 +4,7 @@ Unit tests for GitHubDeploymentAdapter helpers.
 
 import pytest
 
-from backend.src.domain.exceptions.invalid_github_url_exception import InvalidGitHubUrlException
+from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
 from backend.src.infrastructure.external.github_deployments import GitHubDeploymentAdapter
 
 

@@ -22,13 +22,13 @@ import yaml
 from typing import Dict, Any
 from jinja2 import Template
 
-from backend.src.domain.exceptions.prompt_file_not__found_exception import PromptFileNotFoundException
-from backend.src.domain.exceptions.prompt_file_read_exception import PromptFileReadException
-from backend.src.domain.exceptions.prompt_render_exception import PromptRenderException
-from backend.src.domain.exceptions.prompt_schema_exception import PromptSchemaException
-from backend.src.domain.exceptions.prompt_template_directory_not_found_exception import \
+from backend.src.domain.exceptions.prompt.prompt_file_not__found_exception import PromptFileNotFoundException
+from backend.src.domain.exceptions.prompt.prompt_file_read_exception import PromptFileReadException
+from backend.src.domain.exceptions.prompt.prompt_render_exception import PromptRenderException
+from backend.src.domain.exceptions.prompt.prompt_schema_exception import PromptSchemaException
+from backend.src.domain.exceptions.prompt.prompt_template_directory_not_found_exception import \
     PromptTemplateDirectoryNotFoundException
-from backend.src.domain.exceptions.prompt_yaml_exception import PromptYamlException
+from backend.src.domain.exceptions.prompt.prompt_yaml_exception import PromptYamlException
 from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.prompts.prompt import Prompt
 

@@ -19,7 +19,7 @@ from backend.src.domain.entities.associator import (
     RepoMembersRequest,
 )
 from backend.src.domain.entities.git_repo import GitRepoUpdateDTO, RepoClickUpSpaceRefDTO, RepoMemberRefDTO
-from backend.src.domain.exceptions.invalid_member_data_exception import InvalidMemberDataException
+from backend.src.domain.exceptions.member.invalid_member_data_exception import InvalidMemberDataException
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository

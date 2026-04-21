@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 import pytest
 from datetime import datetime, timedelta, timezone
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
-from backend.src.domain.exceptions.invalid_input_exception import InvalidInputException
-from backend.src.domain.exceptions.refresh_token_persistence_exception import RefreshTokenPersistenceException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from backend.src.domain.exceptions.auth.refresh_token_persistence_exception import RefreshTokenPersistenceException
 
 
 def test_save_refresh_token_success():

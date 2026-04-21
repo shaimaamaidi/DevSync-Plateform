@@ -23,7 +23,7 @@ from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 from backend.src.domain.entities.deployment import DeploymentDTO
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, RepoMemberDTO
 from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
-from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.presentation.api import deps
 from backend.src.presentation.api.routers import (

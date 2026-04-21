@@ -12,7 +12,7 @@ import logging
 
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 
-from backend.src.domain.exceptions.app_exception import AppException
+from backend.src.domain.exceptions.base.app_exception import AppException
 
 from backend.src.infrastructure.external.backlog_generation.agents.epic_generator_agent import EpicGeneratorAgent
 from backend.src.infrastructure.external.backlog_generation.agents.user_story_generator_agent import UserStoryGeneratorAgent
