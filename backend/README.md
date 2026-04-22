@@ -16,6 +16,7 @@ This is the backend service for the project, built with **FastAPI**, **SQLAlchem
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
   - [Authentification par Cookies](#authentification-par-cookies)
+- [Backlog Generation (AI Workflow)](#backlog-generation-ai-workflow)
 - [API Endpoints Overview](#api-endpoints-overview)
 - [Error Handling / Response Codes](#error-handling--response-codes)
 - [Main Dependencies](#main-dependencies)
@@ -120,6 +121,65 @@ Depuis 2026, l'authentification utilise **aussi des cookies HttpOnly/Secure/Same
 
 ---
 
+## 🤖 Backlog Generation (AI Workflow)
+
+The backend includes an AI-driven backlog generation pipeline exposed through **SSE streaming** (`text/event-stream`) via `/backlog/*` routes.
+
+### Objectif
+
+Transform a raw product description into an actionable backlog:
+- Epics
+- User stories
+- Tasks
+- Proposed delivery/sprint plan
+
+### Functional Workflow
+
+1. The frontend sends the initial description to `POST /backlog/start`.
+2. The backend starts an orchestrated workflow (Azure AI Agent + domain tools) and returns an SSE stream.
+3. The workflow generates and validates market intelligence.
+4. The backlog is generated (epics/stories/tasks), then can be corrected by the user.
+5. The user can iteratively reply through:
+  - `POST /backlog/reply` (market-intelligence validation/correction)
+  - `POST /backlog/reply/backlog` (backlog validation/correction)
+
+### Endpoints Backlog
+
+- **POST `/backlog/start`**
+  - **Body:** `{ "description": string }`
+  - **Returns:** SSE stream (`text/event-stream`) with initialization data (`thread_id`) and generated chunks.
+
+- **POST `/backlog/reply`**
+  - **Body:** `{ "thread_id": string, "tool_result": string, "user_result": string }`
+  - **Returns:** SSE stream continuing the workflow after user feedback on market intelligence.
+
+- **POST `/backlog/reply/backlog`**
+  - **Body:** `{ "thread_id": string, "tool_result": string, "user_result": string }`
+  - **Returns:** SSE stream with corrected/validated backlog and progression to delivery planning.
+
+### Key Components (Architecture)
+
+- **Use case**: `GenerateBacklogUseCase`
+- **Workflow orchestrator**: `BacklogWorkflowOrchestrator`
+- **Dedicated DI container**: `BacklogContainer`
+- **Domain tools**:
+  - `ProductContextBuilderTool`
+  - `MarketQueryGeneratorTool`
+  - `WebSearchTool`
+  - `MarketSummarizerTool`
+  - `MarketValidatorTool`
+  - `BacklogGeneratorTool`
+  - `UserBacklogFixerTool`
+  - `DeliveryPlannerTool`
+
+### Important Notes
+
+- Backlog routes are protected by JWT/cookie authentication like other private routes.
+- The workflow is designed to be iterative: the same `thread_id` is used to continue a generation session.
+- The expected client media type for these endpoints is `text/event-stream`.
+
+---
+
 ## 🌐 API Endpoints Overview
 
 Below are the main endpoints provided by the backend, with required parameters and return types:
@@ -164,6 +224,17 @@ Below are the main endpoints provided by the backend, with required parameters a
 ### ClickUp Integration
 - **GET `/clickup/spaces`**
   - **Returns:** List of ClickUp spaces
+
+### Backlog (AI Streaming)
+- **POST `/backlog/start`**
+  - **Body:** `{ "description": string }`
+  - **Returns:** SSE stream with generated chunks and workflow metadata (`thread_id`)
+- **POST `/backlog/reply`**
+  - **Body:** `{ "thread_id": string, "tool_result": string, "user_result": string }`
+  - **Returns:** SSE stream continuing market-intelligence validation workflow
+- **POST `/backlog/reply/backlog`**
+  - **Body:** `{ "thread_id": string, "tool_result": string, "user_result": string }`
+  - **Returns:** SSE stream for backlog validation/fix and delivery planning continuation
 
 
 > **Note:**
@@ -273,12 +344,12 @@ Run all unit and integration tests:
 pytest tests
 ```
 
-All tests should pass. (Current: **66 tests**)
+All tests should pass. (Current: **203 tests**)
 
 ### 🧪 Test Breakdown
 
-- **Total tests:** 66
-- **Unit tests:** 45
+- **Total tests:** 203
+- **Unit tests:** 182
 - **Integration tests:** 21
 
 ---
