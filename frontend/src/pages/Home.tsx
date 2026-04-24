@@ -29,9 +29,10 @@ import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-success-toaster';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
+import { BacklogGenerationChat } from '@/components/backlog-generation-chat';
 
 
-type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces';
+type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
 interface HomePageProps {
   activeTab?: HomeTab;
 }
@@ -54,6 +55,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
       setActiveTab('members');
     } else if ((pathname === '/spaces' || pathname === '/clickup-spaces') && activeTab !== 'spaces') {
       setActiveTab('spaces');
+    } else if (pathname === '/backlog-generation-chat' && activeTab !== 'backlog-generation') {
+      setActiveTab('backlog-generation');
     }
   }, [pathname]);
 
@@ -67,6 +70,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
       navigate('/members');
     } else if (tab === 'spaces') {
       navigate('/spaces');
+    } else if (tab === 'backlog-generation') {
+      navigate('/backlog-generation-chat');
     }
   };
 
@@ -264,6 +269,12 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               onDelete={handleDeleteClickUpSpace}
               onAdd={handleAddClickUpSpace}
             />
+          </div>
+        )}
+
+        {activeTab === 'backlog-generation' && (
+          <div className="animate-in fade-in duration-300">
+            <BacklogGenerationChat />
           </div>
         )}
       </main>

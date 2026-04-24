@@ -20,6 +20,7 @@ export default function App() {
           <Route path="/deployments" element={<RequireAuth><HomePage activeTab="deployments" /></RequireAuth>} />
           <Route path="/members" element={<RequireAuth><HomePage activeTab="members" /></RequireAuth>} />
           <Route path="/spaces" element={<RequireAuth><HomePage activeTab="spaces" /></RequireAuth>} />
+          <Route path="/backlog-generation-chat" element={<RequireAuth><HomePage activeTab="backlog-generation" /></RequireAuth>} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
           <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />

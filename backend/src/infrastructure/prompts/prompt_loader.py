@@ -124,13 +124,14 @@ class PromptLoader(IPromptLoader):
         """
         Retrieve system-level instructions for AI agent configuration.
 
-        This method extracts the system instruction section from a prompt file
-        dedicated to defining global agent behavior.
+        Reads the `azure_backlog_workflow_orchestrator.prompty` file which follows
+        the two-document YAML Prompty spec:
+          - Document 1: front-matter (name, description, model, tags…)
+          - Document 2: content block with `system` key
 
-        Unlike `get_messages`, it:
-        - Does not perform variable substitution
-        - Returns only system instructions
-        - Is used to initialize agent behavior in LLM runtime
+        Uses yaml.safe_load_all to handle the multi-document format instead of
+        naive string splitting, which breaks when the word "system:" appears
+        inside the prompt body itself.
 
         Returns:
             str: System instruction text used by the AI agent.
@@ -139,10 +140,8 @@ class PromptLoader(IPromptLoader):
             PromptTemplateDirectoryNotFoundException: If the templates directory does not exist.
             PromptFileNotFoundException: If the agent instruction prompt file does not exist.
             PromptFileReadException: If the prompt file cannot be read from disk.
-            PromptRenderException: If the prompt does not contain a valid 'system' section.
-            PromptYamlException: If the YAML content is invalid, empty, or cannot be parsed correctly.
-            PromptSchemaException: If the prompt structure is invalid or missing required fields such
-                as 'system' or 'user'.
+            PromptYamlException: If the YAML content is invalid or cannot be parsed.
+            PromptSchemaException: If no document with a 'system' key is found.
         """
         prompt_name = "azure_backlog_workflow_orchestrator"
 
@@ -158,35 +157,43 @@ class PromptLoader(IPromptLoader):
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                content = f.read()
+                documents = list(yaml.safe_load_all(f))
         except Exception as e:
-            logger.exception("Failed to read prompt file: %s", file_path)
+            logger.exception("Failed to read or parse prompt file: %s", file_path)
             raise PromptFileReadException(
                 message=f"Failed to read prompt file '{file_path}': {str(e)}",
             ) from e
 
-        system_marker = "system:"
-        if system_marker not in content:
-            logger.error("No system section found in prompt: %s", prompt_name)
-            raise PromptRenderException(
-                message=f"Failed to render prompt '{prompt_name}': missing 'system' section in prompt file",
+        # Find the document that contains the `system` key (the content block).
+        # The front-matter block (metadata) does not have a `system` key.
+        system_instructions: str | None = None
+        for doc in documents:
+            if isinstance(doc, dict) and "system" in doc:
+                system_instructions = doc["system"]
+                break
+
+        if system_instructions is None:
+            logger.error("No 'system' key found in any YAML document in prompt: %s", prompt_name)
+            raise PromptSchemaException(
+                message=f"Invalid prompt structure in '{prompt_name}': no document with a 'system' key found.",
             )
 
-        instructions = content.split(system_marker, 1)[1].strip()
+        logger.info("Agent instructions loaded successfully from: %s", prompt_name)
 
-        logger.info("Agent instructions loaded successfully")
-
-        return instructions
+        return system_instructions
 
     def _load_file(self, filename: str) -> Prompt:
         """
         Load a prompt template from a `.prompty` YAML file.
 
-        This method:
-        - Checks cache first to avoid disk access
-        - Loads YAML template from filesystem
-        - Converts it into a Prompt domain object
-        - Stores it in cache for reuse
+        .prompty files follow the Prompty spec: they contain TWO YAML documents
+        separated by `---`:
+          1. A front-matter block with metadata (name, description, model, tags…)
+          2. A content block with `system` and `user` keys
+
+        yaml.safe_load only accepts a single document, so we use
+        yaml.safe_load_all to iterate over both and pick the one that contains
+        the required `system` / `user` keys.
 
         Args:
             filename (str): Name of the prompt file without `.prompty` extension.
@@ -215,32 +222,50 @@ class PromptLoader(IPromptLoader):
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f)
+                # safe_load_all handles multi-document YAML (separated by ---)
+                # which is the standard .prompty file format.
+                documents = list(yaml.safe_load_all(f))
         except Exception as e:
             logger.exception("Failed to parse YAML prompt file: %s", file_path)
             raise PromptYamlException(
                 message=f"Invalid YAML in prompt file '{file_path}': {str(e)}",
             ) from e
 
-        if data is None:
+        if not documents:
             raise PromptYamlException(
                 message=f"Empty YAML file: {file_path}"
             )
 
-        if not isinstance(data, dict) or "system" not in data or "user" not in data:
+        # The front-matter block contains metadata (name, description, model…).
+        # The content block contains `system` and `user` keys.
+        # We support both single-document files (legacy) and two-document .prompty files.
+        front_matter: dict = {}
+        content: dict = {}
+
+        for doc in documents:
+            if not isinstance(doc, dict):
+                continue
+            if "system" in doc and "user" in doc:
+                content = doc
+            else:
+                # Treat the first non-content document as front-matter.
+                if not front_matter:
+                    front_matter = doc
+
+        if not content:
             raise PromptSchemaException(
-                message=f"Invalid prompt structure in {filename}: expected keys 'system' and 'user'",
+                message=f"Invalid prompt structure in '{filename}': expected a document with keys 'system' and 'user'.",
             )
 
         prompt = Prompt(
-            name=data.get("name"),
-            system=data["system"],
-            user=data["user"],
+            name=content.get("name") or front_matter.get("name"),
+            system=content["system"],
+            user=content["user"],
             meta={
-                "description": data.get("description"),
-                "tags": data.get("tags", []),
-                "version": data.get("version"),
-            }
+                "description": content.get("description") or front_matter.get("description"),
+                "tags":        content.get("tags")        or front_matter.get("tags", []),
+                "version":     content.get("version")     or front_matter.get("version"),
+            },
         )
 
         self._cache[filename] = prompt

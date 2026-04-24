@@ -96,7 +96,7 @@ class MarketValidatorTool(IMarketValidatorTool):
             context_obj = MarketIntelligenceSummary.model_validate_json(context)
         except ValidationError as e:
             logger.warning(
-                "Invalid context format in MarketSummarizerTool.",
+                "Invalid context format in MarketValidatorTool.",
                 extra={"input_preview": context[:200]}
             )
             raise InvalidToolArgumentException(
@@ -108,8 +108,6 @@ class MarketValidatorTool(IMarketValidatorTool):
                 description_obj,
                 context_obj,
             )
-
-            logger.info("Market intelligence validated successfully.")
 
             return result.model_dump_json()
         except Exception as e:

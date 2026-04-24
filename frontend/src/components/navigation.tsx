@@ -1,11 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GitBranch, Zap, Users, Boxes, LogOut, Settings } from 'lucide-react';
+import { GitBranch, Zap, Users, Boxes, LogOut, Settings, FlaskConical } from 'lucide-react';
 import { authService } from '@/services/auth-service';
 
 
 
-type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces';
+type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
 interface NavigationProps {
   activeTab?: HomeTab;
   onTabChange?: (tab: HomeTab) => void;
@@ -19,6 +19,7 @@ export function Navigation({ onTabChange }: NavigationProps) {
   const isDeploymentsPage = pathname === '/deployments';
   const isMembersPage = pathname === '/members';
   const isSpacesPage = pathname === '/spaces';
+  const isBacklogGenerationPage = pathname === '/backlog-generation-chat';
 
   return (
     <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
@@ -80,6 +81,17 @@ export function Navigation({ onTabChange }: NavigationProps) {
               >
                 <Boxes className="w-4 h-4" />
                 <span className="hidden sm:inline">Spaces</span>
+              </Button>
+              <Button
+                variant={isBacklogGenerationPage ? 'default' : 'ghost'}
+                onClick={() => {
+                  navigate('/backlog-generation-chat');
+                  onTabChange?.('backlog-generation');
+                }}
+                className="gap-2"
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span className="hidden sm:inline">Backlog Generation</span>
               </Button>
             </div>
             <Button

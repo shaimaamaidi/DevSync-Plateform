@@ -55,14 +55,14 @@ user: |
 
   Product structured description:
   Overview: {{overview}}
-  Target Users: {{target_users)}}
-  Core Features: {{core_features)}}
-  Business Goals: {{business_goals)}}
+  Target Users: {{target_users}}
+  Core Features: {{core_features}}
+  Business Goals: {{business_goals}}
   Summary: {{summary}}
 
   Validated Context:
-  Technical Constraints: {{technical_constraints)}}
-  Best Practices: {{best_practices)}}
+  Technical Constraints: {{technical_constraints}}
+  Best Practices: {{best_practice}}
   Notes: {{enrichment_notes}}
 
   Your task:

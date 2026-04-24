@@ -54,9 +54,9 @@ user: |
 
   Product structured description:
   Overview: {{overview}}
-  Target Users: {{target_users)}}
-  Core Features: {{core_features)}}
-  Business Goals: {{business_goals)}}
+  Target Users: {{target_users}}
+  Core Features: {{core_features}}
+  Business Goals: {{business_goals}}
   Summary: {{summary}}
 
   Validated Context:

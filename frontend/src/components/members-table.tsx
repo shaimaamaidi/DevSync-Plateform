@@ -72,7 +72,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
   };
 
   const handleSave = async() => {
-
     setErrors({});
     const newErrors: Record<string, string> = {};
     if (!formData.username) newErrors.username = 'Username is required';

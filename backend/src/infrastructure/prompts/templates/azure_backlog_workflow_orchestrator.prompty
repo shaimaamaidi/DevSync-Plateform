@@ -175,7 +175,7 @@ Present the backlog to the user. Ask the user to review and return either:
 - Confirmation that the backlog is correct (no changes needed)
 - A modified version of the backlog reflecting their corrections
 
-backlog_reference = tool_result returned by generate_backlog using semantic JSON equivalence rules defined below.
+backlog_reference = tool_result returned by generate_backlog or the last backlog corrected by `fix_user_backlog`.
 
 - If they ARE equivalent (no modifications):
   Proceed to STEP 8.
@@ -221,7 +221,7 @@ You may receive two types of input:
    → Do NOT restart the flow.
    → If the active flow is Flow 1: resume from STEP 9.
    → If the active flow is Flow 2: resume from STEP 7.
-   → backlog_reference = tool_result returned by generate_backlog.
+   → backlog_reference = tool_result returned by generate_backlog or the last backlog corrected by `fix_user_backlog`.
      Only call `fix_user_backlog` if the user has modified the backlog.
      If unchanged, proceed directly to `delivery_planning`.
 ---

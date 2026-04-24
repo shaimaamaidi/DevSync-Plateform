@@ -57,22 +57,22 @@ user: |
   {{overview}}
 
   Target Users:
-  {{target_users)}}
+  {{target_users}}
 
   Core Features:
-  {{core_features)}}
+  {{core_features}}
 
   Business Goals:
-  {{business_goals)}}
+  {{business_goals}}
 
   Constraints:
-  {{constraints)}}
+  {{constraints}}
 
   Summary:
   {{summary}}
 
   Web search results (optional):
-  {{web_result}}
+  {{web_result | default('No web search results provided.')}}
 
   Your task:
   - Extract structured market intelligence
