@@ -59,7 +59,11 @@ const isAuthError = (error: ErrorLike | unknown, includeValidation = false): boo
 
 const isServerError = (error: ErrorLike | unknown): boolean => {
   const status = (error as ErrorLike)?.response?.status;
-  return !status || status >= 500;
+  if (!status) 
+    return true;
+  if (status === 429 || status === 502) 
+    return false;
+  return status >= 500;
 };
 
 export const handleApiError = (
