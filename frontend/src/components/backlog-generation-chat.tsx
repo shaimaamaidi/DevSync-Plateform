@@ -4,6 +4,7 @@ import { ChatHeader } from "./ui/chat-header";
 import { EmptyState } from "./ui/empty-state";
 import { ChatMessage } from "./ui/chat-message";
 import { ChatInput } from "./ui/chat-input";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function BacklogGenerationChat() {
   const {
@@ -19,6 +20,7 @@ export function BacklogGenerationChat() {
     handleBacklogSubmit,
   } = useChatLogic();
 
+  const isMobile = useIsMobile();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,10 +28,18 @@ export function BacklogGenerationChat() {
   }, [messages, loading, streamingText]);
 
   return (
-    <div className="flex flex-col h-screen max-h-[860px] bg-white rounded-2xl border border-slate-200 overflow-hidden font-[-apple-system,BlinkMacSystemFont,'Inter','Segoe_UI',sans-serif] shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]">
+    <div
+      className={[
+        "flex flex-col bg-white overflow-hidden",
+        "font-[-apple-system,BlinkMacSystemFont,'Inter','Segoe_UI',sans-serif]",
+        isMobile
+          ? "h-[100dvh] w-full"
+          : "h-screen max-h-[860px] rounded-2xl border border-slate-200 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]",
+      ].join(" ")}
+    >
       <ChatHeader step={step} onReset={resetChat} />
 
-      <div className="flex-1 overflow-y-auto px-5 py-6 flex flex-col gap-5 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]">
+      <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 sm:py-6 flex flex-col gap-4 sm:gap-5 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]">
         {messages.length === 0 ? (
           <EmptyState />
         ) : (
@@ -55,7 +65,7 @@ export function BacklogGenerationChat() {
           placeholder="Describe the product you want to build…"
         />
       ) : (
-        <div className="border-t border-slate-100 px-4 py-4 bg-white text-center">
+        <div className="border-t border-slate-100 px-4 py-3 sm:py-4 bg-white text-center">
           <p className="text-[12px] text-slate-400">
             Use the cards above to interact with the agent…
           </p>

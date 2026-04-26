@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { Send } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatInputProps {
   value: string;
@@ -18,10 +19,10 @@ export function ChatInput({
 }: ChatInputProps) {
   const [rows, setRows] = useState(1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
-
     const textarea = e.target;
     setRows(Math.min(Math.max(1, textarea.scrollHeight / 24), 10));
   };
@@ -36,8 +37,7 @@ export function ChatInput({
   const canSend = value.trim() && !disabled;
 
   return (
-    <div className="border-t border-slate-100 px-4 pt-3 pb-4 bg-white shrink-0">
-      
+    <div className="border-t border-slate-100 px-3 sm:px-4 pt-3 pb-3 sm:pb-4 bg-white shrink-0">
       <div
         className="
           flex items-end gap-2
@@ -73,7 +73,7 @@ export function ChatInput({
           disabled={!canSend}
           className={`
             w-9 h-9 rounded-lg flex items-center justify-center
-            transition transform
+            transition transform shrink-0
             ${canSend ? "bg-slate-900 hover:scale-105 active:scale-95" : "bg-slate-200 cursor-default opacity-30"}
           `}
         >
@@ -85,9 +85,11 @@ export function ChatInput({
         </button>
       </div>
 
-      <p className="mt-1 ml-0.5 text-[10px] text-slate-300">
-        Enter to send · Shift+Enter for new line
-      </p>
+      {!isMobile && (
+        <p className="mt-1 ml-0.5 text-[10px] text-slate-300">
+          Enter to send · Shift+Enter for new line
+        </p>
+      )}
     </div>
   );
 }

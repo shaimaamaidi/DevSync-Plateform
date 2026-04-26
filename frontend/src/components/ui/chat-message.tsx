@@ -32,23 +32,21 @@ export function ChatMessage({
       }`}
     >
       <div
-        className={`flex items-start gap-2.5 ${isUser ? "flex-row-reverse" : ""} ${
-          hasCard ? "max-w-full w-full" : "max-w-[76%]"
+        className={`flex items-start gap-2 sm:gap-2.5 ${isUser ? "flex-row-reverse" : ""} ${
+          hasCard ? "max-w-full w-full" : "max-w-[90%] sm:max-w-[76%]"
         }`}
       >
-        <div
-          className={`w-8 h-8 rounded-[9px] flex-shrink-0 flex items-center justify-center bg-slate-900`}
-        >
+        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-[9px] flex-shrink-0 flex items-center justify-center bg-slate-900">
           {isUser ? (
-            <CircleUser size={14} strokeWidth={2} className="text-white" />
+            <CircleUser size={13} strokeWidth={2} className="text-white" />
           ) : (
-            <BotMessageSquare size={14} strokeWidth={2} className="text-white" />
+            <BotMessageSquare size={13} strokeWidth={2} className="text-white" />
           )}
         </div>
 
         <div className="flex-1 min-w-0">
           {isStreaming ? (
-            <div className="px-3.5 py-2.5 text-[13px] leading-[1.7] rounded-xl bg-slate-50 text-slate-800 border border-slate-100 rounded-tl-[3px]">
+            <div className="px-3 sm:px-3.5 py-2.5 text-[13px] leading-[1.7] rounded-xl bg-slate-50 text-slate-800 border border-slate-100 rounded-tl-[3px]">
               {streamingText || <TypingIndicator />}
             </div>
           ) : (
@@ -70,7 +68,7 @@ export function ChatMessage({
 
       <p
         className={`text-[10px] text-slate-200 m-0 ${
-          isUser ? "pr-[42px]" : "pl-[42px]"
+          isUser ? "pr-[36px] sm:pr-[42px]" : "pl-[36px] sm:pl-[42px]"
         }`}
       >
         {isUser ? "You" : "Agent"} ·{" "}

@@ -9,7 +9,14 @@ interface EditableTextProps {
   multiline?: boolean;
 }
 
-export function EditableText({ value, onChange, editable, className = "", placeholder = "…", multiline = false }: EditableTextProps) {
+export function EditableText({
+  value,
+  onChange,
+  editable,
+  className = "",
+  placeholder = "…",
+  multiline = false,
+}: EditableTextProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const ref = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
@@ -18,17 +25,22 @@ export function EditableText({ value, onChange, editable, className = "", placeh
 
   const commit = () => {
     const trimmed = draft.trim();
-    if (trimmed) onChange(trimmed);
-    else setDraft(value);
+    if (trimmed) 
+      onChange(trimmed);
+    else 
+      setDraft(value);
     setEditing(false);
   };
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !multiline) { e.preventDefault(); commit(); }
-    if (e.key === "Escape") { setDraft(value); setEditing(false); }
+    if (e.key === "Enter" && !multiline){ 
+      e.preventDefault(); commit(); 
+    }
+    if (e.key === "Escape"){ 
+      setDraft(value); setEditing(false); 
+    }
   };
 
-  // ✅ FIX 1: when not editable, never render input — just plain text
   if (!editable) {
     return <span className={className}>{value}</span>;
   }
@@ -37,7 +49,8 @@ export function EditableText({ value, onChange, editable, className = "", placeh
     const shared = {
       ref,
       value: draft,
-      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setDraft(e.target.value),
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setDraft(e.target.value),
       onBlur: commit,
       onKeyDown: onKey,
       placeholder,
@@ -51,7 +64,7 @@ export function EditableText({ value, onChange, editable, className = "", placeh
 
   return (
     <span
-      className={`${className} cursor-text rounded hover:bg-slate-100 px-1 -mx-1 transition-colors`}
+      className={`${className} cursor-text rounded hover:bg-slate-100 px-1 -mx-1 transition-colors inline-flex items-center min-h-[28px] sm:min-h-0`}
       onClick={() => { setDraft(value); setEditing(true); }}
       title="Click to edit"
     >
