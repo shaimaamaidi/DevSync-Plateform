@@ -7,7 +7,7 @@ const SSE_HEADERS = {
   Accept: 'text/event-stream',
 };
 
-const refreshLocksByEndpoint = new Map<string, Promise<void>>();
+let globalRefreshLock: Promise<void> | null = null;
 
 function buildEndpointUrl(endpoint: string): string {
   return `${BASE_PATH}${endpoint}`;
@@ -22,23 +22,21 @@ function buildRequestInit(body: unknown): RequestInit {
   };
 }
 
-async function refreshSessionWithLock(endpoint: string): Promise<void> {
-  const existingLock = refreshLocksByEndpoint.get(endpoint);
-  if (existingLock) {
-    return existingLock;
+async function refreshSessionWithLock(): Promise<void> {
+  if (globalRefreshLock) {
+    return globalRefreshLock;
   }
 
-  const lock = authService.refresh().finally(() => {
-    refreshLocksByEndpoint.delete(endpoint);
+  globalRefreshLock = authService.refresh().finally(() => {
+    globalRefreshLock = null;
   });
 
-  refreshLocksByEndpoint.set(endpoint, lock);
-  return lock;
+  return globalRefreshLock;
 }
 
-async function refreshOrRedirect(endpoint: string): Promise<void> {
+async function refreshOrRedirect(): Promise<void> {
   try {
-    await refreshSessionWithLock(endpoint);
+    await refreshSessionWithLock();
   } catch {
     await authService.logout();
     window.location.href = '/login';
@@ -46,13 +44,13 @@ async function refreshOrRedirect(endpoint: string): Promise<void> {
   }
 }
 
-async function fetchWithAuthRetry(url: string, init: RequestInit, endpoint: string): Promise<Response> {
+async function fetchWithAuthRetry(url: string, init: RequestInit): Promise<Response> {
   const response = await fetch(url, init);
   if (response.status !== 401) {
     return response;
   }
 
-  await refreshOrRedirect(endpoint);
+  await refreshOrRedirect();
   return fetch(url, init);
 }
 
@@ -76,7 +74,7 @@ async function postStream(endpoint: string, body: unknown): Promise<ReadableStre
   try {
     const url = buildEndpointUrl(endpoint);
     const init = buildRequestInit(body);
-    const response = await fetchWithAuthRetry(url, init, endpoint);
+    const response = await fetchWithAuthRetry(url, init);
     return assertSseResponse(response);
   } catch (error) {
     throw normalizeUnknownError(error, endpoint);
