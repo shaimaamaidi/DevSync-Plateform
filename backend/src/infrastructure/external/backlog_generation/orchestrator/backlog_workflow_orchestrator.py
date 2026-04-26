@@ -409,11 +409,6 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         async with stream_coro as stream:
             try:
                 async for event_type, event_data, _ in stream:
-                    logger.info("Agent event", extra={
-                        "event_type": event_type,
-                        "thread_id": thread_id,
-                    })
-
                     for chunk in event_handler.get_stream_chunks():
                         yield chunk
 

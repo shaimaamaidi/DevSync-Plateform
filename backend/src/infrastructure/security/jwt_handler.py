@@ -92,7 +92,6 @@ class JWTHandler(IJWTHandler):
             token = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
 
             logger.info("Access token created successfully.")
-            logger.info("token:%s", token)
 
             return token
 
@@ -160,7 +159,6 @@ class JWTHandler(IJWTHandler):
             if not token:
                 logger.error("Token cannot be empty for verification.")
                 raise InvalidTokenException("Token cannot be empty.")
-            logger.info("token:%s", token)
 
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
