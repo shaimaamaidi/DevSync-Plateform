@@ -1,33 +1,45 @@
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GitBranch, Zap, Users, Boxes, LogOut, Settings, FlaskConical } from 'lucide-react';
+import { GitBranch, Zap, Users, Boxes, LogOut, Settings, FlaskConical, Menu, X } from 'lucide-react';
 import { authService } from '@/services/auth-service';
-
-
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
+
 interface NavigationProps {
   activeTab?: HomeTab;
   onTabChange?: (tab: HomeTab) => void;
 }
 
+const NAV_ITEMS = [
+  { path: '/repositories', tab: 'repos' as HomeTab, icon: GitBranch, label: 'Repositories' },
+  { path: '/deployments', tab: 'deployments' as HomeTab, icon: Zap, label: 'Deployments' },
+  { path: '/members', tab: 'members' as HomeTab, icon: Users, label: 'Members' },
+  { path: '/spaces', tab: 'spaces' as HomeTab, icon: Boxes, label: 'Spaces' },
+  { path: '/backlog-generation-chat', tab: 'backlog-generation' as HomeTab, icon: FlaskConical, label: 'Backlog Generation' },
+];
+
 export function Navigation({ onTabChange }: NavigationProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const isMobile = useIsMobile();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isRepositoriesPage = pathname === '/repositories';
-  const isDeploymentsPage = pathname === '/deployments';
-  const isMembersPage = pathname === '/members';
-  const isSpacesPage = pathname === '/spaces';
-  const isBacklogGenerationPage = pathname === '/backlog-generation-chat';
+  const handleNav = (path: string, tab?: HomeTab) => {
+    navigate(path);
+    if (tab) onTabChange?.(tab);
+    setMobileOpen(false);
+  };
 
   return (
     <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+
           <button
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            onClick={() => handleNav('/')}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0"
           >
             <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
               <div className="grid grid-cols-2 gap-[3px] w-[18px]">
@@ -37,85 +49,73 @@ export function Navigation({ onTabChange }: NavigationProps) {
                 <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-30" />
               </div>
             </div>
-            <div className="text-left">
-              <h1 className="text-lg font-bold text-foreground tracking-tight">GitHub & Deployments</h1>
-            </div>
+            {!isMobile && (
+              <h1 className="text-lg font-bold text-foreground tracking-tight">
+                GitHub & Deployments
+              </h1>
+            )}
           </button>
 
-          <div className="flex items-center gap-2 ml-auto">
-              <div className="flex items-center gap-1 p-1 bg-muted rounded-lg ml-10">
-              <Button
-                variant={isRepositoriesPage ? 'default' : 'ghost'}
-                onClick={() => {
-                  navigate('/repositories');
-                  onTabChange?.('repos');
-                }}
-                className="gap-2"
-              >
-                <GitBranch className="w-4 h-4" />
-                <span className="hidden sm:inline">Repositories</span>
-              </Button>
-              <Button
-                variant={isDeploymentsPage ? 'default' : 'ghost'}
-                onClick={() => {
-                  navigate('/deployments');
-                  onTabChange?.('deployments');
-                }}
-                className="gap-2"
-              >
-                <Zap className="w-4 h-4" />
-                <span className="hidden sm:inline">Deployments</span>
-              </Button>
-              <Button
-                variant={isMembersPage ? 'default' : 'ghost'}
-                onClick={() => navigate('/members')}
-                className="gap-2"
-              >
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Members</span>
-              </Button>
-              <Button
-                variant={isSpacesPage ? 'default' : 'ghost'}
-                onClick={() => navigate('/spaces')}
-                className="gap-2"
-              >
-                <Boxes className="w-4 h-4" />
-                <span className="hidden sm:inline">Spaces</span>
-              </Button>
-              <Button
-                variant={isBacklogGenerationPage ? 'default' : 'ghost'}
-                onClick={() => {
-                  navigate('/backlog-generation-chat');
-                  onTabChange?.('backlog-generation');
-                }}
-                className="gap-2"
-              >
-                <FlaskConical className="w-4 h-4" />
-                <span className="hidden sm:inline">Backlog Generation</span>
-              </Button>
+          {!isMobile && (
+            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg mx-4">
+              {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
+                <Button
+                  key={path}
+                  variant={pathname === path ? 'default' : 'ghost'}
+                  onClick={() => handleNav(path, tab)}
+                  className="gap-2"
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{label}</span>
+                </Button>
+              ))}
             </div>
+          )}
+
+          <div className="flex items-center gap-1 ml-auto">
             <Button
               variant="ghost"
-              className="gap-2 ml-2"
-              onClick={() => navigate('/profile')}
+              onClick={() => handleNav('/profile')}
               title="Profile"
             >
               <Settings className="w-5 h-5" />
             </Button>
             <Button
               variant="ghost"
-              className="gap-2 ml-2"
-              onClick={() => {
-                authService.logout();
-                navigate('/login');
-              }}
+              onClick={() => { authService.logout(); navigate('/login'); }}
               title="Logout"
             >
               <LogOut className="w-5 h-5" />
             </Button>
+
+            {isMobile && (
+              <Button
+                variant="ghost"
+                onClick={() => setMobileOpen(prev => !prev)}
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </Button>
+            )}
           </div>
         </div>
       </div>
+
+      {isMobile && mobileOpen && (
+        <div className="border-t border-border bg-card px-4 py-3 flex flex-col gap-1">
+          {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
+            <Button
+              key={path}
+              variant={pathname === path ? 'default' : 'ghost'}
+              onClick={() => handleNav(path, tab)}
+              className="w-full justify-start gap-3"
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </Button>
+          ))}
+        </div>
+      )}
     </nav>
   );
 }
