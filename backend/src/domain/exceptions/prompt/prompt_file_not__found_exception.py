@@ -32,5 +32,5 @@ class PromptFileNotFoundException(AppException):
         super().__init__(
             message=message,
             code="PROMPT_FILE_NOT_FOUND",
-            http_status=404,
+            http_status=500,
         )

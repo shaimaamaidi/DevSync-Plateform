@@ -1,3 +1,5 @@
+import type { ApiErrorType } from "@/types/api-error-type";
+
 type ErrorLike = {
   message?: string;
   response?: {
@@ -5,8 +7,6 @@ type ErrorLike = {
     status?: number;
   };
 };
-
-export type ApiErrorType = 'auth_error' | 'server_error' | 'backend_error';
 
 type ErrorListener = (msg: string) => void;
 const listeners: ErrorListener[] = [];

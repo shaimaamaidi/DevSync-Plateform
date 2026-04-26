@@ -13,6 +13,9 @@ import {
   uiToBacklog,
 } from "@/utils/backlog.mapper";
 import { backlogGenerationService } from "@/services/backlog-generation-service";
+import { showErrorToast } from "@/components/global-error-toaster";
+import { authService } from "@/services/auth-service";
+import { SseError } from "@/types/sse-error";
 
 type Step = "idle" | "market_review" | "backlog_edit" | "finalizing" | "done";
 
@@ -55,7 +58,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
   };
 
   const runStream = async (
-    streamPromise: Promise<ReadableStream<Uint8Array>>,
+  streamPromise: Promise<ReadableStream<Uint8Array>>,
   ) => {
     try {
       const stream = await streamPromise;
@@ -65,15 +68,35 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       });
       setStreamingText("");
       return result;
-    } catch {
+    } catch (error) {
+      if (error instanceof SseError) {
+        if (error.errorType === 'backend_error') {
+          showErrorToast(error.message, 'Operation failed');
+          return { isBackendError: true } as const;
+        } else {
+          await authService.logout();
+          onNavigate?.('/login');
+          showErrorToast('A server error occurred. Please try again later.');
+        }
+      } else {
+        showErrorToast('A server error occurred. Please try again later.');
+      }
       return null;
     }
   };
 
-  const handleSend = async (text: string) => {
-    if (!text.trim() || loading || step !== "idle") return;
-    setInput("");
-    addMsg({ role: "user", content: text });
+  const handleSend = async (text: string, isRetry = false) => {
+    if (!text.trim() || loading) 
+      return;
+
+    if (!isRetry && step !== "idle") 
+      return;
+
+    if (!isRetry){
+      setInput("");
+      addMsg({ role: "user", content: text });
+    }
+    
     setLoading(true);
 
     const agentMsgId = addMsg({ role: "agent", content: "", _streaming: true });
@@ -87,7 +110,16 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       if (!result) {
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "Something went wrong. Please try again.",
+          content: "The request didn't go through. You can try again.",
+        });
+        return;
+      }
+
+      if ('isBackendError' in result) {
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: "The agent encountered an issue processing your request.",
+          onRetry: () => handleSend(text, true), 
         });
         return;
       }
@@ -109,39 +141,44 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     } catch {
       updateMsg(agentMsgId, {
         _streaming: false,
-        content: "Something went wrong. Please try again.",
+        content: "The agent returned an unexpected response.",
+        onRetry: () => handleSend(text, true), 
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleMarketSubmit = async (editedSummary: MarketSummary) => {
+  const handleMarketSubmit = async (editedSummary: MarketSummary, isRetry = false) => {
     const submittedSummary = cloneMarketSummary(normalizeMarketSummary(editedSummary));
-    const baselineSummary = lastRefinedMarketRef.current
-      ? cloneMarketSummary(refinedToSummary(lastRefinedMarketRef.current))
-      : submittedSummary;
-    const hasMarketChanges = !areMarketSummariesEqual(submittedSummary, baselineSummary);
+    
+    if(!isRetry){
+      const baselineSummary = lastRefinedMarketRef.current
+        ? cloneMarketSummary(refinedToSummary(lastRefinedMarketRef.current))
+        : submittedSummary;
+      const hasMarketChanges = !areMarketSummariesEqual(submittedSummary, baselineSummary);
 
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.attachment?.type === "market"
-          ? { ...m, attachment: { ...m.attachment, editable: false, data: submittedSummary } }
-          : m
-      )
-    );
-    lastSubmittedMarketRef.current = submittedSummary;
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.attachment?.type === "market"
+            ? { ...m, attachment: { ...m.attachment, editable: false, data: submittedSummary } }
+            : m
+        )
+      );
+      lastSubmittedMarketRef.current = submittedSummary;
 
-    addMsg({
-      role: "user",
-      content: hasMarketChanges
-        ? "Market intelligence reviewed and submitted."
-        : "Market intelligence submitted for backlog generation.",
-      attachment: {
-        type: "submitted",
-        mode: hasMarketChanges ? "validation" : "backlog_generation",
-      },
-    });
+      addMsg({
+        role: "user",
+        content: hasMarketChanges
+          ? "Market intelligence reviewed and submitted."
+          : "Market intelligence submitted for backlog generation.",
+        attachment: {
+          type: "submitted",
+          mode: hasMarketChanges ? "validation" : "backlog_generation",
+        },
+      });
+    }
+      
     setLoading(true);
 
     const agentMsgId = addMsg({ role: "agent", content: "", _streaming: true });
@@ -172,7 +209,17 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         setStep("market_review");
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "Something went wrong. Please try again.",
+          content: "The request didn't go through. You can try again.",
+        });
+        return;
+      }
+      
+      if ('isBackendError' in result) {
+        setStep("market_review");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: "The agent encountered an issue processing your request.",
+          onRetry: () => handleMarketSubmit(editedSummary, true),
         });
         return;
       }
@@ -202,21 +249,23 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         setStep("market_review");
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: agentText || "No valid payload received.",
+          content: "The agent returned an unexpected response.",
+          onRetry: () => handleMarketSubmit(editedSummary, true),
         });
       }
     } catch {
       setStep("market_review");
       updateMsg(agentMsgId, {
         _streaming: false,
-        content: "Something went wrong. Please try again.",
+        content: "The agent returned an unexpected response.",
+        onRetry: () => handleMarketSubmit(editedSummary, true), 
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBacklogSubmit = async (editedEpics: UiEpic[]) => {
+  const handleBacklogSubmit = async (editedEpics: UiEpic[], isRetry = false) => {
     const userBacklog = uiToBacklog(editedEpics);
     const hasBacklogChanges = !areBacklogsEqual(
       userBacklog,
@@ -226,24 +275,26 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       ? userBacklog
       : (lastBacklogPayloadRef.current ?? userBacklog);
 
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.attachment?.type === "backlog"
-          ? { ...m, attachment: { ...m.attachment, type: "backlog", data: editedEpics, editable: false, } }
-          : m
-      )
-    );
+    if(!isRetry){
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.attachment?.type === "backlog"
+            ? { ...m, attachment: { ...m.attachment, type: "backlog", data: editedEpics, editable: false, } }
+            : m
+        )
+      );
 
-    addMsg({
-      role: "user",
-      content: hasBacklogChanges
-        ? "Backlog changes submitted for refinement."
-        : "Backlog submitted for finishing.",
-      attachment: {
-        type: "submitted",
-        mode: hasBacklogChanges ? "backlog_refinement" : "backlog_finishing",
-      },
-    });
+      addMsg({
+        role: "user",
+        content: hasBacklogChanges
+          ? "Backlog changes submitted for refinement."
+          : "Backlog submitted for finishing.",
+        attachment: {
+          type: "submitted",
+          mode: hasBacklogChanges ? "backlog_refinement" : "backlog_finishing",
+        },
+      });
+    }
 
     setStep("finalizing");
     setLoading(true);
@@ -271,7 +322,17 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         setStep("backlog_edit");
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "Something went wrong. Please try again.",
+          content: "The request didn't go through. You can try again.",
+        });
+        return;
+      }
+
+      if ('isBackendError' in result) {
+        setStep("backlog_edit");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: "The agent encountered an issue processing your request.",
+          onRetry: () => handleBacklogSubmit(editedEpics, true), 
         });
         return;
       }
@@ -286,7 +347,6 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
           lastBacklogPayloadRef.current = correctedBacklogPayload;
         }
         setStep("done");
-
         updateMsg(agentMsgId, {
           _streaming: false,
           content: agentText || "Sprint planning generated.",
@@ -317,9 +377,10 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     } catch {
       setStep("backlog_edit");
       updateMsg(agentMsgId, {
-        _streaming: false,
-        content: "Something went wrong during refinement. Please try again.",
-      });
+          _streaming: false,
+          content: "The agent returned an unexpected response.",
+          onRetry: () => handleBacklogSubmit(editedEpics, true), 
+        });
     } finally {
       setLoading(false);
     }

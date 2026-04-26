@@ -33,5 +33,5 @@ class AzureStreamException(AppException):
         super().__init__(
             message=message,
             code="AZURE_STREAM_ERROR",
-            http_status=500,
+            http_status=502,
         )

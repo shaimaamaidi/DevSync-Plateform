@@ -27,5 +27,5 @@ class BacklogGenerationException(AppException):
         super().__init__(
             message=message,
             code="BACKLOG_GENERATION_ERROR",
-            http_status=500
+            http_status=503
         )

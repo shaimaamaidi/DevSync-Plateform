@@ -36,5 +36,5 @@ class ToolExecutionException(AppException):
         super().__init__(
             message=message,
             code="TOOL_EXECUTION_ERROR",
-            http_status=500
+            http_status=503
         )

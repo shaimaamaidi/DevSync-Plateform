@@ -35,5 +35,5 @@ class BacklogReplyException(AppException):
         super().__init__(
             message=message,
             code="BACKLOG_REPLY_ERROR",
-            http_status=500,
+            http_status=503,
         )

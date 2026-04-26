@@ -1,6 +1,6 @@
 import { showErrorToast } from "@/components/global-error-toaster";
-import type { ApiErrorType } from "@/services/api-error";
 import { authService } from "@/services/auth-service";
+import type { ApiErrorType } from "@/types/api-error-type";
 import type { NavigateFunction } from "react-router-dom";
 
 export const defaultOnError = (navigate?: NavigateFunction) => async (errorType: ApiErrorType, message: string) => {

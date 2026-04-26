@@ -81,6 +81,7 @@ export interface ChatMessage {
   _streaming?: boolean;
   attachment?: ChatAttachment;
   isRejection?: boolean;
+  onRetry?: () => void;
 }
 
 export interface ChatAttachment {
