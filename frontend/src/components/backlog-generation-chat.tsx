@@ -22,10 +22,21 @@ export function BacklogGenerationChat() {
 
   const isMobile = useIsMobile();
   const bottomRef = useRef<HTMLDivElement>(null);
-
+  const isStreamingRef = useRef(false);
+  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading, streamingText]);
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (streamingText && !isStreamingRef.current) {
+      isStreamingRef.current = true;
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (!streamingText && isStreamingRef.current) {
+      isStreamingRef.current = false;
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [streamingText]);
 
   return (
     <div
