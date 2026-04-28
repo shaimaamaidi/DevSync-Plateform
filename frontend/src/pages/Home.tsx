@@ -36,6 +36,8 @@ interface HomePageProps {
 }
 
 function HomePage({ activeTab: initialTab }: HomePageProps) {
+  const [isLoading, setIsLoading] = useState(true);
+
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [activeTab, setActiveTab] = useState<HomeTab>(initialTab || 'repos');
@@ -77,6 +79,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
 
 
   const refreshAllData = useCallback(async () => {
+    setIsLoading(true);
+
     const [reposData, spacesData, membersData] = await Promise.all([
       withErrorHandling(() => repoService.getAllReposWithDetails(), 'Load repositories', onError),
       withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load ClickUp spaces', onError),
@@ -88,6 +92,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
       setClickUpSpaces(spacesData);
     if (membersData) 
       setMembers(membersData.map(memberService.mapToMemberDTO));
+
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -209,6 +215,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
   }, [refreshAllData]);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
+    setIsLoading(true);
+
     const deploymentData = await withErrorHandling(
       () => deploymentService.listByRepoUrl(repoUrl),
       'Load deployments',
@@ -216,6 +224,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     );
     if (deploymentData) 
       setDeployments(deploymentData);
+
+    setIsLoading(false);
   }, []);
 
   return (
@@ -236,6 +246,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               onUpdate={handleUpdateRepo}
               onDelete={handleDeleteRepo}
               onAdd={handleAddRepo}
+              isLoading={isLoading}
             />
           </div>
         )}
@@ -246,6 +257,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               deployments={deployments}
               repos={repos}
               onLoadDeployments={handleLoadDeployments}
+              isLoading={isLoading}
             />
           </div>
         )}
@@ -257,6 +269,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               onUpdate={handleUpdateMember}
               onDelete={handleDeleteMember}
               onAdd={handleAddMember}
+              isLoading={isLoading} 
             />
           </div>
         )}
@@ -268,6 +281,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
               onUpdate={handleUpdateClickUpSpace}
               onDelete={handleDeleteClickUpSpace}
               onAdd={handleAddClickUpSpace}
+              isLoading={isLoading} 
             />
           </div>
         )}

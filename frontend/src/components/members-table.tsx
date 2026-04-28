@@ -19,10 +19,11 @@ export interface MembersTableProps {
   onUpdate: (member: MemberUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
   onAdd: (member: MemberCreateDTO) => Promise<boolean>;
+  isLoading?: boolean; 
 }
 
 
-export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTableProps) {
+export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: MembersTableProps) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
   const [formData, setFormData] = useState<Partial<MemberUpdateDTO & { password?: string }>>({});
@@ -140,51 +141,81 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd }: MembersTabl
             </tr>
           </thead>
           <tbody>
-            {members.length > 0 ? (
-              members.map((member) => (
-                <tr
-                  key={member.id}
-                  className="border-b border-border hover:bg-muted/50 transition-colors"
-                >
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-b border-border">
                   <td className="px-6 py-4">
-                    <span className="font-medium text-foreground w-full text-center block">{member.username}</span>
+                    <div className="flex items-center gap-3 justify-center">
+                      <div className="w-5 h-5 rounded bg-muted animate-pulse" />
+                      <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-sm text-muted-foreground">{member.mail || 'N/A'}</span>
+                  <td className="px-6 py-4">
+                    <div className="h-4 w-48 rounded bg-muted animate-pulse mx-auto" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex gap-1 justify-center">
+                      {Array.from({ length: 3 }).map((_, j) => (
+                        <div key={j} className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-6 w-24 rounded-full bg-muted animate-pulse mx-auto" />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(member)}
-                        className="h-8 w-8"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => {
-                          if (typeof member.id === 'number') {
-                            setDeleteConfirmMemberId(member.id);
-                          }
-                        }}
-                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
                     </div>
                   </td>
                 </tr>
               ))
-            ) : (
-              <tr>
-                <td colSpan={3} className="px-6 py-12 text-center">
-                  <p className="text-muted-foreground">No members yet. Create your first member!</p>
-                </td>
-              </tr>
-            )}
+            ) : members.length > 0 ? (
+                members.map((member) => (
+                  <tr
+                    key={member.id}
+                    className="border-b border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-foreground w-full text-center block">{member.username}</span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="text-sm text-muted-foreground">{member.mail || 'N/A'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(member)}
+                          className="h-8 w-8"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (typeof member.id === 'number') {
+                              setDeleteConfirmMemberId(member.id);
+                            }
+                          }}
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center">
+                    <p className="text-muted-foreground">No members yet. Create your first member!</p>
+                  </td>
+                </tr>
+              )}
           </tbody>
         </table>
       </div>

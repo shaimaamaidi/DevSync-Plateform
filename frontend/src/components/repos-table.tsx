@@ -21,9 +21,10 @@ interface ReposTableProps {
   onUpdate: (repo: GitRepoUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
   onAdd: (repo: GitRepoCreateDTO) => Promise<boolean>;
+  isLoading?: boolean;
 }
 
-export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd }: ReposTableProps) {
+export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd, isLoading }: ReposTableProps) {
   const [selectedRepo, setSelectedRepo] = useState<GitRepoDetailDTO | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -106,108 +107,138 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
             </tr>
           </thead>
           <tbody>
-            {repos.length > 0 ? (
-              repos.map((repo) => (
-              <tr
-                key={repo.id ?? repo.url ?? repo.name}
-                className="border-b border-border hover:bg-muted/50 transition-colors"
-              >
-                  <td className="px-6 py-4 text-center">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-b border-border">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-3 justify-center">
-                      <GitBranch className="w-5 h-5 text-primary" />
-                      <span className="font-medium text-foreground">{repo.name}</span>
+                      <div className="w-5 h-5 rounded bg-muted animate-pulse" />
+                      <div className="h-4 w-32 rounded bg-muted animate-pulse" />
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    {repo.url ? (
-                      <a
-                        href={repo.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
-                      >
-                        <LinkIcon className="w-4 h-4" />
-                        <span className="text-sm truncate max-w-xs">
-                          {repo.url.replace('https://github.com/', '')}
-                        </span>
-                      </a>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">No URL</span>
-                    )}
+                  <td className="px-6 py-4">
+                    <div className="h-4 w-48 rounded bg-muted animate-pulse mx-auto" />
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <div className="flex items-center gap-2 justify-center">
-                      <div className="flex -space-x-2">
-                        {(repo.members ?? []).slice(0, 3).map((member) => (
-                          <Avatar key={member.id ?? member.username} className="w-8 h-8 border border-background">
-                            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                              {(member.username || 'M')[0].toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                        {(repo.members?.length ?? 0) > 3 && (
-                          <div className="w-8 h-8 flex items-center justify-center bg-muted rounded-full border border-background text-xs font-semibold text-foreground">
-                            +{(repo.members?.length ?? 0) - 3}
-                          </div>
-                        )}
+                  <td className="px-6 py-4">
+                    <div className="flex gap-1 justify-center">
+                      {Array.from({ length: 3 }).map((_, j) => (
+                        <div key={j} className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-6 w-24 rounded-full bg-muted animate-pulse mx-auto" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-2">
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) :repos.length > 0 ? (
+                repos.map((repo) => (
+                <tr
+                  key={repo.id ?? repo.url ?? repo.name}
+                  className="border-b border-border hover:bg-muted/50 transition-colors"
+                >
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center gap-3 justify-center">
+                        <GitBranch className="w-5 h-5 text-primary" />
+                        <span className="font-medium text-foreground">{repo.name}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {repo.url ? (
+                        <a
+                          href={repo.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                          <span className="text-sm truncate max-w-xs">
+                            {repo.url.replace('https://github.com/', '')}
+                          </span>
+                        </a>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">No URL</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex items-center gap-2 justify-center">
+                        <div className="flex -space-x-2">
+                          {(repo.members ?? []).slice(0, 3).map((member) => (
+                            <Avatar key={member.id ?? member.username} className="w-8 h-8 border border-background">
+                              <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                                {(member.username || 'M')[0].toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {(repo.members?.length ?? 0) > 3 && (
+                            <div className="w-8 h-8 flex items-center justify-center bg-muted rounded-full border border-background text-xs font-semibold text-foreground">
+                              +{(repo.members?.length ?? 0) - 3}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => handleEditClick(repo)}
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {repo.clickup_space ? (
+                        <Badge
+                          variant="secondary"
+                          className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                        >
+                          {repo.clickup_space.name}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Not assigned
+                        </Badge>
+                      )}
+                    </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-1"
                         onClick={() => handleEditClick(repo)}
+                        className="text-primary hover:bg-primary/10"
                       >
-                        <Users className="w-4 h-4" />
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (typeof repo.id === 'number') {
+                            setDeleteConfirmRepoId(repo.id);
+                          }
+                        }}
+                        className="text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    {repo.clickup_space ? (
-                      <Badge
-                        variant="secondary"
-                        className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-                      >
-                        {repo.clickup_space.name}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground">
-                        Not assigned
-                      </Badge>
-                    )}
+                </tr>
+              ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <p className="text-muted-foreground">No repositories yet. Create your first repository!</p>
                   </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditClick(repo)}
-                      className="text-primary hover:bg-primary/10"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (typeof repo.id === 'number') {
-                          setDeleteConfirmRepoId(repo.id);
-                        }
-                      }}
-                      className="text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center">
-                  <p className="text-muted-foreground">No repositories yet. Create your first repository!</p>
-                </td>
-              </tr>
-            )}
+                </tr>
+              )}
           </tbody>
         </table>
       </div>

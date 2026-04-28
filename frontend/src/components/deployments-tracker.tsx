@@ -11,9 +11,10 @@ interface DeploymentsTrackerProps {
   deployments: DeploymentDTO[];
   repos: GitRepoDetailDTO[];
   onLoadDeployments: (repoUrl: string) => Promise<void>;
+  isLoading?: boolean;
 }
 
-export function DeploymentsTracker({ deployments, repos, onLoadDeployments }: DeploymentsTrackerProps) {
+export function DeploymentsTracker({ deployments, repos, onLoadDeployments, isLoading }: DeploymentsTrackerProps) {
   const [searchUrl, setSearchUrl] = useState('');
   const [filteredDeployments, setFilteredDeployments] = useState<DeploymentDTO[]>(deployments);
   const [selectedRepoUrl, setSelectedRepoUrl] = useState('');
@@ -55,7 +56,6 @@ export function DeploymentsTracker({ deployments, repos, onLoadDeployments }: De
           Track and manage all deployments by URL or repository name
         </p>
 
-        {/* Search Bar */}
         <div className="flex flex-col gap-3 sm:flex-row">
           <Select
             value={selectedRepoUrl || 'none'}
@@ -94,22 +94,63 @@ export function DeploymentsTracker({ deployments, repos, onLoadDeployments }: De
           </Button>
         </div>
       </div>
+      {isLoading ? (
+        <Card className="p-6 border-border">
+          <table className="w-full">
+            <tbody>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-b border-border">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3 justify-center">
+                      <div className="w-5 h-5 rounded bg-muted animate-pulse" />
+                      <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+                    </div>
+                  </td>
 
-      {/* Deployments List Component */}
-      {filteredDeployments.length > 0 ? (
-        <DeploymentsList deployments={filteredDeployments} />
-      ) : (
-        <Card className="p-12 border-border border-dashed text-center">
-          <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-muted-foreground">
-            {!selectedRepoUrl
-              ? 'Select a repository to view deployments.'
-              : searchUrl
-                ? 'No deployments found matching your search.'
-                : 'No deployments available.'}
-          </p>
+                  <td className="px-6 py-4">
+                    <div className="h-4 w-48 rounded bg-muted animate-pulse mx-auto" />
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <div className="flex gap-1 justify-center">
+                      {Array.from({ length: 3 }).map((_, j) => (
+                        <div
+                          key={j}
+                          className="w-8 h-8 rounded-full bg-muted animate-pulse"
+                        />
+                      ))}
+                    </div>
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <div className="h-6 w-24 rounded-full bg-muted animate-pulse mx-auto" />
+                  </td>
+
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end gap-2">
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </Card>
-      )}
+      ) : filteredDeployments.length > 0 ? (
+          <DeploymentsList deployments={filteredDeployments} />
+        ) : (
+          <Card className="p-12 border-border border-dashed text-center">
+            <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">
+              {!selectedRepoUrl
+                ? 'Select a repository to view deployments.'
+                : searchUrl
+                  ? 'No deployments found matching your search.'
+                  : 'No deployments available.'}
+            </p>
+          </Card>
+        )}
     </div>
   );
 }
