@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppFooter } from '@/components/app-footer';
 import { DashboardStats } from '@/components/dashboard-stats';
 import { DeploymentsTracker } from '@/components/deployments-tracker';
@@ -20,13 +20,11 @@ import { clickUpService } from '@/services/clickup-service';
 import { deploymentService } from '@/services/deployment-service';
 import { memberService } from '@/services/member-service';
 import { repoService } from '@/services/repo-service';
-
-
 import { useEffect as useReactEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
-import { showSuccessToast } from '@/components/global-success-toaster';
+import { showSuccessToast } from '@/components/global-toaster';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
 import { BacklogGenerationChat } from '@/components/backlog-generation-chat';
@@ -46,6 +44,8 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
   const [members, setMembers] = useState<MemberDTO[]>([]);
 
+  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+  
   useReactEffect(() => {
     if (pathname === '/repositories' && activeTab !== 'repos') {
       setActiveTab('repos');
@@ -78,9 +78,9 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
 
   const refreshAllData = useCallback(async () => {
     const [reposData, spacesData, membersData] = await Promise.all([
-      withErrorHandling(() => repoService.getAllReposWithDetails(), 'Load repositories', defaultOnError(navigate)),
-      withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load ClickUp spaces', defaultOnError(navigate)),
-      withErrorHandling(() => memberService.getAllWithRepos(), 'Load members', defaultOnError(navigate)),
+      withErrorHandling(() => repoService.getAllReposWithDetails(), 'Load repositories', onError),
+      withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load ClickUp spaces', onError),
+      withErrorHandling(() => memberService.getAllWithRepos(), 'Load members', onError),
     ]);
     if (reposData) 
       setRepos(reposData);
@@ -98,7 +98,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => repoService.updateRepo(updatedRepo),
       'Update repository',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result) 
       return Promise.resolve(false);
@@ -111,7 +111,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => memberService.updateMember(member),
       'Update member',
-      defaultOnError(navigate),
+      onError,
   );
   if (!result) 
     return Promise.resolve(false);
@@ -124,7 +124,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => clickUpService.updateSpace(space),
       'Update clickup space',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result) 
       return Promise.resolve(false);
@@ -138,7 +138,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => repoService.deleteRepo(id),
       'Delete repository',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result) return;
     await refreshAllData();
@@ -149,7 +149,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => memberService.deleteMember(id),
       'Delete member',
-      defaultOnError(navigate),
+      onError,
     );
     
     if (!result)
@@ -162,7 +162,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => clickUpService.deleteSpace(id),
       'Delete clickup space',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result) return;
     await refreshAllData();
@@ -173,7 +173,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => repoService.createRepo(newRepo),
       'Create repository',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result) 
       return Promise.resolve(false);
@@ -186,7 +186,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => memberService.createMember(newMember),
       'Create member',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result)
       return Promise.resolve(false);
@@ -199,7 +199,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const result = await withErrorHandling(
       () => clickUpService.createSpace(newSpace),
       'Create clickup space',
-      defaultOnError(navigate),
+      onError,
     );
     if (!result) 
       return Promise.resolve(false);
@@ -212,7 +212,7 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
     const deploymentData = await withErrorHandling(
       () => deploymentService.listByRepoUrl(repoUrl),
       'Load deployments',
-      defaultOnError(navigate),
+      onError,
     );
     if (deploymentData) 
       setDeployments(deploymentData);

@@ -13,7 +13,7 @@ import {
   uiToBacklog,
 } from "@/utils/backlog.mapper";
 import { backlogGenerationService } from "@/services/backlog-generation-service";
-import { showErrorToast } from "@/components/global-error-toaster";
+import { showErrorToast } from "@/components/global-toaster";
 import { authService } from "@/services/auth-service";
 import { SseError } from "@/types/sse-error";
 

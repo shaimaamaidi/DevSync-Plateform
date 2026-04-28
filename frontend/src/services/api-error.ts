@@ -68,12 +68,8 @@ const isServerError = (error: ErrorLike | unknown): boolean => {
 
 export const handleApiError = (
   error: ErrorLike | unknown,
-  context: string,
   includeValidation = false,
 ): ApiErrorType => {
-  const message = normalizeErrorMessage(error);
-  listeners.forEach((cb) => cb(`${context}: ${message}`));
-
   if (isAuthError(error, includeValidation)) 
     return 'auth_error';
   if (isServerError(error)) 
@@ -89,11 +85,13 @@ export const withErrorHandling = async <T>(
   try {
     return await fn();
   } catch (err) {
-    const errorType = handleApiError(err, context);
+    const errorType = handleApiError(err);
     const message = normalizeErrorMessage(err);
 
     if (onError) {
       onError(errorType, message);
+    }else{
+      listeners.forEach((cb) => cb(`${context}: ${message}`));
     }
     return null;
   }

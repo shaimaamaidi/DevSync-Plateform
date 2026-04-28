@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useNavigate } from 'react-router-dom';
-import { showSuccessToast } from '@/components/global-success-toaster';
+import { showSuccessToast } from '@/components/global-toaster';
 import { memberService } from '@/services/member-service';
 import type { MemberUpdateDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
@@ -21,6 +21,7 @@ export default function SettingsPage() {
 
   const { user, loading: userLoading, error: userError } = useCurrentUser();
   const userId = user?.id ?? null;
+  const onError = defaultOnError(navigate);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +57,7 @@ export default function SettingsPage() {
       const result = await withErrorHandling(
         () => memberService.updateMember(member),
         'Update password',
-        defaultOnError(navigate),
+        onError,
       );
       if (result) {
         showSuccessToast('Password updated successfully!');

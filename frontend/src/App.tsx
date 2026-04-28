@@ -4,7 +4,7 @@ import HomePage from './pages/Home';
 import NotFoundPage from './pages/NotFound';
 import LoginPage from './pages/Login';
 import { GlobalSuccessToaster } from './components/global-success-toaster';
-import { GlobalErrorToaster } from './components/global-error-toaster';
+import { GlobalErrorToaster } from './components/global-toaster';
 import SettingsPage from './pages/Settings';
 import ProfilePage from './pages/Profile';
 

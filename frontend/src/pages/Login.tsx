@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { authService } from '@/services/auth-service';
 import { useNavigate } from 'react-router-dom';
-import { showSuccessToast } from '@/components/global-success-toaster';
+import { showSuccessToast } from '@/components/global-toaster';
 import { Eye, EyeOff } from 'lucide-react';
-import { handleApiError } from '@/services/api-error';
-import { showErrorToast } from '@/components/global-error-toaster';
+import { withErrorHandling } from '@/services/api-error';
 import type { MemberAuthDTO } from '@/api/api';
+import { defaultOnError } from '@/lib/error-utils';
 
 export default function LoginPage() {
   const [mail, setMail] = useState('');
@@ -15,6 +15,8 @@ export default function LoginPage() {
   const [invalidCredentials, setInvalidCredentials] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ mail?: string; password?: string }>({});
   const navigate = useNavigate();
+
+  const onError = defaultOnError(navigate);
 
   const validateFields = () => {
     const errors: { mail?: string; password?: string } = {};
@@ -36,21 +38,22 @@ export default function LoginPage() {
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) return;
     setLoading(true);
-    try {
-      await authService.login({ mail, password } as MemberAuthDTO);
-      showSuccessToast('Login successful!');
-      navigate('/repositories');
-    } catch (err: any) {
-      const errorType = handleApiError(err, 'Login', true);
+    
+     const result = await withErrorHandling(
+      () => authService.login({ mail, password } as MemberAuthDTO),
+      'Login',
+      onError,
+    );
 
-      if (errorType === 'auth_error') {
-        setInvalidCredentials(true);
-      } else {
-        showErrorToast('A server error occurred. Please try again later.', 'Something went wrong');
-      }
-    } finally {
-      setLoading(false);
+    setLoading(false);
+
+    if (!result) {
+      setInvalidCredentials(true);
+      return;
     }
+
+    showSuccessToast('Login successful!');
+    navigate('/repositories');
   };
 
   const inputClass = (hasError: boolean) =>

@@ -4,13 +4,14 @@ import { KeyRound, User, Mail, Pen , Loader2, ArrowLeft } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { memberService } from '@/services/member-service';
 import { withErrorHandling } from '@/services/api-error';
-import { showSuccessToast } from '@/components/global-success-toaster';
+import { showSuccessToast } from '@/components/global-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
 import { defaultOnError } from '@/lib/error-utils';
 
 export default function ProfilePage() {
   const { user } = useCurrentUser();
   const navigate = useNavigate();
+  const onError = defaultOnError(navigate);
 
   const initialUsername = user?.username || '';
   const initialMail = user?.mail || '';
@@ -36,7 +37,7 @@ export default function ProfilePage() {
       const result = await withErrorHandling(
         () => memberService.updateMember(member),
         'Update profile',
-        defaultOnError(navigate),
+        onError,
       );
 
       if (result) 

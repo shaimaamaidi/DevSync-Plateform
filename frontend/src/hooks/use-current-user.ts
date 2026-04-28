@@ -10,6 +10,7 @@ export function useCurrentUser() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const onError = defaultOnError(navigate);
 
   useEffect(() => {
     async function fetchUser() {
@@ -19,7 +20,7 @@ export function useCurrentUser() {
       const members = await withErrorHandling(
         () => memberService.getAllWithRepos(),
         'Load current user',
-        defaultOnError(navigate),
+        onError,
       );
 
       if (members && members.length > 0) {
