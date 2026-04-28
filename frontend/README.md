@@ -29,15 +29,15 @@ The frontend consumes the backend REST API documented at:
 
 ## 🍪 Authentication & Cookies
 
-L’application frontend utilise les **cookies** pour la gestion de l’authentification :
+The frontend uses cookies to manage authentication:
 
-- À la connexion (`/auth/login`), le backend place le token d’accès (JWT) dans un cookie sécurisé (**HttpOnly**, **Secure**, **SameSite=Lax**).
-- Ce cookie est automatiquement envoyé par le navigateur à chaque requête API (le frontend n’y a pas accès en JavaScript).
-- Le refresh token est géré côté client (cookie ou localStorage).
-- Les endpoints protégés vérifient le token d’accès dans le cookie **ou** dans l’en-tête `Authorization`.
-- **Aucune donnée d’authentification n’est stockée dans le localStorage pour l’accès principal.**
+- On login (`/auth/login`), the backend sets the access token (JWT) in a secure cookie (`HttpOnly`, `Secure`, `SameSite=Lax`).
+- This cookie is automatically sent by the browser with each API request and is not accessible from JavaScript.
+- The refresh token is managed client-side (cookie or localStorage).
+- Protected endpoints validate the access token either from the cookie or from the `Authorization` header.
+- No primary authentication data is stored in localStorage.
 
-> **Note :** Pour tester les endpoints protégés avec curl ou Postman, vous pouvez utiliser soit l’en-tête `Authorization: Bearer <access_token>`, soit envoyer le cookie `access_token`.
+> Note: To test protected endpoints with curl or Postman, you can either send an `Authorization: Bearer <access_token>` header or include the `access_token` cookie.
 - [Main Features](#main-features)
 - [Environment Variables](#environment-variables)
 - [Running Tests](#running-tests)
@@ -120,6 +120,11 @@ frontend/
 - ClickUp integration (spaces, associations)
 - Modern, responsive UI (Tailwind CSS)
 - Global error and success notifications
+- Agent de génération de backlog: Génération automatisée de tickets/éléments
+ - ClickUp integration (spaces, associations)
+ - Modern, responsive UI (Tailwind CSS)
+ - Global error and success notifications
+ - Backlog generation agent: automated generation of backlog items (stories, tasks, bugs) from product context using an integrated agent. The agent can be triggered from the Backlog UI and communicates with the backend API to create and suggest backlog entries ready for editing.
 
 ---
 
@@ -155,17 +160,50 @@ See `package.json` for the full list.
 
 ## 🎨 UI/UX
 
-- Interface moderne et responsive avec Tailwind CSS
-- Composants UI avancés via Radix UI (`@radix-ui/react-*`)
-- Icônes via Lucide
-- Notifications globales (succès/erreur) avec React Toastify
+- Modern, responsive interface built with Tailwind CSS
+- Advanced UI components via Radix UI (`@radix-ui/react-*`)
+- Icons provided by Lucide
+- Global notifications (success/error) with React Toastify
 
 ---
 
-## 🛡️ Gestion des erreurs
+## 🛡️ Error Handling
 
-- Les erreurs API sont capturées et affichées via des toasts (voir `src/services/api-error.ts` et les composants `global-success-toaster.tsx`/`global-error-toaster.tsx`).
-- Les erreurs d’authentification déclenchent un rafraîchissement automatique du token ou une redirection vers la page de login.
+- API errors are displayed through a single global toaster using `react-toastify`.
+- The `ToastContainer` is mounted once at the application root in `src/main.tsx`.
+- Use the helper functions exported from `src/components/global-toaster.tsx`:
+   - `showErrorToast(message, title?)` — show an error toast.
+   - `showSuccessToast(message, title?)` — show a success toast.
+- Hooks and services handle errors and use these helpers. For example, the backlog chat hook `src/hooks/use-chat-logic.ts` handles `SseError` and calls `showErrorToast` for backend/server errors; authentication errors trigger logout/redirect and surface an error toast.
+
+Notes:
+- The project uses one global toast container; individual components should call the exported helper functions rather than mounting their own `ToastContainer` instances.
+---
+
+
+## 🧭 Backlog Generation Agent
+
+The project implements an integrated Backlog Generation Agent that creates structured backlog items (epics, user stories, tasks) from a product description and market intelligence. Implementation notes and where to look:
+
+- Purpose: generate and refine backlog items automatically and stream results to the UI for progressive display and user validation.
+- Backend endpoints (streaming / SSE):
+   - `POST /backlog/start` — start a new generation stream
+   - `POST /backlog/reply` — submit market-intelligence verification replies
+   - `POST /backlog/reply/backlog` — submit backlog refinement replies
+- Frontend service (SSE client): `src/services/backlog-generation-service.ts`
+   - Exposes `start()`, `reply()`, and `replyBacklog()` which return `ReadableStream<Uint8Array>` and handle SSE errors.
+- SSE parser: `src/utils/stream-parser.ts` (used to read Server-Sent Events and emit chunks to the UI).
+- UI integration:
+   - `src/components/backlog-generation-chat.tsx` — chat-like UI which renders the conversation and streaming text.
+   - `src/hooks/use-chat-logic.ts` — central hook managing messages, streaming state, calls to the backlog service, error handling, and actions (send, reply, submit backlog). This hook calls `readSseStream`, updates message streaming, and uses `showErrorToast` on errors.
+   - `src/pages/Home.tsx` — mounts the backlog chat when `activeTab === 'backlog-generation'`.
+- Error handling in the flow: `use-chat-logic` catches `SseError` and other runtime errors, uses `showErrorToast`, performs logout + redirect on auth errors, and ensures user-facing messages are shown when a stream fails.
+
+Recommended places to review or extend the feature:
+- Start: `src/hooks/use-chat-logic.ts` (logic and SSE integration).
+- UI: `src/components/backlog-generation-chat.tsx` and related `Chat*` subcomponents.
+- Service: `src/services/backlog-generation-service.ts` (network & SSE helpers).
+- Backend workflow/orchestrator: `backend/src/application/use_cases/generate_backlog_use_case.py`, `backlog_router.py`, and the orchestrator/tool/agent classes under `backend/src/infrastructure/external/backlog_generation/`.
 
 ---
 
