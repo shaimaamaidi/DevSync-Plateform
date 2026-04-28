@@ -47,7 +47,7 @@ class _Container:
         self.member_service = MagicMock()
         self.clickup_service = MagicMock()
         self.associator_service = MagicMock()
-        self.deployment_service = MagicMock()
+        self.deployment_use_case = MagicMock()
         self.auth_service = MagicMock()
         self.backlog_use_case = MagicMock()
 

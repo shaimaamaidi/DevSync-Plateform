@@ -13,13 +13,14 @@ from typing import List
 
 from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
 from backend.src.domain.entities.git_repo import GitRepoDTO
+from backend.src.domain.ports.input.i_member_service import IMemberService
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
 
 logger = logging.getLogger(__name__)
 
 
-class MemberService:
+class MemberService(IMemberService):
     """
     Application service for member operations: creation, update, retrieval, and listing.
 

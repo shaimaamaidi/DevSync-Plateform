@@ -20,6 +20,7 @@ from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.backlog.backlog_reply_exception import BacklogReplyException
 from backend.src.domain.exceptions.backlog.backlog_stream_exception import BacklogStreamException
 from backend.src.domain.exceptions.stream.reply_stream_exception import ReplyStreamException
+from backend.src.domain.ports.input.i_generate_backlog_use_case import IGenerateBacklogUseCase
 from backend.src.domain.ports.services.backlog_generation.orchestrator.ibacklog_workflow_orchestrator import \
     IBacklogWorkflowOrchestrator
 
@@ -27,7 +28,7 @@ from backend.src.domain.ports.services.backlog_generation.orchestrator.ibacklog_
 logger = logging.getLogger(__name__)
 
 
-class GenerateBacklogUseCase:
+class GenerateBacklogUseCase(IGenerateBacklogUseCase):
     """
     Application use case for managing the backlog generation workflow.
 

@@ -28,7 +28,7 @@ def test_get_deployments_endpoint_returns_expected_data(client: TestClient, cont
         )
     ]
 
-    container.deployment_service.list_deployments = AsyncMock(return_value=expected_deployments)
+    container.deployment_use_case.list_deployments = AsyncMock(return_value=expected_deployments)
 
     response = client.get(f"/deployment/list?repo_url={repo_url}")
 
@@ -40,4 +40,4 @@ def test_get_deployments_endpoint_returns_expected_data(client: TestClient, cont
     assert data[0]["dep_id"] == expected_deployments[0].dep_id
     assert data[0]["environment"] == expected_deployments[0].environment
 
-    container.deployment_service.list_deployments.assert_awaited_once_with(repo_url)
+    container.deployment_use_case.list_deployments.assert_awaited_once_with(repo_url)

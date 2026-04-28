@@ -18,13 +18,14 @@ from backend.src.domain.entities.clickup_space import (
     ClickUpSpaceLightDTO,
     ClickUpSpaceUpdateDTO,
 )
+from backend.src.domain.ports.input.i_clickup_service import IClickUpService
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 
 
 logger = logging.getLogger(__name__)
 
 
-class ClickUpService:
+class ClickUpService(IClickUpService):
     """
     Application service for ClickUp space use cases: creation, update, retrieval, and listing.
 

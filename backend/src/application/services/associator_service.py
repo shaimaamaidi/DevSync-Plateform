@@ -20,6 +20,7 @@ from backend.src.domain.entities.associator import (
 )
 from backend.src.domain.entities.git_repo import GitRepoUpdateDTO, RepoClickUpSpaceRefDTO, RepoMemberRefDTO
 from backend.src.domain.exceptions.member.invalid_member_data_exception import InvalidMemberDataException
+from backend.src.domain.ports.input.i_associator_service import IAssociatorService
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
@@ -27,7 +28,7 @@ from backend.src.domain.ports.repositories.i_repo_repository import IRepoReposit
 logger = logging.getLogger(__name__)
 
 
-class AssociatorService:
+class AssociatorService(IAssociatorService):
     """
     Application service for managing associations between repositories, ClickUp spaces, and members.
 

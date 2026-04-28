@@ -22,7 +22,7 @@ from backend.src.infrastructure.persistence.repositories.member_repository impor
 from backend.src.application.services.repo_service import RepoService
 from backend.src.application.services.clickup_service import ClickUpService
 from backend.src.application.services.associator_service import AssociatorService
-from backend.src.application.services.deployment_service import DeploymentService
+from backend.src.application.use_cases.deployment_use_case import DeploymentUseCase
 from backend.src.infrastructure.security.jwt_handler import JWTHandler
 
 
@@ -51,6 +51,7 @@ class Container:
 
         # External services
         github_service (GitHubDeploymentAdapter)
+        deployment_use_case (DeploymentUseCase)
 
         # Application services
         repo_service (RepoService)
@@ -58,7 +59,6 @@ class Container:
         clickup_service (ClickUpService)
         associator_service (AssociatorService)
         auth_service (AuthService)
-        deployment_service (DeploymentService)
     """
 
     def __init__(self, session):
@@ -120,6 +120,7 @@ class Container:
         logger.info("Initializing external services.")
 
         self.github_service = GitHubDeploymentAdapter()
+        self.deployment_use_case = DeploymentUseCase(self.repo_repo, self.github_service)
 
     # Application services
     def _init_application_services(self):
@@ -147,4 +148,3 @@ class Container:
             refresh_token_repository=self.refresh_token_repo,
         )
 
-        self.deployment_service = DeploymentService(self.repo_repo, self.github_service)

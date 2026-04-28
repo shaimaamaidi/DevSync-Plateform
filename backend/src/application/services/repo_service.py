@@ -19,13 +19,14 @@ from backend.src.domain.entities.git_repo import (
     GitRepoNameDTO,
     GitRepoUpdateDTO,
 )
+from backend.src.domain.ports.input.i_repo_service import IRepoService
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 
 
 logger = logging.getLogger(__name__)
 
 
-class RepoService:
+class RepoService(IRepoService):
     """
     Application service for Git repository operations: creation, update, retrieval, and listing.
 

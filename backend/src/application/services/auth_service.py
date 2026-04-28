@@ -12,6 +12,7 @@ import logging
 from datetime import datetime, timezone
 
 from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
+from backend.src.domain.ports.input.i_auth_service import IAuthService
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.repositories.i_refresh_token_repository import IRefreshTokenRepository
 from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
@@ -24,7 +25,7 @@ from backend.src.shared.helpers.password_helper import verify_password
 logger = logging.getLogger(__name__)
 
 
-class AuthService:
+class AuthService(IAuthService):
     """
     Application service for authentication use cases: login, refresh, logout.
 

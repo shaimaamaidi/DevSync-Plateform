@@ -43,8 +43,8 @@ async def list_deployments(
         repo_url,
     )
 
-    service = container.deployment_service
-    results = await service.list_deployments(repo_url)
+    use_case = container.deployment_use_case
+    results = await use_case.list_deployments(repo_url)
 
     logger.info(
         "Retrieved %d deployments for repo_url=%s.",
