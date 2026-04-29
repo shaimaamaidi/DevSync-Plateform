@@ -107,59 +107,59 @@ class FastAPIExceptionHandler:
 
         if exc.code in _NOT_FOUND_CODES:
             logger.warning(
-                "Not Found Error [%s]: %s.",
+                "Not Found Error [%s]: %s",
                 exc.code,
                 exc.message,
             )
         elif exc.code in _PERSISTENCE_CODES:
             logger.error(
-                "Persistence/Database Error [%s]: %s.",
+                "Persistence/Database Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc
             )
         elif exc.code in _VALIDATION_CODES:
             logger.info(
-                "Validation Error [%s]: %s.",
+                "Validation Error [%s]: %s",
                 exc.code,
                 exc.message,
             )
         elif exc.code in _GITHUB_CODES:
             logger.warning(
-                "GitHub API Error [%s]: %s.",
+                "GitHub API Error [%s]: %s",
                 exc.code,
                 exc.message,
             )
         elif exc.code in _AUTH_CODES:
             logger.warning(
-                "Auth Error [%s]: %s.",
+                "Auth Error [%s]: %s",
                 exc.code,
                 exc.message,
             )
         elif exc.code in _AZURE_CODES:
             logger.error(
-                "Azure Error [%s]: %s.",
+                "Azure Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc,
             )
         elif exc.code in _PROMPT_CODES:
             logger.error(
-                "Prompt Error [%s]: %s.",
+                "Prompt Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc,
             )
         elif exc.code in _BACKLOG_CODES:
             logger.error(
-                "Backlog Generation Error [%s]: %s.",
+                "Backlog Generation Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc,
             )
         else:
             logger.error(
-                "Unknown Application Error [%s]: %s.",
+                "Unknown Application Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc
