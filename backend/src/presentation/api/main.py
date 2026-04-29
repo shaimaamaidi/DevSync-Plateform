@@ -33,7 +33,7 @@ from backend.src.infrastructure.scheduler.token_cleanup_scheduler import TokenCl
 from backend.src.presentation.api.middleware.auth_middleware import JWTAuthMiddleware
 from backend.src.presentation.api.middleware.request_id_middleware import request_id_middleware
 from backend.src.presentation.api.routers import associator_router, clickup_router, repo_router, member_router, \
-    deployment_router, auth_router, backlog_router
+    deployment_router, auth_router, backlog_router, health_router
 
 
 logger = logging.getLogger(__name__)
@@ -149,6 +149,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(Exception, FastAPIExceptionHandler.handle_generic_exception)
 
     # Routers
+    app.include_router(health_router.router, prefix="/health", tags=["health"])
     app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])
     app.include_router(associator_router.router, prefix="/associate", tags=["Associator"])
