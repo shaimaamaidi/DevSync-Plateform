@@ -16,7 +16,7 @@ from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUs
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iproduct_context_builder import IProductContextBuilder
-from backend.src.infrastructure.external.backlog_generation.agents.base_agent import BaseAgent
+from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)

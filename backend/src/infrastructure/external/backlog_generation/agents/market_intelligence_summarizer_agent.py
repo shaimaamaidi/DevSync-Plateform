@@ -20,7 +20,7 @@ from backend.src.domain.entities.product.initial_description import InitialDescr
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_summarizer import \
     IMarketIntelligenceSummarizer
-from backend.src.infrastructure.external.backlog_generation.agents.base_agent import BaseAgent
+from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)

@@ -45,7 +45,7 @@ from backend.src.infrastructure.external.backlog_generation.agents.user_backlog_
 from backend.src.infrastructure.external.backlog_generation.agents.user_story_generator_agent import (
     UserStoryGeneratorAgent,
 )
-from backend.src.infrastructure.external.backlog_generation.agents.base_agent import BaseAgent
+from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 def _prompt_loader():
