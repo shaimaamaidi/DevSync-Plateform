@@ -101,7 +101,6 @@ export function Navigation({ onTabChange }: NavigationProps) {
         </div>
       </div>
 
-      {/* Mobile dropdown — position absolute so it overlays content without pushing it down */}
       {isMobile && (
         <div
           style={{
