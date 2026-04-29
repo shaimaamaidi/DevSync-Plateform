@@ -39,7 +39,7 @@ def login(credentials: MemberAuthDTO, response: Response, container: Container =
     """
     logger.info("Login attempt: mail=%s.", credentials.mail)
 
-    result = container.auth_service.login(credentials)
+    result = container.auth_use_case.login(credentials)
 
     response.set_cookie(
         key="access_token",
@@ -71,7 +71,7 @@ def refresh(refresh_token: str, response: Response, container: Container = Depen
     """
     logger.info("Refresh token attempt.")
 
-    result = container.auth_service.refresh(refresh_token)
+    result = container.auth_use_case.refresh(refresh_token)
 
     response.set_cookie(
         key="access_token",
@@ -102,7 +102,7 @@ def logout(refresh_token: str, container: Container = Depends(get_container)) ->
     """
     logger.info("Logout attempt.")
 
-    container.auth_service.logout(refresh_token)
+    container.auth_use_case.logout(refresh_token)
 
     logger.info("Member logged out successfully.")
 

@@ -11,7 +11,7 @@ Classes:
 
 import logging
 
-from backend.src.application.services.auth_service import AuthService
+from backend.src.application.use_cases.auth_use_case import AuthUseCase
 from backend.src.application.services.member_service import MemberService
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.external.github_deployments import GitHubDeploymentAdapter
@@ -53,12 +53,12 @@ class Container:
         github_service (GitHubDeploymentAdapter)
         deployment_use_case (DeploymentUseCase)
         associator_use_case (AssociatorUseCase)
+        auth_use_case (AuthUseCase)
 
         # Application services
         repo_service (RepoService)
         member_service (MemberService)
         clickup_service (ClickUpService)
-        auth_service (AuthService)
     """
 
     def __init__(self, session):
@@ -126,6 +126,11 @@ class Container:
             clickup_service=self.clickup_repo,
             member_service=self.member_repo,
         )
+        self.auth_use_case = AuthUseCase(
+            member_repository=self.member_repo,
+            jwt_handler=self.jwt_handler,
+            refresh_token_repository=self.refresh_token_repo,
+        )
 
     # Application services
     def _init_application_services(self):
@@ -140,12 +145,4 @@ class Container:
         self.repo_service = RepoService(self.repo_repo)
         self.member_service = MemberService(self.member_repo)
         self.clickup_service = ClickUpService(self.clickup_repo)
-
-
-
-        self.auth_service = AuthService(
-            member_repository=self.member_repo,
-            jwt_handler=self.jwt_handler,
-            refresh_token_repository=self.refresh_token_repo,
-        )
 
