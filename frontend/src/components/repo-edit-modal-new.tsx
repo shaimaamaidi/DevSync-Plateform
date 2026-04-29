@@ -17,13 +17,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { X, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface RepoEditModalNewProps {
   repo: GitRepoDetailDTO | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (repo: GitRepoDetailDTO) => void;
+  onSave: (repo: GitRepoDetailDTO) => Promise<void>;
   clickUpSpaces: ClickUpSpaceLightDTO[];
   availableMembers: MemberDTO[];
 }
@@ -36,6 +36,7 @@ export function RepoEditModalNew({
   clickUpSpaces,
   availableMembers,
 }: RepoEditModalNewProps) {
+  const [isSaving, setIsSaving] = useState(false);
   const initialFormData: GitRepoDetailDTO = {
     id: undefined,
     name: '',
@@ -54,6 +55,7 @@ export function RepoEditModalNew({
 
   useEffect(() => {
     if (isOpen) {
+      setIsSaving(false);
       if (repo) {
         setFormData(repo);
       } else {
@@ -61,11 +63,13 @@ export function RepoEditModalNew({
       }
     }
   }, [isOpen, repo]);
+
   const [membersToRemove, setMembersToRemove] = useState<RepoMemberDTO[]>([]);
   const [newMembers, setNewMembers] = useState<RepoMemberDTO[]>([]);
   const [showAddMembersPanel, setShowAddMembersPanel] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (!isOpen) {
       setErrors({});
@@ -82,6 +86,16 @@ export function RepoEditModalNew({
       setHasChanges(repoNameChanged || repoUrlChanged || spaceChanged || membersChanged);
     }
   }, [formData, membersToRemove, newMembers, repo]);
+
+  // --- Button state rules (mirroring ClickUp pattern) ---
+  const isFormEmpty = !formData.name?.trim() || !formData.url?.trim();
+
+  const isCancelDisabled = isSaving;
+  const isSaveDisabled = repo
+    ? !hasChanges || isSaving   // Update: disabled if no changes OR saving
+    : isFormEmpty || isSaving;  // Create: disabled if empty fields OR saving
+
+  // ------------------------------------------------------
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -159,7 +173,7 @@ export function RepoEditModalNew({
     setNewMembers((prev) => prev.filter((m) => memberKey(m) !== memberId));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setErrors({});
     if (!validateForm()) return;
 
@@ -177,11 +191,15 @@ export function RepoEditModalNew({
       members: allMembers,
     };
 
-    onSave(updatedRepo);
-    onOpenChange(false);
-    setMembersToRemove([]);
-    setNewMembers([]);
-    setShowAddMembersPanel(false);
+    setIsSaving(true);
+    try {
+      await onSave(updatedRepo);
+      setMembersToRemove([]);
+      setNewMembers([]);
+      setShowAddMembersPanel(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const repoMembers = repo?.members ?? [];
@@ -193,10 +211,9 @@ export function RepoEditModalNew({
     );
   });
 
-  if (!isOpen) return null;
 
   return (
-    <>
+    isOpen && (
       <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl border-border shadow-2xl max-h-[90vh] flex flex-col">
           <div className="sticky top-0 bg-card border-b border-border px-8 py-6 z-10">
@@ -213,10 +230,13 @@ export function RepoEditModalNew({
               </div>
               <button
                 onClick={() => {
+                  if (isCancelDisabled) return;
                   setErrors({});
                   onOpenChange(false);
+                  setShowAddMembersPanel(!showAddMembersPanel)
                 }}
-                className="p-2 hover:bg-muted rounded-lg transition-colors"
+                disabled={isCancelDisabled}
+                className="p-2 hover:bg-muted rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Close"
               >
                 <X className="w-5 h-5 text-muted-foreground" />
@@ -243,6 +263,7 @@ export function RepoEditModalNew({
                     onChange={handleInputChange}
                     placeholder="e.g., next-commerce"
                     className={inputClass(!!errors.name) + ' mt-2'}
+                    disabled={isSaving}
                   />
                   {errors.name && (
                     <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
@@ -263,6 +284,7 @@ export function RepoEditModalNew({
                     onChange={handleInputChange}
                     placeholder="https://github.com/user/repo"
                     className={inputClass(!!errors.url) + ' mt-2'}
+                    disabled={isSaving}
                   />
                   {errors.url && (
                     <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
@@ -284,7 +306,11 @@ export function RepoEditModalNew({
                 <Label htmlFor="space" className="text-foreground font-medium">
                   Select Space (Optional)
                 </Label>
-                <Select value={formData.clickup_space?.id?.toString() || 'none'} onValueChange={handleSpaceChange}>
+                <Select
+                  value={formData.clickup_space?.id?.toString() || 'none'}
+                  onValueChange={handleSpaceChange}
+                  disabled={isSaving}
+                >
                   <SelectTrigger className="mt-2 bg-input border-border text-foreground">
                     <SelectValue placeholder="Assign to a ClickUp space..." />
                   </SelectTrigger>
@@ -346,12 +372,13 @@ export function RepoEditModalNew({
                               isMarkedForRemoval
                                 ? 'bg-red-600 text-white border-red-600'
                                 : 'bg-slate-500 text-white border-slate-500 hover:bg-slate-600'
-                            }`}
-                            onClick={() =>
+                            } ${isSaving ? 'pointer-events-none opacity-60' : ''}`}
+                            onClick={() => {
+                              if (isSaving) return;
                               isMarkedForRemoval
                                 ? handleRemoveMemberFromRemove(memberKey(member))
-                                : handleAddMemberToRemove(member)
-                            }
+                                : handleAddMemberToRemove(member);
+                            }}
                           >
                             {member.username}
                           </Badge>
@@ -380,7 +407,8 @@ export function RepoEditModalNew({
                         <button
                           type="button"
                           onClick={() => handleRemoveMemberFromRemove(memberKey(member))}
-                          className="hover:opacity-70 transition-opacity"
+                          disabled={isSaving}
+                          className="hover:opacity-70 transition-opacity disabled:opacity-40"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -398,7 +426,8 @@ export function RepoEditModalNew({
                   type="button"
                   variant={showAddMembersPanel ? 'default' : 'outline'}
                   onClick={() => setShowAddMembersPanel(!showAddMembersPanel)}
-                  className="w-full border-border gap-2"
+                  className="w-full border-border gap-2 mb-4"
+                  disabled={isSaving}
                 >
                   {showAddMembersPanel ? 'Close' : '+ Add Members'}
                 </Button>
@@ -417,7 +446,8 @@ export function RepoEditModalNew({
                             key={member.id ?? member.mail ?? member.username}
                             type="button"
                             onClick={() => handleAddNewMember(member)}
-                            className="p-3 rounded-lg border-2 border-border hover:border-primary/50 bg-muted/50 hover:bg-primary/5 text-left transition-all"
+                            disabled={isSaving}
+                            className="p-3 rounded-lg border-2 border-border hover:border-primary/50 bg-muted/50 hover:bg-primary/5 text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             <p className="font-medium text-foreground text-sm">{member.username}</p>
                             <p className="text-xs text-muted-foreground">{member.mail || 'No email'}</p>
@@ -446,7 +476,8 @@ export function RepoEditModalNew({
                               <button
                                 type="button"
                                 onClick={() => handleRemoveNewMember(memberKey(member))}
-                                className="hover:opacity-70 transition-opacity"
+                                disabled={isSaving}
+                                className="hover:opacity-70 transition-opacity disabled:opacity-40"
                               >
                                 <X className="w-3 h-3" />
                               </button>
@@ -461,35 +492,37 @@ export function RepoEditModalNew({
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-between z-10">
-            <div className="text-sm text-muted-foreground">
-              {hasChanges && (
-                <span className="flex items-center gap-2 text-primary">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-                  Unsaved changes
-                </span>
-              )}
-            </div>
+          <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-end z-10">
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 className="border-border"
+                disabled={isCancelDisabled}
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={!hasChanges && !!repo}
+                disabled={isSaveDisabled}
                 className="gap-2"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                {repo ? 'Update' : 'Create'} Repository
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    {repo ? 'Update' : 'Create'} Repository
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </Card>
       </div>
-    </>
+    )
   );
 }

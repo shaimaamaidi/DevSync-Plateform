@@ -72,6 +72,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
     if(success){
       setIsEditModalOpen(false);
       setIsAddModalOpen(false);
+      setSelectedRepo(null);
     }
   };
 
