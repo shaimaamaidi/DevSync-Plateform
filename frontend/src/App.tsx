@@ -1,29 +1,31 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
-import HomePage from './pages/Home';
 import NotFoundPage from './pages/NotFound';
 import LoginPage from './pages/Login';
-import { GlobalSuccessToaster } from './components/global-success-toaster';
-import { GlobalErrorToaster } from './components/global-toaster';
 import SettingsPage from './pages/Settings';
 import ProfilePage from './pages/Profile';
+import { GlobalToaster } from './components/global-toaster';
+import { RootLayout } from './components/root-layout';
+import Dashboard from './pages/dashboard';
+import { BacklogGenerationChat } from './pages/backlog-generation-chat';
 
 export default function App() {
   return (
     <>
-      <GlobalSuccessToaster />
-      <GlobalErrorToaster/>
+      <GlobalToaster />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/repositories" replace />} />
-          <Route path="/repositories" element={<RequireAuth><HomePage activeTab="repos" /></RequireAuth>} />
-          <Route path="/deployments" element={<RequireAuth><HomePage activeTab="deployments" /></RequireAuth>} />
-          <Route path="/members" element={<RequireAuth><HomePage activeTab="members" /></RequireAuth>} />
-          <Route path="/spaces" element={<RequireAuth><HomePage activeTab="spaces" /></RequireAuth>} />
-          <Route path="/backlog-generation-chat" element={<RequireAuth><HomePage activeTab="backlog-generation" /></RequireAuth>} />
+           <Route element={<RequireAuth><RootLayout /></RequireAuth>}>
+            <Route path="/" element={<Navigate to="/repositories" replace />} />
+            <Route path="/repositories" element={<Dashboard activeTab="repos" />} />
+            <Route path="/deployments" element={<Dashboard activeTab="deployments" />} />
+            <Route path="/members" element={<Dashboard activeTab="members" />} />
+            <Route path="/spaces" element={<Dashboard activeTab="spaces" />} />
+            <Route path="/backlog-generation-chat" element={<BacklogGenerationChat />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+          </Route>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
-          <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>

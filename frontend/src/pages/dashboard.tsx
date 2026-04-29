@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AppFooter } from '@/components/app-footer';
 import { DashboardStats } from '@/components/dashboard-stats';
 import { DeploymentsTracker } from '@/components/deployments-tracker';
-import { Navigation } from '@/components/navigation';
 import { ReposTable } from '@/components/repos-table';
 import type {
   ClickUpSpaceCreateDTO,
@@ -20,62 +18,29 @@ import { clickUpService } from '@/services/clickup-service';
 import { deploymentService } from '@/services/deployment-service';
 import { memberService } from '@/services/member-service';
 import { repoService } from '@/services/repo-service';
-import { useEffect as useReactEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-toaster';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
-import { BacklogGenerationChat } from '@/components/backlog-generation-chat';
 
 
-type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
-interface HomePageProps {
-  activeTab?: HomeTab;
+type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
+interface WorkspaceDashboardPageProps {
+  activeTab?: WorkspaceSection;
 }
 
-function HomePage({ activeTab: initialTab }: HomePageProps) {
+function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const [activeTab, setActiveTab] = useState<HomeTab>(initialTab || 'repos');
   const [repos, setRepos] = useState<GitRepoDetailDTO[]>([]);
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
   const [members, setMembers] = useState<MemberDTO[]>([]);
 
   const onError = useMemo(() => defaultOnError(navigate), [navigate]);
-  
-  useReactEffect(() => {
-    if (pathname === '/repositories' && activeTab !== 'repos') {
-      setActiveTab('repos');
-    } else if (pathname === '/deployments' && activeTab !== 'deployments') {
-      setActiveTab('deployments');
-    } else if (pathname === '/members' && activeTab !== 'members') {
-      setActiveTab('members');
-    } else if ((pathname === '/spaces' || pathname === '/clickup-spaces') && activeTab !== 'spaces') {
-      setActiveTab('spaces');
-    } else if (pathname === '/backlog-generation-chat' && activeTab !== 'backlog-generation') {
-      setActiveTab('backlog-generation');
-    }
-  }, [pathname]);
-
-  const handleTabChange = (tab: HomeTab) => {
-    setActiveTab(tab);
-    if (tab === 'repos') {
-      navigate('/repositories');
-    } else if (tab === 'deployments') {
-      navigate('/deployments');
-    } else if (tab === 'members') {
-      navigate('/members');
-    } else if (tab === 'spaces') {
-      navigate('/spaces');
-    } else if (tab === 'backlog-generation') {
-      navigate('/backlog-generation-chat');
-    }
-  };
 
 
   const refreshAllData = useCallback(async () => {
@@ -229,73 +194,61 @@ function HomePage({ activeTab: initialTab }: HomePageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Navigation activeTab={activeTab} onTabChange={handleTabChange} />
+    <>
+      <DashboardStats repos={repos} deployments={deployments} members={members} />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardStats repos={repos} deployments={deployments} members={members} />
+      <div className="my-8 border-t border-border" />
 
-        <div className="my-8 border-t border-border" />
-
-        {activeTab === 'repos' && (
-          <div className="animate-in fade-in duration-300">
-            <ReposTable
-              repos={repos}
-              clickUpSpaces={clickUpSpaces}
-              availableMembers={members}
-              onUpdate={handleUpdateRepo}
-              onDelete={handleDeleteRepo}
-              onAdd={handleAddRepo}
-              isLoading={isLoading}
+      {activeTab === 'repos' && (
+        <div className="animate-in fade-in duration-300">
+          <ReposTable
+            repos={repos}
+            clickUpSpaces={clickUpSpaces}
+            availableMembers={members}
+            onUpdate={handleUpdateRepo}
+            onDelete={handleDeleteRepo}
+            onAdd={handleAddRepo}
+            isLoading={isLoading}
             />
-          </div>
-        )}
+        </div>
+      )}
 
-        {activeTab === 'deployments' && (
-          <div className="animate-in fade-in duration-300">
-            <DeploymentsTracker
-              deployments={deployments}
-              repos={repos}
-              onLoadDeployments={handleLoadDeployments}
-              isLoading={isLoading}
+      {activeTab === 'deployments' && (
+        <div className="animate-in fade-in duration-300">
+          <DeploymentsTracker
+            deployments={deployments}
+            repos={repos}
+            onLoadDeployments={handleLoadDeployments}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
+
+      {activeTab === 'members' && (
+        <div className="animate-in fade-in duration-300">
+          <MembersTable
+            members={members}
+            onUpdate={handleUpdateMember}
+            onDelete={handleDeleteMember}
+            onAdd={handleAddMember}
+            isLoading={isLoading} 
+          />
+        </div>
+      )}
+
+      {activeTab === 'spaces' && (
+        <div className="animate-in fade-in duration-300">
+          <ClickUpSpacesTable
+            spaces={clickUpSpaces}
+            onUpdate={handleUpdateClickUpSpace}
+            onDelete={handleDeleteClickUpSpace}
+            onAdd={handleAddClickUpSpace}
+            isLoading={isLoading} 
             />
-          </div>
-        )}
-
-        {activeTab === 'members' && (
-          <div className="animate-in fade-in duration-300">
-            <MembersTable
-              members={members}
-              onUpdate={handleUpdateMember}
-              onDelete={handleDeleteMember}
-              onAdd={handleAddMember}
-              isLoading={isLoading} 
-            />
-          </div>
-        )}
-
-        {activeTab === 'spaces' && (
-          <div className="animate-in fade-in duration-300">
-            <ClickUpSpacesTable
-              spaces={clickUpSpaces}
-              onUpdate={handleUpdateClickUpSpace}
-              onDelete={handleDeleteClickUpSpace}
-              onAdd={handleAddClickUpSpace}
-              isLoading={isLoading} 
-            />
-          </div>
-        )}
-
-        {activeTab === 'backlog-generation' && (
-          <div className="animate-in fade-in duration-300">
-            <BacklogGenerationChat />
-          </div>
-        )}
-      </main>
-
-      <AppFooter />
-    </div>
+        </div>
+      )}
+    </>
   );
 }
 
-export default HomePage;
+export default Dashboard;

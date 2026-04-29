@@ -233,7 +233,7 @@ export function RepoEditModalNew({
 
               <div className="space-y-3">
                 <div>
-                  <Label htmlFor="name" className="text-black font-medium">
+                  <Label htmlFor="name" className="text-foreground font-medium">
                     Repository Name
                   </Label>
                   <input
@@ -253,7 +253,7 @@ export function RepoEditModalNew({
                 </div>
 
                 <div>
-                  <Label htmlFor="url" className="text-black font-medium">
+                  <Label htmlFor="url" className="text-foreground font-medium">
                     Repository URL
                   </Label>
                   <input
@@ -411,7 +411,7 @@ export function RepoEditModalNew({
 
                     <div>
                       <Label className="text-sm text-muted-foreground">All Available Members</Label>
-                      <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {availableToAdd.map((member) => (
                           <button
                             key={member.id ?? member.mail ?? member.username}

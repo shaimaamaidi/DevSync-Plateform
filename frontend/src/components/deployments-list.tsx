@@ -68,7 +68,7 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
       <div className="flex items-center gap-2 flex-wrap">
         <Filter className="w-4 h-4 text-muted-foreground" />
         <span className="text-sm text-muted-foreground">Status:</span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(['all', 'success', 'pending', 'failed'] as DeploymentStatus[]).map((status) => (
             <Button
               key={status}
@@ -95,7 +95,7 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
       </div>
 
       <div className="space-y-3">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold text-foreground text-center mb-2">
+        <div className="hidden sm:grid grid-cols-4 gap-4 text-xs font-semibold text-foreground text-center mb-2 px-4">
           <div>Branch</div>
           <div>Commit</div>
           <div>Author</div>
@@ -117,27 +117,23 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
                       <h3 className="text-sm font-semibold text-foreground">{deploymentName}</h3>
                       {getStatusBadge(status)}
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-center">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-center">
                       <div>
-                        <p className="text-muted-foreground">&nbsp;</p>
-                        <p className="font-medium text-foreground mt-0.5">{deployment.ref || 'N/A'}</p>
+                        <p className="text-muted-foreground sm:hidden text-[10px] mb-0.5">Branch</p>
+                        <p className="font-medium text-foreground">{deployment.ref || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">&nbsp;</p>
-                        <p className="font-mono text-foreground mt-0.5">
-                          {deployment.sha ? deployment.sha.slice(0, 7) : 'N/A'}
-                        </p>
+                        <p className="text-muted-foreground sm:hidden text-[10px] mb-0.5">Commit</p>
+                        <p className="font-mono text-foreground">{deployment.sha ? deployment.sha.slice(0, 7) : 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">&nbsp;</p>
-                        <p className="font-medium text-foreground mt-0.5">{deployment.creator || 'Unknown'}</p>
+                        <p className="text-muted-foreground sm:hidden text-[10px] mb-0.5">Author</p>
+                        <p className="font-medium text-foreground">{deployment.creator || 'Unknown'}</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">&nbsp;</p>
-                        <p className="font-medium text-foreground mt-0.5">
-                          {createdAt
-                            ? formatDistanceToNow(createdAt, { addSuffix: true })
-                            : 'N/A'}
+                        <p className="text-muted-foreground sm:hidden text-[10px] mb-0.5">Deployed</p>
+                        <p className="font-medium text-foreground">
+                          {createdAt ? formatDistanceToNow(createdAt, { addSuffix: true }) : 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -169,7 +165,6 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
         )}
       </div>
 
-      {/* Summary Stats */}
       {deployments.length > 0 && (
         <Card className="p-4 bg-muted/50 border-border">
           <div className="grid grid-cols-3 gap-4 text-center">

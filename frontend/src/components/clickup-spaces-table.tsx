@@ -132,27 +132,11 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd, isLoadin
           Add Space
         </Button>
       </div>
-      <div className="overflow-x-auto border border-border rounded-lg">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border bg-muted">
-              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
-                Space Name
-              </th>
-              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
-                Space ID
-              </th>
-              <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
-                Linked Repository
-              </th>
-              <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => (
+      <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">
+        {isLoading ? (
+          <table className="w-full">
+            <tbody>
+              {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 justify-center">
@@ -180,84 +164,149 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd, isLoadin
                     </div>
                   </td>
                 </tr>
-              ))
-            ) : spaces.length > 0 ? (
-                spaces.map((space, index) => (
-                  <tr
-                    key={space.id ?? space.space_code ?? space.name ?? index}
-                    className="border-b border-border hover:bg-muted/50 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <span className="font-medium text-foreground w-full text-center block">{space.name}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="font-mono text-sm text-muted-foreground">{space.space_code || 'N/A'}</span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      {space.repo?.url ? (
-                        <a
-                          href={space.repo.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
-                        >
-                          <LinkIcon className="w-4 h-4" />
-                          <span className="text-sm truncate max-w-xs">
-                            {space.repo.url.replace('https://github.com/', '')}
-                          </span>
-                          {space.repo.name && (
-                            <span className="ml-1 text-xs text-muted-foreground">({space.repo.name})</span>
-                          )}
-                        </a>
-                      ) : space.repo?.name ? (
-                        <span className="text-sm text-foreground flex items-center gap-1 justify-center w-full">
-                          <LinkIcon className="w-4 h-4 opacity-60" />
-                          {space.repo.name}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground italic">No repo linked</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditClick(space)}
-                          className="h-8 w-8"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (typeof space.id === 'number') {
-                              setDeleteConfirmSpaceId(space.id);
-                            }
-                          }}
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
-                    <p className="text-muted-foreground">No spaces yet. Create your first space!</p>
-                  </td>
+              ))}
+            </tbody>
+          </table>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-muted">
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
+                    Space Name
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
+                    Space ID
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
+                    Linked Repository
+                  </th>
+                  <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">
+                    Actions
+                  </th>
                 </tr>
-              )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {spaces.length > 0 ? (
+                    spaces.map((space, index) => (
+                      <tr
+                        key={space.id ?? space.space_code ?? space.name ?? index}
+                        className="border-b border-border hover:bg-muted/50 transition-colors"
+                      >
+                        <td className="px-6 py-4">
+                          <span className="font-medium text-foreground w-full text-center block">{space.name}</span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <span className="font-mono text-sm text-muted-foreground">{space.space_code || 'N/A'}</span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {space.repo?.url ? (
+                            <a
+                              href={space.repo.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                              <span className="text-sm truncate max-w-xs">
+                                {space.repo.url.replace('https://github.com/', '')}
+                              </span>
+                              {space.repo.name && (
+                                <span className="ml-1 text-xs text-muted-foreground">({space.repo.name})</span>
+                              )}
+                            </a>
+                          ) : space.repo?.name ? (
+                            <span className="text-sm text-foreground flex items-center gap-1 justify-center w-full">
+                              <LinkIcon className="w-4 h-4 opacity-60" />
+                              {space.repo.name}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground italic">No repo linked</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditClick(space)}
+                              className="h-8 w-8"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (typeof space.id === 'number') {
+                                  setDeleteConfirmSpaceId(space.id);
+                                }
+                              }}
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center">
+                        <p className="text-muted-foreground">No spaces yet. Create your first space!</p>
+                      </td>
+                    </tr>
+                  )}
+              </tbody>
+            </table>
+          )
+        }
       </div>
-
+      <div className="sm:hidden space-y-3">
+        {isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-border p-4 space-y-2 animate-pulse">
+              <div className="h-4 w-32 bg-muted rounded" />
+              <div className="h-3 w-24 bg-muted rounded" />
+              <div className="h-3 w-40 bg-muted rounded" />
+            </div>
+          ))
+        ) : spaces.length > 0 ? (
+          spaces.map((space, index) => (
+            <div key={space.id ?? index} className="rounded-lg border border-border p-4 space-y-2 bg-card">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-foreground">{space.name}</span>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(space)} className="h-8 w-8">
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost" size="icon"
+                    onClick={() => typeof space.id === 'number' && setDeleteConfirmSpaceId(space.id)}
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+              <p className="text-xs font-mono text-muted-foreground">{space.space_code || 'N/A'}</p>
+              {space.repo?.url ? (
+                <a href={space.repo.url} target="_blank" rel="noopener noreferrer"
+                  className="text-primary text-xs flex items-center gap-1 hover:underline">
+                  <LinkIcon className="w-3 h-3" />
+                  {space.repo.url.replace('https://github.com/', '')}
+                </a>
+              ) : (
+                <span className="text-xs text-muted-foreground italic">No repo linked</span>
+              )}
+            </div>
+          ))
+        ) : (
+          <p className="text-center text-muted-foreground py-8">No spaces yet. Create your first space!</p>
+        )}
+      </div>
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="w-[400px] border-border shadow-2xl">
+          <Card className="w-full max-w-[400px] border-border shadow-2xl">
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold text-foreground">
@@ -276,7 +325,7 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd, isLoadin
               <div className="space-y-4">
 
                 <div>
-                  <Label className="text-black font-medium">Space Name</Label>
+                  <Label className="text-foreground font-medium">Space Name</Label>
                   <input
                     type="text"
                     placeholder="My ClickUp Space"
@@ -290,7 +339,7 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd, isLoadin
                 </div>
 
                 <div>
-                  <Label className="text-black font-medium">Space ID</Label>
+                  <Label className="text-foreground font-medium">Space ID</Label>
                   <input
                     type="text"
                     placeholder="cus_prod_001"

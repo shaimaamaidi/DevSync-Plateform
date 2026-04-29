@@ -13,6 +13,7 @@ export function GlobalToaster() {
       pauseOnFocusLoss
       draggable
       pauseOnHover
+      className="!top-4 !right-4 !left-4 sm:!left-auto sm:!w-auto"
     />
   );
 }

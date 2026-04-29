@@ -8,7 +8,6 @@ import type { MemberUpdateDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
 
-
 export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -27,6 +26,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setFieldErrors({});
     setGeneralError(null);
+
     if (!userId) {
       setGeneralError('User not loaded');
       return;
@@ -38,11 +38,13 @@ export default function SettingsPage() {
     } else if (newPassword.length < 6) {
       errors.newPassword = 'Password must be at least 6 characters.';
     }
+
     if (!confirmPassword) {
       errors.confirmPassword = 'Please confirm your new password.';
     } else if (newPassword !== confirmPassword) {
       errors.confirmPassword = 'Passwords do not match.';
     }
+
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -53,12 +55,14 @@ export default function SettingsPage() {
       id: userId,
       password: newPassword,
     };
+
     try {
       const result = await withErrorHandling(
         () => memberService.updateMember(member),
         'Update password',
         onError,
       );
+
       if (result) {
         showSuccessToast('Password updated successfully!');
         setNewPassword('');
@@ -72,23 +76,23 @@ export default function SettingsPage() {
 
   if (userLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted">
-        <div className="text-muted-foreground">Loading user...</div>
+      <div className="flex items-center justify-center py-20">
+          <div className="text-muted-foreground">Loading user...</div>
       </div>
     );
   }
+
   if (userError) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted">
+      <div className="flex items-center justify-center py-20">
         <div className="text-destructive">{userError}</div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-[420px] rounded-2xl border border-border/40 bg-background p-10 shadow-sm">
-
         <div className="flex justify-center mb-8">
           <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
             <div className="grid grid-cols-2 gap-[3px] w-[18px]">
@@ -148,6 +152,7 @@ export default function SettingsPage() {
               <div className="text-destructive text-xs mt-1 px-1">{fieldErrors.newPassword}</div>
             )}
           </div>
+
           <div className="space-y-1.5">
             <label htmlFor="confirm-password" className="block text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
               Confirm New Password
@@ -179,6 +184,7 @@ export default function SettingsPage() {
               <div className="text-destructive text-xs mt-1 px-1">{fieldErrors.confirmPassword}</div>
             )}
           </div>
+
           <button
             type="submit"
             disabled={loading}

@@ -64,9 +64,8 @@ export default function LoginPage() {
     }`;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <div className="w-full max-w-[420px] rounded-2xl border border-border/40 bg-background p-10 shadow-sm">
-
+    <div className="flex min-h-screen items-center justify-center bg-muted px-4 py-8">
+      <div className="w-full max-w-[420px] rounded-2xl border border-border/40 bg-background p-6 sm:p-10 shadow-sm">
         <div className="flex justify-center mb-8">
           <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
             <div className="grid grid-cols-2 gap-[3px] w-[18px]">
@@ -97,7 +96,7 @@ export default function LoginPage() {
           <div className="space-y-1.5">
             <label
               htmlFor="mail"
-              className={`block text-[11px] font-semibold uppercase tracking-widest text-black`}
+              className="block text-[11px] font-semibold uppercase tracking-widest text-foreground"
             >
               Email address
             </label>
@@ -123,7 +122,7 @@ export default function LoginPage() {
           <div className="space-y-1.5">
             <label
               htmlFor="password"
-              className={`block text-[11px] font-semibold uppercase tracking-widest text-black`}
+              className="block text-[11px] font-semibold uppercase tracking-widest text-foreground"
             >
               Password
             </label>
