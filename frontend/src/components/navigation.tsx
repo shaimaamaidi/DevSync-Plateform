@@ -33,7 +33,7 @@ export function Navigation({ onTabChange }: NavigationProps) {
   };
 
   return (
-    <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
+    <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -101,8 +101,23 @@ export function Navigation({ onTabChange }: NavigationProps) {
         </div>
       </div>
 
-      {isMobile && mobileOpen && (
-        <div className="border-t border-border bg-card px-4 py-3 flex flex-col gap-1">
+      {/* Mobile dropdown — position absolute so it overlays content without pushing it down */}
+      {isMobile && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '64px',
+            left: 0,
+            right: 0,
+            zIndex: 49,
+            transformOrigin: 'top',
+            transform: mobileOpen ? 'scaleY(1)' : 'scaleY(0)',
+            opacity: mobileOpen ? 1 : 0,
+            pointerEvents: mobileOpen ? 'auto' : 'none',
+            transition: 'transform 0.2s ease, opacity 0.18s ease',
+          }}
+          className="border-b border-border bg-card px-4 py-3 flex flex-col gap-1 shadow-md"
+        >
           {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
             <Button
               key={path}
