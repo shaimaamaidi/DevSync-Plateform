@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 import { authService } from '@/services/auth-service';
 
 let isRefreshing = false;
@@ -15,9 +14,12 @@ export function setupAxiosInterceptors() {
     async (error) => {
       const originalRequest = error.config;
       const is401 = error.response?.status === 401;
-      if (is401 && !originalRequest._retry) {
+      const isAuthRequest = originalRequest?.url?.includes('/auth/');
+
+      if (is401 && !originalRequest._retry && !isAuthRequest) {
         originalRequest._retry = true;
-         if (isRefreshing) {
+
+        if (isRefreshing) {
           return new Promise((resolve) => {
             pendingRequests.push(() => resolve(axios(originalRequest)));
           });
@@ -32,13 +34,18 @@ export function setupAxiosInterceptors() {
           return axios(originalRequest);
         } catch (refreshError) {
           pendingRequests = [];
-          await authService.logout();
-          redirectToLogin();
+          try {
+            await authService.logout(); 
+          } catch {
+            // silence
+          }
+          redirectToLogin(); 
           return Promise.reject(refreshError);
-        }finally {
+        } finally {
           isRefreshing = false;
         }
       }
+
       return Promise.reject(error);
     }
   );

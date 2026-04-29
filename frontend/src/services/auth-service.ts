@@ -31,7 +31,7 @@ class AuthService {
         const api = new AuthApi();
         await api.logoutAuthLogoutPost(refreshToken);
       } catch {
-        // échec silencieux voulu
+        // Intentional silent failure
       }
     }
     deleteRefreshTokenCookie();

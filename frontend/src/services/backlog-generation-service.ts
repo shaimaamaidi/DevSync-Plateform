@@ -41,7 +41,11 @@ async function refreshOrRedirect(): Promise<void> {
   try {
     await refreshSessionWithLock();
   } catch {
-    await authService.logout();
+    try {
+      await authService.logout(); 
+    } catch {
+      // silence
+    }
     window.location.href = '/login';
     throw new Error('Session expired. Redirecting to login.');
   }
