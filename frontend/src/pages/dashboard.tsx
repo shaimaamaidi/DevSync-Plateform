@@ -32,7 +32,8 @@ interface WorkspaceDashboardPageProps {
 }
 
 function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMain, setIsLoadingMain] = useState(true);
+  const [isLoadingDeployments, setIsLoadingDeployments] = useState(true);
 
   const navigate = useNavigate();
   const [repos, setRepos] = useState<GitRepoDetailDTO[]>([]);
@@ -44,7 +45,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
 
   const refreshAllData = useCallback(async () => {
-    setIsLoading(true);
+    setIsLoadingMain(true);
 
     const [reposData, spacesData, membersData] = await Promise.all([
       withErrorHandling(() => repoService.getAllReposWithDetails(), 'Load repositories', onError),
@@ -58,7 +59,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     if (membersData) 
       setMembers(membersData.map(memberService.mapToMemberDTO));
 
-    setIsLoading(false);
+    setIsLoadingMain(false);
   }, []);
 
   useEffect(() => {
@@ -180,7 +181,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
   }, [refreshAllData]);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
-    setIsLoading(true);
+    setIsLoadingDeployments(true);
 
     const deploymentData = await withErrorHandling(
       () => deploymentService.listByRepoUrl(repoUrl),
@@ -190,12 +191,12 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     if (deploymentData) 
       setDeployments(deploymentData);
 
-    setIsLoading(false);
+    setIsLoadingDeployments(false);
   }, []);
 
   return (
     <>
-      <DashboardStats repos={repos} deployments={deployments} members={members} />
+      <DashboardStats repos={repos} deployments={deployments} members={members} isLoading={isLoadingMain && isLoadingDeployments}/>
 
       <div className="my-8 border-t border-border" />
 
@@ -208,7 +209,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateRepo}
             onDelete={handleDeleteRepo}
             onAdd={handleAddRepo}
-            isLoading={isLoading}
+            isLoading={isLoadingMain}
             />
         </div>
       )}
@@ -219,7 +220,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             deployments={deployments}
             repos={repos}
             onLoadDeployments={handleLoadDeployments}
-            isLoading={isLoading}
+            isLoading={isLoadingDeployments}
           />
         </div>
       )}
@@ -231,7 +232,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateMember}
             onDelete={handleDeleteMember}
             onAdd={handleAddMember}
-            isLoading={isLoading} 
+            isLoading={isLoadingMain} 
           />
         </div>
       )}
@@ -243,7 +244,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateClickUpSpace}
             onDelete={handleDeleteClickUpSpace}
             onAdd={handleAddClickUpSpace}
-            isLoading={isLoading} 
+            isLoading={isLoadingMain} 
             />
         </div>
       )}
