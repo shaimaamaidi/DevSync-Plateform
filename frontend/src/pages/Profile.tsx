@@ -8,7 +8,6 @@ import { showSuccessToast } from '@/components/global-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
 import { defaultOnError } from '@/lib/error-utils';
 
-// Skeleton shimmer for a single field
 function FieldSkeleton() {
   return (
     <div className="space-y-1.5">
@@ -27,7 +26,6 @@ export default function ProfilePage() {
   const [mail, setMail] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // ✅ Sync local state once the user is fetched (fixes the "always empty" bug)
   useEffect(() => {
     if (user) {
       setUsername(user.username || '');
@@ -60,12 +58,10 @@ export default function ProfilePage() {
     }
   };
 
-  // Avatar initials: use skeleton circle while loading
   const initials = username.slice(0, 2).toUpperCase();
 
   return (
     <div className="py-6 md:py-12">
-      {/* Header */}
       <div className="flex flex-col items-center mb-6 md:mb-10">
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-foreground/8 border border-border/40 flex items-center justify-center mb-4">
           {userLoading ? (
@@ -85,22 +81,18 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
-        {/* Personal information card */}
         <div className="w-full rounded-2xl border border-border/40 bg-background p-5 md:p-8 shadow-sm">
           <h2 className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-5">
             Personal information
           </h2>
 
           {userLoading ? (
-            // ── Skeleton state ──────────────────────────────────────
             <div className="space-y-5">
               <FieldSkeleton />
               <FieldSkeleton />
-              {/* Button skeleton */}
               <div className="h-11 w-full rounded-lg bg-muted animate-pulse mt-1" />
             </div>
           ) : (
-            // ── Loaded state ────────────────────────────────────────
             <form onSubmit={handleUpdate} className="space-y-5">
               <div className="space-y-1.5">
                 <label
@@ -161,7 +153,6 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Security card */}
         <div className="w-full rounded-2xl border border-border/40 bg-background p-5 md:p-8 shadow-sm flex flex-col">
           <h2 className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-5">
             Security
