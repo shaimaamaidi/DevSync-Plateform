@@ -50,7 +50,7 @@ def associate_space(
         request.space_code,
     )
 
-    service = container.associator_service
+    service = container.associator_use_case
     result = service.associate_clickup_space(request)
 
     logger.info(
@@ -83,7 +83,7 @@ def associate_members(
         len(request.members),
     )
 
-    service = container.associator_service
+    service = container.associator_use_case
     results = service.update_members(request)
 
     logger.info(
@@ -116,7 +116,7 @@ def add_members(
         len(request.members),
     )
 
-    service = container.associator_service
+    service = container.associator_use_case
     result = service.add_members(request)
 
     logger.info(
@@ -149,7 +149,7 @@ def remove_members(
         len(request.members),
     )
 
-    service = container.associator_service
+    service = container.associator_use_case
     result = service.remove_members(request)
 
     logger.info(

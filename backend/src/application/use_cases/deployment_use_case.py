@@ -1,11 +1,11 @@
 """
-Deployment service module.
+Deployment use case module.
 
-This module provides the DeploymentService class, which handles deployment-related queries, such as listing deployments for a repository.
-It coordinates with the GitHub service port to fetch deployment data.
+This module provides the DeploymentUseCase class, which handles deployment-related queries, such as listing deployments for a repository.
+It coordinates with the GitHub service port and Repository persistence to fetch deployment data.
 
 Classes:
-    DeploymentService: Main service for deployment read operations.
+    DeploymentUseCase: Main use case for deployment read operations.
 """
 
 import logging
@@ -22,9 +22,9 @@ logger = logging.getLogger(__name__)
 
 class DeploymentUseCase(IDeploymentUseCase):
     """
-    Application service for deployment-related queries, such as listing deployments for a repository.
+    Application use case for deployment-related queries, such as listing deployments for a repository.
 
-    Coordinates with the GitHub service port to fetch deployment data.
+    Coordinates with the GitHub service port and Repository persistence to fetch deployment data.
 
     Attributes:
          _repo (IRepoRepository): Repository persistence port.
@@ -33,10 +33,11 @@ class DeploymentUseCase(IDeploymentUseCase):
 
     def __init__(self, repo_repo: IRepoRepository, github_service: IGitHubService):
         """
-        Initialize the service with a GitHub adapter.
+        Initialize the use case with a GitHub adapter and repository adapter.
 
         Args:
             github_service (IGitHubService): GitHub service port.
+            repo_repo (IRepoRepository): Repository persistence port.
         """
         self._repo = repo_repo
         self._github = github_service

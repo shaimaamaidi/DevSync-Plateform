@@ -21,7 +21,7 @@ from backend.src.infrastructure.persistence.repositories.repo_repository import 
 from backend.src.infrastructure.persistence.repositories.member_repository import SqlAlchemyMemberRepository
 from backend.src.application.services.repo_service import RepoService
 from backend.src.application.services.clickup_service import ClickUpService
-from backend.src.application.services.associator_service import AssociatorService
+from backend.src.application.use_cases.associator_use_case import AssociatorUseCase
 from backend.src.application.use_cases.deployment_use_case import DeploymentUseCase
 from backend.src.infrastructure.security.jwt_handler import JWTHandler
 
@@ -52,12 +52,12 @@ class Container:
         # External services
         github_service (GitHubDeploymentAdapter)
         deployment_use_case (DeploymentUseCase)
+        associator_use_case (AssociatorUseCase)
 
         # Application services
         repo_service (RepoService)
         member_service (MemberService)
         clickup_service (ClickUpService)
-        associator_service (AssociatorService)
         auth_service (AuthService)
     """
 
@@ -121,6 +121,11 @@ class Container:
 
         self.github_service = GitHubDeploymentAdapter()
         self.deployment_use_case = DeploymentUseCase(self.repo_repo, self.github_service)
+        self.associator_use_case = AssociatorUseCase(
+            repo_service=self.repo_repo,
+            clickup_service=self.clickup_repo,
+            member_service=self.member_repo,
+        )
 
     # Application services
     def _init_application_services(self):
@@ -136,11 +141,7 @@ class Container:
         self.member_service = MemberService(self.member_repo)
         self.clickup_service = ClickUpService(self.clickup_repo)
 
-        self.associator_service = AssociatorService(
-            repo_service=self.repo_repo,
-            clickup_service=self.clickup_repo,
-            member_service=self.member_repo,
-        )
+
 
         self.auth_service = AuthService(
             member_repository=self.member_repo,

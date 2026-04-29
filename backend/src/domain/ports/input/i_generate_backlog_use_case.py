@@ -1,5 +1,5 @@
 """
-Service port for backlog generation use case.
+Use case port for backlog generation use case.
 
 This module defines the IGenerateBacklogUseCase interface, which specifies
 the contract for generating and refining project backlogs in a streaming manner.
