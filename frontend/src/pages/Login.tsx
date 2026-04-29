@@ -36,7 +36,9 @@ export default function LoginPage() {
     setInvalidCredentials(false);
     const errors = validateFields();
     setFieldErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+    if (Object.keys(errors).length > 0) 
+      return;
+    
     setLoading(true);
     
      const result = await withErrorHandling(

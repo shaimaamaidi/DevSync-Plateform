@@ -18,10 +18,15 @@ const REFRESH_TOKEN_EXPIRE_DAYS = Number(import.meta.env.VITE_REFRESH_TOKEN_EXPI
 const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS;
 
 class AuthService {
-  async login(credentials: MemberAuthDTO): Promise<void> {
-    const api = new AuthApi();
-    const { data } = await api.loginAuthLoginPost(credentials);
-    setRefreshTokenCookie(data.refresh_token);
+  async login(credentials: MemberAuthDTO): Promise<boolean> {
+    try{
+      const api = new AuthApi();
+      const { data } = await api.loginAuthLoginPost(credentials);
+      setRefreshTokenCookie(data.refresh_token);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async logout(): Promise<void> {
