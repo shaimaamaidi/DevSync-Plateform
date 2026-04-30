@@ -49,6 +49,7 @@ class BacklogPrioritizerAgent(BaseAgent, IBacklogPrioritizer):
         logger.info("Starting backlog prioritization process.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="backlog_prioritizer_agent",
             variables={
                 "backlog": format_backlog(backlog),

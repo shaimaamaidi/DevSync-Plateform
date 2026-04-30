@@ -50,6 +50,7 @@ class SprintPlannerAgent(BaseAgent, ISprintPlanner):
         logger.info("Starting sprint planning generation.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="sprint_planner_agent",
             variables={
                 "backlog": format_backlog(backlog),

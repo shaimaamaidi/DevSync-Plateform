@@ -19,7 +19,7 @@ from jose.exceptions import JWTClaimsError
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
-from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
+from backend.src.domain.ports.output.i_jwt_handler import IJWTHandler
 
 logger = logging.getLogger(__name__)
 

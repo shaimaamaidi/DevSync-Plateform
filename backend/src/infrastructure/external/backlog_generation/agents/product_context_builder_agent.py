@@ -53,6 +53,7 @@ class ProductContextBuilderAgent(BaseAgent, IProductContextBuilder):
         logger.info("Starting product context building process.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="product_context_builder_agent",
             variables={
                 "description": description,

@@ -59,6 +59,7 @@ class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
         logger.info("Generating user stories for epic: %s.", epic.title)
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="user_story_generator_agent",
             variables={
                 "title": epic.title,

@@ -74,7 +74,7 @@ class PromptLoader(IPromptLoader):
         self._cache: Dict[str, Prompt] = {}
 
 
-    def get_messages(self, name: str, variables: Dict[str, Any]) -> Dict[str, str]:
+    def get_messages(self,folder_name:str, name: str, variables: Dict[str, Any]) -> Dict[str, str]:
         """
         Render prompt templates into LLM-ready messages.
 
@@ -85,6 +85,7 @@ class PromptLoader(IPromptLoader):
         - Returns OpenAI-compatible message structure
 
         Args:
+            folder_name: Folder containing the prompt template.
             name (str): Prompt template name (without `.prompty` extension).
             variables (Dict[str, Any]): Variables used to render the template.
 
@@ -95,14 +96,11 @@ class PromptLoader(IPromptLoader):
                 - "user": rendered user prompt
 
         Raises:
-            PromptFileNotFoundException: If the prompt template file does not exist.
-            PromptYamlException: If YAML parsing fails while loading the prompt file.
-            PromptSchemaException:  If the prompt structure is invalid or missing required fields.
             PromptRenderException: If Jinja2 rendering fails while generating system/user messages.
         """
         logger.info("Rendering prompt: %s", name)
 
-        prompt = self._load_file(name)
+        prompt = self._load_file(folder_name, name, has_user=True)
 
         try:
             system_rendered = Template(prompt.system).render(**variables)
@@ -120,99 +118,69 @@ class PromptLoader(IPromptLoader):
                 message=f"Failed to render prompt '{name}': {str(e)}",
             ) from e
 
-    def get_agent_instructions(self) -> str:
+    def get_backlog_orchestrator_instructions(self) -> str:
         """
-        Retrieve system-level instructions for AI agent configuration.
+        Retrieve system-level instructions for the backlog orchestration agent.
 
-        Reads the `azure_backlog_workflow_orchestrator.prompty` file which follows
-        the two-document YAML Prompty spec:
-          - Document 1: front-matter (name, description, model, tags…)
-          - Document 2: content block with `system` key
-
-        Uses yaml.safe_load_all to handle the multi-document format instead of
-        naive string splitting, which breaks when the word "system:" appears
-        inside the prompt body itself.
+        Loads the dedicated `.prompty` file used to configure the AI workflow
+        orchestrator and extracts the system instruction block.
 
         Returns:
-            str: System instruction text used by the AI agent.
-
-        Raises:
-            PromptTemplateDirectoryNotFoundException: If the templates directory does not exist.
-            PromptFileNotFoundException: If the agent instruction prompt file does not exist.
-            PromptFileReadException: If the prompt file cannot be read from disk.
-            PromptYamlException: If the YAML content is invalid or cannot be parsed.
-            PromptSchemaException: If no document with a 'system' key is found.
+            str: System-level instruction content.
         """
-        prompt_name = "azure_backlog_workflow_orchestrator"
+        folder_name = "backlog_generation"
+        filename = "azure_backlog_workflow_orchestrator"
 
-        logger.info("Loading agent instructions from prompt: %s", prompt_name)
+        logger.info("Loading agent instructions from prompt: %s", folder_name + "/" + filename)
+        system_instructions = self._load_file(
+            folder_name=folder_name,
+            filename=filename,
+            has_user=False,
+        )
 
-        file_path = self.templates_dir / f"{prompt_name}.prompty"
+        logger.info("Agent instructions loaded successfully from: %s", folder_name + "/" + filename)
 
-        if not file_path.exists():
-            logger.error("Prompt file not found: %s", file_path)
-            raise PromptFileNotFoundException(
-                message=f"Prompt file not found: {file_path}",
-            )
+        return system_instructions.system
 
-        try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                documents = list(yaml.safe_load_all(f))
-        except Exception as e:
-            logger.exception("Failed to read or parse prompt file: %s", file_path)
-            raise PromptFileReadException(
-                message=f"Failed to read prompt file '{file_path}': {str(e)}",
-            ) from e
-
-        # Find the document that contains the `system` key (the content block).
-        # The front-matter block (metadata) does not have a `system` key.
-        system_instructions: str | None = None
-        for doc in documents:
-            if isinstance(doc, dict) and "system" in doc:
-                system_instructions = doc["system"]
-                break
-
-        if system_instructions is None:
-            logger.error("No 'system' key found in any YAML document in prompt: %s", prompt_name)
-            raise PromptSchemaException(
-                message=f"Invalid prompt structure in '{prompt_name}': no document with a 'system' key found.",
-            )
-
-        logger.info("Agent instructions loaded successfully from: %s", prompt_name)
-
-        return system_instructions
-
-    def _load_file(self, filename: str) -> Prompt:
+    def _load_file(self, folder_name:str, filename: str, has_user: bool = True) -> Prompt:
         """
-        Load a prompt template from a `.prompty` YAML file.
+        Load and parse a `.prompty` prompt file.
 
-        .prompty files follow the Prompty spec: they contain TWO YAML documents
-        separated by `---`:
-          1. A front-matter block with metadata (name, description, model, tags…)
-          2. A content block with `system` and `user` keys
+        `.prompty` files follow a multi-document YAML structure:
+        - Front-matter: metadata (name, description, tags, version)
+        - Content: system/user prompt definitions
 
-        yaml.safe_load only accepts a single document, so we use
-        yaml.safe_load_all to iterate over both and pick the one that contains
-        the required `system` / `user` keys.
+        This method:
+        - Loads file from disk
+        - Parses YAML safely (multi-document support)
+        - Extracts front-matter and content sections
+        - Builds a Prompt domain object
+        - Caches the result for performance
 
         Args:
-            filename (str): Name of the prompt file without `.prompty` extension.
+            folder_name: Folder containing the prompt file.
+            filename: Prompt file name without extension.
+            has_user: Whether the prompt includes a user section.
 
         Returns:
-            Prompt: Domain object containing system template, user template, and metadata.
+            Prompt: Parsed and structured prompt object containing system template, user template,
+                and metadata.
 
         Raises:
             PromptFileNotFoundException: If the prompt file does not exist.
             PromptYamlException: If the YAML content is invalid or cannot be parsed.
             PromptSchemaException: If required fields (system or user) are missing in the prompt.
+            PromptFileReadException: If file cannot be read.
         """
-        if filename in self._cache:
-            logger.info("Prompt cache hit: %s", filename)
-            return self._cache[filename]
+        cache_key = f"{folder_name}/{filename}"
 
-        logger.info("Loading prompt from disk: %s", filename)
+        if cache_key in self._cache:
+            logger.info("Prompt cache hit: %s", cache_key)
+            return self._cache[cache_key]
 
-        file_path = os.path.join(self.templates_dir, f"{filename}.prompty")
+        logger.info("Loading prompt from disk: %s", cache_key)
+
+        file_path = self.templates_dir / folder_name / f"{filename}.prompty"
 
         if not os.path.exists(file_path):
             logger.error("Prompt file not found: %s", file_path)
@@ -222,9 +190,15 @@ class PromptLoader(IPromptLoader):
 
         try:
             with open(file_path, "r", encoding="utf-8") as f:
-                # safe_load_all handles multi-document YAML (separated by ---)
-                # which is the standard .prompty file format.
-                documents = list(yaml.safe_load_all(f))
+                raw_content = f.read()
+        except Exception as e:
+            logger.exception("Failed to read or parse prompt file: %s", file_path)
+            raise PromptFileReadException(
+                message=f"Failed to read prompt file '{file_path}': {str(e)}",
+            ) from e
+
+        try:
+            documents = list(yaml.safe_load_all(raw_content ))
         except Exception as e:
             logger.exception("Failed to parse YAML prompt file: %s", file_path)
             raise PromptYamlException(
@@ -245,7 +219,10 @@ class PromptLoader(IPromptLoader):
         for doc in documents:
             if not isinstance(doc, dict):
                 continue
-            if "system" in doc and "user" in doc:
+            if has_user and "system" in doc and "user" in doc:
+                content = doc
+
+            elif not has_user and "system" in doc and "user" not in doc:
                 content = doc
             else:
                 # Treat the first non-content document as front-matter.
@@ -253,23 +230,25 @@ class PromptLoader(IPromptLoader):
                     front_matter = doc
 
         if not content:
+            expected = "'system' and 'user'" if has_user else "'system'"
             raise PromptSchemaException(
-                message=f"Invalid prompt structure in '{filename}': expected a document with keys 'system' and 'user'.",
+                message=f"Invalid prompt structure in '{cache_key}': expected a document with keys {expected}.",
             )
 
         prompt = Prompt(
+            folder=folder_name,
             name=content.get("name") or front_matter.get("name"),
             system=content["system"],
-            user=content["user"],
+            user=content["user"] if has_user else None,
             meta={
                 "description": content.get("description") or front_matter.get("description"),
-                "tags":        content.get("tags")        or front_matter.get("tags", []),
-                "version":     content.get("version")     or front_matter.get("version"),
+                "tags": content.get("tags") or front_matter.get("tags", []),
+                "version": content.get("version") or front_matter.get("version"),
             },
         )
 
-        self._cache[filename] = prompt
+        self._cache[cache_key] = prompt
 
-        logger.info("Prompt loaded successfully: %s", filename)
+        logger.info("Prompt loaded successfully: %s", cache_key)
 
         return prompt

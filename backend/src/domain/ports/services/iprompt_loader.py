@@ -20,6 +20,7 @@ class IPromptLoader(ABC):
     @abstractmethod
     def get_messages(
         self,
+        folder_name: str,
         name: str,
         variables: Dict[str, Any],
     ) -> Dict[str, str]:
@@ -30,6 +31,7 @@ class IPromptLoader(ABC):
         substitution, and returns formatted messages ready for LLM usage.
 
         Args:
+            folder_name: Folder containing the prompt template.
             name (str): Prompt file name without extension.
             variables (Dict[str, Any]): Variables used to render the prompt.
 
@@ -37,7 +39,8 @@ class IPromptLoader(ABC):
             Dict[str, str]: Dictionary containing rendered messages (e.g., system and user prompts).
         """
         pass
-    def get_agent_instructions(self) -> str:
+
+    def get_backlog_orchestrator_instructions(self) -> str:
         """
         Retrieve the global system instructions for an LLM agent.
 

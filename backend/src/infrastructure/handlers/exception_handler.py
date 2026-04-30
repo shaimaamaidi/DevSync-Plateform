@@ -19,9 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 _NOT_FOUND_CODES = {
-    "CLICKUP_SPACE_NOT_FOUND",
     "MEMBER_NOT_FOUND",
     "REPO_NOT_FOUND",
+    "CLICKUP_SPACE_NOT_FOUND",
+    "CLICKUP_RESOURCE_NOT_FOUND",
 }
 
 _PERSISTENCE_CODES = {
@@ -79,6 +80,16 @@ _BACKLOG_CODES = {
     "BACKLOG_STREAM_ERROR",
     "SERVICE_UNAVAILABLE",
 
+}
+
+_CLICKUP_CODES = {
+    "CLICKUP_AUTH_ERROR",
+    "MISSING_CLICKUP_CONFIG",
+    "CLICKUP_API_ERROR",
+    "CLICKUP_TASK_CREATE_ERROR",
+    "CLICKUP_TASK_UPDATE_ERROR",
+    "CLICKUP_MEMBERS_ERROR",
+    "CLICKUP_EMPTY_SPACE",
 }
 
 
@@ -153,6 +164,13 @@ class FastAPIExceptionHandler:
         elif exc.code in _BACKLOG_CODES:
             logger.error(
                 "Backlog Generation Error [%s]: %s",
+                exc.code,
+                exc.message,
+                exc_info=exc,
+            )
+        elif exc.code in _CLICKUP_CODES:
+            logger.error(
+                "ClickUp API Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc,

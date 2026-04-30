@@ -61,6 +61,7 @@ class TaskGeneratorAgent(BaseAgent, ITaskGenerator):
         logger.info("Generating tasks for user story: %s.", user_story.title)
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="task_generator_agent",
             variables={
                 "title": user_story.title,

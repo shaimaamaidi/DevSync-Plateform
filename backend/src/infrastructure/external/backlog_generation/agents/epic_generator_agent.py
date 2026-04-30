@@ -59,6 +59,7 @@ class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
         logger.info("Starting epic generation process.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="epic_generator_agent",
             variables={
                 "overview": detailed_description.product_overview,

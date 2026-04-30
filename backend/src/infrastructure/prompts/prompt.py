@@ -25,7 +25,7 @@ class Prompt:
         meta (Dict[str, Any]): Additional metadata associated with the prompt.
     """
 
-    def __init__(self, name: str, system: str, user: str, meta: Dict[str, Any]):
+    def __init__(self,folder: str, name: str, system: str, user: str, meta: Dict[str, Any]):
         """
         Initialize a Prompt instance.
 
@@ -35,6 +35,7 @@ class Prompt:
             user (str): User prompt content.
             meta (Dict[str, Any]): Additional metadata for the prompt.
         """
+        self.folder = folder
         self.name = name
         self.system = system
         self.user = user

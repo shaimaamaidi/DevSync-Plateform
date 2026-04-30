@@ -15,7 +15,7 @@ from backend.src.domain.entities.deployment import DeploymentDTO
 
 from backend.src.domain.ports.input.i_deployment_use_case import IDeploymentUseCase
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
-from backend.src.domain.ports.services.i_github_service import IGitHubService
+from backend.src.domain.ports.output.i_github_service import IGitHubService
 
 logger = logging.getLogger(__name__)
 

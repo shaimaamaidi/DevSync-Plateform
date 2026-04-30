@@ -67,7 +67,7 @@ async def main():
     await container.web_search_agent.update_agent_tools()
 
     # ── Backlog Workflow Orchestrator ──
-    instructions = container.prompt_loader.get_agent_instructions()
+    instructions = container.prompt_loader.get_backlog_orchestrator_instructions()
     orchestrator = await container.backlog_workflow_orchestrator_factory()
 
     logger.info("Updating orchestrator tools and instructions on Azure.")

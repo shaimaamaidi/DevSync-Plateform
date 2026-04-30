@@ -15,7 +15,7 @@ from backend.src.domain.exceptions.member.member_not_found_exception import Memb
 from backend.src.domain.ports.input.i_auth_use_case import IAuthUseCase
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.repositories.i_refresh_token_repository import IRefreshTokenRepository
-from backend.src.domain.ports.services.i_jwt_handler import IJWTHandler
+from backend.src.domain.ports.output.i_jwt_handler import IJWTHandler
 from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException

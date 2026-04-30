@@ -57,6 +57,7 @@ class MarketIntelligenceSummarizerAgent(BaseAgent, IMarketIntelligenceSummarizer
         logger.info("Starting market intelligence summarization process.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="market_intelligence_summarizer_agent",
             variables={
                 "overview": detailed_description.product_overview,

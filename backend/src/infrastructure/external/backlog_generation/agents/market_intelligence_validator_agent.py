@@ -58,6 +58,7 @@ class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
         logger.info("Validating market intelligence with LLM.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="market_intelligence_validator_agent",
             variables={
                 "overview": detailed_description.product_overview,

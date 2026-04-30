@@ -52,6 +52,7 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
         logger.info("Starting market query generation process.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="market_query_generator_agent",
             variables={
                 "overview": detailed_description.product_overview,

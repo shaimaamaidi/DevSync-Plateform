@@ -28,7 +28,7 @@ from backend.src.domain.exceptions.github.github_rate_limit_exception import Git
 from backend.src.domain.exceptions.github.github_repo_not_found_exception import GitHubRepoNotFoundException
 from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
-from backend.src.domain.ports.services.i_github_service import IGitHubService
+from backend.src.domain.ports.output.i_github_service import IGitHubService
 
 
 logger = logging.getLogger(__name__)

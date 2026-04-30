@@ -60,6 +60,7 @@ class UserBacklogFixerAgent(BaseAgent, IUserBacklogFixer):
         logger.info("Starting user backlog validation process.")
 
         messages = self.prompt_loader.get_messages(
+            folder_name="backlog_generation",
             name="user_backlog_fixer_agent",
             variables={
                 "reference_backlog": format_backlog(backlog_reference),
