@@ -12,7 +12,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.clickup.folder import Folder
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
 from backend.src.domain.ports.output.clickup.i_clickup_writer import IClickUpTaskWriter

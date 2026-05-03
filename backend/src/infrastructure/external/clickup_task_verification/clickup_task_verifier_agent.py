@@ -15,8 +15,8 @@ from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionSystemMessageParam
 
 from backend.src.domain.entities.clickup.list import ClickUpTask
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask, VerifiedTaskList
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask, VerifiedTaskList
 from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
 from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException

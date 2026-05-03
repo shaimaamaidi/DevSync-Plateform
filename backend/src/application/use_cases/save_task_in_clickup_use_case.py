@@ -13,7 +13,7 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.input.i_save_task_in_clickup_use_case import ISaveTaskInClickUpUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_writer import IClickUpTaskWriter

@@ -10,8 +10,8 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from backend.src.domain.entities.clickup.list import ClickUpTask
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
 class IClickUpTaskVerifier(ABC):

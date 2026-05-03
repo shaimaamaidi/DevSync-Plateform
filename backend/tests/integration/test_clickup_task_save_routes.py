@@ -5,7 +5,7 @@ Integration tests for ClickUp task save route.
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.save_tasks.save_tasks_request import SaveTasksRequest
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
 def test_save_tasks_to_clickup(client: TestClient, container) -> None:

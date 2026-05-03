@@ -13,7 +13,7 @@ It acts as a contract for application-level services responsible for:
 
 from typing import List
 
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 
 
 class IGenerateTaskFromSummaryUseCase:

@@ -13,7 +13,7 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 from backend.src.domain.helpers.clickup_folder_helpers import get_folders_statuses_and_priorities
 from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.input.i_generate_task_from_summary_use_case import IGenerateTaskFromSummaryUseCase

@@ -13,8 +13,8 @@ from typing import List, Dict
 from openai import APIStatusError, APIConnectionError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
-from backend.src.domain.entities.clickup.generated_task import GeneratedTaskList
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTaskList
 from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
 from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException

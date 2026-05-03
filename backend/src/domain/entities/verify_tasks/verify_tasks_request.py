@@ -14,7 +14,7 @@ Main class:
 from typing import List
 from pydantic import BaseModel, Field
 
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 
 
 class VerifyTasksRequest(BaseModel):

@@ -5,7 +5,7 @@ Unit tests for SaveTaskInClickUpUseCase.
 from unittest.mock import MagicMock
 
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
 def _verified_task() -> VerifiedTask:

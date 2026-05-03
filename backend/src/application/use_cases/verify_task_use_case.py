@@ -12,8 +12,8 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
-from backend.src.domain.entities.clickup.verified_task import VerifiedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.helpers.clickup_folder_helpers import get_tasks_by_folder,\
     get_generated_tasks_by_folder
 from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService

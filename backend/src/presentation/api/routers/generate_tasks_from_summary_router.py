@@ -15,7 +15,7 @@ Routes:
 import logging
 from fastapi import APIRouter, Depends
 
-from backend.src.domain.entities.clickup.generated_task import GeneratedTask
+from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 from backend.src.domain.entities.generate_tasks_from_summary.generate_tasks_request import GenerateTasksFromSummaryRequest
 from backend.src.domain.ports.input.i_generate_task_from_summary_use_case import IGenerateTaskFromSummaryUseCase
 from backend.src.presentation.api.deps import get_generate_task_from_summary_use_case
