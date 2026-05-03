@@ -31,9 +31,12 @@ from backend.src.presentation.api.routers import (
     associator_router,
     clickup_router,
     deployment_router,
+    generate_tasks_from_summary_router,
     member_router,
     repo_router,
     backlog_router,
+    verification_tasks_router,
+    clickup_task_save_router,
 )
 
 
@@ -46,10 +49,15 @@ class _Container:
         self.repo_service = MagicMock()
         self.member_service = MagicMock()
         self.clickup_service = MagicMock()
-        self.associator_service = MagicMock()
+        self.associator_use_case = MagicMock()
         self.deployment_use_case = MagicMock()
-        self.auth_service = MagicMock()
+        self.associator_service = self.associator_use_case
+        self.deployment_service = self.deployment_use_case
+        self.auth_use_case = MagicMock()
         self.backlog_use_case = MagicMock()
+        self.save_task_use_case = MagicMock()
+        self.generate_task_from_summary_use_case = MagicMock()
+        self.verify_task_use_case = MagicMock()
 
 
 @pytest.fixture
@@ -73,6 +81,9 @@ def app(container: _Container) -> FastAPI:
     app.include_router(member_router.router, prefix="/member", tags=["Member"])
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
     app.include_router(backlog_router.router, prefix="/backlog", tags=["Backlog"])
+    app.include_router(verification_tasks_router.router, prefix="/clickup", tags=["ClickUp"])
+    app.include_router(generate_tasks_from_summary_router.router, prefix="/clickup", tags=["ClickUp"])
+    app.include_router(clickup_task_save_router.router, prefix="/clickup", tags=["ClickUp"])
 
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
@@ -87,6 +98,21 @@ def app(container: _Container) -> FastAPI:
         return container.backlog_use_case
 
     app.dependency_overrides[deps.get_backlog_use_case] = override_get_backlog_use_case
+
+    def override_get_save_task_use_case() -> MagicMock:
+        return container.save_task_use_case
+
+    app.dependency_overrides[deps.get_save_task_use_case] = override_get_save_task_use_case
+
+    def override_get_generate_task_from_summary_use_case() -> MagicMock:
+        return container.generate_task_from_summary_use_case
+
+    app.dependency_overrides[deps.get_generate_task_from_summary_use_case] = override_get_generate_task_from_summary_use_case
+
+    def override_get_verify_task_use_case() -> MagicMock:
+        return container.verify_task_use_case
+
+    app.dependency_overrides[deps.get_verify_task_use_case] = override_get_verify_task_use_case
     return app
 
 
