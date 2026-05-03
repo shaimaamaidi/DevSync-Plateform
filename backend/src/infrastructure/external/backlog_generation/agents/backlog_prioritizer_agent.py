@@ -8,9 +8,12 @@ based on business value, dependencies, and product strategy.
 
 import logging
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_prioritizer import IBacklogPrioritizer
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -44,6 +47,8 @@ class BacklogPrioritizerAgent(BaseAgent, IBacklogPrioritizer):
             BacklogStructure: The prioritized backlog structure.
 
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Starting backlog prioritization process.")
@@ -72,6 +77,22 @@ class BacklogPrioritizerAgent(BaseAgent, IBacklogPrioritizer):
             logger.info("Backlog prioritization completed successfully.")
 
             return completion.choices[0].message.parsed
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in BacklogPrioritizerAgent.")
+            raise LLMNetworkException(
+                agent_name="BacklogPrioritizerAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in BacklogPrioritizerAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="BacklogPrioritizerAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("Backlog prioritizing failed.")
             raise LLMParsingException(

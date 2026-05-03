@@ -7,8 +7,8 @@ comparing, validating, and correcting a user-provided backlog against a referenc
 
 from abc import ABC, abstractmethod
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
-from backend.src.domain.entities.backlog.backlog_validation import BacklogValidation
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.entities.backlog.validation import BacklogValidation
 
 
 class IUserBacklogFixer(ABC):

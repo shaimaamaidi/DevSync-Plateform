@@ -1,7 +1,8 @@
 """
 ClickUp service module.
 
-This module provides the ClickUpService class, which handles use cases related to ClickUp spaces, such as creation, update, retrieval, and listing.
+This module provides the ClickUpService class, which handles use cases related
+to ClickUp spaces, such as creation, update, retrieval, and listing.
 It coordinates persistence and business logic for ClickUp space management.
 
 Classes:
@@ -54,11 +55,19 @@ class ClickUpService(IClickUpService):
         Returns:
             ClickUpSpaceDTO: Created space DTO.
         """
-        logger.info("Adding new ClickUp space: space_code=%s, name=%s.", space.space_code, space.name)
-        
+        logger.info(
+            "Adding new ClickUp space: space_code=%s, name=%s.",
+            space.space_code,
+            space.name
+        )
+
         result = self._repo.save(space)
 
-        logger.info("ClickUp space added successfully: id=%s, space_code=%s.", result.id, result.space_code)
+        logger.info(
+            "ClickUp space added successfully: id=%s, space_code=%s.",
+            result.id,
+            result.space_code
+        )
 
         return result
 
@@ -73,10 +82,14 @@ class ClickUpService(IClickUpService):
             ClickUpSpaceDetailDTO: Updated space detail DTO.
         """
         logger.info("Updating ClickUp space: id=%s, space_code=%s.", space.id, space.space_code)
-        
+
         result = self._repo.update(space)
 
-        logger.info("ClickUp space updated successfully: id=%s, space_code=%s.", result.id, result.space_code)
+        logger.info(
+            "ClickUp space updated successfully: id=%s, space_code=%s.",
+            result.id,
+            result.space_code
+        )
 
         return result
 
@@ -89,12 +102,17 @@ class ClickUpService(IClickUpService):
 
         Returns:
             ClickUpSpaceDetailDTO: ClickUp space detail DTO.
+
         """
         logger.info("Fetching ClickUp space by ID: id=%s.", space_id)
-        
+
         result = self._repo.find_by_id(space_id)
 
-        logger.info("ClickUp space fetched successfully: id=%s, space_code=%s.", result.id, result.space_code)
+        logger.info(
+            "ClickUp space fetched successfully: id=%s, space_code=%s.",
+            result.id,
+            result.space_code
+        )
 
         return result
 
@@ -112,7 +130,11 @@ class ClickUpService(IClickUpService):
 
         result = self._repo.find_by_space_code(space_code)
 
-        logger.info("ClickUp space fetched successfully: id=%s, space_code=%s.", result.id, result.space_code)
+        logger.info(
+            "ClickUp space fetched successfully: id=%s, space_code=%s.",
+            result.id,
+            result.space_code
+        )
 
         return result
 
@@ -127,7 +149,7 @@ class ClickUpService(IClickUpService):
 
         results = self._repo.find_all()
 
-        logger.info("ClickUp spaces %s Fetched successfully.", len(results))
+        logger.info("ClickUp spaces fetched successfully (count=%s).", len(results))
 
         return results
 
@@ -157,7 +179,7 @@ class ClickUpService(IClickUpService):
             bool: True when deletion succeeds.
         """
         logger.info("Deleting ClickUp space: id=%s.", space_id)
-        
+
         result = self._repo.delete(space_id)
 
         logger.info("ClickUp space deleted successfully: id=%s.", space_id)

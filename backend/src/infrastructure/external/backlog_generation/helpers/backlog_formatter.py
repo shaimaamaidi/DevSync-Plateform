@@ -11,7 +11,7 @@ Main function:
     format_backlog: Transforms a BacklogStructure into a formatted string representation.
 """
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
 
 
 def format_backlog(backlog: BacklogStructure) -> str:

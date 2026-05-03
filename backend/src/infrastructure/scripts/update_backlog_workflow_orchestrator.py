@@ -33,7 +33,7 @@ Usage:
 import asyncio
 import logging
 
-from backend.src.infrastructure.di.backlog_container import BacklogContainer
+from backend.src.infrastructure.di.workflow_container import WorkflowContainer
 from backend.src.infrastructure.logging.logger_config import setup_logger
 
 
@@ -57,7 +57,7 @@ async def main():
     """
     logger.info("Starting backlog agents update script.")
 
-    container = BacklogContainer()
+    container = WorkflowContainer()
 
     # ── Web Search Agent ──
     await container.initialize_web_search_tool()

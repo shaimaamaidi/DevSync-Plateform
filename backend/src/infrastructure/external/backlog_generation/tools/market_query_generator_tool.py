@@ -14,6 +14,9 @@ import logging
 from pydantic import ValidationError
 
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_query_generator import (
@@ -65,7 +68,7 @@ class MarketQueryGeneratorTool(IMarketQueryGeneratorTool):
         Raises:
             InvalidToolArgumentException: If detailed_description is not valid JSON or does not match
                 the expected schema.
-            ToolExecutionException: If market query generation fails due to service errors or
+            ToolExecutionException: If market query generation fails due to LLM errors, service errors or
                 unexpected runtime issues.
         """
         logger.info(
@@ -92,6 +95,13 @@ class MarketQueryGeneratorTool(IMarketQueryGeneratorTool):
             logger.info("Market queries generated successfully.")
 
             return result.model_dump_json()
+
+        except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
+            logger.error("LLM error in MarketQueryGeneratorTool: %s", e)
+            raise ToolExecutionException(
+                f"Generate market queries failed: {str(e)}."
+            ) from e
+
         except Exception as e:
             logger.exception("MarketQueryGeneratorTool failed unexpectedly.")
             raise ToolExecutionException(

@@ -17,7 +17,7 @@ from backend.src.domain.exceptions.clickup.clickup_task_create_exception import 
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
 from backend.src.domain.ports.output.clickup.i_clickup_writer import IClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids, priority_to_int
+from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, priority_to_int
 
 
 logger = logging.getLogger(__name__)
@@ -46,22 +46,32 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         """
         self._http = http_client
 
-    def apply_results(self, results: List[VerifiedTask], folders: List[Folder], members: List[dict], name_to_email: dict[str, str]) -> None:
+    def apply_results(
+            self,
+            results: List[VerifiedTask],
+            folders: List[Folder],
+            members: List[dict],
+            name_to_email: dict[str, str],
+            ignore_mails: bool
+    ) -> None:
         """
         Apply verified task results to ClickUp.
 
         This method processes a list of verified tasks and applies the required
-        operations (create or update) in ClickUp. It also resolves folder mappings
-        and workspace members for assignees.
+        operations (create or update) in ClickUp by routing them to the correct
+        folder and resolving assignees.
 
         Args:
-            results: List of verified task operations to apply.
-            folders: ClickUp folder structure used to resolve list identifiers.
-            members: Workspace members used for assignee resolution.
-            name_to_email: Mapping of usernames to emails from external sources.
+            results (List[VerifiedTask]): List of verified task operations to apply.
+            folders (List[Folder]): ClickUp folder structure used to resolve list identifiers.
+            members (List[dict]): Workspace members used for assignee resolution.
+            name_to_email (dict[str, str]): Mapping of assignee names to email addresses.
+            ignore_mails (bool):
+                If True, unresolved assignees are ignored.
+                If False, an exception is raised when resolution fails.
 
         Returns:
-            None.
+            None
 
         Raises:
             ClickUpTaskCreateException: If task creation fails.
@@ -96,7 +106,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     continue
 
                 try:
-                    self._create_task(list_id, result, name_to_email, email_to_id)
+                    self._create_task(list_id, result, name_to_email, email_to_id, ignore_mails)
                     created_count += 1
                 except ClickUpTaskCreateException as e:
                     logger.error(
@@ -117,7 +127,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     continue
 
                 try:
-                    self._update_task(result, name_to_email, email_to_id)
+                    self._update_task(result, name_to_email, email_to_id, ignore_mails)
                     updated_count += 1
                 except ClickUpTaskUpdateException as e:
                     logger.error(
@@ -136,7 +146,14 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(results),
         )
 
-    def _create_task(self, list_id: str, result: VerifiedTask, name_to_email: dict[str, str], email_to_id: dict[str, int]) -> None:
+    def _create_task(
+            self,
+            list_id: str,
+            result: VerifiedTask,
+            name_to_email: dict[str, str],
+            email_to_id: dict[str, int],
+            ignore_mails: bool
+    ) -> None:
         """
         Create a task in ClickUp.
 
@@ -148,6 +165,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             result: Verified task containing creation details.
             name_to_email: Mapping of usernames to emails for resolution.
             email_to_id: Mapping of emails to ClickUp member IDs.
+            ignore_mails (bool):
+                If True, unresolved assignees are ignored.
+                If False, an exception is raised when resolution fails.
 
         Returns:
             None.
@@ -172,7 +192,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         }
 
         assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-        assignee_ids = resolve_assignee_ids(name_to_email, email_to_id, assignee_names)
+        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_mails)
+
         if assignee_ids:
             payload["assignees"] = assignee_ids
 
@@ -198,7 +219,13 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 f"(status {response.status_code}) — {response.text}"
             )
 
-    def _update_task(self, result: VerifiedTask, name_to_email: dict[str, str], email_to_id: dict[str, int]) -> None:
+    def _update_task(
+            self,
+            result: VerifiedTask,
+            name_to_email: dict[str, str],
+            email_to_id: dict[str, int],
+            ignore_mails: bool
+    ) -> None:
         """
         Update an existing task in ClickUp.
 
@@ -209,6 +236,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             result: Verified task containing update information.
             name_to_email: Mapping of usernames to emails for resolution.
             email_to_id: Mapping of emails to ClickUp member IDs.
+            ignore_mails (bool):
+                If True, unresolved assignees are ignored.
+                If False, an exception is raised when resolution fails.
 
         Returns:
             None.
@@ -230,7 +260,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         }
 
         assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-        assignee_ids = resolve_assignee_ids(name_to_email, email_to_id, assignee_names)
+        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_mails)
         if assignee_ids:
             payload["assignees"] = {"add": assignee_ids}
 

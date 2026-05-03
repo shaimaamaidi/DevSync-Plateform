@@ -1,37 +1,40 @@
 """
-Service port for verifying generated tasks.
+Service port for verifying tasks.
 
 This module defines the IClickUpTaskVerifier interface, which specifies
-operations for verifying generated tasks against existing ClickUp tasks.
+operations for verifying tasks against existing ClickUp tasks and return
+only tasks who need to create or update.
 """
 
+from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.clickup.clickup_list import ClickUpTask
+from backend.src.domain.entities.clickup.list import ClickUpTask
 from backend.src.domain.entities.clickup.generated_task import GeneratedTask
 from backend.src.domain.entities.clickup.verified_task import VerifiedTask
 
 
-class IClickUpTaskVerifier:
+class IClickUpTaskVerifier(ABC):
     """
     Define task verification behavior required by the application.
 
-    This interface represents the contract for comparing generated tasks
+    This interface represents the contract for comparing tasks
     with existing ClickUp tasks in order to determine which tasks need
     to be created or updated.
     """
 
+    @abstractmethod
     def verify_tasks(
         self,
         existing_tasks: List[ClickUpTask],
-        generated_tasks: List[GeneratedTask]
+        tasks: List[GeneratedTask]
     ) -> List[VerifiedTask]:
         """
-        Verify generated tasks against existing tasks.
+        Verify tasks against existing tasks.
 
         Args:
             existing_tasks: Tasks already present in ClickUp.
-            generated_tasks: Tasks produced by the LLM.
+            tasks: Tasks produced by the LLM.
 
         Returns:
             List of VerifiedTask: Tasks that require creation or update.

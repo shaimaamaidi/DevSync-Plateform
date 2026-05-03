@@ -12,7 +12,7 @@ Main classes:
 from pydantic import BaseModel
 from typing import List
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
 
 
 class BacklogValidation(BaseModel):

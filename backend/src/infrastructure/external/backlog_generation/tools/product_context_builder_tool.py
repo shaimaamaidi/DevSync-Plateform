@@ -12,6 +12,9 @@ IProductContextBuilder service.
 
 import logging
 
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.iproduct_context_builder import (
     IProductContextBuilder,
@@ -59,7 +62,7 @@ class ProductContextBuilderTool(IProductContextTool):
             str: JSON string representing the structured product context.
 
         Raises:
-            ToolExecutionException: If product context building fails due to service errors
+            ToolExecutionException: If product context building fails due to LLM errors, service errors
                 in IProductContextBuilder or any unexpected runtime issue during processing
                 of the raw product description.
         """
@@ -74,6 +77,13 @@ class ProductContextBuilderTool(IProductContextTool):
             logger.info("Product context successfully built.")
 
             return result.model_dump_json()
+
+        except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
+            logger.error("LLM error in ProductContextBuilderTool: %s", e)
+            raise ToolExecutionException(
+                f"Build product context failed: {str(e)}."
+            ) from e
+
         except Exception as e:
             logger.exception("ProductContextBuilderTool failed unexpectedly.")
             raise ToolExecutionException(

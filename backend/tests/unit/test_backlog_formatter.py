@@ -2,7 +2,7 @@
 Unit tests for backlog formatter.
 """
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure, EpicBacklog, UserStoryWithTasks
+from backend.src.domain.entities.backlog.structure import BacklogStructure, EpicBacklog, UserStoryWithTasks
 from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.backlog.task import Task
 from backend.src.domain.entities.backlog.user_story import UserStory

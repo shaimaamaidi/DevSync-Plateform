@@ -1,7 +1,8 @@
 """
 Repository service module.
 
-This module provides the RepoService class, which manages Git repository operations such as creation, update, retrieval, and listing.
+This module provides the RepoService class, which manages Git repository
+operations such as creation, update, retrieval, and listing.
 It coordinates persistence and business logic for repository management.
 
 Classes:
@@ -15,8 +16,6 @@ from backend.src.domain.entities.git_repo import (
     GitRepoCreateDTO,
     GitRepoDTO,
     GitRepoDetailDTO,
-    GitRepoIdDTO,
-    GitRepoNameDTO,
     GitRepoUpdateDTO,
 )
 from backend.src.domain.ports.input.i_repo_service import IRepoService
@@ -81,37 +80,37 @@ class RepoService(IRepoService):
 
         return result
 
-    def get_by_id(self, repo: GitRepoIdDTO) -> GitRepoDetailDTO:
+    def get_by_id(self, repo_id: int) -> GitRepoDetailDTO:
         """
         Fetch a repository by id.
 
         Args:
-            repo (GitRepoIdDTO): Repository id wrapper.
+            repo_id (int): Repository id.
 
         Returns:
             GitRepoDetailDTO: Repository detail DTO.
         """
-        logger.info("Fetching repository by id: %s.", repo.id)
+        logger.info("Fetching repository by id: %s.", repo_id)
 
-        result = self._repo.find_by_id(repo.id)
+        result = self._repo.find_by_id(repo_id)
 
         logger.info("Repository fetched successfully: id=%s, name=%s.", result.id, result.name)
 
         return result
 
-    def get_by_name(self, repo: GitRepoNameDTO) -> GitRepoDetailDTO:
+    def get_by_name(self, repo_name: str) -> GitRepoDetailDTO:
         """
         Fetch a repository by name.
 
         Args:
-            repo (GitRepoNameDTO): Repository name wrapper.
+            repo_name (str): Repository name.
 
         Returns:
             GitRepoDetailDTO: Repository detail DTO.
         """
-        logger.info("Fetching repository by name: %s.", repo.name)
+        logger.info("Fetching repository by name: %s.", repo_name)
 
-        result = self._repo.find_by_name(repo.name)
+        result = self._repo.find_by_name(repo_name)
 
         logger.info("Repository fetched successfully: id=%s, name=%s.", result.id, result.name)
 
@@ -165,20 +164,20 @@ class RepoService(IRepoService):
 
         return results
 
-    def delete(self, repo: GitRepoIdDTO) -> bool:
+    def delete(self, repo_id: int) -> bool:
         """
         Delete a repository by id.
 
         Args:
-            repo (GitRepoIdDTO): Repository id wrapper.
+            repo_id (int): Repository id.
 
         Returns:
             bool: True when deletion succeeds.
         """
-        logger.info("Deleting repository: id=%s.", repo.id)
+        logger.info("Deleting repository: id=%s.", repo_id)
 
-        result = self._repo.delete(repo.id)
+        result = self._repo.delete(repo_id)
 
-        logger.info("Repository deleted successfully: id=%s.", repo.id)
+        logger.info("Repository deleted successfully: id=%s.", repo_id)
         
         return result

@@ -13,7 +13,10 @@ import logging
 
 from pydantic import ValidationError
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_backlog_fixer import (
@@ -71,7 +74,7 @@ class UserBacklogFixerTool(IUserBacklogFixerTool):
         Raises:
             InvalidToolArgumentException: If backlog_reference or backlog_to_validate is not valid JSON
                 or does not match the expected BacklogStructure schema.
-            ToolExecutionException: If backlog reconciliation fails due to domain rule violations,
+            ToolExecutionException: If backlog reconciliation fails due to LLM errors, domain rule violations,
                 service errors in IUserBacklogFixer, or any unexpected runtime issue during processing.
         """
         logger.info(
@@ -111,6 +114,13 @@ class UserBacklogFixerTool(IUserBacklogFixerTool):
             logger.info("User backlog successfully fixed.")
 
             return result.model_dump_json()
+
+        except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
+            logger.error("LLM error in UserBacklogFixerTool: %s", e)
+            raise ToolExecutionException(
+                f"Fix user backlog failed: {str(e)}."
+            ) from e
+
         except Exception as e:
             logger.exception("UserBacklogFixerTool failed unexpectedly.")
             raise ToolExecutionException(

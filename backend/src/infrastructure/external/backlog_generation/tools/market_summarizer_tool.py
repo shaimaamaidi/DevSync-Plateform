@@ -16,6 +16,9 @@ from typing import Optional
 from pydantic import ValidationError
 
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_summarizer import (
@@ -70,7 +73,7 @@ class MarketSummarizerTool(IMarketSummarizerTool):
         Raises:
             InvalidToolArgumentException: If detailed_description is not valid JSON or does not
                 match the expected schema.
-            ToolExecutionException: If market intelligence summarization fails due to service
+            ToolExecutionException: If market intelligence summarization fails due to LLM errors, service
                 errors, optional web result processing issues, or unexpected runtime errors.
         """
         logger.info(
@@ -111,6 +114,13 @@ class MarketSummarizerTool(IMarketSummarizerTool):
             logger.info("Market intelligence summary generated successfully.")
 
             return result.model_dump_json()
+
+        except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
+            logger.error("LLM error in MarketSummarizerTool: %s", e)
+            raise ToolExecutionException(
+                f"Summarize market failed: {str(e)}."
+            ) from e
+
         except Exception as e:
             logger.exception("MarketSummarizerTool failed unexpectedly.")
             raise ToolExecutionException(

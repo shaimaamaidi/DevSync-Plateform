@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 
 from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.backlog.user_story import UserStoryList
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 
 

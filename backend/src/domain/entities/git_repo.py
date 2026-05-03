@@ -1,10 +1,12 @@
 """
 Domain DTOs for Git repository data.
 
-This module defines Data Transfer Objects (DTOs) for Git repository management, including creation, update, retrieval, and association with members and ClickUp spaces.
+This module defines Data Transfer Objects (DTOs) for Git repository management, including creation,
+update, retrieval, and association with members and ClickUp spaces.
 
 Main classes:
-    GitRepoDTO, GitRepoCreateDTO, GitRepoUpdateDTO, GitRepoDetailDTO, GitRepoIdDTO, GitRepoNameDTO, RepoMemberDTO, RepoMemberRefDTO, RepoClickUpSpaceDTO, RepoClickUpSpaceRefDTO
+    GitRepoDTO, GitRepoCreateDTO, GitRepoUpdateDTO, GitRepoDetailDTO, GitRepoIdDTO, GitRepoNameDTO,
+    RepoMemberDTO, RepoMemberRefDTO, RepoClickUpSpaceDTO, RepoClickUpSpaceRefDTO
 """
 
 from typing import List, Optional
@@ -19,10 +21,12 @@ class RepoMemberDTO(BaseModel):
     Attributes:
         id: Member identifier.
         username: Username.
+        arabic_name: Arabic name.
         mail: Email address.
     """
     id: Optional[int] = None
     username: Optional[str] = None
+    arabic_name: Optional[str] = None
     mail: Optional[str] = None
 
 class RepoMemberRefDTO(BaseModel):

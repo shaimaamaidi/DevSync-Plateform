@@ -21,9 +21,9 @@ from fastapi import APIRouter, Depends
 from starlette.responses import StreamingResponse
 
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
-from backend.src.domain.entities.backlog.start_backlog_request import StartBacklogRequest
-from backend.src.domain.entities.backlog.reply_stream_request import ReplyStreamRequest
-from backend.src.domain.entities.backlog.reply_backlog_stream_request import ReplyBacklogStreamRequest
+from backend.src.domain.entities.backlog.start_request import StartBacklogRequest
+from backend.src.domain.entities.backlog.reply_request import ReplyStreamRequest
+from backend.src.domain.entities.backlog.reply_backlog_request import ReplyBacklogStreamRequest
 from backend.src.presentation.api.deps import get_backlog_use_case
 
 logger = logging.getLogger(__name__)

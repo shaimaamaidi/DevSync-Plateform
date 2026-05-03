@@ -7,8 +7,8 @@ a structured backlog into a sprint planning plan organized into iterative delive
 
 from abc import ABC, abstractmethod
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
-from backend.src.domain.entities.sprint.sprint_planning import SprintPlanning
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.entities.sprint.planning import SprintPlanning
 
 
 class ISprintPlanner(ABC):

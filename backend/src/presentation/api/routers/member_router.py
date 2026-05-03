@@ -76,8 +76,7 @@ def get_members_by_repo(repo_id: int, container: Container = Depends(get_contain
     """
     logger.info("Fetching members for repository: repo_id=%s.", repo_id)
 
-    repo = container.repo_service.get_by_id(GitRepoIdDTO(id=repo_id))
-    results = container.member_service.get_members_by_repo(repo)
+    results = container.member_service.get_members_by_repo(repo_id)
 
     logger.info(
         "Retrieved %d members for repo_id=%s.",
@@ -103,8 +102,7 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
     """
     logger.info("Fetching all members with their repositories.")
 
-    service = container.member_service
-    results = service.get_all_with_repos()
+    results = container.member_service.get_all_with_repos()
 
     logger.info(
         "Retrieved %d members with repositories.",
@@ -131,9 +129,8 @@ def update_member(member_id: int, member: MemberUpdateDTO, container: Container 
     """
     logger.info("Updating member: id=%s.", member_id)
 
-    service = container.member_service
     member.id = member_id
-    result = service.update_member(member)
+    result = container.member_service.update_member(member)
 
     logger.info(
         "Member updated successfully: id=%s.",
@@ -159,8 +156,7 @@ def delete_member(member_id: int, container: Container = Depends(get_container))
     """
     logger.info("Deleting member: id=%s.", member_id)
     
-    service = container.member_service
-    result = service.delete(member_id)
+    result = container.member_service.delete(member_id)
 
     logger.info(
         "Member deleted successfully: id=%s.",

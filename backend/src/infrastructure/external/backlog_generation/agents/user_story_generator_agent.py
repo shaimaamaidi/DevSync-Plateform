@@ -8,12 +8,15 @@ with user stories based on product context and refined market intelligence.
 
 import logging
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
 from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.backlog.user_story import UserStoryList
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_strory_generator import IUserStoryGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -54,6 +57,8 @@ class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
             UserStoryList: Generated list of user stories for the epic.
             
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Generating user stories for epic: %s.", epic.title)
@@ -97,6 +102,22 @@ class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
             logger.info("User story generation completed for epic: %s.", epic.title)
 
             return response
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in UserStoryGeneratorAgent.")
+            raise LLMNetworkException(
+                agent_name="UserStoryGeneratorAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in UserStoryGeneratorAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="UserStoryGeneratorAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("User story generating failed.")
             raise LLMParsingException(

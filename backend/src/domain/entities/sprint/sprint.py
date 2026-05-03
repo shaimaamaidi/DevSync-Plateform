@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from typing import List
 
 from backend.src.domain.entities.backlog.user_story import UserStory
-from backend.src.domain.entities.sprint.task_estimation import TaskEstimate
+from backend.src.domain.entities.sprint.estimation import TaskEstimate
 
 
 class UserStorySprint(BaseModel):

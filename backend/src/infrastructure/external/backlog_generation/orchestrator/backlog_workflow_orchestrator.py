@@ -168,8 +168,10 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                 - Incremental agent responses
 
         Raises:
-            AzureAgentRuntimeException: If thread creation, or message creation fails,
-                or if an Azure SDK error occurs.
+            AzureAgentRuntimeException: If thread creation or message creation fails, or Azure SDK error occurs.
+            StreamExecutionException: If an unexpected error occurs during stream execution.
+            StreamCancelledException: If the stream is cancelled.
+            AzureStreamException: If an Azure streaming SDK error occurs.
         """
         logger.info(
             "Starting backlog generation stream: description_length=%s.",
@@ -188,11 +190,13 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             await self.project_client.agents.messages.create(
                 thread_id=thread.id, role="user", content=description
             )
+        except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
+            raise
         except AzureError as e:
-            logger.exception("Azure error during thread/message creation.")
-            raise AzureAgentRuntimeException(
-                message=f"Failed to create thread or message: {str(e)}."
-            ) from e
+            raise AzureAgentRuntimeException(message=f"Unexpected Azure error: {str(e)}.") from e
+        except Exception as e:
+            logger.exception("start_stream failed unexpectedly.")
+            raise StreamExecutionException(message=f"start_stream failed: {str(e)}.") from e
 
         yield f"data: {json.dumps({'thread_id': thread.id})}\n\n"
 
@@ -227,7 +231,10 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             AsyncGenerator[str, None]: Streaming chunks of updated agent response.
 
         Raises:
-            AzureAgentRuntimeException: If message creation fails, or if an Azure SDK error occurs.
+            AzureAgentRuntimeException: If message creation fails or Azure SDK error occurs.
+            StreamExecutionException: If an unexpected error occurs during execution.
+            StreamCancelledException: If the stream is cancelled.
+            AzureStreamException: If an Azure streaming SDK error occurs.
     """
         logger.info(
             "Processing market intelligence verification reply: thread_id=%s.",
@@ -259,11 +266,13 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             await self.project_client.agents.messages.create(
                 thread_id=thread_id, role="user", content=content
             )
+        except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
+            raise
         except AzureError as e:
-            logger.exception("Azure error during thread/message creation.")
-            raise AzureAgentRuntimeException(
-                message=f"Failed to create thread or message: {str(e)}."
-            ) from e
+            raise AzureAgentRuntimeException(message=f"Unexpected Azure error: {str(e)}.") from e
+        except Exception as e:
+            logger.exception("reply_stream failed unexpectedly.")
+            raise StreamExecutionException(message=f"reply_stream failed: {str(e)}.") from e
 
         async for chunk in self._run_stream(thread_id):
             yield f"data: {json.dumps({'text': chunk})}\n\n"
@@ -292,7 +301,10 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             AsyncGenerator[str, None]: Streaming chunks of updated backlog validation and response.
 
         Raises:
-            AzureAgentRuntimeException: If thread/message creation fails, or if an Azure SDK error occurs..
+            AzureAgentRuntimeException: If message creation fails or Azure SDK error occurs.
+            StreamExecutionException: If an unexpected error occurs during execution.
+            StreamCancelledException: If the stream is cancelled.
+            AzureStreamException: If an Azure streaming SDK error occurs.
         """
         logger.info(
             "Processing backlog verification reply: thread_id=%s.",
@@ -330,11 +342,13 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             await self.project_client.agents.messages.create(
                 thread_id=thread_id, role="user", content=content
             )
+        except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
+            raise
         except AzureError as e:
-            logger.exception("Azure error during thread/message creation.")
-            raise AzureAgentRuntimeException(
-                message=f"Failed to create thread or message: {str(e)}."
-            ) from e
+            raise AzureAgentRuntimeException(message=f"Unexpected Azure error: {str(e)}.") from e
+        except Exception as e:
+            logger.exception("reply_backlog_stream failed unexpectedly.")
+            raise StreamExecutionException(message=f"reply_backlog_stream failed: {str(e)}.") from e
 
         async for chunk in self._run_stream(thread_id):
             yield f"data: {json.dumps({'text': chunk})}\n\n"
@@ -366,9 +380,8 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
 
         Raises:
             AzureAgentRuntimeException: If stream initialization or tool output submission fails.
-            StreamExecutionException: If the Azure agent run fails or an unexpected error occurs
-                during stream execution.
-            StreamCancelledException: If the streaming process is cancelled.
+            StreamExecutionException: If the Azure agent run fails or unexpected error occurs.
+            StreamCancelledException: If the stream is cancelled.
             AzureStreamException: If an Azure SDK streaming error occurs.
         """
         logger.info(
@@ -467,12 +480,9 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
 
                                 except ToolExecutionException as e:
                                     logger.error("Tool execution failed: %s.", function_name)
-                                    output = json.dumps({
-                                        "success": False,
-                                        "error_type": "tool_execution",
-                                        "message": str(e),
-                                        "tool": function_name
-                                    })
+                                    raise StreamExecutionException(
+                                        message=f"Tool '{function_name}' failed critically: {str(e)}."
+                                    ) from e
                                 except Exception as e:
                                     logger.exception("Unexpected tool error: %s.", function_name)
                                     output = json.dumps({
@@ -512,6 +522,8 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                                 tool_outputs=tool_outputs,
                                 event_handler=event_handler,
                             )
+                        except StreamExecutionException:
+                            raise
                         except AzureError as e:
                             logger.exception(
                                 "Azure error while submitting tool outputs: thread_id=%s, run_id=%s, agent_id=%s.",
@@ -555,6 +567,13 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                             "Step failed: code=%s, message=%s.",
                             getattr(step_error, 'code', None),
                             getattr(step_error, 'message', None),
+                        )
+                        raise StreamExecutionException(
+                            message=(
+                                f"Agent step failed (thread_id={thread_id}): "
+                                f"code={getattr(step_error, 'code', None)}, "
+                                f"message={getattr(step_error, 'message', None)}."
+                            )
                         )
 
                 for chunk in event_handler.get_stream_chunks():
@@ -604,8 +623,8 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                 workflow rules, and execution constraints.
 
         Raises:
-            AzureAgentRuntimeException: If the agent update fails due to an Azure SDK error or
-                unexpected runtime issue.
+            AzureAgentRuntimeException: If agent update fails due to Azure SDK error,
+                authentication error, or unexpected runtime issue.
         """
         logger.info("Updating Azure agent tools and instructions: agent_id=%s.", self.agent_id)
 

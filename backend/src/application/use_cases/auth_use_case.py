@@ -1,7 +1,8 @@
 """
 Authentication use case module.
 
-This module provides the AuthUseCase class, which handles authentication use cases such as login, token refresh, and logout for members.
+This module provides the AuthUseCase class, which handles authentication use cases such as login,
+token refresh, and logout for members.
 It coordinates member credential verification, JWT token management, and refresh token persistence.
 
 Classes:

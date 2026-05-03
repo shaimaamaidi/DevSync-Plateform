@@ -9,11 +9,14 @@ product description.
 
 import logging
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from backend.src.domain.entities.market.market_intelligence import MarketIntelligenceSummary
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_validator import \
     IMarketIntelligenceValidator
@@ -53,6 +56,8 @@ class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
             RefinedMarketIntelligenceSummary: The validated and refined market intelligence.
 
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Validating market intelligence with LLM.")
@@ -91,6 +96,22 @@ class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
             logger.info("Market intelligence validated successfully.")
 
             return completion.choices[0].message.parsed
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in MarketIntelligenceValidatorAgent.")
+            raise LLMNetworkException(
+                agent_name="MarketIntelligenceValidatorAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in MarketIntelligenceValidatorAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="MarketIntelligenceValidatorAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("Market intelligence validating failed.")
             raise LLMParsingException(

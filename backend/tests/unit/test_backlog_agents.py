@@ -7,16 +7,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure, EpicBacklog, UserStoryWithTasks
-from backend.src.domain.entities.backlog.backlog_validation import BacklogValidation
+from backend.src.domain.entities.backlog.structure import BacklogStructure, EpicBacklog, UserStoryWithTasks
+from backend.src.domain.entities.backlog.validation import BacklogValidation
 from backend.src.domain.entities.backlog.epic import Epic, EpicList
 from backend.src.domain.entities.backlog.task import Task, TaskList
 from backend.src.domain.entities.backlog.user_story import UserStory, UserStoryList
-from backend.src.domain.entities.market.market_intelligence import MarketIntelligenceSummary
+from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
 from backend.src.domain.entities.market.query import QueryGeneration
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.entities.sprint.sprint_planning import SprintPlanning
+from backend.src.domain.entities.sprint.planning import SprintPlanning
 from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.infrastructure.external.backlog_generation.agents.backlog_cleaner_agent import BacklogCleanerAgent

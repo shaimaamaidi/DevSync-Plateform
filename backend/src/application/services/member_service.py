@@ -1,7 +1,8 @@
 """
 Member service module.
 
-This module provides the MemberService class, which manages member-related operations such as creation, update, retrieval, and listing.
+This module provides the MemberService class, which manages member-related
+operations such as creation, update, retrieval, and listing.
 It coordinates persistence and business logic for member management.
 
 Classes:
@@ -12,12 +13,12 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
-from backend.src.domain.entities.git_repo import GitRepoDTO
 from backend.src.domain.ports.input.i_member_service import IMemberService
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
 
 logger = logging.getLogger(__name__)
+
 
 
 class MemberService(IMemberService):
@@ -49,8 +50,13 @@ class MemberService(IMemberService):
         Returns:
             MemberDTO: Created member DTO.
         """
-        logger.info("Adding new member: username=%s, mail=%s.", member.username, member.mail)
-        
+        logger.info(
+            "Adding new member: username=%s, arabic_name=%s, mail=%s.",
+            member.username,
+            member.arabic_name,
+            member.mail
+        )
+
         result = self._repo.save(member)
 
         logger.info("Member added successfully: id=%s, username=%s.", result.id, result.username)
@@ -67,29 +73,33 @@ class MemberService(IMemberService):
         Returns:
             MemberWithReposDTO: Updated member with repositories DTO.
         """
-        logger.info("Updating member: id=%s, username=%s.", member.id, member.username)
+        logger.info("Updating member: id=%s.", member.id)
 
         result = self._repo.update(member)
 
-        logger.info("Member updated successfully: id=%s, username=%s.", result.id, result.username)
+        logger.info("Member updated successfully: id=%s.", result.id)
 
         return result
 
-    def get_members_by_repo(self, repo: GitRepoDTO) -> List[MemberDTO]:
+    def get_members_by_repo(self, repo_id: int) -> List[MemberDTO]:
         """
         Fetch members associated with a repository.
 
         Args:
-            repo (GitRepoDTO): Repository DTO used to resolve membership.
+            repo_id (int): Repository ID used to resolve membership.
 
         Returns:
             List[MemberDTO]: List of member DTOs.
         """
-        logger.info("Fetching members for repository: repo_id=%s, repo_url=%s.", repo.id, repo.url)
-        
-        results = self._repo.find_by_repo_id(repo.id)
+        logger.info("Fetching members for repository: repo_id=%s.", repo_id)
 
-        logger.info("Found %s members for repository successfully: repo_id=%s.", len(results), repo.id)
+        results = self._repo.find_by_repo_id(repo_id)
+
+        logger.info(
+            "Found %s members for repository successfully: repo_id=%s.",
+            len(results),
+            repo_id
+        )
 
         return results
 
@@ -104,7 +114,7 @@ class MemberService(IMemberService):
             MemberWithReposDTO: Member DTO with repositories.
         """
         logger.info("Fetching member by mail: %s.", mail)
-        
+
         result = self._repo.find_by_mail(mail)
 
         logger.info("Member fetched successfully: id=%s, mail=%s.", result.id, result.mail)
@@ -137,7 +147,7 @@ class MemberService(IMemberService):
             bool: True when deletion succeeds.
         """
         logger.info("Deleting member: id=%s.", member_id)
-        
+
         result = self._repo.delete(member_id)
 
         logger.info("Member deleted successfully: id=%s.", member_id)

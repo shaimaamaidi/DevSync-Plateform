@@ -11,11 +11,14 @@ that serve as the foundation of backlog generation.
 
 import logging
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
 from backend.src.domain.entities.backlog.epic import EpicList
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iepic_generator import IEpicGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -54,6 +57,8 @@ class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
             EpicList: Generated list of structured epics.
 
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Starting epic generation process.")
@@ -91,6 +96,22 @@ class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
             logger.info("Epic generation completed successfully.")
 
             return completion.choices[0].message.parsed
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in BacklogPrioritizerAgent.")
+            raise LLMNetworkException(
+                agent_name="ClickUpTaskGeneratorAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in BacklogPrioritizerAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="BacklogPrioritizerAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("Epic generating failed.")
             raise LLMParsingException(

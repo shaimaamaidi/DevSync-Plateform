@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backend.src.domain.entities.market.market_intelligence import MarketIntelligenceSummary
+from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException

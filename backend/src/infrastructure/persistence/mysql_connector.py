@@ -183,3 +183,28 @@ class MySQLConnector:
                 str(e)
             )
             raise DatabaseSessionException() from e
+
+    def close(self) -> None:
+        """
+        Dispose the SQLAlchemy engine and release all pooled connections.
+
+        Sends COM_QUIT to each connection in the pool so MySQL frees
+        the slots immediately instead of waiting for wait_timeout.
+
+        Raises:
+            DatabaseConnectionException: If engine disposal fails.
+        """
+        logger.info("Closing MySQL connector (host=%s, db=%s).", self.host, self.db)
+
+        if self.engine is None:
+            logger.warning("Engine not initialized, nothing to close.")
+            return
+
+        try:
+            self.engine.dispose()
+            self.engine = None
+            self.Session = None
+            logger.info("MySQL engine disposed successfully.")
+        except SQLAlchemyError as e:
+            logger.exception("Failed to dispose MySQL engine.")
+            raise DatabaseConnectionException() from e

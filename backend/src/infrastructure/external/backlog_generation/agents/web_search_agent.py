@@ -97,7 +97,6 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
         for q, res in zip(questions, results):
             if isinstance(res, Exception):
                 errors.append(res)
-                output_lines.append(f"Query: {q}\nResult: Error - {str(res)}\n")
             else:
                 output_lines.append(f"Query: {q}\nResult: {res}\n")
 

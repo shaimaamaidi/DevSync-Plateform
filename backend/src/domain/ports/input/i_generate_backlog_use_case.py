@@ -13,9 +13,9 @@ It acts as the application layer orchestration contract for:
 from abc import ABC, abstractmethod
 from typing import AsyncGenerator
 
-from backend.src.domain.entities.backlog.reply_backlog_stream_request import ReplyBacklogStreamRequest
-from backend.src.domain.entities.backlog.reply_stream_request import ReplyStreamRequest
-from backend.src.domain.entities.backlog.start_backlog_request import StartBacklogRequest
+from backend.src.domain.entities.backlog.reply_backlog_request import ReplyBacklogStreamRequest
+from backend.src.domain.entities.backlog.reply_request import ReplyStreamRequest
+from backend.src.domain.entities.backlog.start_request import StartBacklogRequest
 
 
 class IGenerateBacklogUseCase(ABC):

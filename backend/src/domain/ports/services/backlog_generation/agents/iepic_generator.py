@@ -8,7 +8,7 @@ epics from a product description enriched with market intelligence.
 from abc import ABC, abstractmethod
 
 from backend.src.domain.entities.backlog.epic import EpicList
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 
 

@@ -25,7 +25,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.infrastructure.di.backlog_container import BacklogContainer
+from backend.src.infrastructure.di.WorkflowContainer import WorkflowContainer
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
@@ -85,10 +85,10 @@ async def lifespan(app: FastAPI):
         app.state.scheduler = scheduler
 
         # ── Backlog Workflow ──
-        backlog_container = BacklogContainer()
-        await backlog_container.initialize_web_search_tool()
-        await backlog_container.initialize_backlog_workflow_orchestrator()
-        app.state.backlog_container = backlog_container
+        workflow_container = WorkflowContainer()
+        await workflow_container.initialize_web_search_tool()
+        await workflow_container.initialize_backlog_workflow_orchestrator()
+        app.state.workflow_container = workflow_container
     except Exception as e:
         logger.exception("Application startup failed: %s", str(e))
         raise
@@ -102,6 +102,18 @@ async def lifespan(app: FastAPI):
         app.state.scheduler.stop()
     except Exception:
         logger.warning("Failed to stop scheduler during shutdown.")
+
+    try:
+        await app.state.workflow_container.cleanup()
+        logger.info("Backlog container cleaned up.")
+    except Exception:
+        logger.warning("Failed to cleanup backlog container during shutdown.")
+
+    try:
+        app.state.db.close()
+        logger.info("Database connector closed.")
+    except Exception:
+        logger.warning("Failed to close database connector during shutdown.")
 
 def create_app() -> FastAPI:
     """

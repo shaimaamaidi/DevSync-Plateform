@@ -9,12 +9,15 @@ and refined market intelligence.
 
 import logging
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
 from backend.src.domain.entities.backlog.task import TaskList
 from backend.src.domain.entities.backlog.user_story import UserStory
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.itask_generator import ITaskGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -56,6 +59,8 @@ class TaskGeneratorAgent(BaseAgent, ITaskGenerator):
             TaskList: Generated list of structured tasks for the user story.
             
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Generating tasks for user story: %s.", user_story.title)
@@ -98,6 +103,22 @@ class TaskGeneratorAgent(BaseAgent, ITaskGenerator):
             logger.info("Task generation completed for user story: %s.", user_story.title)
 
             return response
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in TaskGeneratorAgent.")
+            raise LLMNetworkException(
+                agent_name="TaskGeneratorAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in TaskGeneratorAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="TaskGeneratorAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("Task generating failed.")
             raise LLMParsingException(

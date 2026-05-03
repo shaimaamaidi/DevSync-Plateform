@@ -74,12 +74,25 @@ class ClickUpHttpClient:
 
         Returns:
             Parsed JSON response.
+
+        Raises:
+            ClickUpAuthenticationException: If authentication fails (401).
+            ClickUpResourceNotFoundException: If resource is not found (404).
+            ClickUpApiException: For other API or network-related errors.
         """
         logger.info("GET %s", endpoint)
 
-        response = requests.get(f"{self.BASE_URL}{endpoint}", headers=self._headers)
-        self._handle_response(response)
-        return response.json()
+        try:
+            response = requests.get(f"{self.BASE_URL}{endpoint}", headers=self._headers)
+            self._handle_response(response)
+            return response.json()
+
+        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpApiException):
+            logger.error("API error on GET %s.", endpoint, exc_info=True)
+            raise
+        except (requests.exceptions.RequestException, ValueError) as e:
+            logger.error("Network error on GET %s.", endpoint, exc_info=True)
+            raise ClickUpApiException(f"Network error on GET {endpoint}: {e}") from e
 
     def post(self, endpoint: str, payload: dict) -> Any:
         """
@@ -91,16 +104,29 @@ class ClickUpHttpClient:
 
         Returns:
             Parsed JSON response.
+
+        Raises:
+            ClickUpAuthenticationException: If authentication fails (401).
+            ClickUpResourceNotFoundException: If resource is not found (404).
+            ClickUpApiException: For other API or network-related errors.
         """
         logger.info("POST %s", endpoint)
 
-        response = requests.post(
-            f"{self.BASE_URL}{endpoint}",
-            json=payload,
-            headers=self._headers
-        )
-        self._handle_response(response)
-        return response.json()
+        try:
+            response = requests.post(
+                f"{self.BASE_URL}{endpoint}",
+                json=payload,
+                headers=self._headers
+            )
+            self._handle_response(response)
+            return response.json()
+
+        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpApiException):
+            logger.error("API error on POST %s.", endpoint, exc_info=True)
+            raise
+        except (requests.exceptions.RequestException, ValueError) as e:
+            logger.error("Network error on POST %s.", endpoint, exc_info=True)
+            raise ClickUpApiException(f"Network error on POST {endpoint}: {e}") from e
 
     def post_raw(self, endpoint: str, payload: dict) -> requests.Response:
         """
@@ -131,16 +157,29 @@ class ClickUpHttpClient:
 
         Returns:
             Parsed JSON response.
+
+        Raises:
+            ClickUpAuthenticationException: If authentication fails (401).
+            ClickUpResourceNotFoundException: If resource is not found (404).
+            ClickUpApiException: For other API or network-related errors.
         """
         logger.info("PUT %s", endpoint)
 
-        response = requests.put(
-            f"{self.BASE_URL}{endpoint}",
-            json=payload,
-            headers=self._headers
-        )
-        self._handle_response(response)
-        return response.json()
+        try:
+            response = requests.put(
+                f"{self.BASE_URL}{endpoint}",
+                json=payload,
+                headers=self._headers
+            )
+            self._handle_response(response)
+            return response.json()
+
+        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpApiException):
+            logger.error("API error on PUT %s.", endpoint, exc_info=True)
+            raise
+        except (requests.exceptions.RequestException, ValueError) as e:
+            logger.error("Network error on PUT %s.", endpoint, exc_info=True)
+            raise ClickUpApiException(f"Network error on PUT {endpoint}: {e}") from e
 
     def put_raw(self, endpoint: str, payload: dict) -> requests.Response:
         """

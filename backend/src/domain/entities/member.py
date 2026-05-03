@@ -1,10 +1,12 @@
 """
 Domain DTOs for member data.
 
-This module defines Data Transfer Objects (DTOs) for member management, used in authentication, creation, update, and retrieval flows.
+This module defines Data Transfer Objects (DTOs) for member management, used in authentication,
+creation, update, and retrieval flows.
 
 Main classes:
-    MemberAuthDTO, MemberCredentialsDTO, MemberTokensDTO, MemberDTO, MemberCreateDTO, MemberUpdateDTO, MemberWithReposDTO
+    MemberAuthDTO, MemberCredentialsDTO, MemberTokensDTO, MemberDTO, MemberCreateDTO, MemberUpdateDTO,
+    MemberWithReposDTO
 """
 
 from typing import List, Optional
@@ -80,10 +82,12 @@ class MemberDTO(BaseModel):
     Attributes:
         id: Member identifier.
         username: Username.
+        arabic_name: Arabic name.
         mail: Email address.
     """
     id: Optional[int] = None
     username: Optional[str] = None
+    arabic_name: Optional[str] = None
     mail: Optional[str] = None
 
 class MemberCreateDTO(BaseModel):
@@ -92,10 +96,12 @@ class MemberCreateDTO(BaseModel):
 
     Attributes:
         username: Username.
+        arabic_name: Arabic name.
         mail: Email address.
         password: Password.
     """
     username: Optional[str] = None
+    arabic_name: Optional[str] = None
     mail: Optional[str] = None
     password: Optional[str] =None
 
@@ -106,11 +112,13 @@ class MemberUpdateDTO(BaseModel):
     Attributes:
         id: Member identifier.
         username: Username.
+        arabic_name: Arabic name.
         mail: Email address.
         repos: List of associated repositories.
     """
     id: Optional[int] = None
     username: Optional[str] = None
+    arabic_name: Optional[str] = None
     password: Optional[str] = None
     mail: Optional[str] = None
     repos: Optional[List[RepoRefDTO]] = None
@@ -122,10 +130,12 @@ class MemberWithReposDTO(BaseModel):
     Attributes:
         id: Member identifier.
         username: Username.
+        arabic_name: Arabic name.
         mail: Email address.
         repos: List of repositories (RepoSummary).
     """
     id: Optional[int] = None
     username: Optional[str] = None
+    arabic_name: Optional[str] = None
     mail: Optional[str] = None
     repos: List[RepoSummary] = Field(default_factory=list)

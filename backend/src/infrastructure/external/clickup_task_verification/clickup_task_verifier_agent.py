@@ -11,11 +11,14 @@ import logging
 import json
 from typing import List
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionSystemMessageParam
 
-from backend.src.domain.entities.clickup.clickup_list import ClickUpTask
+from backend.src.domain.entities.clickup.list import ClickUpTask
 from backend.src.domain.entities.clickup.generated_task import GeneratedTask
 from backend.src.domain.entities.clickup.verified_task import VerifiedTask, VerifiedTaskList
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.clickup_task_verification.i_clickup_task_verifier import IClickUpTaskVerifier
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -37,7 +40,7 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
     def verify_tasks(
         self,
         existing_tasks: List[ClickUpTask],
-        generated_tasks: List[GeneratedTask],
+        tasks: List[GeneratedTask],
     ) -> List[VerifiedTask]:
         """
         Verify generated ClickUp tasks against existing tasks using an LLM.
@@ -50,22 +53,24 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
 
         Args:
             existing_tasks: Tasks already present in ClickUp.
-            generated_tasks: Tasks produced by the LLM.
+            tasks: Tasks produced by the LLM.
 
         Returns:
             List[VerifiedTask]: List of tasks requiring creation or update.
 
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: If the LLM response cannot be parsed correctly.
         """
         logger.info(
             "Starting verification: %d generated task(s) against %d existing task(s).",
-            len(generated_tasks),
+            len(tasks),
             len(existing_tasks),
         )
 
-        if not generated_tasks:
-            logger.warning("No generated tasks to verify — skipping verification.")
+        if not tasks:
+            logger.warning("No tasks to verify — skipping verification.")
             return []
 
         messages = self.prompt_loader.get_messages(
@@ -73,7 +78,7 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
             name="task_verification_agent",
             variables={
                 "existing_tasks": self._serialize_existing(existing_tasks),
-                "generated_tasks": self._serialize_generated(generated_tasks)
+                "generated_tasks": self._serialize_generated(tasks)
             }
         )
 
@@ -89,6 +94,20 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
                 temperature=0,
                 response_format=VerifiedTaskList,
             )
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in ClickUpTaskVerifierAgent.")
+            raise LLMNetworkException(
+                agent_name="ClickUpTaskVerifierAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in ClickUpTaskVerifierAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="ClickUpTaskVerifierAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
 
         except Exception as e:
             logger.exception("Clickup tasks verifying failed.")
@@ -97,7 +116,10 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
                 reason=str(e)
             ) from e
 
-        logger.info("Verification response received: %d result(s) from LLM.", len(response))
+        logger.info(
+            "Verification response received. results=%d.",
+            len(response.results) if hasattr(response, "results") else 0,
+        )
 
         filtered = ClickUpTaskVerifierAgent._filter_unchanged_updates(response.results, existing_tasks)
 

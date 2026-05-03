@@ -1,10 +1,12 @@
 """
 Domain DTOs for ClickUp space data.
 
-This module defines Data Transfer Objects (DTOs) for ClickUp space management, including creation, update, retrieval, and association with repositories.
+This module defines Data Transfer Objects (DTOs) for ClickUp space management, including creation,
+update, retrieval, and association with repositories.
 
 Main classes:
-    ClickUpSpaceDTO, ClickUpSpaceCreateDTO, ClickUpSpaceUpdateDTO, ClickUpSpaceLightDTO, ClickUpSpaceDetailDTO, ClickUpRepoDTO, ClickUpRepoRefDTO
+    ClickUpSpaceDTO, ClickUpSpaceCreateDTO, ClickUpSpaceUpdateDTO, ClickUpSpaceLightDTO,
+    ClickUpSpaceDetailDTO, ClickUpRepoDTO, ClickUpRepoRefDTO
 """
 
 from typing import Optional

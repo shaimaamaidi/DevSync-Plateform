@@ -7,8 +7,8 @@ for generating a structured backlog from a product description enriched with mar
 
 from abc import ABC, abstractmethod
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 
 

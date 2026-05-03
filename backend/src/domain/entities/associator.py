@@ -4,7 +4,8 @@ Domain DTOs for repository association workflows.
 This module defines Data Transfer Objects (DTOs) for associating repositories, members, and ClickUp spaces.
 
 Main classes:
-    MemberMailDTO, AssociateClickUpSpaceRequest, RepoMembersRequest, AssociatorRepoDTO, AssociatorMemberDTO, AssociateClickUpSpaceResponse, AssociateMembersResponse
+    MemberMailDTO, AssociateClickUpSpaceRequest, RepoMembersRequest, AssociatorRepoDTO,
+    AssociatorMemberDTO, AssociateClickUpSpaceResponse, AssociateMembersResponse
 """
 
 from typing import List, Optional
@@ -64,11 +65,13 @@ class AssociatorMemberDTO(BaseModel):
 
     Attributes:
         id: Member identifier.
-        name: Member name.
+        username: Member name.
+        arabic_name: Arabic name.
         mail: Member email address.
     """
     id: Optional[int] = None
-    name: Optional[str] = None
+    username: Optional[str] = None
+    arabic_name: Optional[str] = None
     mail: Optional[str] = None
 
 

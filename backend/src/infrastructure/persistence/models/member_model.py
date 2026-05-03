@@ -21,6 +21,7 @@ class MemberModel(Base):
     Attributes:
         id (int): Primary key.
         username (str): Username of the member.
+        arabic_name (str): Arabic name of the member.
         mail (str): Unique email address of the member.
         password (str): Hashed password of the member.
         repos (list[GitRepoModel]): List of associated Git repositories.
@@ -29,6 +30,7 @@ class MemberModel(Base):
     __tablename__ = "members"
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)
+    arabic_name = Column(String(255), nullable=False)
     mail = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
 

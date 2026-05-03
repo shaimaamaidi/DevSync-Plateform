@@ -51,9 +51,11 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
             None: This method does not return a value; it saves the token in the persistence layer.
 
         Raises:
-            InvalidInputException: If required arguments are missing.
-            InvalidInputException: If token already exists (IntegrityError triggers rollback).
-            RefreshTokenPersistenceException: For other database errors (rollback performed).
+            InvalidInputException:
+                - If required arguments are missing.
+                - If token already exists.
+            RefreshTokenPersistenceException: For other database errors or unexpected failures during
+                persistence.
         """
         logger.info("Starting saving refresh token (member_id=%s).", member_id)
 
@@ -107,7 +109,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
             refresh_token (str): The refresh token string to fetch.
 
         Returns:
-            RefreshTokenDTO if found, otherwise None.
+            RefreshTokenDTO: if found, otherwise None (if not found or revoked).
 
         Raises:
             InvalidInputException: If refresh_token is missing.
@@ -125,6 +127,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
             ).first()
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception("Failed to fetch refresh token.")
             raise RefreshTokenPersistenceException(str(e)) from e
 
@@ -150,7 +153,9 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         Returns:
             None: This method does not return a value; it revokes the token in the persistence layer.
         Raises:
-            InvalidInputException: If refresh_token is missing or not found.
+            InvalidInputException:
+                - If refresh_token is missing.
+                - If the refresh token is not found or already revoked.
             RefreshTokenPersistenceException: For database errors during revocation.
         """
         logger.info("Revoking refresh token.")
@@ -163,18 +168,23 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
                 refresh_token=refresh_token, is_revoked=False
             ).update({"is_revoked": True})
 
-            if not updated:
-                logger.warning("Refresh token not found for revocation.")
-                raise InvalidInputException("Refresh token not found.")
-
-            self._session.commit()
-
-            logger.info("Refresh token revoked successfully.")
-
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to revoke refresh token.")
             raise RefreshTokenPersistenceException(str(e)) from e
+
+        if not updated:
+            logger.warning("Refresh token not found for revocation.")
+            raise InvalidInputException("Refresh token not found.")
+
+        try:
+            self._session.commit()
+        except SQLAlchemyError as e:
+            self._session.rollback()
+            logger.exception("Failed to commit revocation.")
+            raise RefreshTokenPersistenceException(str(e)) from e
+
+        logger.info("Refresh token revoked successfully.")
 
     def delete_expired(self) -> int:
         """

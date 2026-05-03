@@ -1,8 +1,10 @@
 """
 Associator use case module.
 
-This module provides the AssociatorUseCase class, which manages associations between repositories, ClickUp spaces, and members.
-It coordinates the logic for linking repositories to ClickUp spaces and members, and delegates persistence and business logic to the appropriate services.
+This module provides the AssociatorUseCase class, which manages associations between
+repositories, ClickUp spaces, and members.
+It coordinates the logic for linking repositories to ClickUp spaces and members, and
+delegates persistence and business logic to the appropriate services.
 
 Classes:
     AssociatorUseCase: Main use case for managing repository associations with ClickUp and members.
@@ -18,7 +20,8 @@ from backend.src.domain.entities.associator import (
     AssociatorRepoDTO,
     RepoMembersRequest,
 )
-from backend.src.domain.entities.git_repo import GitRepoUpdateDTO, RepoClickUpSpaceRefDTO, RepoMemberRefDTO
+from backend.src.domain.entities.git_repo import GitRepoUpdateDTO, RepoClickUpSpaceRefDTO, RepoMemberRefDTO, \
+    GitRepoDetailDTO
 from backend.src.domain.exceptions.member.invalid_member_data_exception import InvalidMemberDataException
 from backend.src.domain.ports.input.i_associator_use_case import IAssociatorUseCase
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
@@ -32,7 +35,8 @@ class AssociatorUseCase(IAssociatorUseCase):
     """
     Application use case for managing associations between repositories, ClickUp spaces, and members.
 
-    Coordinates the logic for linking repositories to ClickUp spaces and members, delegating persistence and business logic to the appropriate services.
+    Coordinates the logic for linking repositories to ClickUp spaces and members, delegating persistence
+    and business logic to the appropriate services.
 
     Attributes:
         _repo (IRepoRepository): Repository application service.
@@ -253,7 +257,7 @@ class AssociatorUseCase(IAssociatorUseCase):
         return self._build_members_response(updated_repo)
 
     @staticmethod
-    def _build_members_response(updated_repo) -> AssociateMembersResponse:
+    def _build_members_response(updated_repo: GitRepoDetailDTO) -> AssociateMembersResponse:
         """
         Build a members association response from a repo detail.
 
@@ -265,7 +269,6 @@ class AssociatorUseCase(IAssociatorUseCase):
         """
         repo_dto = AssociatorRepoDTO(
             id=updated_repo.id,
-
             name=updated_repo.name,
             url=updated_repo.url,
         )
@@ -273,7 +276,8 @@ class AssociatorUseCase(IAssociatorUseCase):
         members = [
             AssociatorMemberDTO(
                 id=member.id,
-                name=member.username,
+                username=member.username,
+                arabic_name=member.arabic_name,
                 mail=member.mail,
             )
             for member in updated_repo.members

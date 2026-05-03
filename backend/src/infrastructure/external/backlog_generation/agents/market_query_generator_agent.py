@@ -10,10 +10,13 @@ for web exploration and market intelligence enrichment.
 
 import logging
 
+from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
 from backend.src.domain.entities.market.query import QueryGeneration
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_query_generator import IMarketQueryGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -47,6 +50,8 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
             QueryGeneration: Structured list of generated search queries.
 
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Starting market query generation process.")
@@ -80,6 +85,22 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
             logger.info("Market query generation completed successfully.")
 
             return completion.choices[0].message.parsed
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in MarketQueryGeneratorAgent.")
+            raise LLMNetworkException(
+                agent_name="MarketQueryGeneratorAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in MarketQueryGeneratorAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="MarketQueryGeneratorAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("Market query generating failed.")
             raise LLMParsingException(

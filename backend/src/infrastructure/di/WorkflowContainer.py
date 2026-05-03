@@ -1,18 +1,32 @@
 """
 Dependency container for backlog generation workflow.
 
-This module defines the BacklogContainer class, which wires together agents, tools,
-and orchestrators required for backlog generation using LLM-based workflows.
+This module defines the WorkflowContainer class, which wires together agents,
+tools, external adapters, and use cases required for backlog generation using
+LLM-based workflows.
+
+The container is responsible for initializing all components required for:
+- Backlog generation (epics, user stories, tasks)
+- Market intelligence processing
+- ClickUp integration
+- Task verification and persistence
+- Workflow orchestration
 
 Classes:
-    BacklogContainer: Dependency injection container for backlog agents, tools, and orchestrators.
+    WorkflowContainer: Request/application-scoped dependency injection container.
 """
 
 import logging
 
+from backend.src.application.services.clickup_space_reader_service import ClickUpTaskService
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
+from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
+from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
+from backend.src.application.use_cases.verify_task_use_case import VerifyTaskUseCase
 
 from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
+from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
 from backend.src.infrastructure.external.backlog_generation.agents.epic_generator_agent import EpicGeneratorAgent
 from backend.src.infrastructure.external.backlog_generation.agents.user_story_generator_agent import UserStoryGeneratorAgent
@@ -38,23 +52,53 @@ from backend.src.infrastructure.external.backlog_generation.tools.user_backlog_f
 from backend.src.infrastructure.external.backlog_generation.tools.delivery_planner_tool import DeliveryPlannerTool
 
 from backend.src.infrastructure.external.backlog_generation.orchestrator.backlog_workflow_orchestrator import BacklogWorkflowOrchestrator
+from backend.src.infrastructure.external.clickup.clickup_reader import ClickUpReader
+from backend.src.infrastructure.external.clickup.clickup_task_writer import ClickUpTaskWriter
+from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
+from backend.src.infrastructure.external.clickup_task_verification.clickup_task_verifier_agent import \
+    ClickUpTaskVerifierAgent
+from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_agent import \
+    ClickUpTaskGeneratorAgent
 from backend.src.infrastructure.prompts.prompt_loader import PromptLoader
 
 
 logger = logging.getLogger(__name__)
 
 
-class BacklogContainer:
+class WorkflowContainer:
     """
     Dependency injection container for backlog generation workflow.
 
-    This container is responsible for initializing and wiring all components required
-    for backlog generation, including agents, tools, and workflow orchestrators.
+    This container wires together all components required for backlog generation,
+    including LLM agents, tools, ClickUp infrastructure, and orchestration layers.
+
+    Responsibilities:
+        - Initialize LLM-based backlog generation agents
+        - Initialize tool wrappers for workflow execution
+        - Manage ClickUp external service integration
+        - Provide use cases for backlog generation and task processing
+        - Expose factory methods for request-scoped operations
 
     Attributes:
-        prompt_loader (PromptLoader): Loader for prompt templates.
-        backlog_workflow_orchestrator (BacklogWorkflowOrchestrator | None): Workflow orchestrator instance.
-        generate_backlog_use_case (GenerateBacklogUseCase | None): Use case for backlog generation.
+        # Core orchestration
+        backlog_workflow_orchestrator (BacklogWorkflowOrchestrator | None):
+            Main orchestrator for the backlog generation workflow.
+        generate_backlog_use_case (GenerateBacklogUseCase | None):
+            Use case responsible for executing backlog generation.
+
+        # ClickUp infrastructure
+        clickup_task_service (ClickUpTaskService | None): Service for reading ClickUp tasks.
+        clickup_writer (ClickUpTaskWriter | None): Service for writing tasks to ClickUp.
+        http_client (ClickUpHttpClient): HTTP client used for ClickUp API communication.
+        clickup_reader (ClickUpReader): Reader adapter for ClickUp data access.
+
+        # Task-related use cases
+        clickup_task_generator_use_case (GenerateTaskFromSummaryUseCase | None):
+            Use case for generating ClickUp tasks from a summary.
+        verify_tasks_use_case (VerifyTaskUseCase | None): Use case for verifying generated tasks.
+
+        # Prompt system
+        prompt_loader (PromptLoader): Loader responsible for retrieving LLM prompt templates.
 
         # Agents
         epic_generator_agent (EpicGeneratorAgent)
@@ -63,12 +107,17 @@ class BacklogContainer:
         backlog_cleaner_agent (BacklogCleanerAgent)
         backlog_prioritizer_agent (BacklogPrioritizerAgent)
         sprint_planner_agent (SprintPlannerAgent)
+
         product_context_builder_agent (ProductContextBuilderAgent)
         market_intelligence_summarizer_agent (MarketIntelligenceSummarizerAgent)
         market_intelligence_validator_agent (MarketIntelligenceValidatorAgent)
         market_query_generator_agent (MarketQueryGeneratorAgent)
+
         user_backlog_fixer_agent (UserBacklogFixerAgent)
         web_search_agent (WebSearchAgent)
+
+        backlog_generation_orchestrator_agent (BacklogGenerationOrchestratorAgent):
+            Orchestrates epic → story → task generation pipeline.
 
         # Tools
         product_context_tool (ProductContextBuilderTool)
@@ -76,44 +125,60 @@ class BacklogContainer:
         web_search_tool (WebSearchTool)
         market_summary_tool (MarketSummarizerTool)
         market_validation_tool (MarketValidatorTool)
+
         backlog_generation_tool (BacklogGeneratorTool)
         user_backlog_fixer_tool (UserBacklogFixerTool)
-        delivery_planning_tool (DeliveryPlannerTool)
+
+        delivery_planning_tool (DeliveryPlannerTool): Tool responsible for sprint planning and prioritization.
     """
 
     def __init__(self):
         """
-        Initialize backlog container dependencies.
+        Initialize workflow container dependencies.
 
         Raises:
             AppException: If container initialization fails.
         """
-        logger.info("Initializing backlog container.")
+        logger.info("Initializing workflow container.")
 
         self.backlog_workflow_orchestrator: BacklogWorkflowOrchestrator | None = None
         self.generate_backlog_use_case: GenerateBacklogUseCase | None = None
+
+        self.clickup_task_service: ClickUpTaskService | None = None
+        self.clickup_writer: ClickUpTaskWriter | None = None
+
+        self.clickup_task_generator_use_case: GenerateTaskFromSummaryUseCase | None = None
+        self.verify_tasks_use_case: VerifyTaskUseCase | None = None
+
+        self.prompt_loader = PromptLoader()
 
         try:
             self._init_backlog_agents()
             self._init_backlog_tools()
 
-            logger.info("Backlog container initialized successfully.")
+            self._init_clickup_external_service()
+            self._init_tasks_generation_from_summary()
+            self._init_tasks_verification()
+
+            logger.info("Workflow container initialized successfully.")
 
         except Exception as e:
-            logger.exception("Failed to initialize backlog container.")
-            raise AppException("Failed to initialize container.", "CONTAINER_INIT_ERROR") from e
+            logger.exception("Failed to initialize workflow container.")
+            raise AppException("Failed to initialize workflow container.", "CONTAINER_INIT_ERROR") from e
 
     # Agents
     def _init_backlog_agents(self):
         """
-        Initialize backlog generation agents.
+        Initialize LLM-based backlog generation agents.
 
-        This method creates all LLM-based agents responsible for generating
-        epics, user stories, tasks, and other backlog-related elements.
+        These agents are responsible for generating and refining:
+        - Epics
+        - User stories
+        - Tasks
+        - Market intelligence insights
+        - Backlog cleanup and prioritization
         """
         logger.info("Initializing backlog generation agents.")
-
-        self.prompt_loader = PromptLoader()
 
         self.epic_generator_agent = EpicGeneratorAgent(self.prompt_loader)
         self.user_story_generator_agent = UserStoryGeneratorAgent(self.prompt_loader)
@@ -138,10 +203,7 @@ class BacklogContainer:
     # Backlog generation — Tools
     def _init_backlog_tools(self):
         """
-        Initialize backlog generation tools.
-
-        This method creates tool wrappers around agents to expose them as
-        callable units for orchestration workflows.
+        Initialize workflow tools wrapping agents into executable units.
         """
         logger.info("Initializing backlog generation tools.")
 
@@ -160,9 +222,6 @@ class BacklogContainer:
     async def initialize_backlog_workflow_orchestrator(self):
         """
         Initialize the backlog workflow orchestrator and use case.
-
-        This method must be called once at application startup before handling
-        backlog-related requests.
         """
         logger.info("Initializing BacklogWorkflowOrchestrator.")
 
@@ -184,18 +243,12 @@ class BacklogContainer:
     async def initialize_web_search_tool(self):
         """
         Initialize the web search agent.
-
-        This method must be called once at application startup before using
-        any web search functionality.
         """
         await self.web_search_agent.create()
 
     async def backlog_workflow_orchestrator_factory(self) -> BacklogWorkflowOrchestrator:
         """
         Create a backlog workflow orchestrator instance.
-
-        This method is useful for scripts or standalone executions where the
-        full container initialization is not required.
 
         Returns:
             BacklogWorkflowOrchestrator: Initialized orchestrator instance.
@@ -210,8 +263,6 @@ class BacklogContainer:
             user_backlog_fixer_tool=self.user_backlog_fixer_tool,
             delivery_planner_tool=self.delivery_planning_tool,
         )
-
-    # backlog_container.py — ajouter cette méthode
 
     async def cleanup(self) -> None:
         """
@@ -237,3 +288,65 @@ class BacklogContainer:
                 logger.warning("Failed to close backlog workflow orchestrator.", exc_info=True)
 
         logger.info("Backlog container cleanup complete.")
+
+    def _init_clickup_external_service(self):
+        """
+        Initialize ClickUp HTTP client, reader, writer, and task service.
+        """
+        logger.info("Initializing ClickUp external service.")
+
+        self.http_client = ClickUpHttpClient()
+        self.clickup_reader = ClickUpReader(self.http_client)
+        self.clickup_writer = ClickUpTaskWriter(self.http_client)
+        self.clickup_task_service = ClickUpTaskService(self.clickup_reader)
+
+    def _init_tasks_generation_from_summary(self):
+        """
+        Initialize the task generation from summary use case.
+        """
+        logger.info("Initializing task generation from summary use case.")
+
+        self.clickup_task_generator_agent = ClickUpTaskGeneratorAgent(self.prompt_loader)
+        self.clickup_task_generator_use_case = GenerateTaskFromSummaryUseCase(
+            self.clickup_task_service,
+            self.clickup_task_generator_agent,
+        )
+
+    def _init_tasks_verification(self):
+        """
+        Initialize the task verification use case.
+        """
+        logger.info("Initializing task verification use case.")
+
+        self.clickup_task_verifier_agent = ClickUpTaskVerifierAgent(self.prompt_loader)
+        self.verify_tasks_use_case = VerifyTaskUseCase(
+            self.clickup_task_service,
+            self.clickup_task_verifier_agent,
+        )
+
+    def create_save_task_use_case(self, member_repo: IMemberRepository) -> SaveTaskInClickUpUseCase:
+        """
+        Factory method for SaveTaskInClickUpUseCase.
+
+        Combines singleton ClickUp infrastructure with a request-scoped member_repo.
+
+        Args:
+            member_repo: Request-scoped member repository.
+
+        Returns:
+            SaveTaskInClickUpUseCase: Fully initialized use case.
+
+        Raises:
+            ServiceUnavailableException: If ClickUp infrastructure is not initialized.
+        """
+        if self.clickup_task_service is None:
+            raise ServiceUnavailableException("ClickUp task service is not initialized.")
+
+        if self.clickup_writer is None:
+            raise ServiceUnavailableException("ClickUp writer is not initialized.")
+
+        return SaveTaskInClickUpUseCase(
+            clickup_task_service=self.clickup_task_service,
+            member_repo=member_repo,
+            clickup_writer=self.clickup_writer,
+        )

@@ -11,9 +11,9 @@ import logging
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure, EpicBacklog, UserStoryWithTasks
+from backend.src.domain.entities.backlog.structure import BacklogStructure, EpicBacklog, UserStoryWithTasks
 from backend.src.domain.entities.backlog.epic import Epic
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
@@ -120,17 +120,10 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
             for epic, result in zip(epics, results):
                 if isinstance(result, EpicBacklog):
                     valid.append(result)
-                else:
-                    logger.error(
-                        "Epic processing failed (epic=%s): %s.",
-                        getattr(epic, "title", epic),
-                        result
-                    )
-
-            if not valid:
-                raise BacklogGenerationException(
-                    "All epics failed to process. No valid backlog could be generated."
-                )
+                elif isinstance(result, BacklogGenerationException):
+                    logger.error("Epic failed (backlog error) epic=%s: %s", getattr(epic, "title", epic), result)
+                elif isinstance(result, Exception):
+                    logger.error("Epic failed (unexpected) epic=%s: %s", getattr(epic, "title", epic), result)
 
             logger.info(
                 "Epic processing completed. Valid=%d / Total=%d.",

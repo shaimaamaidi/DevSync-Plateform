@@ -49,8 +49,7 @@ def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepo
     """
     logger.info("Fetching all repositories.")
 
-    service = container.repo_service
-    results = service.get_all()
+    results = container.repo_service.get_all()
 
     logger.info("Repositories retrieved successfully: count=%s.", len(results))
 
@@ -70,8 +69,7 @@ def get_all_with_details(container: Container = Depends(get_container)) -> List[
     """
     logger.info("Fetching all repositories with details.")
 
-    service = container.repo_service
-    results = service.get_all_with_details()
+    results = container.repo_service.get_all_with_details()
 
     logger.info("Repositories with details retrieved: count=%s.", len(results))
 
@@ -96,8 +94,7 @@ def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_containe
         repo.url,
     )
 
-    service = container.repo_service
-    result = service.add_repo(repo)
+    result = container.repo_service.add_repo(repo)
 
     logger.info(
         "Repository successfully saved: id=%s, url=%s.",
@@ -121,8 +118,7 @@ def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) 
     """
     logger.info("Fetching repository by id: repo_id=%s.", repo_id)
     
-    service = container.repo_service
-    result = service.get_by_id(GitRepoIdDTO(id=repo_id))
+    result = container.repo_service.get_by_id(repo_id)
 
     logger.info("Repository retrieved successfully: repo_id=%s.", repo_id)
 
@@ -142,8 +138,7 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
     """
     logger.info("Fetching repository by name: name=%s.", name)
     
-    service = container.repo_service
-    result = service.get_by_name(GitRepoNameDTO(name=name))
+    result = container.repo_service.get_by_name(name)
 
     logger.info("Repository retrieved successfully: name=%s.", name)
 
@@ -172,9 +167,8 @@ def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Dep
         repo.url,
     )
 
-    service = container.repo_service
     repo.id = repo_id
-    result = service.update_repo(repo)
+    result = container.repo_service.update_repo(repo)
 
     logger.info("Repository updated successfully: repo_id=%s.", repo_id)
 
@@ -194,8 +188,7 @@ def delete_repo(repo_id: int, container: Container = Depends(get_container)) -> 
     """
     logger.info("Deleting repository: repo_id=%s.", repo_id)
     
-    service = container.repo_service
-    result = service.delete(GitRepoIdDTO(id=repo_id))
+    result = container.repo_service.delete(repo_id)
 
     logger.info("Repository deleted successfully: repo_id=%s.", repo_id)
 

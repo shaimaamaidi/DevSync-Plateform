@@ -6,7 +6,7 @@ for member entities, including authentication data retrieval, creation, update, 
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict
 
 from backend.src.domain.entities.member import (
     MemberCreateDTO,
@@ -74,6 +74,26 @@ class IMemberRepository(ABC):
 
         Returns:
             MemberDTO: Member data.
+        """
+        pass
+
+    @abstractmethod
+    def find_by_arabic_name(self, arabic_names: list[str], ignore_names) -> Dict[str, str]:
+        """
+        Fetch members by their Arabic names and return a mapping to their emails.
+
+        This method resolves a list of Arabic names into a dictionary mapping
+        normalized names to email addresses. If some names cannot be resolved,
+        behavior depends on the `ignore_names` flag.
+
+        Args:
+            arabic_names (list[str]): List of Arabic names to resolve into members.
+            ignore_names (bool):
+                If True, unresolved names are ignored.
+                If False, an exception is raised when some names are not found.
+
+        Returns:
+            Dict[str, str]: Mapping of normalized Arabic name to member email.
         """
         pass
 

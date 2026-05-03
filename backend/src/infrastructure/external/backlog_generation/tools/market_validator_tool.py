@@ -14,8 +14,11 @@ import logging
 
 from pydantic import ValidationError
 
-from backend.src.domain.entities.market.market_intelligence import MarketIntelligenceSummary
+from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_validator import (
@@ -72,7 +75,7 @@ class MarketValidatorTool(IMarketValidatorTool):
         Raises:
             InvalidToolArgumentException: If detailed_description or context is not valid JSON or
                 does not match the expected schema.
-            ToolExecutionException: If market intelligence validation fails due to inconsistencies,
+            ToolExecutionException: If market intelligence validation fails due to LLM errors, inconsistencies,
                 service errors, or unexpected runtime issues.
         """
         logger.info(
@@ -110,6 +113,13 @@ class MarketValidatorTool(IMarketValidatorTool):
             )
 
             return result.model_dump_json()
+
+        except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
+            logger.error("LLM error in MarketValidatorTool: %s", e)
+            raise ToolExecutionException(
+                f"Validate market failed: {str(e)}."
+            ) from e
+
         except Exception as e:
             logger.exception("MarketValidatorTool failed unexpectedly.")
             raise ToolExecutionException(

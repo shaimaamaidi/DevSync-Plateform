@@ -60,7 +60,8 @@ _AZURE_CODES = {
     "TOOL_EXECUTION_ERROR",
     "INVALID_TOOL_ARGUMENT",
     "STREAM_CANCELLED",
-    "STREAM_EXECUTION_ERROR"
+    "STREAM_EXECUTION_ERROR",
+    "AGENT_INITIALIZATION_ERROR"
 }
 
 _PROMPT_CODES = {
@@ -74,7 +75,6 @@ _PROMPT_CODES = {
 
 _BACKLOG_CODES = {
     "BACKLOG_GENERATION_ERROR",
-    "LLM_PARSING_ERROR",
     "BACKLOG_REPLY_ERROR",
     "REPLY_STREAM_ERROR",
     "BACKLOG_STREAM_ERROR",
@@ -90,6 +90,13 @@ _CLICKUP_CODES = {
     "CLICKUP_TASK_UPDATE_ERROR",
     "CLICKUP_MEMBERS_ERROR",
     "CLICKUP_EMPTY_SPACE",
+}
+
+
+_LLM_CODES = {
+    "LLM_PARSING_ERROR",
+    "LLM_NETWORK_ERROR",
+    "LLM_API_ERROR"
 }
 
 
@@ -157,6 +164,13 @@ class FastAPIExceptionHandler:
         elif exc.code in _PROMPT_CODES:
             logger.error(
                 "Prompt Error [%s]: %s",
+                exc.code,
+                exc.message,
+                exc_info=exc,
+            )
+        elif exc.code in _LLM_CODES:
+            logger.error(
+                "LLM Error [%s]: %s",
                 exc.code,
                 exc.message,
                 exc_info=exc,

@@ -7,8 +7,8 @@ for validating and refining market intelligence before it is used in backlog gen
 
 from abc import ABC, abstractmethod
 
-from backend.src.domain.entities.market.market_intelligence import MarketIntelligenceSummary
-from backend.src.domain.entities.market.refined_market_intelligence import RefinedMarketIntelligenceSummary
+from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
+from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 
 

@@ -16,6 +16,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import AzureOpenAI
 
+from backend.src.domain.exceptions.azure.agent_initialization_exception import AgentInitializationException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 
@@ -57,6 +58,8 @@ class BaseAgent:
 
         Raises:
             MissingEnvVariableException: If required Azure OpenAI environment variables are missing.
+            AgentInitializationException: If AzureOpenAI client initialization fails due to SDK error,
+                invalid configuration, or unexpected runtime exception.
         """
         loaded = load_dotenv(_DOTENV_PATH, override=False)
 
@@ -68,10 +71,19 @@ class BaseAgent:
         self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "")
         self.model = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "")
 
-        if not all([self.endpoint, self.api_key, self.api_version, self.model]):
-            logger.error("Missing Azure OpenAI environment variables.")
+        required_vars = {
+            "AZURE_OPENAI_ENDPOINT": self.endpoint,
+            "AZURE_OPENAI_API_KEY": self.api_key,
+            "AZURE_OPENAI_API_VERSION": self.api_version,
+            "AZURE_OPENAI_DEPLOYMENT_NAME": self.model,
+        }
+
+        missing = [k for k, v in required_vars.items() if not v]
+
+        if missing:
+            logger.error("Missing Azure OpenAI environment variables: %s", missing)
             raise MissingEnvVariableException(
-                "Missing one or more Azure Agent environment variables (AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_API_VERSION, AZURE_OPENAI_DEPLOYMENT_NAME)."
+                f"Missing Azure OpenAI environment variables: {', '.join(missing)}"
             )
 
         try:
@@ -82,7 +94,8 @@ class BaseAgent:
             )
         except Exception as e:
             logger.exception("Failed to initialize AzureOpenAI client.")
-            raise MissingEnvVariableException(
+            raise AgentInitializationException(
                 f"Failed to initialize AzureOpenAI client: {str(e)}."
             ) from e
+
         self.prompt_loader = prompt_loader

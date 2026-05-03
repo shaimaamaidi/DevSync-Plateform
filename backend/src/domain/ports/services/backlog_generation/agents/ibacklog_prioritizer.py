@@ -7,7 +7,7 @@ prioritizing elements within a backlog structure to improve delivery order and p
 
 from abc import ABC, abstractmethod
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
 
 
 class IBacklogPrioritizer(ABC):

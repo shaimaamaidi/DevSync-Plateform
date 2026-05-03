@@ -8,7 +8,7 @@ or persistence.
 
 from abc import abstractmethod, ABC
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
 
 
 class IBacklogCleaner(ABC):

@@ -72,7 +72,7 @@ def _model_to_light_dto(m: ClickUpSpaceModel) -> ClickUpSpaceLightDTO:
         m (ClickUpSpaceModel): ClickUp space ORM model.
 
     Returns:
-        CClickUpSpaceLightDTO: lickUp space light DTO.
+        ClickUpSpaceLightDTO: lickUp space light DTO.
     """
     repo = (
         ClickUpRepoDTO(id=m.repo.id, name=m.repo.name, url=m.repo.url)
@@ -145,7 +145,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
 
         except IntegrityError as e:
             self._session.rollback()
-            logger.warning("ClickUp space already exists (space_code=%s) in another resource.", space.space_code)
+            logger.warning("ClickUp space already exists (space_code=%s) in another resource.", space.space_code or "N/A")
             raise InvalidInputException("ClickUp space with this space_code already exists in another resource.") from e
         except SQLAlchemyError as e:
             self._session.rollback()
@@ -166,7 +166,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDetailDTO: Updated ClickUp space detail DTO.
 
         Raises:
-            InvalidInputException: If required arguments are missing or invalid association.
+            InvalidInputException:
+                - If required arguments are missing.
+                - If no fields are provided for update.
+                - If repository reference is invalid (missing id/url, not found, or already linked).
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during update.
         """
@@ -184,6 +187,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space.id).first()
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception(
                 "Failed to update clickup space (id=%s).",
                 space.id
@@ -204,20 +208,28 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             if not (space.repo.id or space.repo.url):
                 raise InvalidInputException("Repository must include 'id' or 'url' for update.")
 
-            repo_model = None
-            if space.repo.id:
-                repo_model = (
-                    self._session.query(GitRepoModel)
-                    .filter(GitRepoModel.id == space.repo.id)
-                    .first()
-                )
+            try:
+                repo_model = None
+                if space.repo.id:
+                    repo_model = (
+                        self._session.query(GitRepoModel)
+                        .filter(GitRepoModel.id == space.repo.id)
+                        .first()
+                    )
 
-            if not repo_model and space.repo.url:
-                repo_model = (
-                    self._session.query(GitRepoModel)
-                    .filter(GitRepoModel.url == space.repo.url)
-                    .first()
+                if not repo_model and space.repo.url:
+                    repo_model = (
+                        self._session.query(GitRepoModel)
+                        .filter(GitRepoModel.url == space.repo.url)
+                        .first()
+                    )
+            except SQLAlchemyError as e:
+                self._session.rollback()
+                logger.exception(
+                    "Failed to fetch repository reference during clickup space update (id=%s).",
+                    space.id
                 )
+                raise ClickUpPersistenceException(str(e)) from e
 
             if not repo_model:
                 raise InvalidInputException("Repository reference does not exist.")
@@ -230,8 +242,14 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             m.repo = repo_model
 
         try:
+            self._session.flush()
             self._session.commit()
-            self._session.refresh(m)
+            m = (
+                self._session.query(ClickUpSpaceModel)
+                .options(joinedload(ClickUpSpaceModel.repo))
+                .filter_by(id=m.id)
+                .first()
+            )
 
             logger.info(
                 "Clickup space updated successfully (id=%s).",
@@ -264,15 +282,31 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDetailDTO: ClickUp space detail DTO.
 
         Raises:
+            InvalidInputException: If space_id is not provided.
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching clickup space by id=%s.", space_id)
-        
+
+        if not space_id:
+            logger.warning(
+                "Invalid input for clickup space fetch by id (id=%s).",
+                space_id
+            )
+            raise InvalidInputException(
+                "ClickUp space must have a valid 'id' for fetch by id."
+            )
+
         try:
-            m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
+            m = (
+                self._session.query(ClickUpSpaceModel)
+                .options(joinedload(ClickUpSpaceModel.repo))
+                .filter_by(id=space_id)
+                .first()
+            )
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception(
                 "Error fetching clickup space (id=%s).",
                 space_id
@@ -303,15 +337,26 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDTO: ClickUp space DTO.
 
         Raises:
+            InvalidInputException: If space_code is not provided.
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching clickup space by space ID (space_code=%s).", space_code)
-        
+
+        if not space_code:
+            logger.warning(
+                "Invalid input for clickup space fetch by space code (space_code=%s).",
+                space_code
+            )
+            raise InvalidInputException(
+                "ClickUp space must have a valid 'space_code' for fetch."
+            )
+
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(space_code=space_code).first()
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception(
                 "Error fetching clickup space by space code (space_code=%s).",
                 space_code
@@ -342,11 +387,12 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching all clickup spaces.")
-        
+
         try:
             results = [_model_to_dto(m) for m in self._session.query(ClickUpSpaceModel).all()]
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception(
                 "Error fetching all clickup spaces."
             )
@@ -379,6 +425,7 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             )
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception(
                 "Error fetching all clickup spaces (light)."
             )
@@ -402,15 +449,26 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             bool: True when deletion succeeds.
 
         Raises:
+            InvalidInputException: If space_id is not provided.
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting clickup space (id=%s).", space_id)
-        
+
+        if not space_id:
+            logger.warning(
+                "Invalid input for clickup space delete (id=%s).",
+                space_id
+            )
+            raise InvalidInputException(
+                "ClickUp space must have a valid 'id' for delete."
+            )
+
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()
 
         except SQLAlchemyError as e:
+            self._session.rollback()
             logger.exception(
                 "Error deleting clickup space (id=%s).",
                 space_id

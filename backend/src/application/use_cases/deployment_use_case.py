@@ -1,7 +1,8 @@
 """
 Deployment use case module.
 
-This module provides the DeploymentUseCase class, which handles deployment-related queries, such as listing deployments for a repository.
+This module provides the DeploymentUseCase class, which handles deployment-related queries,
+such as listing deployments for a repository.
 It coordinates with the GitHub service port and Repository persistence to fetch deployment data.
 
 Classes:

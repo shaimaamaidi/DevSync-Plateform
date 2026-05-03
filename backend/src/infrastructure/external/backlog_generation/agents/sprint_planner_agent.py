@@ -8,10 +8,13 @@ prioritized backlog into time-based sprint distributions suitable for agile plan
 
 import logging
 
+from openai import APIStatusError, APIConnectionError
 from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
-from backend.src.domain.entities.sprint.sprint_planning import SprintPlanning
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.entities.sprint.planning import SprintPlanning
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.isprint_planner import ISprintPlanner
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -45,6 +48,8 @@ class SprintPlannerAgent(BaseAgent, ISprintPlanner):
             SprintPlanning: The generated sprint plan structure.
 
         Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
         logger.info("Starting sprint planning generation.")
@@ -73,6 +78,22 @@ class SprintPlannerAgent(BaseAgent, ISprintPlanner):
             logger.info("Sprint planning generation completed successfully.")
 
             return completion.choices[0].message.parsed
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in SprintPlannerAgent.")
+            raise LLMNetworkException(
+                agent_name="SprintPlannerAgent",
+                reason=str(e)
+            ) from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in SprintPlannerAgent: status=%d.", e.status_code)
+            raise LLMApiException(
+                agent_name="SprintPlannerAgent",
+                status_code=e.status_code,
+                reason=e.message
+            ) from e
+
         except Exception as e:
             logger.exception("Sprint planning failed.")
             raise LLMParsingException(

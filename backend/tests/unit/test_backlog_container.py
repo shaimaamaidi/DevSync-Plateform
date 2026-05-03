@@ -6,14 +6,14 @@ import pytest
 from unittest.mock import AsyncMock
 
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.infrastructure.di.backlog_container import BacklogContainer
+from backend.src.infrastructure.di.WorkflowContainer import WorkflowContainer
 
 
-def test_backlog_container_initializes_agents_and_tools() -> None:
+def test_workflow_container_initializes_agents_and_tools() -> None:
     """
     Container initializes all agents and tools.
     """
-    container = BacklogContainer()
+    container = WorkflowContainer()
 
     assert container.prompt_loader is not None
     assert container.product_context_builder_agent is not None
@@ -32,15 +32,15 @@ def test_backlog_container_initializes_agents_and_tools() -> None:
 
 
 @pytest.mark.asyncio
-async def test_initialize_backlog_workflow_orchestrator_sets_use_case(monkeypatch) -> None:
+async def test_initialize_workflow_workflow_orchestrator_sets_use_case(monkeypatch) -> None:
     """
     Initialization builds orchestrator and use case.
     """
-    container = BacklogContainer()
+    container = WorkflowContainer()
 
     orchestrator = AsyncMock()
     monkeypatch.setattr(
-        "backend.src.infrastructure.di.backlog_container.BacklogWorkflowOrchestrator.create",
+        "backend.src.infrastructure.di.workflow_container.BacklogWorkflowOrchestrator.create",
         AsyncMock(return_value=orchestrator),
     )
 
@@ -55,7 +55,7 @@ async def test_initialize_web_search_tool_calls_agent_create() -> None:
     """
     Initialization triggers web search agent create.
     """
-    container = BacklogContainer()
+    container = WorkflowContainer()
 
     container.web_search_agent.create = AsyncMock()
 
@@ -69,7 +69,7 @@ async def test_backlog_workflow_orchestrator_factory_uses_create(monkeypatch) ->
     """
     Factory returns orchestrator from create().
     """
-    container = BacklogContainer()
+    container = WorkflowContainer()
 
     orchestrator = AsyncMock()
     monkeypatch.setattr(
@@ -89,7 +89,7 @@ def test_backlog_container_init_wraps_error(monkeypatch) -> None:
     def _boom(self):
         raise RuntimeError("fail")
 
-    monkeypatch.setattr(BacklogContainer, "_init_backlog_agents", _boom)
+    monkeypatch.setattr(WorkflowContainer, "_init_backlog_agents", _boom)
 
     with pytest.raises(AppException):
-        BacklogContainer()
+        WorkflowContainer()

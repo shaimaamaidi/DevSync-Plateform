@@ -11,6 +11,7 @@ raw aggregated response.
 
 import logging
 
+from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.iweb_search import (
     IWebSearch,
@@ -55,6 +56,7 @@ class WebSearchTool(IWebSearchTool):
         Returns:
             str: Aggregated web search results.
         Raises:
+            AzureAgentRuntimeException: If the underlying Azure agent runtime fails during execution.
             ToolExecutionException: If web search execution fails due to underlying IWebSearch service
                 errors, network failures, or any unexpected runtime exception during query processing
                 or result aggregation.
@@ -70,6 +72,9 @@ class WebSearchTool(IWebSearchTool):
             logger.info("Web search completed successfully.")
 
             return result
+
+        except AzureAgentRuntimeException:
+            raise
         except Exception as e:
             logger.exception("WebSearchTool failed.")
             raise ToolExecutionException(

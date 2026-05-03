@@ -14,7 +14,10 @@ import logging
 
 from pydantic import ValidationError
 
-from backend.src.domain.entities.backlog.backlog_structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_prioritizer import (
@@ -77,8 +80,8 @@ class DeliveryPlannerTool(IDeliveryPlannerTool):
         Raises:
             InvalidToolArgumentException: If backlog is not valid JSON or does not match the
                 expected schema.
-            ToolExecutionException: If delivery planning fails due to prioritization, sprint planning,
-                or unexpected runtime errors.
+            ToolExecutionException: If delivery planning fails due to LLM errors, prioritization issues,
+                sprint planning failure, or unexpected runtime errors.
 
         Notes:
             The process includes:
@@ -116,6 +119,13 @@ class DeliveryPlannerTool(IDeliveryPlannerTool):
             logger.info("Delivery plan generated successfully.")
 
             return result.model_dump_json()
+
+        except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
+            logger.error("LLM error in DeliveryPlannerTool: %s", e)
+            raise ToolExecutionException(
+                f"Delivery plan failed: {str(e)}."
+            ) from e
+
         except Exception as e:
             logger.exception("DeliveryPlannerTool failed unexpectedly.")
             raise ToolExecutionException(
