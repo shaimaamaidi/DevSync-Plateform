@@ -1,7 +1,7 @@
 /* tslint:disable */
 /**
- * ClickUp Integration API
- * Manage repositories, members, ClickUp spaces and deployments.
+ * AI Backlog Generation & ClickUp Integration API
+ * REST API that orchestrates an AI-driven backlog generation workflow. It transforms product descriptions into structured epics, user stories, and tasks using market intelligence, then integrates the results with ClickUp for workspace, task, and team management automation.
  *
  * The version of the OpenAPI document: 1.0.0
  * 
