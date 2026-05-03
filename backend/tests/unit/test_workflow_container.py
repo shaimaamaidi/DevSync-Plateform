@@ -1,18 +1,19 @@
 """
-Unit tests for BacklogContainer.
+Unit tests for WorkflowContainer.
+
+These tests verify initialization, orchestrator creation, web search tool
+initialization, factory behavior, cleanup, and error wrapping.
 """
 
 import pytest
 from unittest.mock import AsyncMock
 
 from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.infrastructure.di.WorkflowContainer import WorkflowContainer
 
 
 def test_workflow_container_initializes_agents_and_tools() -> None:
-    """
-    Container initializes all agents and tools.
-    """
     container = WorkflowContainer()
 
     assert container.prompt_loader is not None
@@ -32,15 +33,12 @@ def test_workflow_container_initializes_agents_and_tools() -> None:
 
 
 @pytest.mark.asyncio
-async def test_initialize_workflow_workflow_orchestrator_sets_use_case(monkeypatch) -> None:
-    """
-    Initialization builds orchestrator and use case.
-    """
+async def test_initialize_backlog_workflow_orchestrator_sets_use_case(monkeypatch) -> None:
     container = WorkflowContainer()
 
     orchestrator = AsyncMock()
     monkeypatch.setattr(
-        "backend.src.infrastructure.di.workflow_container.BacklogWorkflowOrchestrator.create",
+        "backend.src.infrastructure.di.WorkflowContainer.BacklogWorkflowOrchestrator.create",
         AsyncMock(return_value=orchestrator),
     )
 
@@ -52,9 +50,6 @@ async def test_initialize_workflow_workflow_orchestrator_sets_use_case(monkeypat
 
 @pytest.mark.asyncio
 async def test_initialize_web_search_tool_calls_agent_create() -> None:
-    """
-    Initialization triggers web search agent create.
-    """
     container = WorkflowContainer()
 
     container.web_search_agent.create = AsyncMock()
@@ -66,14 +61,11 @@ async def test_initialize_web_search_tool_calls_agent_create() -> None:
 
 @pytest.mark.asyncio
 async def test_backlog_workflow_orchestrator_factory_uses_create(monkeypatch) -> None:
-    """
-    Factory returns orchestrator from create().
-    """
     container = WorkflowContainer()
 
     orchestrator = AsyncMock()
     monkeypatch.setattr(
-        "backend.src.infrastructure.di.backlog_container.BacklogWorkflowOrchestrator.create",
+        "backend.src.infrastructure.di.WorkflowContainer.BacklogWorkflowOrchestrator.create",
         AsyncMock(return_value=orchestrator),
     )
 
@@ -82,10 +74,33 @@ async def test_backlog_workflow_orchestrator_factory_uses_create(monkeypatch) ->
     assert result is orchestrator
 
 
-def test_backlog_container_init_wraps_error(monkeypatch) -> None:
-    """
-    Initialization wraps unexpected errors into AppException.
-    """
+def test_create_save_task_use_case_raises_when_clickup_missing() -> None:
+    container = WorkflowContainer()
+    # simulate missing clickup infra
+    container.clickup_task_service = None
+    container.clickup_writer = None
+
+    with pytest.raises(ServiceUnavailableException):
+        container.create_save_task_use_case(member_repo=object())
+
+
+@pytest.mark.asyncio
+async def test_cleanup_calls_agent_and_orchestrator_cleanup() -> None:
+    container = WorkflowContainer()
+
+    container.web_search_agent = AsyncMock()
+    container.web_search_agent.cleanup = AsyncMock()
+
+    container.backlog_workflow_orchestrator = AsyncMock()
+    container.backlog_workflow_orchestrator.cleanup = AsyncMock()
+
+    await container.cleanup()
+
+    container.web_search_agent.cleanup.assert_awaited_once()
+    container.backlog_workflow_orchestrator.cleanup.assert_awaited_once()
+
+
+def test_workflow_container_init_wraps_error(monkeypatch) -> None:
     def _boom(self):
         raise RuntimeError("fail")
 

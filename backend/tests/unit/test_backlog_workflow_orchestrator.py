@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from backend.src.domain.exceptions.stream.stream_execution_exception import StreamExecutionException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
 from backend.src.infrastructure.external.backlog_generation.common.base_azure_project_agent import (
@@ -218,11 +219,15 @@ async def test_run_stream_tool_errors(monkeypatch, exc, expected_type) -> None:
         _EventHandlerStub,
     )
 
-    _ = [chunk async for chunk in orchestrator._run_stream("t-1")]
+    if expected_type == "tool_execution":
+        with pytest.raises(StreamExecutionException):
+            _ = [chunk async for chunk in orchestrator._run_stream("t-1")]
+    else:
+        _ = [chunk async for chunk in orchestrator._run_stream("t-1")]
 
-    tool_outputs = project_client.agents.runs.submit_tool_outputs_stream.call_args.kwargs["tool_outputs"]
-    payload = json.loads(tool_outputs[0]["output"])
-    assert payload["error_type"] == expected_type
+        tool_outputs = project_client.agents.runs.submit_tool_outputs_stream.call_args.kwargs["tool_outputs"]
+        payload = json.loads(tool_outputs[0]["output"])
+        assert payload["error_type"] == expected_type
 
     @pytest.mark.asyncio
     async def test_reply_stream_posts_message_and_streams(monkeypatch) -> None:

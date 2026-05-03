@@ -3,6 +3,7 @@ Unit tests for PromptLoader and Prompt model.
 """
 
 from pathlib import Path
+
 import pytest
 
 from backend.src.domain.exceptions.prompt.prompt_render_exception import PromptRenderException
@@ -16,7 +17,7 @@ def test_prompt_model_stores_fields() -> None:
     """
     Prompt should store fields as-is.
     """
-    prompt = Prompt(name="p", system="s", user="u", meta={"v": 1})
+    prompt = Prompt(folder="sample", name="p", system="s", user="u", meta={"v": 1})
 
     assert prompt.name == "p"
     assert prompt.system == "s"
@@ -24,28 +25,42 @@ def test_prompt_model_stores_fields() -> None:
     assert prompt.meta["v"] == 1
 
 
-def test_prompt_loader_get_messages_renders() -> None:
+def test_prompt_loader_get_messages_renders(tmp_path: Path) -> None:
     """
     get_messages should render system/user templates.
     """
     loader = PromptLoader()
-    loader._cache["sample"] = Prompt(name="sample", system="Hello {{ name }}", user="Hi {{ name }}", meta={})
+    templates_dir = tmp_path / "templates"
+    loader.templates_dir = templates_dir
+    folder_dir = templates_dir / "sample"
+    folder_dir.mkdir(parents=True, exist_ok=True)
+    (folder_dir / "sample.prompty").write_text(
+        "---\nname: sample\n---\nsystem: \"Hello {{ name }}\"\nuser: \"Hi {{ name }}\"\n",
+        encoding="utf-8",
+    )
 
-    messages = loader.get_messages("sample", {"name": "Alice"})
+    messages = loader.get_messages("sample", "sample", {"name": "Alice"})
 
     assert messages["system"] == "Hello Alice"
     assert messages["user"] == "Hi Alice"
 
 
-def test_prompt_loader_get_messages_render_error() -> None:
+def test_prompt_loader_get_messages_render_error(tmp_path: Path) -> None:
     """
     get_messages should raise PromptRenderException when rendering fails.
     """
     loader = PromptLoader()
-    loader._cache["sample"] = Prompt(name="sample", system="{{", user="u", meta={})
+    templates_dir = tmp_path / "templates"
+    loader.templates_dir = templates_dir
+    folder_dir = templates_dir / "sample"
+    folder_dir.mkdir(parents=True, exist_ok=True)
+    (folder_dir / "sample.prompty").write_text(
+        "---\nname: sample\n---\nsystem: \"{{\"\nuser: \"u\"\n",
+        encoding="utf-8",
+    )
 
     with pytest.raises(PromptRenderException):
-        loader.get_messages("sample", {})
+        loader.get_messages("sample", "sample", {})
 
 
 def test_prompt_loader_load_file_invalid_schema(tmp_path: Path) -> None:
@@ -54,14 +69,16 @@ def test_prompt_loader_load_file_invalid_schema(tmp_path: Path) -> None:
     """
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
-    file_path = templates_dir / "bad.prompty"
+    folder_dir = templates_dir / "sample"
+    folder_dir.mkdir(parents=True, exist_ok=True)
+    file_path = folder_dir / "bad.prompty"
     file_path.write_text("name: test\n", encoding="utf-8")
 
     loader = PromptLoader()
     loader.templates_dir = templates_dir
 
     with pytest.raises(PromptSchemaException):
-        loader._load_file("bad")
+        loader._load_file("sample", "bad")
 
 
 def test_prompt_loader_load_file_invalid_yaml(tmp_path: Path) -> None:
@@ -70,11 +87,13 @@ def test_prompt_loader_load_file_invalid_yaml(tmp_path: Path) -> None:
     """
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
-    file_path = templates_dir / "bad.prompty"
+    folder_dir = templates_dir / "sample"
+    folder_dir.mkdir(parents=True, exist_ok=True)
+    file_path = folder_dir / "bad.prompty"
     file_path.write_text("bad: [", encoding="utf-8")
 
     loader = PromptLoader()
     loader.templates_dir = templates_dir
 
     with pytest.raises(PromptYamlException):
-        loader._load_file("bad")
+        loader._load_file("sample", "bad")

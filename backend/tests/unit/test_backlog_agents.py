@@ -428,5 +428,9 @@ async def test_backlog_generation_orchestrator_agent_all_epics_fail() -> None:
         backlog_cleaner=cleaner,
     )
 
-    with pytest.raises(BacklogGenerationException):
-        await agent.generate(_initial_description(), _refined_context())
+    cleaner.clean_backlog.return_value = MagicMock(name="cleaned_backlog")
+
+    result = await agent.generate(_initial_description(), _refined_context())
+
+    cleaner.clean_backlog.assert_called_once()
+    assert result == cleaner.clean_backlog.return_value

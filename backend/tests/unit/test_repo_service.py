@@ -32,5 +32,5 @@ def test_delete_repo_calls_repository_delete() -> None:
 
     result = service.delete(GitRepoIdDTO(id=12))
 
-    repo_repo.delete.assert_called_once_with(12)
+    repo_repo.delete.assert_called_once_with(GitRepoIdDTO(id=12))
     assert result is True

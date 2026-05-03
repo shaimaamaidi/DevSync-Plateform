@@ -47,5 +47,5 @@ def test_get_members_by_repo_calls_repository_find() -> None:
     repo = MagicMock(id=99, url="https://example.com/repo")
     result = service.get_members_by_repo(repo)
 
-    member_repo.find_by_repo_id.assert_called_once_with(99)
+    member_repo.find_by_repo_id.assert_called_once_with(repo)
     assert len(result) == 1

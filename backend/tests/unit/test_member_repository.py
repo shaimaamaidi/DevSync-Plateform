@@ -66,6 +66,7 @@ def test_member_update_happy_path() -> None:
     model = SimpleNamespace(
         id=1,
         username="old",
+        arabic_name="old",
         mail="a@b.com",
         password="hash",
         repos=[],
@@ -106,6 +107,7 @@ def test_member_update_repos_by_id() -> None:
     member_model = SimpleNamespace(
         id=1,
         username="old",
+        arabic_name="old",
         mail="a@b.com",
         password="hash",
         repos=[],
@@ -130,6 +132,7 @@ def test_member_update_repos_by_url() -> None:
     member_model = SimpleNamespace(
         id=1,
         username="old",
+        arabic_name="old",
         mail="a@b.com",
         password="hash",
         repos=[],
@@ -153,6 +156,7 @@ def test_member_update_repos_missing_raises() -> None:
     member_model = SimpleNamespace(
         id=1,
         username="old",
+        arabic_name="old",
         mail="a@b.com",
         password="hash",
         repos=[],
@@ -176,6 +180,7 @@ def test_member_update_repos_mixed_id_and_url() -> None:
     member_model = SimpleNamespace(
         id=1,
         username="old",
+        arabic_name="old",
         mail="a@b.com",
         password="hash",
         repos=[],
@@ -204,6 +209,7 @@ def test_member_update_repos_requires_id_or_url() -> None:
     member_model = SimpleNamespace(
         id=1,
         username="old",
+        arabic_name="old",
         mail="a@b.com",
         password="hash",
         repos=[],

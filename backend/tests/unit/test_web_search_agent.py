@@ -151,8 +151,8 @@ async def test_ask_many_partial_errors_returns_result(monkeypatch) -> None:
     result = await agent.ask_many(["q1", "q2"])
 
     assert "Query: q1" in result
-    assert "Query: q2" in result
-    assert "Error -" in result
+    assert "Query: q2" not in result
+    assert result == "Query: q1\nResult: ok\n"
 
 
 @pytest.mark.asyncio

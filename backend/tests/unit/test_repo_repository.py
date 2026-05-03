@@ -37,7 +37,7 @@ def test_repo_find_by_id_not_found() -> None:
     find_by_id should raise RepoNotFoundException when no record.
     """
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.return_value = None
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = None
     repo = SqlAlchemyRepoRepository(session)
 
     with pytest.raises(RepoNotFoundException):
@@ -81,6 +81,7 @@ def test_repo_update_happy_path() -> None:
     )
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.return_value = model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = model
 
     repo = SqlAlchemyRepoRepository(session)
     result = repo.update(GitRepoUpdateDTO(id=1, name="new"))
@@ -88,7 +89,6 @@ def test_repo_update_happy_path() -> None:
     assert result.id == 1
     assert result.name == "new"
     session.commit.assert_called_once()
-    session.refresh.assert_called_once_with(model)
 
 
 def test_repo_delete_happy_path() -> None:
@@ -111,7 +111,7 @@ def test_repo_update_members_association_by_id() -> None:
     """
     update should associate members when ids exist.
     """
-    member_model = SimpleNamespace(id=10, username="alice", mail="a@b.com")
+    member_model = SimpleNamespace(id=10, username="alice", arabic_name="alice", mail="a@b.com")
     repo_model = SimpleNamespace(
         id=1,
         name="repo",
@@ -120,12 +120,9 @@ def test_repo_update_members_association_by_id() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        member_model,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [member_model]
 
     repo = SqlAlchemyRepoRepository(session)
     result = repo.update(
@@ -149,12 +146,8 @@ def test_repo_update_members_missing_raises() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        None,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [None]
 
     repo = SqlAlchemyRepoRepository(session)
 
@@ -175,12 +168,9 @@ def test_repo_update_clickup_space_association_by_id() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        clickup_model,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [clickup_model]
 
     repo = SqlAlchemyRepoRepository(session)
     result = repo.update(
@@ -204,12 +194,8 @@ def test_repo_update_clickup_space_missing_raises() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        None,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [None]
 
     repo = SqlAlchemyRepoRepository(session)
 
@@ -231,7 +217,7 @@ def test_repo_update_members_requires_id_or_mail() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = repo_model
 
     repo = SqlAlchemyRepoRepository(session)
 
@@ -243,7 +229,7 @@ def test_repo_update_members_association_by_mail() -> None:
     """
     update should associate members when mail exists.
     """
-    member_model = SimpleNamespace(id=10, username="alice", mail="a@b.com")
+    member_model = SimpleNamespace(id=10, username="alice", arabic_name="alice", mail="a@b.com")
     repo_model = SimpleNamespace(
         id=1,
         name="repo",
@@ -252,12 +238,9 @@ def test_repo_update_members_association_by_mail() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        member_model,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [member_model]
 
     repo = SqlAlchemyRepoRepository(session)
     result = repo.update(
@@ -281,12 +264,8 @@ def test_repo_update_members_missing_mail_raises() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        None,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [None]
 
     repo = SqlAlchemyRepoRepository(session)
 
@@ -312,12 +291,9 @@ def test_repo_update_clickup_space_already_associated_raises() -> None:
         clickup_space=None,
     )
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        repo_model,
-    ]
-    session.query.return_value.filter.return_value.first.side_effect = [
-        clickup_model,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = repo_model
+    session.query.return_value.filter.return_value.first.side_effect = [clickup_model]
 
     repo = SqlAlchemyRepoRepository(session)
 

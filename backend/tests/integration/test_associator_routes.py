@@ -10,7 +10,7 @@ def test_associate_space_success(client: TestClient, container) -> None:
     """
     Test associating a ClickUp space via the API returns the correct repo DTO.
     """
-    container.associator_service.associate_clickup_space.return_value = AssociateClickUpSpaceResponse(
+    container.associator_use_case.associate_clickup_space.return_value = AssociateClickUpSpaceResponse(
         repo=AssociatorRepoDTO(id=1, name="repo", url="https://github.com/org/repo"),
         clickup_space=None
     )
@@ -19,14 +19,14 @@ def test_associate_space_success(client: TestClient, container) -> None:
     data = response.json()
     assert data["repo"]["url"] == "https://github.com/org/repo"
     assert data["repo"]["id"] == 1
-    container.associator_service.associate_clickup_space.assert_called_once()
+    container.associator_use_case.associate_clickup_space.assert_called_once()
 
 
 def test_add_members_success(client: TestClient, container) -> None:
     """
     Test adding members via the API returns the correct repo DTO.
     """
-    container.associator_service.add_members.return_value = AssociateMembersResponse(
+    container.associator_use_case.add_members.return_value = AssociateMembersResponse(
         repo=AssociatorRepoDTO(id=1, name="repo", url="https://github.com/org/repo")
     )
     response = client.post("/associate/members/add", json={"repo_url": "https://github.com/org/repo", "members": []})
@@ -34,4 +34,4 @@ def test_add_members_success(client: TestClient, container) -> None:
     data = response.json()
     assert data["repo"]["url"] == "https://github.com/org/repo"
     assert data["repo"]["id"] == 1
-    container.associator_service.add_members.assert_called_once()
+    container.associator_use_case.add_members.assert_called_once()

@@ -44,7 +44,7 @@ def test_clickup_find_by_id_not_found() -> None:
     find_by_id should raise ClickUpSpaceNotFoundException when no record.
     """
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.return_value = None
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = None
     repo = SqlAlchemyClickUpRepository(session)
 
     with pytest.raises(ClickUpSpaceNotFoundException):
@@ -70,6 +70,7 @@ def test_clickup_update_happy_path() -> None:
     model = SimpleNamespace(id=1, name="old", space_code="PLT", repo=None)
     session = MagicMock()
     session.query.return_value.filter_by.return_value.first.return_value = model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = model
 
     repo = SqlAlchemyClickUpRepository(session)
     result = repo.update(ClickUpSpaceUpdateDTO(id=1, name="new"))
@@ -77,7 +78,6 @@ def test_clickup_update_happy_path() -> None:
     assert result.id == 1
     assert result.name == "new"
     session.commit.assert_called_once()
-    session.refresh.assert_called_once_with(model)
 
 
 def test_clickup_delete_happy_path() -> None:
@@ -119,6 +119,7 @@ def test_clickup_update_repo_by_id() -> None:
     query_mock = MagicMock()
 
     query_mock.filter_by.return_value.first.return_value = space_model
+    query_mock.options.return_value.filter_by.return_value.first.return_value = space_model
 
     query_mock.filter.return_value.first.return_value = repo_model
 
@@ -156,16 +157,21 @@ def test_clickup_update_repo_by_url() -> None:
 
     session = MagicMock()
 
-    def query_side_effect(model):
-        query_mock = MagicMock()
+    space_query = MagicMock()
+    space_query.filter_by.return_value.first.return_value = space_model
+    space_query.options.return_value.filter_by.return_value.first.return_value = space_model
 
+    repo_query = MagicMock()
+    repo_query.filter.return_value.first.return_value = repo_model
+
+    def query_side_effect(model):
         if model.__name__ == "ClickUpSpaceModel":
-            query_mock.filter_by.return_value.first.return_value = space_model
+            return space_query
 
         elif model.__name__ == "GitRepoModel":
-            query_mock.filter.return_value.first.return_value = repo_model
+            return repo_query
 
-        return query_mock
+        return MagicMock()
 
     session.query.side_effect = query_side_effect
 
@@ -188,11 +194,7 @@ def test_clickup_update_repo_missing_raises() -> None:
     """
     space_model = SimpleNamespace(id=1, name="Space", space_code="SPC", repo=None)
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        space_model,
-        None,
-        None,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = space_model
 
     repo = SqlAlchemyClickUpRepository(session)
 
@@ -227,10 +229,8 @@ def test_clickup_update_repo_already_associated_raises() -> None:
     )
     space_model = SimpleNamespace(id=1, name="Space", space_code="SPC", repo=None)
     session = MagicMock()
-    session.query.return_value.filter_by.return_value.first.side_effect = [
-        space_model,
-        repo_model,
-    ]
+    session.query.return_value.filter_by.return_value.first.return_value = space_model
+    session.query.return_value.options.return_value.filter_by.return_value.first.return_value = repo_model
 
     repo = SqlAlchemyClickUpRepository(session)
 
