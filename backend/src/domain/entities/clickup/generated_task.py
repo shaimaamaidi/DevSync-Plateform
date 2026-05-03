@@ -9,13 +9,11 @@ Main classes:
     GeneratedTask, TaskList
 """
 
-from dataclasses import dataclass
 from typing import List
 
 from pydantic import BaseModel
 
 
-@dataclass
 class GeneratedTask(BaseModel):
     """
     Task generated from a meeting summary.
