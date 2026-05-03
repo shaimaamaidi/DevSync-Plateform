@@ -1,11 +1,13 @@
-![Python](https://img.shields.io/badge/python-3.11-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.95.0-green)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.112.0-green)
 ![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
 
 # Backend
 
 
 This is the backend service for the project, built with **FastAPI**, **SQLAlchemy**, and **MySQL**. It provides a RESTful API for managing users, repositories, deployments, and integrations with external services.
+
+The API layer is organized around routers in `src/presentation/api/routers`, while the business rules live in application use cases such as `AuthUseCase`, `DeploymentUseCase`, and `AssociatorUseCase`.
 
 ---
 
@@ -15,7 +17,7 @@ This is the backend service for the project, built with **FastAPI**, **SQLAlchem
 - [Quick Start](#quick-start)
 - [Project Structure](#project-structure)
 - [API Documentation](#api-documentation)
-  - [Authentification par Cookies](#authentification-par-cookies)
+  - [Cookie Authentication](#cookie-authentication)
 - [Backlog Generation (AI Workflow)](#backlog-generation-ai-workflow)
 - [API Endpoints Overview](#api-endpoints-overview)
 - [Error Handling / Response Codes](#error-handling--response-codes)
@@ -59,26 +61,31 @@ This is the backend service for the project, built with **FastAPI**, **SQLAlchem
      ```
    - Edit `.env` and fill in all required variables (see below).
 
+5. **Run the API server:**
+  ```bash
+  uvicorn backend.src.presentation.api.main:app --reload
+  ```
+
 
 ---
 
-### ⚙️ Initialisation du Backend
+### ⚙️ Backend Initialization
 
-Avant de lancer le serveur, deux scripts doivent être exécutés pour préparer l'application :
+Before starting the server, run these two scripts to prepare the application:
 
-1. **Initialisation de la base de données**
+1. **Initialize the database**
   ```bash
   python scripts/init_db.py
   ```
-  Crée les tables et les relations nécessaires.
+  Creates the required tables and relationships.
 
-2. **Création d’un membre admin**
+2. **Create an admin member**
   ```bash
   python scripts/create_admin.py
   ```
-  Crée un utilisateur administrateur initial pour pouvoir accéder aux services backend depuis l’extérieur (sécurité).
+  Creates the initial administrator account used to access backend services securely.
 
-Ces scripts doivent être exécutés avant de lancer le serveur backend.
+These scripts must be executed before starting the backend server.
 
 ---
 
@@ -89,10 +96,10 @@ Ces scripts doivent être exécutés avant de lancer le serveur backend.
 ```
 backend/
   src/
-    application/      # Business logic and services
+    application/      # Application use cases and orchestration
     domain/           # Entities, exceptions, ports (interfaces)
     infrastructure/   # DI, persistence, security, external integrations
-    presentation/     # API (FastAPI endpoints)
+    presentation/     # API routers and FastAPI endpoints
   tests/
     integration/      # Integration tests
     unit/             # Unit tests
@@ -108,16 +115,16 @@ Redoc: `http://localhost:8000/redoc`
 
 ---
 
-## 🍪 Authentification par Cookies
+## 🍪 Cookie Authentication
 
-Depuis 2026, l'authentification utilise **aussi des cookies HttpOnly/Secure/SameSite** pour le token d'accès JWT :
+Since 2026, authentication also uses **HttpOnly/Secure/SameSite cookies** for the JWT access token:
 
-- Lors de la connexion (`/auth/login`), le backend place le token d'accès dans un cookie sécurisé (HttpOnly, Secure, SameSite=Lax).
-- Le frontend n'a pas accès à ce cookie via JavaScript : il est envoyé automatiquement par le navigateur à chaque requête API.
-- Le token de rafraîchissement reste géré côté client (stocké en cookie ou localStorage selon l'implémentation frontend).
-- Les endpoints protégés vérifient le token d'accès dans le cookie **ou** dans le header `Authorization`.
+- During login (`/auth/login`), the backend stores the access token in a secure cookie (HttpOnly, Secure, SameSite=Lax).
+- The frontend cannot access this cookie through JavaScript; the browser sends it automatically with each API request.
+- The refresh token remains client-managed (stored in a cookie or localStorage depending on the frontend implementation).
+- Protected endpoints validate the access token from the cookie **or** from the `Authorization` header.
 
-> **Remarque** : Pour tester les endpoints protégés avec curl ou Postman, il est possible d'utiliser soit le header `Authorization: Bearer <access_token>`, soit d'envoyer le cookie `access_token`.
+> **Note**: To test protected endpoints with curl or Postman, you can either use the `Authorization: Bearer <access_token>` header or send the `access_token` cookie.
 
 ---
 
@@ -125,7 +132,7 @@ Depuis 2026, l'authentification utilise **aussi des cookies HttpOnly/Secure/Same
 
 The backend includes an AI-driven backlog generation pipeline exposed through **SSE streaming** (`text/event-stream`) via `/backlog/*` routes.
 
-### Objectif
+### Purpose
 
 Transform a raw product description into an actionable backlog:
 - Epics
@@ -143,7 +150,7 @@ Transform a raw product description into an actionable backlog:
   - `POST /backlog/reply` (market-intelligence validation/correction)
   - `POST /backlog/reply/backlog` (backlog validation/correction)
 
-### Endpoints Backlog
+### Backlog Endpoints
 
 - **POST `/backlog/start`**
   - **Body:** `{ "description": string }`
@@ -184,48 +191,118 @@ Transform a raw product description into an actionable backlog:
 
 Below are the main endpoints provided by the backend, with required parameters and return types:
 
+### Health
+- **GET `/health/`**
+  - **Returns:** Service health status
+
 ### Deployments
-- **GET `/deployments/list`**
+- **GET `/deployment/list`**
   - **Query params:**
     - `repo_url` (string, required): GitHub repository URL
   - **Returns:** `List[DeploymentDTO]`
 
+### Authentication
+- **POST `/auth/login`**
+  - **Body:** `{ "mail": string, "password": string }`
+  - **Returns:** JWT access and refresh tokens, and sets the `access_token` cookie
+- **POST `/auth/refresh`**
+  - **Query param:** `refresh_token` (string, required)
+  - **Returns:** New JWT access and refresh tokens, and refreshes the `access_token` cookie
+- **POST `/auth/logout`**
+  - **Query param:** `refresh_token` (string, required)
+  - **Returns:** `true` when the refresh token is revoked
+
+### Associations
+- **POST `/associate/space`**
+  - **Body:** repository URL + ClickUp space code
+  - **Returns:** Updated repository/space association
+- **POST `/associate/members`**
+  - **Body:** repository URL + complete member list
+  - **Returns:** Updated repository members
+- **POST `/associate/members/add`**
+  - **Body:** repository URL + members to add
+  - **Returns:** Updated repository members
+- **POST `/associate/members/remove`**
+  - **Body:** repository URL + members to remove
+  - **Returns:** Updated repository members
+
 ### Repositories
 - **GET `/repo/all`**
   - **Returns:** List of all repositories (`List[GitRepoDTO]`)
+- **GET `/repo/details`**
+  - **Returns:** List of repositories with details (`List[GitRepoDetailDTO]`)
 - **POST `/repo/`**
   - **Body:** `{ "name": string, "url": string }`
   - **Returns:** Created repository (`GitRepoDTO`)
 - **GET `/repo/{id}`**
   - **Path param:** `id` (int, required): Repository ID
   - **Returns:** Repository detail or 404 error
+- **GET `/repo/by-name/{name}`**
+  - **Path param:** `name` (string, required)
+  - **Returns:** Repository detail or 404 error
+- **PUT `/repo/{id}`**
+  - **Path param:** `id` (int, required)
+  - **Body:** repository update payload
+  - **Returns:** Updated repository detail
+- **DELETE `/repo/{id}`**
+  - **Path param:** `id` (int, required)
+  - **Returns:** `true` when deletion succeeds
 
-
-### Auth
-- **POST `/auth/login`**
-  - **Body:** `{ "username": string, "password": string }`
-  - **Returns:** JWT access and refresh tokens
-- **POST `/auth/refresh`**
-  - **Body:** `{ "refresh_token": string }`
-  - **Returns:** New JWT access and refresh tokens
-- **GET `/auth/me`**
-  - **Header:** `Authorization: Bearer <access_token>`
-  - **Returns:** User info for the authenticated user
-
-### Members
 ### Members
 - **GET `/member/all`**
   - **Returns:** List of all members
+- **GET `/member/by-repo/{repo_id}`**
+  - **Path param:** `repo_id` (int, required)
+  - **Returns:** List of members in that repository (`List[MemberDTO]`)
+- **GET `/member/all-with-repos`**
+  - **Returns:** List of members with repositories (`List[MemberWithReposDTO]`)
 - **POST `/member/`**
-  - **Body:** `{ "username": string, ... }`
+  - **Body:** member creation payload (`username`, `mail`, `password`, ...)
   - **Returns:** Created member
+- **PUT `/member/{id}`**
+  - **Path param:** `id` (int, required)
+  - **Body:** member update payload
+  - **Returns:** Updated member with repositories
+- **DELETE `/member/{id}`**
+  - **Path param:** `id` (int, required)
+  - **Returns:** `true` when deletion succeeds
   - ⚠️ **Note:** New members can only be added **after logging in** as an authenticated user. Use the Members page in the frontend to manage users.
 
 ### ClickUp Integration
-- **GET `/clickup/spaces`**
+- **GET `/clickup/`**
   - **Returns:** List of ClickUp spaces
+- **GET `/clickup/light`**
+  - **Returns:** List of ClickUp spaces (light view)
+- **GET `/clickup/{space_id}`**
+  - **Path param:** `space_id` (int, required)
+  - **Returns:** ClickUp space details
+- **POST `/clickup/`**
+  - **Body:** ClickUp space creation payload
+  - **Returns:** Created ClickUp space
+- **PUT `/clickup/{space_id}`**
+  - **Path param:** `space_id` (int, required)
+  - **Body:** ClickUp space update payload
+  - **Returns:** Updated ClickUp space
+- **DELETE `/clickup/{space_id}`**
+  - **Path param:** `space_id` (int, required)
+  - **Returns:** `true` when deletion succeeds
+
+### ClickUp Task Verification & Save
+These endpoints are implemented in dedicated routers and are available when mounted under the `/clickup` prefix in the application factory.
+
+- **POST `/clickup/generate-tasks-from-summary`**
+  - **Body:** `{ "meeting_summary": string, "space_id": string }`
+  - **Returns:** Generated task list
+- **POST `/clickup/verify`**
+  - **Body:** `{ "space_id": string, "tasks": [...] }`
+  - **Returns:** Verification result with `create` / `update` actions
+- **POST `/clickup/save`**
+  - **Body:** `{ "space_id": string, "tasks": [...], "ignore_names"?: [...], "ignore_mails"?: [...] }`
+  - **Returns:** Save summary (`message`, `total_tasks`)
 
 ### Backlog (AI Streaming)
+These endpoints are exposed by the backlog router under the `/backlog` prefix.
+
 - **POST `/backlog/start`**
   - **Body:** `{ "description": string }`
   - **Returns:** SSE stream with generated chunks and workflow metadata (`thread_id`)
@@ -238,11 +315,12 @@ Below are the main endpoints provided by the backend, with required parameters a
 
 
 > **Note:**
-> - All endpoints return JSON.
+> - Most endpoints return JSON. The `/backlog/*` routes stream Server-Sent Events (`text/event-stream`).
 > - For detailed schemas, see the `domain/entities` directory or the OpenAPI docs (`/docs` when running the backend).
 > - All endpoints require authentication (JWT Bearer token in the `Authorization` header) **except**:
 >   - `/auth/login`
 >   - `/auth/refresh`
+>   - `/health/`
 >   - `/docs`
 >   - `/openapi.json`
 >   - `/redoc`
@@ -317,7 +395,7 @@ All required environment variables are documented in `.env.exemple`. Here are th
 | MYSQL_PORT                    | MySQL port                                       | 3306                                 |
 | MYSQL_DB                      | MySQL database name                              | mydb                                 |
 | JWT_SECRET_KEY                | Secret key for JWT signing                       | <random string>                      |
-| ALGORITHM                     | JWT algorithm (e.g., HS256)                      | HS256                                |
+| JWT_ALGORITHM                 | JWT algorithm (e.g., HS256)                      | HS256                                |
 | ACCESS_TOKEN_EXPIRE_MINUTES   | JWT access token expiration (minutes)            | 30                                   |
 | REFRESH_TOKEN_EXPIRE_DAYS     | JWT refresh token expiration (days)              | 7                                    |
 | TOKEN_CLEANUP_INTERVAL_HOURS  | Interval for cleaning up expired tokens (hours)  | 24                                   |
@@ -326,6 +404,7 @@ All required environment variables are documented in `.env.exemple`. Here are th
 | READ_TIMEOUT                  | GitHub API read timeout (seconds)                | 60                                   |
 | ACTIONS_MAX_RUNS              | Max GitHub Actions workflow runs to fetch        | 100                                  |
 | DEPLOYMENTS_MAX_ITEMS         | Max GitHub deployments to fetch                  | 30                                   |
+| CLICKUP_API_TOKEN             | ClickUp API token used by the ClickUp integration | <your_clickup_api_token>             |
 
 > **Note:**
 > - All variables must be set in your `.env` file for the backend to work properly.
@@ -344,13 +423,13 @@ Run all unit and integration tests:
 pytest tests
 ```
 
-All tests should pass. (Current: **203 tests**)
+All tests should pass. (Current: **215 tests**)
 
 ### 🧪 Test Breakdown
 
-- **Total tests:** 203
-- **Unit tests:** 182
-- **Integration tests:** 21
+- **Total tests:** 215
+- **Unit tests:** 177
+- **Integration tests:** 38
 
 ---
 
@@ -359,6 +438,7 @@ All tests should pass. (Current: **203 tests**)
 - All code is type-annotated and tested.
 - JWT authentication is implemented using `python-jose`.
 - Dependency injection is managed via a `Container` class.
+- Presentation is handled by routers, while business rules are implemented in application use cases.
 - For any issues, please check the logs or open an issue.
 
 ---
