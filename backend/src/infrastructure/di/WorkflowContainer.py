@@ -210,3 +210,30 @@ class BacklogContainer:
             user_backlog_fixer_tool=self.user_backlog_fixer_tool,
             delivery_planner_tool=self.delivery_planning_tool,
         )
+
+    # backlog_container.py — ajouter cette méthode
+
+    async def cleanup(self) -> None:
+        """
+        Release all persistent network resources held by the container.
+
+        Closes the web search agent session and the workflow orchestrator.
+        Pure LLM agents are stateless and require no explicit cleanup.
+        """
+        logger.info("Cleaning up backlog container resources.")
+
+        if self.web_search_agent is not None:
+            try:
+                await self.web_search_agent.cleanup()
+                logger.info("Web search agent closed.")
+            except Exception:
+                logger.warning("Failed to close web search agent.", exc_info=True)
+
+        if self.backlog_workflow_orchestrator is not None:
+            try:
+                await self.backlog_workflow_orchestrator.cleanup()
+                logger.info("Backlog workflow orchestrator closed.")
+            except Exception:
+                logger.warning("Failed to close backlog workflow orchestrator.", exc_info=True)
+
+        logger.info("Backlog container cleanup complete.")
