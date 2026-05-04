@@ -53,7 +53,7 @@ from backend.src.infrastructure.external.backlog_generation.tools.delivery_plann
 
 from backend.src.infrastructure.external.backlog_generation.orchestrator.backlog_workflow_orchestrator import BacklogWorkflowOrchestrator
 from backend.src.infrastructure.external.clickup.clickup_reader import ClickUpReader
-from backend.src.infrastructure.external.clickup.clickup_task_writer import ClickUpTaskWriter
+from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
 from backend.src.infrastructure.external.clickup_task_verification.clickup_task_verifier_agent import \
     ClickUpTaskVerifierAgent

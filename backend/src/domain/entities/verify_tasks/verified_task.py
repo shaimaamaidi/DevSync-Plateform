@@ -27,7 +27,7 @@ class VerifiedTask(BaseModel):
         task_assigne: Assignee name(s) as a string.
         task_status: Target status for the task.
         task_priority: Target priority level for the task.
-        folder: Target folder name.
+        location: Target location.
         task_id: Identifier of the existing task, if action is "update".
     """
     action: Literal["create", "update"]
@@ -36,7 +36,7 @@ class VerifiedTask(BaseModel):
     task_assigne: str
     task_status: str
     task_priority: str
-    folder: str
+    location: str
     task_id: Optional[str] = None  # Only set when action == "update"
 
 

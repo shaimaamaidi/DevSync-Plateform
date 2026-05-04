@@ -14,8 +14,8 @@ from typing import List
 
 from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
-from backend.src.domain.helpers.clickup_folder_helpers import get_tasks_by_folder,\
-    get_generated_tasks_by_folder
+from backend.src.domain.helpers.clickup_folder_helpers import get_generated_tasks_by_location, get_tasks_by_location
+
 from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.input.i_verify_task_use_case import IVerifyTaskUseCase
 from backend.src.domain.ports.services.clickup_task_verification.i_clickup_task_verifier import \
@@ -72,8 +72,8 @@ class VerifyTaskUseCase(IVerifyTaskUseCase):
 
         folders = self._clickup_task_service.get_space_structure(space_id)
 
-        existing_by_folder = get_tasks_by_folder(folders)
-        generated_by_folder = get_generated_tasks_by_folder(tasks)
+        existing_by_folder = get_tasks_by_location(folders)
+        generated_by_folder = get_generated_tasks_by_location(tasks)
 
         all_results = []
         for folder_name, gen_tasks in generated_by_folder.items():

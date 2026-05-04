@@ -65,8 +65,9 @@ class ClickUpReader(IClickUpReader):
         logger.info("Fetching space structure. space_id=%s.", space_id)
 
         folders_data = self._get_folders(space_id)
+        folderless_lists_data = self._get_folderless_lists(space_id)
 
-        if not folders_data:
+        if not folders_data and not folderless_lists_data:
             logger.warning("Empty ClickUp space. space_id=%s.", space_id)
             raise ClickUpEmptySpaceException(
                 f"No folder found in space '{space_id}'."
@@ -74,9 +75,31 @@ class ClickUpReader(IClickUpReader):
 
         folders: List[Folder] = []
 
-        for folder_data in folders_data:
-            folder = self._build_folder(folder_data)
-            folders.append(folder)
+        if folders_data:
+            logger.info(
+                "%d folder(s) found directly in space '%s'.",
+                len(folders_data),
+                space_id,
+            )
+            for folder_data in folders_data:
+                folder = self._build_folder(folder_data)
+                folders.append(folder)
+
+        if folderless_lists_data:
+            logger.info(
+                "%d folderless list(s) found directly in space '%s'.",
+                len(folderless_lists_data),
+                space_id,
+            )
+            for list_data in folderless_lists_data:
+                clickup_list = self._build_list(list_data)
+                folders.append(
+                    Folder(
+                        id=list_data["id"],
+                        name="__folderless__",
+                        lists=[clickup_list],
+                    )
+                )
 
         logger.info(
             "Space structure completed. space_id=%s folders=%d.",
@@ -303,3 +326,14 @@ class ClickUpReader(IClickUpReader):
         """
         logger.info("Fetching list details. list_id=%s.", list_id)
         return self._http.get(f"/list/{list_id}")
+
+    def _get_folderless_lists(self, space_id: str):
+        """Fetch lists that sit directly in a space (not inside any folder).
+
+        Args:
+            space_id: ClickUp space identifier.
+
+        Returns:
+            Parsed JSON response of folderless lists.
+        """
+        return self._http.get(f"/space/{space_id}/list").get("lists", [])

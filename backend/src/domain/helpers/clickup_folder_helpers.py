@@ -8,8 +8,6 @@ generated tasks, and provides helpers for debugging and analysis.
 Functions:
     get_tasks_by_folder: Group existing ClickUp tasks by folder.
     get_generated_tasks_by_folder: Group generated tasks by folder.
-    print_tasks_by_folder: Debug print existing tasks by folder.
-    print_generated_tasks_by_folder: Debug print generated tasks by folder.
     get_folders_statuses_and_priorities: Extract statuses and priorities per folder.
 """
 
@@ -23,142 +21,103 @@ from backend.src.domain.entities.generate_tasks_from_summary.generated_task impo
 logger = logging.getLogger(__name__)
 
 
-def get_tasks_by_folder(folders) -> Dict[str, List[ClickUpTask]]:
+def get_tasks_by_location(folders) -> Dict[str, List[ClickUpTask]]:
     """
-    Group existing ClickUp tasks by folder name.
+    Group existing tasks by location label.
 
-    This function traverses folders and their lists to aggregate all tasks
-    under their respective folder.
+    Location label format:
+    - "FolderName / ListName" for lists inside a folder
+    - "ListName"              for folderless lists (folder.id == lst.id)
 
     Args:
         folders: Iterable of Folder objects containing lists and tasks.
 
     Returns:
-        Dict[str, List[ClickUpTask]]: Mapping of folder name to tasks.
+        Mapping of location label to a list of Task instances.
     """
     result: Dict[str, List[ClickUpTask]] = {}
 
     for folder in folders:
-        tasks: List[ClickUpTask] = []
         for lst in folder.lists:
-            tasks.extend(lst.tasks)
-        result[folder.name] = tasks
+            label = lst.name if folder.id == lst.id else f"{folder.name} / {lst.name}"
+            result.setdefault(label, []).extend(lst.tasks)
 
     logger.info(
-        "Existing tasks grouped by folder: %s",
-        {name: len(tasks) for name, tasks in result.items()},
+        "Existing tasks grouped by location: %s",
+        {label: len(tasks) for label, tasks in result.items()},
     )
 
     return result
 
 
-def get_generated_tasks_by_folder(generated_tasks: List[GeneratedTask]) -> Dict[str, List[GeneratedTask]]:
+def get_generated_tasks_by_location(generated_tasks: List[GeneratedTask]) -> Dict[str, List[GeneratedTask]]:
     """
-    Group generated tasks by folder name.
+    Group generated tasks by location label.
 
     Args:
-        generated_tasks (List[GeneratedTask]): List of generated tasks.
+        generated_tasks: List of GeneratedTask instances.
 
     Returns:
-        Dict[str, List[GeneratedTask]]: Mapping of folder name to generated tasks.
+        Mapping of location label to a list of GeneratedTask instances.
     """
     result: Dict[str, List[GeneratedTask]] = {}
 
     for task in generated_tasks:
-        folder = task.folder
-        if folder not in result:
-            result[folder] = []
-        result[folder].append(task)
+        result.setdefault(task.location, []).append(task)
 
     logger.info(
-        "Generated tasks grouped by folder: %s",
-        {name: len(tasks) for name, tasks in result.items()},
+        "Generated tasks grouped by location: %s",
+        {label: len(tasks) for label, tasks in result.items()},
     )
 
     return result
 
-def print_tasks_by_folder(tasks_by_folder: Dict[str, List[ClickUpTask]]) -> None:
-    """Print grouped tasks to stdout.
-
-    Args:
-        tasks_by_folder: Mapping of folder name to existing tasks.
-
-    Returns:
-        None.
-    """
-    for folder_name, tasks in tasks_by_folder.items():
-        print(f"Folder: {folder_name}")
-        if tasks:
-            for task in tasks:
-                print(f"  - Name: {task.name}")
-                print(f"    Description: {task.description}")
-        else:
-            print("  (No tasks)")
-
-
-def print_generated_tasks_by_folder(generated_by_folder: Dict[str, List[GeneratedTask]]) -> None:
-    """Print grouped generated tasks to stdout.
-
-    Args:
-        generated_by_folder: Mapping of folder name to generated tasks.
-
-    Returns:
-        None.
-    """
-    for folder_name, tasks in generated_by_folder.items():
-        print(f"Folder: {folder_name}")
-        if tasks:
-            for task in tasks:
-                print(f"  - Name: {task.task_name}")
-                print(f"    Description: {task.task_description}")
-        else:
-            print("  (No tasks)")
-
 def get_folders_statuses_and_priorities(folders) -> Dict[str, Dict[str, List[str]]]:
     """
-    Extract available statuses and priorities per folder.
-
-    This function scans all lists inside folders and aggregates:
-    - statuses
-    - priorities
+    Collect statuses and priorities available per folder.
 
     Args:
         folders: Iterable of Folder objects containing lists and metadata.
 
     Returns:
-        Dict[str, Dict[str, List[str]]]: Mapping of folder name to:
-            - statuses: list of available statuses
-            - priorities: list of available priorities
+        Mapping of location label to available statuses and priorities.
+        - Folderless lists: labelled by list name only  → "Backlog"
+        - Lists inside a folder: labelled as folder/list → "Dev / Backend"
+
         Example:
             {
-                "folder_name": {
+                "Dev / Backend": {
                     "statuses": ["to do", "in progress", "done"],
-                    "priorities": ["low", "medium", "high"],
-                }
+                    "priorities": ["urgent", "high", "normal", "low"],
+                },
+                "Backlog": {
+                    "statuses": ["open", "closed"],
+                    "priorities": ["urgent", "high", "normal", "low"],
+                },
             }
     """
     folders_info: Dict[str, Dict[str, set]] = {}
 
     for folder in folders:
-
-        if folder.name not in folders_info:
-            folders_info[folder.name] = {"statuses": set(), "priorities": set()}
-
         for lst in folder.lists:
-            # Add statuses defined on the list
-            for status in lst.statuses:
-                folders_info[folder.name]["statuses"].add(status)
+            # Folderless: folder.id == lst.id (synthetic folder created per list)
+            label = lst.name if folder.id == lst.id else f"{folder.name} / {lst.name}"
 
-            # Add priorities defined on the list
+            if label not in folders_info:
+                folders_info[label] = {"statuses": set(), "priorities": set()}
+
+            for status in lst.statuses:
+                folders_info[label]["statuses"].add(status)
+
             for priority in lst.priorities:
-                folders_info[folder.name]["priorities"].add(priority)
+                folders_info[label]["priorities"].add(priority)
 
     result = {
-        folder: {
+        label: {
             "statuses": list(info["statuses"]),
             "priorities": list(info["priorities"]),
         }
-        for folder, info in folders_info.items()
+        for label, info in folders_info.items()
     }
 
     logger.info(

@@ -137,7 +137,7 @@ system: |
         "task_status": "to do",
         "task_priority": "normal",
         "task_assigne": "X",
-        "folder": "dev"
+        "location": "FolderName / ListName"
       },
       {
         "action": "update",
@@ -147,7 +147,7 @@ system: |
         "task_status": "in progress",
         "task_priority": "high",
         "task_assigne": "X,Y",
-        "folder": "dev"
+        "location": "FolderName / ListName"
       }
     ]
   }

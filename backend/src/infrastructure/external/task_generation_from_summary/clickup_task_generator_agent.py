@@ -63,13 +63,13 @@ class ClickUpTaskGeneratorAgent(BaseAgent, ITaskGenerator):
         logger.info("Starting task generation process from meeting summary.")
 
         # Convert the dictionary to JSON text to provide to the LLM
-        folders_text = json.dumps(folders_statuses, ensure_ascii=False, indent=2)
+        locations_text = json.dumps(folders_statuses, ensure_ascii=False, indent=2)
         messages = self.prompt_loader.get_messages(
             folder_name="task_generation_from_summary",
             name="clickup_task_generator_agent",
             variables={
                 "meeting_summary": meeting_summary,
-                "folders_text" : folders_text
+                "locations_text" : locations_text
             }
         )
 

@@ -88,7 +88,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         name_to_email = name_to_email
         email_to_id = {m["email"].lower(): m["id"] for m in members}
 
-        folder_list_map = self._build_folder_list_map(folders)
+        location_list_map = ClickUpTaskWriter._build_location_list_map(folders)
 
         created_count = 0
         updated_count = 0
@@ -96,11 +96,11 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         for result in results:
             if result.action == "create":
-                list_id = folder_list_map.get(result.folder)
+                list_id = location_list_map.get(result.location)
                 if not list_id:
                     logger.warning(
-                        "Create skipped: folder_not_found. folder=%s task_name=%s.",
-                        result.folder,
+                        "Create skipped: folder_not_found. location=%s task_name=%s.",
+                        result.location,
                         result.task_name,
                     )
                     skipped_count += 1
@@ -177,9 +177,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             ClickUpTaskCreateException: If the API request fails.
         """
         logger.info(
-            "Creating ClickUp task. task_name=%s folder=%s list_id=%s.",
+            "Creating ClickUp task. task_name=%s location=%s list_id=%s.",
             result.task_name,
-            result.folder,
+            result.location,
             list_id,
         )
 
@@ -202,16 +202,16 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         if response.status_code == 200:
             logger.info(
-                "Task created successfully. task_name=%s folder=%s status_code=%d.",
+                "Task created successfully. task_name=%s location=%s status_code=%d.",
                 result.task_name,
-                result.folder,
+                result.location,
                 response.status_code,
             )
         else:
             logger.error(
-                "Task creation failed. task_name=%s folder=%s status_code=%d response=%s.",
+                "Task creation failed. task_name=%s location=%s status_code=%d response=%s.",
                 result.task_name,
-                result.folder,
+                result.location,
                 response.status_code,
                 response.text,
             )
@@ -288,27 +288,23 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             )
 
     @staticmethod
-    def _build_folder_list_map(folders) -> dict:
+    def _build_location_list_map(folders: List[Folder]) -> dict:
         """
-        Build a mapping of folder names to ClickUp list identifiers.
+        Build a mapping of location label to list ID.
 
-        This helper method extracts the first list ID from each folder and
-        creates a lookup map used for task creation routing.
+        Location label format:
+        - "FolderName / ListName" for lists inside a folder
+        - "ListName" for folderless lists (folder.id == lst.id)
 
         Args:
-            folders: List of ClickUp Folder domain entities.
+            folders: Folder objects with lists.
 
         Returns:
-            dict: Mapping of folder name to ClickUp list ID.
+            Mapping of location label to list ID.
         """
         mapping = {}
         for folder in folders:
-            if folder.lists:
-                mapping[folder.name] = folder.lists[0].id
-
-        logger.info(
-            "Folder mapping built. folders_processed=%d mapped=%d.",
-            len(folders),
-            len(mapping),
-        )
+            for lst in folder.lists:
+                label = lst.name if folder.id == lst.id else f"{folder.name} / {lst.name}"
+                mapping[label] = lst.id
         return mapping

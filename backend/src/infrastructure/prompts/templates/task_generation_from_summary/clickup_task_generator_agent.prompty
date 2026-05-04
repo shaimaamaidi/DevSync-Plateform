@@ -102,7 +102,7 @@ system: |
 
   ### task_status
 
-  Use ONLY statuses available for the chosen folder.
+  Use ONLY statuses available for the chosen location.
 
   Rules:
   - If the meeting states the task is finished → "complete"
@@ -111,7 +111,7 @@ system: |
 
   ### task_priority
 
-  Use ONLY priorities available for the chosen folder.
+  Use ONLY priorities available for the chosen location.
 
   Rules:
 
@@ -128,14 +128,14 @@ system: |
   normal:
   - default for all other tasks
 
-  ### folder
-
-  You will receive a list of available folders.
-
-  IMPORTANT:
-  - Use ONLY the provided folder names.
-  - NEVER invent new folder names.
-  - Choose the most appropriate folder for the task.
+  ### location
+  You will receive a list of available locations.
+  Each location is either:
+  - A list inside a folder, labelled as:   "FolderName / ListName"
+  - A standalone list (no folder), labelled as:   "ListName"
+  Each location entry also includes:
+  - available statuses  → use ONLY these for task_status
+  - available priorities → use ONLY these for task_priority
 
   TASK EXTRACTION RULES
 
@@ -208,7 +208,7 @@ system: |
         "task_assigne": "اسم الشخص",
         "task_status": "to do",
         "task_priority": "normal",
-        "folder": "dev"
+        "location": "FolderName / ListName"
       }
     ]
   }
@@ -217,7 +217,7 @@ user: |
   Below is the meeting summary:
   {{meeting_summary}}
 
-  Available folders and their statuses:
-  {{folders_text}}
+  Available locations and their statuses:
+  {{locations_text}}
 
   Extract all actionable tasks from the meeting summary.
