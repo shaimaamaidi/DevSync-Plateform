@@ -19,7 +19,7 @@ export function subscribeToApiError(listener: ErrorListener) {
   };
 }
 
-const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
+export const normalizeErrorMessage = (error: ErrorLike | unknown): string => {
   if (!error || typeof error !== 'object') return 'Unknown error';
 
   const err = error as ErrorLike;
