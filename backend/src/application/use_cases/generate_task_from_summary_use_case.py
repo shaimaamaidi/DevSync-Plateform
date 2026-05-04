@@ -68,10 +68,11 @@ class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
         )
 
         folders = self._clickup_task_service.get_space_structure(space_id)
-        folders_statuses = get_folders_statuses_and_priorities(folders)
+        locations_statuses = get_folders_statuses_and_priorities(folders)
+
         tasks = self._task_generator.generate_tasks(
             meeting_summary=meeting_summary,
-            folders_statuses=folders_statuses,
+            locations_statuses=locations_statuses,
         )
         tasks = tasks or []
 

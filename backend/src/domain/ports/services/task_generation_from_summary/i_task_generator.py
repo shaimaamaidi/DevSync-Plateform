@@ -24,14 +24,14 @@ class ITaskGenerator(ABC):
     def generate_tasks(
         self,
         meeting_summary: str,
-        folders_statuses: Dict[str, Dict[str, List[str]]]
+        locations_statuses: Dict[str, Dict[str, List[str]]]
     ) -> List[GeneratedTask]:
         """
         Generate tasks from a meeting summary.
 
         Args:
             meeting_summary: Meeting summary in Arabic or French.
-            folders_statuses: Mapping of folder names to their available
+            locations_statuses: Mapping of locations to their available
                 statuses and priorities.
 
         Returns:
