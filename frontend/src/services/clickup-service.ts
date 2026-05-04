@@ -4,6 +4,7 @@ import type {
   ClickUpSpaceDetailDTO,
   ClickUpSpaceLightDTO,
   ClickUpSpaceUpdateDTO,
+  RepoClickUpSpaceDTO,
 } from '@/api/api';
 
 export const clickUpService = {
@@ -12,6 +13,11 @@ export const clickUpService = {
     return response.data ?? [];
   },
 
+  async getAllSpaces(): Promise<RepoClickUpSpaceDTO[]> {
+    const response = await clickUpApi.getAllSpacesClickupGet();
+    return response.data ?? [];
+  },
+  
   async createSpace(space: ClickUpSpaceCreateDTO): Promise<ClickUpSpaceLightDTO | null> {
     const response = await clickUpApi.createSpaceClickupPost(space);
     return {

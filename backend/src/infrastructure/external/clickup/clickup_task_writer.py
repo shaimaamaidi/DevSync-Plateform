@@ -8,6 +8,7 @@ operations to ClickUp based on verified domain results.
 This adapter acts as an infrastructure layer component translating domain-level
 task decisions into ClickUp API requests.
 """
+
 import logging
 from typing import List
 

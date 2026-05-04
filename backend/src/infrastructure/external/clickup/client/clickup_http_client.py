@@ -18,6 +18,8 @@ from dotenv import load_dotenv
 
 from backend.src.domain.exceptions.clickup.clickup_api_exception import ClickUpApiException
 from backend.src.domain.exceptions.clickup.clickup_authentication_exception import ClickUpAuthenticationException
+from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
+from backend.src.domain.exceptions.clickup.clickup_rate_limit_exception import ClickUpRateLimitException
 from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception import ClickUpResourceNotFoundException
 from backend.src.domain.exceptions.clickup.missing_clickup_config_exception import MissingClickUpConfigException
 
@@ -76,9 +78,11 @@ class ClickUpHttpClient:
             Parsed JSON response.
 
         Raises:
-            ClickUpAuthenticationException: If authentication fails (401).
+            ClickUpAuthenticationException: If authentication or authorization fails (401, 403).
             ClickUpResourceNotFoundException: If resource is not found (404).
-            ClickUpApiException: For other API or network-related errors.
+            ClickUpRateLimitException: If rate limit is exceeded (429).
+            ClickUpClientException: For client-side errors (400–499 excluding handled cases).
+            ClickUpApiException: For server errors (5xx or network-related errors).
         """
         logger.info("GET %s", endpoint)
 
@@ -87,7 +91,8 @@ class ClickUpHttpClient:
             self._handle_response(response)
             return response.json()
 
-        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpApiException):
+        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpClientException,
+                ClickUpRateLimitException, ClickUpApiException):
             logger.error("API error on GET %s.", endpoint, exc_info=True)
             raise
         except (requests.exceptions.RequestException, ValueError) as e:
@@ -106,9 +111,11 @@ class ClickUpHttpClient:
             Parsed JSON response.
 
         Raises:
-            ClickUpAuthenticationException: If authentication fails (401).
+            ClickUpAuthenticationException: If authentication or authorization fails (401, 403).
             ClickUpResourceNotFoundException: If resource is not found (404).
-            ClickUpApiException: For other API or network-related errors.
+            ClickUpRateLimitException: If rate limit is exceeded (429).
+            ClickUpClientException: For client-side errors (400–499 excluding handled cases).
+            ClickUpApiException: For server errors (5xx or network-related errors).
         """
         logger.info("POST %s", endpoint)
 
@@ -121,7 +128,8 @@ class ClickUpHttpClient:
             self._handle_response(response)
             return response.json()
 
-        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpApiException):
+        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpClientException,
+                ClickUpRateLimitException, ClickUpApiException):
             logger.error("API error on POST %s.", endpoint, exc_info=True)
             raise
         except (requests.exceptions.RequestException, ValueError) as e:
@@ -159,9 +167,11 @@ class ClickUpHttpClient:
             Parsed JSON response.
 
         Raises:
-            ClickUpAuthenticationException: If authentication fails (401).
+            ClickUpAuthenticationException: If authentication or authorization fails (401, 403).
             ClickUpResourceNotFoundException: If resource is not found (404).
-            ClickUpApiException: For other API or network-related errors.
+            ClickUpRateLimitException: If rate limit is exceeded (429).
+            ClickUpClientException: For client-side errors (400–499 excluding handled cases).
+            ClickUpApiException: For server errors (5xx or network-related errors).
         """
         logger.info("PUT %s", endpoint)
 
@@ -174,7 +184,8 @@ class ClickUpHttpClient:
             self._handle_response(response)
             return response.json()
 
-        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException, ClickUpApiException):
+        except (ClickUpAuthenticationException, ClickUpResourceNotFoundException,ClickUpClientException,
+                ClickUpRateLimitException, ClickUpApiException):
             logger.error("API error on PUT %s.", endpoint, exc_info=True)
             raise
         except (requests.exceptions.RequestException, ValueError) as e:
@@ -209,21 +220,37 @@ class ClickUpHttpClient:
             response: HTTP response returned by ClickUp API.
 
         Raises:
-            ClickUpAuthenticationException: If status code is 401.
+            ClickUpAuthenticationException: If status code is 401 or 403.
             ClickUpResourceNotFoundException: If status code is 404.
-            ClickUpApiException: For all other non-success responses.
+            ClickUpRateLimitException: If status code is 429.
+            ClickUpClientException: For other client errors (4xx).
+            ClickUpApiException: For server errors (5xx).
         """
-        if response.status_code == 401:
+        status = response.status_code
+
+        if status in (401, 403):
             raise ClickUpAuthenticationException(
-                f"Invalid or expired token — {response.text}"
+                f"Authentication/authorization failed — {response.text}"
             )
 
-        if response.status_code == 404:
+        if status == 404:
             raise ClickUpResourceNotFoundException(
                 f"Resource not found: {response.url} — {response.text}"
             )
 
-        if not response.ok:
+        if status == 429:
+            retry_after = response.headers.get("Retry-After")
+            raise ClickUpRateLimitException(
+                message=f"Rate limit exceeded — {response.text}",
+                retry_after=int(retry_after) if retry_after else None
+            )
+
+        if 400 <= status < 500:
+            raise ClickUpClientException(
+                f"Client error ({status}) — {response.text}",
+            )
+
+        if status >= 500:
             raise ClickUpApiException(
-                f"ClickUp API error ({response.status_code}) — {response.text}"
+                f"Server error ({status}) — {response.text}",
             )

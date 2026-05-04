@@ -23,7 +23,7 @@ class ClickUpAuthenticationException(AppException):
         http_status: HTTP status code associated with the error.
     """
 
-    def __init__(self, message: str = "Missing or invalid ClickUp token.", http_status: int = 401):
+    def __init__(self, message: str = "Missing or invalid ClickUp token.", http_status: int = 500):
         """
         Initialize a ClickUp authentication exception.
 

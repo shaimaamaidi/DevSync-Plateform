@@ -6,5 +6,5 @@ class LLMNetworkException(AppException):
         super().__init__(
             message=f"Network error while contacting LLM in agent '{agent_name}': {reason}",
             code="LLM_NETWORK_ERROR",
-            http_status=503
+            http_status=502
         )
