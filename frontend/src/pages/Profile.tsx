@@ -7,15 +7,8 @@ import { withErrorHandling } from '@/services/api-error';
 import { showSuccessToast } from '@/components/global-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
 import { defaultOnError } from '@/lib/error-utils';
+import { FieldSkeleton } from '@/components/ui/field-skeleton';
 
-function FieldSkeleton() {
-  return (
-    <div className="space-y-1.5">
-      <div className="h-3 w-20 rounded bg-muted animate-pulse" />
-      <div className="h-11 w-full rounded-lg bg-muted animate-pulse" />
-    </div>
-  );
-}
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useCurrentUser();
@@ -24,26 +17,33 @@ export default function ProfilePage() {
 
   const [username, setUsername] = useState('');
   const [mail, setMail] = useState('');
+  const [arabicName, setArabicName] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setUsername(user.username || '');
       setMail(user.mail || '');
+      setArabicName(user.arabic_name || '');
     }
   }, [user]);
 
-  const isDirty = username !== (user?.username || '') || mail !== (user?.mail || '');
+  const isDirty =
+    username !== (user?.username || '') ||
+    mail !== (user?.mail || '') ||
+    arabicName !== (user?.arabic_name || '');
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isDirty) return;
+    if (!isDirty) 
+      return;
     setLoading(true);
 
     const member: MemberUpdateDTO = {
       id: user?.id,
       username,
       mail,
+      arabic_name: arabicName,
     };
 
     try {
@@ -52,7 +52,8 @@ export default function ProfilePage() {
         'Update profile',
         onError,
       );
-      if (result) showSuccessToast('Profile updated successfully!');
+      if (result) 
+        showSuccessToast('Profile updated successfully!');
     } finally {
       setLoading(false);
     }
@@ -88,6 +89,7 @@ export default function ProfilePage() {
 
           {userLoading ? (
             <div className="space-y-5">
+              <FieldSkeleton />
               <FieldSkeleton />
               <FieldSkeleton />
               <div className="h-11 w-full rounded-lg bg-muted animate-pulse mt-1" />
@@ -128,6 +130,25 @@ export default function ProfilePage() {
                   onChange={(e) => setMail(e.target.value)}
                   autoComplete="email"
                   placeholder="you@example.com"
+                  className="w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 border-border/60 focus:border-foreground/40 focus:ring-foreground/8"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="arabic-name"
+                  className="block text-[11px] font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5"
+                >
+                  <User className="w-3 h-3" />
+                  Arabic Name
+                </label>
+                <input
+                  id="arabic-name"
+                  type="text"
+                  value={arabicName}
+                  onChange={(e) => setArabicName(e.target.value)}
+                  placeholder="الاسم بالعربية"
+                  dir="rtl"
                   className="w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 border-border/60 focus:border-foreground/40 focus:ring-foreground/8"
                 />
               </div>

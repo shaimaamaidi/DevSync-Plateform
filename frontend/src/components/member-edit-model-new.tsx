@@ -34,6 +34,7 @@ export function MemberEditModal({
   const hasChanges = editingMember
     ? formData.username !== editingMember.username ||
       formData.mail !== editingMember.mail ||
+      formData.arabic_name !== (editingMember.arabic_name || '') ||
       (!!formData.password && formData.password.length > 0)
     : true;
 
@@ -41,8 +42,8 @@ export function MemberEditModal({
 
   const isCancelDisabled = isSaving;
   const isSaveDisabled = editingMember
-    ? !hasChanges || isSaving   // Update : désactivé si pas de changements OU saving
-    : isFormEmpty || isSaving;  // Create : désactivé si champs vides OU saving
+    ? !hasChanges || isSaving
+    : isFormEmpty || isSaving;
 
   useEffect(() => {
     if (isOpen) {
@@ -50,8 +51,14 @@ export function MemberEditModal({
       setIsSaving(false);
       setFormData(
         editingMember
-          ? { id: editingMember.id, username: editingMember.username, mail: editingMember.mail, password: '' }
-          : { username: '', mail: '', password: '' }
+          ? {
+              id: editingMember.id,
+              username: editingMember.username,
+              mail: editingMember.mail,
+              arabic_name: editingMember.arabic_name || '',
+              password: '',
+            }
+          : { username: '', mail: '', arabic_name: '', password: '' }
       );
     }
   }, [isOpen, editingMember]);
@@ -87,12 +94,14 @@ export function MemberEditModal({
           id: editingMember.id,
           username: formData.username,
           mail: formData.mail,
+          arabic_name: formData.arabic_name,
           password: formData.password,
         } as MemberUpdateDTO);
       } else {
         success = await onAdd({
           username: formData.username,
           mail: formData.mail,
+          arabic_name: formData.arabic_name,
           password: formData.password,
         } as MemberCreateDTO);
       }
@@ -100,9 +109,7 @@ export function MemberEditModal({
       setIsSaving(false);
     }
 
-    if (success) {
-      onClose();
-    }
+    if (success) onClose();
   };
 
   return (
@@ -153,6 +160,22 @@ export function MemberEditModal({
                 />
                 {errors.mail && (
                   <div className="text-destructive text-xs mt-1 px-1">{errors.mail}</div>
+                )}
+              </div>
+
+              <div>
+                <Label className="text-foreground font-medium">Arabic Name</Label>
+                <input
+                  type="text"
+                  placeholder="الاسم بالعربية"
+                  dir="rtl"
+                  value={formData.arabic_name || ''}
+                  onChange={(e) => setFormData({ ...formData, arabic_name: e.target.value })}
+                  className={inputClass(!!errors.arabic_name) + ' mt-2'}
+                  disabled={isSaving}
+                />
+                {errors.arabic_name && (
+                  <div className="text-destructive text-xs mt-1 px-1">{errors.arabic_name}</div>
                 )}
               </div>
 

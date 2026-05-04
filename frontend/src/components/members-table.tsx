@@ -50,7 +50,6 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
         </Button>
       </div>
 
-      {/* Desktop table */}
       <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">
         {isLoading ? (
           <table className="w-full">
@@ -62,6 +61,9 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
                   </td>
                   <td className="px-6 py-4">
                     <div className="h-4 w-48 rounded bg-muted animate-pulse mx-auto" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-4 w-36 rounded bg-muted animate-pulse mx-auto" />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end gap-2">
@@ -79,6 +81,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
               <tr className="border-b border-border bg-muted">
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Member</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Mail</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Arabic Name</th>
                 <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">Actions</th>
               </tr>
             </thead>
@@ -96,6 +99,11 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
                     </td>
                     <td className="px-6 py-4 text-center">
                       <span className="text-sm text-muted-foreground">{member.mail || 'N/A'}</span>
+                    </td>
+                    <td className="px-6 py-4 text-center" dir="rtl">
+                      <span className="text-sm text-muted-foreground">
+                        {member.arabic_name || 'N/A'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-end gap-2">
@@ -125,7 +133,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
                 ))
               ) : (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center">
+                  <td colSpan={4} className="px-6 py-12 text-center">
                     <p className="text-muted-foreground">No members yet. Create your first member!</p>
                   </td>
                 </tr>
@@ -135,13 +143,13 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
         )}
       </div>
 
-      {/* Mobile cards */}
       <div className="sm:hidden space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-border p-4 space-y-2 animate-pulse">
               <div className="h-4 w-32 bg-muted rounded" />
               <div className="h-3 w-40 bg-muted rounded" />
+              <div className="h-3 w-28 bg-muted rounded" />
             </div>
           ))
         ) : members.length > 0 ? (
@@ -153,6 +161,9 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
               <div>
                 <p className="font-medium text-foreground">{member.username}</p>
                 <p className="text-xs text-muted-foreground">{member.mail || 'N/A'}</p>
+                <p className="text-xs text-muted-foreground" dir="rtl">
+                  {member.arabic_name || 'N/A'}
+                </p>
               </div>
               <div className="flex gap-1">
                 <Button

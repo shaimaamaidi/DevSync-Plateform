@@ -6,6 +6,7 @@ export const memberService = {
     return {
       id: member.id ?? null,
       username: member.username ?? null,
+      arabic_name: member.arabic_name ?? null,
       mail: member.mail ?? null,
     } as MemberDTO;
   },
@@ -18,6 +19,7 @@ export const memberService = {
   async createMember(member: MemberCreateDTO): Promise<MemberDTO | null> {
     const payload: MemberCreateDTO = {
       username: member.username ?? null,
+      arabic_name: member.arabic_name ?? null, 
       mail: member.mail ?? null,
       password: member.password ?? null,
     };
@@ -34,6 +36,7 @@ export const memberService = {
     const payload: MemberUpdateDTO = {
       id: member.id,
       username: member.username ?? null,
+      arabic_name: member.arabic_name ?? null,
       mail: member.mail ?? null,
       password: member.password ?? undefined, 
     };
@@ -43,6 +46,7 @@ export const memberService = {
       ? {
           id: response.data.id ?? null,
           username: response.data.username ?? null,
+          arabic_name: response.data.arabic_name ?? null,
           mail: response.data.mail ?? null,
         } as MemberDTO
       : null;
