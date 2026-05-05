@@ -14,7 +14,7 @@ from typing import List
 from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionSystemMessageParam
 
-from backend.src.domain.entities.clickup.list import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask, VerifiedTaskList
 from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException

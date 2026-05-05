@@ -14,7 +14,7 @@ Functions:
 import logging
 from typing import List, Dict
 
-from backend.src.domain.entities.clickup.list import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 
 

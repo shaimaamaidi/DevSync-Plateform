@@ -12,8 +12,10 @@ responses into domain entities.
 import logging
 from typing import List, Optional
 
-from backend.src.domain.entities.clickup.list import ClickUpList, ClickUpTask
-from backend.src.domain.entities.clickup.folder import Folder
+from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
+from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.exceptions.clickup.clickup_empty_space_exception import ClickUpEmptySpaceException
 from backend.src.domain.exceptions.clickup.clickup_workspace_members_exception import ClickUpWorkspaceMembersException
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
@@ -47,7 +49,7 @@ class ClickUpReader(IClickUpReader):
         """
         self._http = http_client
 
-    def get_space_structure(self, space_id: str) -> List[Folder]:
+    def get_space_full_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Retrieve full ClickUp space structure.
 
@@ -73,7 +75,7 @@ class ClickUpReader(IClickUpReader):
                 f"No folder found in space '{space_id}'."
             )
 
-        folders: List[Folder] = []
+        folders: List[FolderWithLists] = []
 
         if folders_data:
             logger.info(
@@ -82,7 +84,7 @@ class ClickUpReader(IClickUpReader):
                 space_id,
             )
             for folder_data in folders_data:
-                folder = self._build_folder(folder_data)
+                folder = self._build_folder_with_lists(folder_data)
                 folders.append(folder)
 
         if folderless_lists_data:
@@ -92,9 +94,72 @@ class ClickUpReader(IClickUpReader):
                 space_id,
             )
             for list_data in folderless_lists_data:
-                clickup_list = self._build_list(list_data)
+                clickup_list = self._build_list_with_tasks(list_data)
                 folders.append(
-                    Folder(
+                    FolderWithLists(
+                        id=list_data["id"],
+                        name="__folderless__",
+                        lists=[clickup_list],
+                    )
+                )
+
+        logger.info(
+            "Space structure completed. space_id=%s folders=%d.",
+            space_id,
+            len(folders),
+        )
+
+        return folders
+
+    def get_space_structure_metadata(self, space_id: str) -> List[FolderWithListsMetadata]:
+        """
+        Retrieve ClickUp space structure (metadata only).
+
+        Includes folders and lists with their configuration metadata
+        (statuses and priorities), without retrieving tasks.
+
+        Args:
+            space_id: ClickUp space identifier.
+
+        Returns:
+            List of FolderWithListsMetadata containing lists metadata.
+
+        Raises:
+            ClickUpEmptySpaceException: If the space has no folders or lists.
+        """
+        logger.info("Fetching space structure. space_id=%s.", space_id)
+
+        folders_data = self._get_folders(space_id)
+        folderless_lists_data = self._get_folderless_lists(space_id)
+
+        if not folders_data and not folderless_lists_data:
+            logger.warning("Empty ClickUp space. space_id=%s.", space_id)
+            raise ClickUpEmptySpaceException(
+                f"No folder found in space '{space_id}'."
+            )
+
+        folders: List[FolderWithListsMetadata] = []
+
+        if folders_data:
+            logger.info(
+                "%d folder(s) found directly in space '%s'.",
+                len(folders_data),
+                space_id,
+            )
+            for folder_data in folders_data:
+                folder = self._build_folder_with_metadata(folder_data)
+                folders.append(folder)
+
+        if folderless_lists_data:
+            logger.info(
+                "%d folderless list(s) found directly in space '%s'.",
+                len(folderless_lists_data),
+                space_id,
+            )
+            for list_data in folderless_lists_data:
+                clickup_list = self._build_list_with_metadata(list_data)
+                folders.append(
+                    FolderWithListsMetadata(
                         id=list_data["id"],
                         name="__folderless__",
                         lists=[clickup_list],
@@ -156,7 +221,7 @@ class ClickUpReader(IClickUpReader):
 
         return members
 
-    def _build_folder(self, folder_data: dict) -> Folder:
+    def _build_folder_with_lists(self, folder_data: dict) -> FolderWithLists:
         """
         Build a Folder domain entity from a raw API folder dict.
 
@@ -173,11 +238,32 @@ class ClickUpReader(IClickUpReader):
 
         lists_data = self._get_lists(folder_id)
 
-        lists = [self._build_list(list_data) for list_data in lists_data]
+        lists = [self._build_list_with_tasks(list_data) for list_data in lists_data]
 
-        return Folder(id=folder_id, name=folder_name, lists=lists)
+        return FolderWithLists(id=folder_id, name=folder_name, lists=lists)
 
-    def _build_list(self, list_data: dict) -> ClickUpList:
+    def _build_folder_with_metadata(self, folder_data: dict) -> FolderWithListsMetadata:
+        """
+        Build a Folder domain entity from a raw API folder dict.
+
+        Args:
+            folder_data: Raw folder dictionary from ClickUp API.
+
+        Returns:
+            Folder domain entity.
+        """
+        folder_id = folder_data.get("id", "<unknown>")
+        folder_name = folder_data.get("name", "<unknown>")
+
+        logger.info("Processing folder '%s'. folder_id=%s.", folder_name, folder_id)
+
+        lists_data = self._get_lists(folder_id)
+
+        lists = [self._build_list_with_metadata(list_data) for list_data in lists_data]
+
+        return FolderWithListsMetadata(id=folder_id, name=folder_name, lists=lists)
+
+    def _build_list_with_tasks(self, list_data: dict) -> ClickUpList:
         """
         Build a ClickUpList domain entity from a raw API list dict.
 
@@ -213,6 +299,41 @@ class ClickUpReader(IClickUpReader):
             id=list_id,
             name=list_name,
             tasks=tasks,
+            statuses=statuses,
+            priorities=PRIORITIES,
+        )
+
+    def _build_list_with_metadata(self, list_data: dict) -> ClickUpListMetadata:
+        """
+        Build a ClickUpList domain entity from a raw API list dict.
+
+        Args:
+            list_data: Raw list dictionary from ClickUp API.
+
+        Returns:
+            ClickUpList domain entity.
+        """
+        list_id = list_data.get("id", "<unknown>")
+        list_name = list_data.get("name", "<unknown>")
+
+        list_details = self._get_list_details(list_id)
+
+        statuses = [
+            s["status"]
+            for s in list_details.get("statuses", [])
+            if s.get("status")
+        ]
+
+        logger.info(
+            "List '%s' built. list_id=%s statuses=%d.",
+            list_name,
+            list_id,
+            len(statuses),
+        )
+
+        return ClickUpListMetadata(
+            id=list_id,
+            name=list_name,
             statuses=statuses,
             priorities=PRIORITIES,
         )

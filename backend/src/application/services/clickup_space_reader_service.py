@@ -12,7 +12,7 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup.folder import Folder
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 
@@ -40,9 +40,9 @@ class ClickUpTaskService(IClickUpTaskService):
             clickup_reader (IClickUpReader): ClickUp reader port.
         """
         self._clickup_reader = clickup_reader
-        self._cache: dict[str, List[Folder]] = {}
+        self._cache: dict[str, List[FolderWithLists]] = {}
 
-    def get_space_structure(self, space_id: str) -> List[Folder]:
+    def get_space_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Retrieve the structure of a ClickUp space.
 
@@ -52,17 +52,17 @@ class ClickUpTaskService(IClickUpTaskService):
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[Folder]: List of folders representing the space structure.
+            List[FolderWithLists]: List of folders representing the space structure.
         """
-        logger.info("Fetching space structure. space_id=%s.", space_id)
+        logger.info("Fetching space structure with lists. space_id=%s.", space_id)
 
         if space_id not in self._cache:
-            self._cache[space_id] = self._clickup_reader.get_space_structure(space_id)
+            self._cache[space_id] = self._clickup_reader.get_space_full_structure(space_id)
 
         result = self._cache[space_id]
 
         logger.info(
-            "Space structure fetched successfully. space_id=%s folders=%d.",
+            "Space structure with lists fetched successfully. space_id=%s folders=%d.",
             space_id,
             len(result),
         )

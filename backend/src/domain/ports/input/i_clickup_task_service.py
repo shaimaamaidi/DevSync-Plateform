@@ -12,7 +12,7 @@ It acts as a contract for application-level services responsible for:
 
 from typing import List
 
-from backend.src.domain.entities.clickup.folder import Folder
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 
 
 class IClickUpTaskService:
@@ -24,7 +24,7 @@ class IClickUpTaskService:
     and caching mechanisms.
     """
 
-    def get_space_structure(self, space_id: str) -> List[Folder]:
+    def get_space_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Retrieve ClickUp space structure.
 
@@ -32,7 +32,7 @@ class IClickUpTaskService:
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[Folder]: List of folders representing the space structure.
+            List[FolderWithLists]: List of folders representing the space structure with lists9.
         """
         pass
 

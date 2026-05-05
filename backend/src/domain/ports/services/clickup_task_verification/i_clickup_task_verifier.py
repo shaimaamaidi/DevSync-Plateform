@@ -9,7 +9,7 @@ only tasks who need to create or update.
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.clickup.list import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 

@@ -15,9 +15,9 @@ workspace structure decisions into ClickUp API operations.
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, List
+from typing import Optional
 
-from backend.src.domain.entities.clickup.list import ClickUpList
+from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.status import ClickUpStatus
 
 class IClickUpWorkSpaceWriter(ABC):
@@ -61,7 +61,7 @@ class IClickUpWorkSpaceWriter(ABC):
         space_id: str,
         name: str = "List",
         folder_id: Optional[str] = None,
-    ) -> ClickUpList:
+    ) -> ClickUpListMetadata:
         """
         Create a new List in ClickUp.
 
@@ -73,7 +73,7 @@ class IClickUpWorkSpaceWriter(ABC):
             folder_id: Optional Folder identifier.
 
         Returns:
-            ClickUpList: A domain object representing the created List, including
+            ClickUpListMetadata: A domain object representing the created List, including
                 its ID, name, statuses, and priorities.
         """
         pass
@@ -83,7 +83,7 @@ class IClickUpWorkSpaceWriter(ABC):
             self,
             list_id: str,
             status: ClickUpStatus,
-    ) -> List[str]:
+    ) -> ClickUpListMetadata:
         """
         Add a single status to an existing List without affecting other statuses.
 
@@ -95,6 +95,8 @@ class IClickUpWorkSpaceWriter(ABC):
             status: The new ClickUpStatus to add.
 
         Returns:
-            List[str]: The updated list of status names after adding the new status.
+            ClickUpListMetadata: A domain object representing the created List, including
+                it ID, name, priorities and the updated list of status names after adding
+                the new status.
         """
         pass

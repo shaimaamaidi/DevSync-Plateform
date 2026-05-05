@@ -8,7 +8,7 @@ for creating or updating tasks in ClickUp based on verification results.
 from abc import abstractmethod, ABC
 from typing import List
 
-from backend.src.domain.entities.clickup.folder import Folder
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
@@ -24,7 +24,7 @@ class IClickUpTaskWriter(ABC):
     def apply_results(
             self,
             results: List[VerifiedTask],
-            folders: List[Folder],
+            folders: List[FolderWithLists],
             members: List[dict],
             name_to_email: dict[str, str],
             ignore_mails: bool

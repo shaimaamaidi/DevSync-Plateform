@@ -11,9 +11,9 @@ workspace structure decisions into ClickUp API requests.
 """
 
 import logging
-from typing import Optional, List
+from typing import Optional
 
-from backend.src.domain.entities.clickup.list import ClickUpList
+from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.status import ClickUpStatus
 from backend.src.domain.exceptions.clickup.clickup_write_exception import ClickUpWriteException
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
@@ -135,7 +135,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
         space_id: str,
         name: str = "List",
         folder_id: Optional[str] = None,
-    ) -> ClickUpList:
+    ) -> ClickUpListMetadata:
         """
         Create a new List in ClickUp.
 
@@ -149,7 +149,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             folder_id: Optional Folder identifier.
 
         Returns:
-            ClickUpList: A domain object representing the created List, including
+            ClickUpListMetadata: A domain object representing the created List, including
                 its ID, name, statuses, and priorities.
 
         Raises:
@@ -177,10 +177,9 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
                 name,
                 response.status_code,
             )
-            return ClickUpList(
+            return ClickUpListMetadata(
                 id=data["id"],
                 name=data["name"],
-                tasks=[],
                 statuses=[s["status"] for s in data.get("statuses", [])],
                 priorities=[p["priority"] for p in
                             data.get("features", {}).get("priorities", {}).get("priorities", [])],
@@ -201,7 +200,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
         self,
         list_id: str,
         status: ClickUpStatus,
-    ) -> List[str]:
+    ) -> ClickUpListMetadata:
         """
         Add a single status to an existing List without affecting other statuses.
 
@@ -213,7 +212,9 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             status: The new ClickUpStatus to add.
 
         Returns:
-            List[str]: The updated list of status names after adding the new status.
+            ClickUpListMetadata: A domain object representing the created List, including
+                it ID, name, priorities and the updated list of status names after adding
+                the new status.
 
         Raises:
             ClickUpWriteException: If the PUT request fails.
@@ -237,16 +238,20 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
         response = self._http.put_raw(f"/list/{list_id}", {"statuses": merged})
 
         if response.status_code == 200:
+            data = response.json()
             logger.info(
                 "Status added successfully. list_id=%s status=%s status_code=%d.",
                 list_id,
                 status.status,
                 response.status_code,
             )
-            list_status = []
-            for status in merged:
-                list_status.append(status.get("status"))
-            return list_status
+            return ClickUpListMetadata(
+                id=data["id"],
+                name=data["name"],
+                statuses=[s["status"] for s in data.get("statuses", [])],
+                priorities=[p["priority"] for p in
+                            data.get("features", {}).get("priorities", {}).get("priorities", [])],
+            )
 
         logger.error(
             "Status add failed. list_id=%s status=%s status_code=%d response=%s.",

@@ -8,7 +8,8 @@ retrieving ClickUp space structures (folders, lists) and workspace members.
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.clickup.folder import Folder
+from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 
 
 class IClickUpReader(ABC):
@@ -20,7 +21,7 @@ class IClickUpReader(ABC):
     """
 
     @abstractmethod
-    def get_space_structure(self, space_id: str) -> List[Folder]:
+    def get_space_full_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Fetch the full ClickUp space structure.
 
@@ -30,9 +31,24 @@ class IClickUpReader(ABC):
             space_id: ClickUp space identifier.
 
         Returns:
-            List[Folder]: List of folders representing the space structure.
+            List[FolderWithLists]: List of folders representing the space structure.
         """
         pass
+
+    @abstractmethod
+    def get_space_structure_metadata(self, space_id: str) -> List[FolderWithListsMetadata]:
+        """
+        Retrieve ClickUp space structure (metadata only).
+
+        Includes folders and lists with their configuration metadata
+        (statuses and priorities), without retrieving tasks.
+
+        Args:
+            space_id: ClickUp space identifier.
+
+        Returns:
+            List of FolderWithListsMetadata containing lists metadata.
+        """
 
     @abstractmethod
     def get_workspace_members(self, space_id: str) -> List[dict]:
