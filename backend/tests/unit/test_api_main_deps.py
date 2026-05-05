@@ -11,6 +11,7 @@ from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.presentation.api import deps
 from backend.src.presentation.api.main import create_app
+from backend.src.presentation.api.routers import clickup_structure_metadata_router
 
 
 def test_create_app_registers_routes() -> None:
@@ -108,6 +109,43 @@ def test_get_generate_task_from_summary_use_case_returns_instance() -> None:
     result = deps.get_generate_task_from_summary_use_case(request)
 
     assert result is use_case
+
+
+def test_get_clickup_structure_metadata_use_case_returns_instance() -> None:
+    use_case = object()
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(workflow_container=SimpleNamespace(clickup_structure_metadata_use_case=use_case))))
+
+    result = clickup_structure_metadata_router.get_clickup_structure_metadata_use_case(request)
+
+    assert result is use_case
+
+
+def test_get_clickup_structure_metadata_use_case_missing_raises() -> None:
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(workflow_container=SimpleNamespace(clickup_structure_metadata_use_case=None))))
+
+    with pytest.raises(ServiceUnavailableException):
+        clickup_structure_metadata_router.get_clickup_structure_metadata_use_case(request)
+
+
+def test_get_clickup_structure_creation_use_case_returns_instance() -> None:
+    use_case = object()
+    workflow_container = SimpleNamespace(create_clickup_structure_creation_use_case=MagicMock(return_value=use_case))
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(workflow_container=workflow_container)))
+    container = SimpleNamespace(clickup_repo=object())
+
+    result = deps.get_clickup_structure_creation_use_case(request, container=container)
+
+    assert result is use_case
+    workflow_container.create_clickup_structure_creation_use_case.assert_called_once_with(clickup_repo=container.clickup_repo)
+
+
+def test_get_clickup_structure_creation_use_case_wraps_unexpected_error() -> None:
+    workflow_container = SimpleNamespace(create_clickup_structure_creation_use_case=MagicMock(side_effect=RuntimeError("fail")))
+    request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(workflow_container=workflow_container)))
+    container = SimpleNamespace(clickup_repo=object())
+
+    with pytest.raises(ServiceUnavailableException):
+        deps.get_clickup_structure_creation_use_case(request, container=container)
 
 
 def test_get_save_task_use_case_returns_instance() -> None:

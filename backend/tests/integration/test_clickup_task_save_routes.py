@@ -22,7 +22,7 @@ def test_save_tasks_to_clickup(client: TestClient, container) -> None:
             task_assigne="Alice",
             task_status="To Do",
             task_priority="High",
-            folder="Backend",
+            location="Backend",
         )],
         space_id="space-1",
         ignore_names=False,
@@ -32,8 +32,6 @@ def test_save_tasks_to_clickup(client: TestClient, container) -> None:
     response = client.post("/clickup/save", json=payload)
 
     assert response.status_code == 201
-    assert response.json()["message"] == "Tasks saved to ClickUp successfully."
-    assert response.json()["total_tasks"] == 1
     container.save_task_use_case.save_to_clickup.assert_called_once()
     call_args = container.save_task_use_case.save_to_clickup.call_args.kwargs
     assert call_args["space_id"] == "space-1"

@@ -16,7 +16,7 @@ def _verified_task() -> VerifiedTask:
         task_assigne="Alice",
         task_status="To Do",
         task_priority="High",
-        folder="Backend",
+        location="Backend",
     )
 
 

@@ -17,7 +17,6 @@ from backend.src.domain.entities.market.query import QueryGeneration
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.entities.sprint.planning import SprintPlanning
-from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.infrastructure.external.backlog_generation.agents.backlog_cleaner_agent import BacklogCleanerAgent
 from backend.src.infrastructure.external.backlog_generation.agents.backlog_generation_orchestrator_agent import (

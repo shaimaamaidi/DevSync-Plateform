@@ -4,7 +4,7 @@ Unit tests for BacklogWorkflowOrchestrator.
 
 import json
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
 

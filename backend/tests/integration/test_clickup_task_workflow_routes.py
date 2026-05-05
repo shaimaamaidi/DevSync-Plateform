@@ -20,7 +20,7 @@ def test_generate_tasks_from_summary(client: TestClient, container) -> None:
         "task_assigne": "Alice",
         "task_status": "To Do",
         "task_priority": "High",
-        "folder": "Backend",
+        "location": "Backend",
     }
 
     container.generate_task_from_summary_use_case.generate_tasks_from_meeting_summary.return_value = [
@@ -52,7 +52,7 @@ def test_verify_tasks(client: TestClient, container) -> None:
         task_assigne="Alice",
         task_status="To Do",
         task_priority="High",
-        folder="Backend",
+        location="Backend",
     )
 
     verified_task = VerifiedTask(
@@ -62,7 +62,7 @@ def test_verify_tasks(client: TestClient, container) -> None:
         task_assigne="Alice",
         task_status="To Do",
         task_priority="High",
-        folder="Backend",
+        location="Backend",
         task_id=None,
     )
 

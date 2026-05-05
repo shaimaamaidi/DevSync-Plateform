@@ -30,6 +30,8 @@ from backend.src.presentation.api.routers import (
     auth_router,
     associator_router,
     clickup_router,
+    clickup_structure_creation_router,
+    clickup_structure_metadata_router,
     deployment_router,
     generate_tasks_from_summary_router,
     member_router,
@@ -58,6 +60,8 @@ class _Container:
         self.save_task_use_case = MagicMock()
         self.generate_task_from_summary_use_case = MagicMock()
         self.verify_task_use_case = MagicMock()
+        self.clickup_structure_creation_use_case = MagicMock()
+        self.clickup_structure_metadata_use_case = MagicMock()
 
 
 @pytest.fixture
@@ -84,6 +88,8 @@ def app(container: _Container) -> FastAPI:
     app.include_router(verification_tasks_router.router, prefix="/clickup", tags=["ClickUp"])
     app.include_router(generate_tasks_from_summary_router.router, prefix="/clickup", tags=["ClickUp"])
     app.include_router(clickup_task_save_router.router, prefix="/clickup", tags=["ClickUp"])
+    app.include_router(clickup_structure_metadata_router.router, prefix="/clickup/structure", tags=["ClickUp Structure Metadata"])
+    app.include_router(clickup_structure_creation_router.router, prefix="/clickup/structure", tags=["ClickUp Structure Creation"])
 
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
@@ -113,6 +119,16 @@ def app(container: _Container) -> FastAPI:
         return container.verify_task_use_case
 
     app.dependency_overrides[deps.get_verify_task_use_case] = override_get_verify_task_use_case
+
+    def override_get_clickup_structure_metadata_use_case() -> MagicMock:
+        return container.clickup_structure_metadata_use_case
+
+    app.dependency_overrides[clickup_structure_metadata_router.get_clickup_structure_metadata_use_case] = override_get_clickup_structure_metadata_use_case
+
+    def override_get_clickup_structure_creation_use_case() -> MagicMock:
+        return container.clickup_structure_creation_use_case
+
+    app.dependency_overrides[deps.get_clickup_structure_creation_use_case] = override_get_clickup_structure_creation_use_case
     return app
 
 
