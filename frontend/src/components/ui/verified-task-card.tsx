@@ -50,7 +50,6 @@ export function VerifiedTaskCard({
   const set = (key: keyof VerifiedTask) => (value: string) =>
     setDraft(prev => ({ ...prev, [key]: value }));
 
-  /* ───────────────────────────────────────────────────────── */
 
   return (
     <div
@@ -60,7 +59,6 @@ export function VerifiedTaskCard({
           : 'border-border/60 hover:border-border'
       }`}
     >
-      {/* ───────── EDIT MODE ───────── */}
       {editing ? (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -91,9 +89,9 @@ export function VerifiedTaskCard({
             />
 
             <EditableField
-              value={draft.folder}
-              onChange={set('folder')}
-              placeholder="Folder"
+              value={draft.location}
+              onChange={set('location')}
+              placeholder="Location"
             />
 
             <EditableField
@@ -127,7 +125,6 @@ export function VerifiedTaskCard({
           </div>
         </div>
       ) : (
-        /* ───────── VIEW MODE ───────── */
         <div className="flex items-start gap-3">
           <div className={`w-2 h-2 mt-[7px] rounded-full ${cfg.dot}`} />
 
@@ -162,7 +159,7 @@ export function VerifiedTaskCard({
               </span>
 
               <span className="text-xs px-2 py-0.5 rounded-md border bg-muted/50 text-muted-foreground">
-                {task.folder}
+                {task.location}
               </span>
             </div>
           </div>

@@ -17,7 +17,7 @@ const EMPTY_TASK: VerifiedTask = {
   task_assigne: '',
   task_status: 'To Do',
   task_priority: 'normal',
-  folder: '',
+  location: '',
 };
 
 
@@ -60,9 +60,9 @@ export function AddTaskForm({
         />
 
         <EditableField
-          value={draft.folder}
-          onChange={set('folder')}
-          placeholder="Folder"
+          value={draft.location}
+          onChange={set('location')}
+          placeholder="Location"
         />
 
         <EditableField

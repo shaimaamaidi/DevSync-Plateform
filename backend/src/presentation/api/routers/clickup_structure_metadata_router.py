@@ -24,6 +24,7 @@ from backend.src.domain.exceptions.system.service_unavailable_exception import S
 
 logger = logging.getLogger(__name__)
 
+
 router = APIRouter()
 
 

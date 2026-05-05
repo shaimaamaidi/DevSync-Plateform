@@ -29,7 +29,9 @@ from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadat
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 from backend.src.presentation.api.deps import get_clickup_structure_creation_use_case
 
+
 logger = logging.getLogger(__name__)
+
 
 router = APIRouter()
 

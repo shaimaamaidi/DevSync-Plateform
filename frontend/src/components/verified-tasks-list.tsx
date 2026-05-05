@@ -85,7 +85,6 @@ export function VerifiedTaskList({
         isDragOver ? 'ring-2 ring-primary/40 bg-primary/5 p-2' : ''
       }`}
     >
-      {/* header */}
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">
           {isLoading
@@ -106,7 +105,6 @@ export function VerifiedTaskList({
         )}
       </div>
 
-      {/* add form */}
       {showAddForm && (
         <AddTaskForm
           onAdd={handleAdd}
@@ -114,7 +112,6 @@ export function VerifiedTaskList({
         />
       )}
 
-      {/* list */}
       <div className="flex flex-col gap-2">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (
@@ -131,14 +128,12 @@ export function VerifiedTaskList({
             ))}
       </div>
 
-      {/* empty state */}
       {!isLoading && tasks.length === 0 && !showAddForm && (
         <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
           No tasks yet — drag or add manually
         </div>
       )}
 
-      {/* save section */}
       {!isLoading && tasks.length > 0 && (
         <div className="flex justify-end gap-3 pt-2">
           {savedOk && (

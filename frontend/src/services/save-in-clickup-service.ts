@@ -1,12 +1,12 @@
-import { clickUpApi } from '@/apiClient';
-import type { SaveTasksRequest, SaveTasksResponse, VerifiedTask } from '@/api/api';
+import { clickUpTasksApi } from '@/apiClient';
+import type { SaveTasksRequest, VerifiedTask } from '@/api/api';
 
 export const saveInClickupService = {
   async saveTasks(
     spaceId: string,
     tasks: VerifiedTask[],
     options?: { ignoreNames?: boolean; ignoreMails?: boolean }
-  ): Promise<SaveTasksResponse | null> {
+  ): Promise<boolean> {
     const payload: SaveTasksRequest = {
       space_id: spaceId,
       tasks,
@@ -14,12 +14,9 @@ export const saveInClickupService = {
       ignore_mails: options?.ignoreMails ?? undefined,
     };
 
-    const response = await clickUpApi.saveTasksToClickupClickupSavePost(payload);
-    return response.data
-      ? {
-          message: response.data.message ?? '',
-          total_tasks: response.data.total_tasks ?? 0,
-        }
-      : null;
+    await clickUpTasksApi.saveTasksToClickupClickupTasksSavePost(payload);
+
+    // Si aucune erreur n’est levée → succès
+    return true;
   },
 };

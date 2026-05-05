@@ -5,6 +5,7 @@ import {
   DeploymentApi,
   MemberApi,
   RepoApi,
+  ClickUpTasksApi
 } from './api';
 import { setupAxiosInterceptors } from './api/axios-interceptor';
 
@@ -21,3 +22,4 @@ export const clickUpApi = new ClickUpApi(apiConfig);
 export const deploymentApi = new DeploymentApi(apiConfig);
 export const memberApi = new MemberApi(apiConfig);
 export const repoApi = new RepoApi(apiConfig);
+export const clickUpTasksApi = new ClickUpTasksApi(apiConfig);

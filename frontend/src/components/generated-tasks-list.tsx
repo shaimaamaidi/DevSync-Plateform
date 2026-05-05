@@ -32,7 +32,6 @@ export function GeneratedTaskList({
         <span className="text-xs text-muted-foreground/60">⇠ drag</span>
       </div>
 
-      {/* list */}
       <div className="flex flex-col gap-2">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => (

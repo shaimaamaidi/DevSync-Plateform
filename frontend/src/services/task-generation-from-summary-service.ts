@@ -1,4 +1,4 @@
-import { clickUpApi } from '@/apiClient';
+import { clickUpTasksApi } from '@/apiClient';
 import type { GenerateTasksFromSummaryRequest, GeneratedTask } from '@/api/api';
 
 export const taskGenerationService = {
@@ -12,7 +12,7 @@ export const taskGenerationService = {
     };
 
     const response =
-      await clickUpApi.generateTasksFromSummaryClickupGenerateTasksFromSummaryPost(payload);
+      await clickUpTasksApi.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(payload);
     return response.data ?? [];
   },
 };

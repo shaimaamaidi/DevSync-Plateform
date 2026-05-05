@@ -67,7 +67,7 @@ export function GeneratedTaskCard({ task, onDelete }: Props) {
             </span>
 
             <span className="text-xs px-2 py-0.5 rounded-md border bg-muted/50">
-              {task.folder}
+              {task.location}
             </span>
           </div>
         </div>

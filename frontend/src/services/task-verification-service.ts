@@ -1,4 +1,4 @@
-import { clickUpApi } from '@/apiClient';
+import { clickUpTasksApi } from '@/apiClient';
 import type { GeneratedTask, VerifyTasksRequest, VerifyTasksResponse } from '@/api/api';
 
 export const taskVerificationService = {
@@ -11,7 +11,7 @@ export const taskVerificationService = {
       tasks,
     };
 
-    const response = await clickUpApi.verifyTasksClickupVerifyPost(payload);
+    const response = await clickUpTasksApi.verifyTasksClickupTasksVerifyPost(payload);
     return response.data ?? { total: 0, tasks: [] };
   },
 };

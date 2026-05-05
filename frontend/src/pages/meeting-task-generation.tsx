@@ -171,7 +171,7 @@ export function MeetingTaskManager() {
         task_assigne: task.task_assigne,
         task_status: task.task_status,
         task_priority: task.task_priority,
-        folder: task.folder,
+        location: task.location,
       },
     ]);
   };
