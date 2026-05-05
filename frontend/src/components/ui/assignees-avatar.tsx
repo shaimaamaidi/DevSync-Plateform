@@ -1,4 +1,3 @@
-// Shared assignee rendering logic
 // task_assigne is a comma-separated string of member names.
 // The special value "غير محدد" means no assignees.
 
