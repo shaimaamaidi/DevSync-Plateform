@@ -12,7 +12,7 @@ Main classes:
 from dataclasses import dataclass, field
 from typing import List
 
-from backend.src.domain.entities.clickup.list import ClickUpList
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList
 
 
 @dataclass
