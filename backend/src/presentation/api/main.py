@@ -32,9 +32,12 @@ from backend.src.infrastructure.persistence.mysql_connector import MySQLConnecto
 from backend.src.infrastructure.scheduler.token_cleanup_scheduler import TokenCleanupScheduler
 from backend.src.presentation.api.middleware.auth_middleware import JWTAuthMiddleware
 from backend.src.presentation.api.middleware.request_id_middleware import request_id_middleware
-from backend.src.presentation.api.routers import associator_router, clickup_router, repo_router, member_router, \
-    deployment_router, auth_router, backlog_router, health_router, verification_tasks_router, \
-    generate_tasks_from_summary_router, clickup_task_save_router
+from backend.src.presentation.api.routers import (
+    associator_router, clickup_router, repo_router, member_router,
+    deployment_router, auth_router, backlog_router, health_router, verification_tasks_router,
+    generate_tasks_from_summary_router, clickup_task_save_router,
+    clickup_structure_metadata_router, clickup_structure_creation_router
+)
 
 
 logger = logging.getLogger(__name__)
@@ -170,9 +173,31 @@ def create_app() -> FastAPI:
     app.include_router(member_router.router, prefix="/member", tags=["Member"])
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
     app.include_router(backlog_router.router, prefix="/backlog", tags=["Backlog"])
-    app.include_router(verification_tasks_router.router, prefix="/clickup", tags=["ClickUp"])
-    app.include_router(generate_tasks_from_summary_router.router, prefix="/clickup", tags=["ClickUp"])
-    app.include_router(clickup_task_save_router.router, prefix="/clickup", tags=["ClickUp"])
+    app.include_router(
+        verification_tasks_router.router,
+        prefix="/clickup/tasks",
+        tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        generate_tasks_from_summary_router.router,
+        prefix="/clickup/tasks",
+        tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        clickup_task_save_router.router,
+        prefix="/clickup/tasks",
+        tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        clickup_structure_metadata_router.router,
+        prefix="/clickup/structure",
+        tags=["ClickUp Structure Metadata"],
+    )
+    app.include_router(
+        clickup_structure_creation_router.router,
+        prefix="/clickup/structure",
+        tags=["ClickUp Structure Creation"],
+    )
 
     return app
 

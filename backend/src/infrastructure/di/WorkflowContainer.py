@@ -19,6 +19,8 @@ Classes:
 import logging
 
 from backend.src.application.services.clickup_space_reader_service import ClickUpTaskService
+from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
@@ -26,6 +28,7 @@ from backend.src.application.use_cases.verify_task_use_case import VerifyTaskUse
 
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
+from backend.src.domain.ports.input.i_clickup_service import IClickUpService
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
 from backend.src.infrastructure.external.backlog_generation.agents.epic_generator_agent import EpicGeneratorAgent
@@ -55,6 +58,7 @@ from backend.src.infrastructure.external.backlog_generation.orchestrator.backlog
 from backend.src.infrastructure.external.clickup.clickup_reader import ClickUpReader
 from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
+from backend.src.infrastructure.external.clickup.writer.clickup_workspace_writer import ClickUpWorkSpaceWriter
 from backend.src.infrastructure.external.clickup_task_verification.clickup_task_verifier_agent import \
     ClickUpTaskVerifierAgent
 from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_agent import \
@@ -89,6 +93,7 @@ class WorkflowContainer:
         # ClickUp infrastructure
         clickup_task_service (ClickUpTaskService | None): Service for reading ClickUp tasks.
         clickup_writer (ClickUpTaskWriter | None): Service for writing tasks to ClickUp.
+        clickup_workspace_writer (ClickUpWorkSpaceWriter | None): Service for writing ClickUp workspace structure.
         http_client (ClickUpHttpClient): HTTP client used for ClickUp API communication.
         clickup_reader (ClickUpReader): Reader adapter for ClickUp data access.
 
@@ -96,6 +101,8 @@ class WorkflowContainer:
         clickup_task_generator_use_case (GenerateTaskFromSummaryUseCase | None):
             Use case for generating ClickUp tasks from a summary.
         verify_tasks_use_case (VerifyTaskUseCase | None): Use case for verifying generated tasks.
+        clickup_structure_metadata_use_case (ClickUpStructureMetadataUseCase | None):
+            Use case responsible for retrieving ClickUp workspace structure metadata.
 
         # Prompt system
         prompt_loader (PromptLoader): Loader responsible for retrieving LLM prompt templates.
@@ -146,9 +153,12 @@ class WorkflowContainer:
 
         self.clickup_task_service: ClickUpTaskService | None = None
         self.clickup_writer: ClickUpTaskWriter | None = None
+        self.clickup_workspace_writer: ClickUpWorkSpaceWriter | None = None
+
 
         self.clickup_task_generator_use_case: GenerateTaskFromSummaryUseCase | None = None
         self.verify_tasks_use_case: VerifyTaskUseCase | None = None
+        self.clickup_structure_metadata_use_case: ClickUpStructureMetadataUseCase | None = None
 
         self.prompt_loader = PromptLoader()
 
@@ -159,6 +169,7 @@ class WorkflowContainer:
             self._init_clickup_external_service()
             self._init_tasks_generation_from_summary()
             self._init_tasks_verification()
+            self._init_clickup_structure_metadata_use_case()
 
             logger.info("Workflow container initialized successfully.")
 
@@ -291,13 +302,14 @@ class WorkflowContainer:
 
     def _init_clickup_external_service(self):
         """
-        Initialize ClickUp HTTP client, reader, writer, and task service.
+        Initialize ClickUp HTTP client, reader, writers, and task service.
         """
         logger.info("Initializing ClickUp external service.")
 
         self.http_client = ClickUpHttpClient()
         self.clickup_reader = ClickUpReader(self.http_client)
         self.clickup_writer = ClickUpTaskWriter(self.http_client)
+        self.clickup_workspace_writer = ClickUpWorkSpaceWriter(self.http_client)
         self.clickup_task_service = ClickUpTaskService(self.clickup_reader)
 
     def _init_tasks_generation_from_summary(self):
@@ -324,6 +336,27 @@ class WorkflowContainer:
             self.clickup_task_verifier_agent,
         )
 
+    def _init_clickup_structure_metadata_use_case(self):
+        """
+        Initialize ClickUpStructureMetadataUseCase.
+
+        This method wires the ClickUp structure metadata use case responsible for
+        retrieving workspace structure information such as:
+            - Spaces
+            - Folders
+            - Lists
+            - Status configurations
+
+        The use case relies on the ClickUpReader infrastructure to fetch data
+        from the ClickUp API.
+
+        Raises:
+            AppException:
+                If required ClickUp infrastructure is not properly initialized.
+        """
+        self.clickup_structure_metadata_use_case = ClickUpStructureMetadataUseCase(
+            self.clickup_reader
+        )
     def create_save_task_use_case(self, member_repo: IMemberRepository) -> SaveTaskInClickUpUseCase:
         """
         Factory method for SaveTaskInClickUpUseCase.
@@ -349,4 +382,35 @@ class WorkflowContainer:
             clickup_task_service=self.clickup_task_service,
             member_repo=member_repo,
             clickup_writer=self.clickup_writer,
+        )
+
+    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpService) -> ClickUpStructureCreationUseCase:
+        """
+        Factory method for ClickUpStructureCreationUseCase.
+
+        This method creates a use case responsible for building ClickUp workspace
+        structure, including spaces, folders, lists, and statuses.
+
+        It combines:
+            - The external ClickUp service (repository abstraction)
+            - The ClickUp workspace writer infrastructure component
+
+        Args:
+            clickup_repo (IClickUpService):
+                Domain service abstraction used to interact with ClickUp API.
+
+        Returns:
+            ClickUpStructureCreationUseCase:
+                Fully initialized use case ready to create ClickUp workspace structure.
+
+        Raises:
+            ServiceUnavailableException:
+                If required ClickUp writer infrastructure is not initialized.
+        """
+        if self.clickup_writer is None:
+            raise ServiceUnavailableException("ClickUp writer is not initialized.")
+
+        return ClickUpStructureCreationUseCase(
+            clickup_service=clickup_repo,
+            clickup_writer=self.clickup_workspace_writer
         )

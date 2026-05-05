@@ -15,10 +15,9 @@ Routes:
 
 import logging
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response
 
 from backend.src.domain.entities.save_tasks.save_tasks_request import SaveTasksRequest
-from backend.src.domain.entities.save_tasks.save_tasks_response import SaveTasksResponse
 from backend.src.domain.ports.input.i_save_task_in_clickup_use_case import ISaveTaskInClickUpUseCase
 from backend.src.presentation.api.deps import get_save_task_use_case
 
@@ -30,7 +29,6 @@ router = APIRouter()
 
 @router.post(
     "/save",
-    response_model=SaveTasksResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Save verified tasks into ClickUp",
     description=(
@@ -42,7 +40,7 @@ router = APIRouter()
 def save_tasks_to_clickup(
         request: SaveTasksRequest,
         use_case: ISaveTaskInClickUpUseCase = Depends(get_save_task_use_case),
-) -> SaveTasksResponse:
+) -> Response:
     """
     Save verified tasks into ClickUp.
 
@@ -64,10 +62,9 @@ def save_tasks_to_clickup(
             Application use case responsible for ClickUp persistence logic.
 
     Returns:
-        SaveTasksResponse:
-            Confirmation response containing:
-            - message: execution status message
-            - total_tasks: number of processed tasks
+        None:
+            This endpoint does not return any response body.
+            It only confirms successful execution via HTTP 201 Created status.
     """
     logger.info(
         "POST /clickup/save called. space_id=%s total_tasks=%d.",
@@ -88,7 +85,4 @@ def save_tasks_to_clickup(
         len(request.tasks),
     )
 
-    return SaveTasksResponse(
-        message="Tasks saved to ClickUp successfully.",
-        total_tasks=len(request.tasks),
-    )
+    return Response(status_code=status.HTTP_201_CREATED)

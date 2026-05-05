@@ -11,6 +11,10 @@ Functions:
     get_verify_task_use_case: Provides the task verification use case instance.
     get_generate_task_from_summary_use_case: Provides the task generation from summary use case instance.
     get_save_task_use_case: Builds and provides the save task use case per request.
+    get_clickup_structure_creation_use_case:
+        Builds and provides the ClickUp workspace structure creation use case per request.
+        This use case is responsible for creating ClickUp spaces, folders, lists, and statuses
+        using request-scoped repository data combined with singleton infrastructure.
 """
 
 import logging
@@ -18,6 +22,7 @@ from typing import Generator
 
 from fastapi import Depends, Request
 
+from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
@@ -242,3 +247,57 @@ def get_save_task_use_case(
     except Exception as e:
         logger.exception("Failed to build save task use case: %s", str(e))
         raise ServiceUnavailableException("Save task service is unavailable.") from e
+
+# Request-scoped use case (requires clickup_repo)
+
+def get_clickup_structure_creation_use_case(
+    request: Request,
+    container: Container = Depends(get_container),
+) -> ClickUpStructureCreationUseCase:
+    """
+    Build and provide the ClickUp structure creation use case for the current request.
+
+    This dependency constructs a request-scoped use case responsible for creating
+    ClickUp workspace structures such as:
+        - Spaces
+        - Folders
+        - Lists
+        - Statuses
+
+    It combines:
+        - Singleton ClickUp infrastructure stored in application state
+        - Request-scoped repository access (clickup_repo) from DI container
+
+    This ensures that workspace creation operations are properly isolated per request
+    while still reusing shared infrastructure components.
+
+    Args:
+        request (Request):
+            The incoming FastAPI request object.
+
+        container (Container):
+            The request-scoped dependency injection container providing repositories.
+
+    Returns:
+        ClickUpStructureCreationUseCase:
+            A fully initialized use case responsible for creating ClickUp workspace structure.
+
+    Raises:
+        ServiceUnavailableException:
+            If ClickUp infrastructure is not initialized in application state,
+            or if an unexpected error occurs during use case construction.
+
+    Notes:
+        - This use case is request-scoped due to repository dependency.
+        - ClickUp writer infrastructure is shared (singleton via workflow container).
+        - Ensures separation between structure creation logic and persistence layer.
+    """
+    try:
+        return request.app.state.workflow_container.create_clickup_structure_creation_use_case(
+            clickup_repo=container.clickup_repo
+        )
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to build clickup structure creation use case: %s", str(e))
+        raise ServiceUnavailableException("Creation clickup structure service is unavailable.") from e
