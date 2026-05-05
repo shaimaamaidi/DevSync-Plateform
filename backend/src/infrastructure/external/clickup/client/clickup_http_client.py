@@ -11,6 +11,8 @@ This client contains no business logic and is used by infrastructure services.
 
 import logging
 import os
+from pathlib import Path
+
 import requests
 from typing import Any
 
@@ -25,6 +27,10 @@ from backend.src.domain.exceptions.clickup.missing_clickup_config_exception impo
 
 
 logger = logging.getLogger(__name__)
+
+
+_BACKEND_DIR = Path(__file__).resolve().parents[5]
+_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class ClickUpHttpClient:
@@ -53,12 +59,17 @@ class ClickUpHttpClient:
         Raises:
             MissingClickUpConfigException: If the API token is missing from environment.
         """
-        load_dotenv()
+        loaded = load_dotenv(_DOTENV_PATH, override=False)
+
+        if not loaded:
+            logger.warning(".env file not found at %s.", _DOTENV_PATH)
 
         api_token = os.getenv("CLICKUP_API_TOKEN")
-        if not api_token:
+        self.team_id = os.getenv("CLICKUP_TEAM_ID")
+
+        if not api_token or not self.team_id:
             raise MissingClickUpConfigException(
-                "CLICKUP_API_TOKEN is missing from environment variables."
+                "CLICKUP_API_TOKEN or CLICKUP_TEAM_ID is missing from environment variables."
             )
 
         self._headers = {

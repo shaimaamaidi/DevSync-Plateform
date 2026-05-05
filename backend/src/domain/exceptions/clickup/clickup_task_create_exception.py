@@ -6,10 +6,10 @@ to handle failures that occur when creating tasks in ClickUp. It standardizes
 error reporting for task creation operations.
 """
 
-from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.domain.exceptions.clickup.clickup_write_exception import ClickUpWriteException
 
 
-class ClickUpTaskCreateException(AppException):
+class ClickUpTaskCreateException(ClickUpWriteException):
     """
     Exception for ClickUp task creation failures.
 
@@ -33,6 +33,6 @@ class ClickUpTaskCreateException(AppException):
         """
         super().__init__(
             message=message,
-            code="CLICKUP_TASK_CREATE_ERROR",
             http_status=http_status
         )
+        self.code = "CLICKUP_TASK_CREATE_ERROR"

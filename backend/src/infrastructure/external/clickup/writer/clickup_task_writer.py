@@ -16,7 +16,7 @@ from backend.src.domain.entities.clickup.folder import Folder
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
-from backend.src.domain.ports.output.clickup.i_clickup_writer import IClickUpTaskWriter
+from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
 from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, priority_to_int
 
