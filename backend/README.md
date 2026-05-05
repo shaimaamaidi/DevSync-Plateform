@@ -287,6 +287,27 @@ Below are the main endpoints provided by the backend, with required parameters a
   - **Path param:** `space_id` (int, required)
   - **Returns:** `true` when deletion succeeds
 
+### ClickUp Structure Management
+These routes are mounted under `/clickup/structure` and are used to create and inspect
+ClickUp workspace hierarchy elements.
+
+- **POST `/clickup/structure/spaces`**
+  - **Body:** `{ "space_id": string }`
+  - **Returns:** Created ClickUp space metadata
+- **POST `/clickup/structure/folders`**
+  - **Body:** `{ "space_id": string, "name": string }`
+  - **Returns:** Created folder metadata with an empty list collection
+- **POST `/clickup/structure/lists`**
+  - **Body:** `{ "space_id": string, "name"?: string, "folder_id"?: string }`
+  - **Returns:** Created list metadata
+- **POST `/clickup/structure/lists/{list_id}/statuses`**
+  - **Path param:** `list_id` (string, required)
+  - **Body:** `{ "list_id": string, "status": string, "color": string, "type": string }`
+  - **Returns:** Updated list metadata with the added status
+- **GET `/clickup/structure/spaces/{space_id}/metadata`**
+  - **Path param:** `space_id` (string, required)
+  - **Returns:** Folder and list metadata for the selected ClickUp space
+
 ### ClickUp Task Verification & Save
 These endpoints are implemented in dedicated routers and are available when mounted under the `/clickup` prefix in the application factory.
 
@@ -297,8 +318,8 @@ These endpoints are implemented in dedicated routers and are available when moun
   - **Body:** `{ "space_id": string, "tasks": [...] }`
   - **Returns:** Verification result with `create` / `update` actions
 - **POST `/clickup/save`**
-  - **Body:** `{ "space_id": string, "tasks": [...], "ignore_names"?: [...], "ignore_mails"?: [...] }`
-  - **Returns:** Save summary (`message`, `total_tasks`)
+  - **Body:** `{ "space_id": string, "tasks": [...], "ignore_names"?: boolean, "ignore_mails"?: boolean }`
+  - **Returns:** `201 Created` with an empty response body
 
 ### Backlog (AI Streaming)
 These endpoints are exposed by the backlog router under the `/backlog` prefix.
@@ -423,13 +444,13 @@ Run all unit and integration tests:
 pytest tests
 ```
 
-All tests should pass. (Current: **215 tests**)
+All tests should pass. (Current: **229 tests**)
 
 ### 🧪 Test Breakdown
 
-- **Total tests:** 215
-- **Unit tests:** 177
-- **Integration tests:** 38
+- **Total tests:** 229
+- **Unit tests:** 186
+- **Integration tests:** 43
 
 ---
 
