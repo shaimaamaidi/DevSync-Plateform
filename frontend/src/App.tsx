@@ -8,6 +8,7 @@ import { GlobalToaster } from './components/global-toaster';
 import { RootLayout } from './components/root-layout';
 import Dashboard from './pages/dashboard';
 import { BacklogGenerationChat } from './pages/backlog-generation-chat';
+import { MeetingTaskManager } from './pages/meeting-task-generation';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/backlog-generation-chat" element={<BacklogGenerationChat />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/meeting-tasks" element={<MeetingTaskManager />} />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />

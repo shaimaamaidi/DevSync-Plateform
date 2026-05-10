@@ -73,12 +73,22 @@ export function DeploymentsTracker({ deployments, repos, onLoadDeployments, isLo
               <SelectValue placeholder="Select a repository..." />
             </SelectTrigger>
             <SelectContent className="bg-card border-border">
-              <SelectItem value="none">No repository</SelectItem>
-              {repoOptions.map((repo) => (
-                <SelectItem key={repo.id ?? repo.url} value={repo.url as string}>
-                  {repo.name ?? repo.url}
+              {repoOptions.length === 0 ? (
+                <SelectItem value="none" disabled>
+                  No repository available
                 </SelectItem>
-              ))}
+              ) : (
+                <>
+                <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                  <span className="text-muted-foreground">No repository selected</span>
+                </SelectItem>
+                {repoOptions.map((repo) => (
+                  <SelectItem key={repo.id ?? repo.url} value={repo.url as string}>
+                    {repo.name ?? repo.url}
+                  </SelectItem>
+                ))}
+                </>
+              )}
             </SelectContent>
           </Select>
           <Input

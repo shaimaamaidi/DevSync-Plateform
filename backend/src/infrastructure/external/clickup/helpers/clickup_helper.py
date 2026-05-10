@@ -11,6 +11,8 @@ from typing import List, Dict
 
 from backend.src.domain.exceptions.clickup.clickup_assignee_email_not_found_exception import \
     AssigneeEmailNotInClickUpException
+from backend.src.domain.exceptions.clickup.clickup_assignee_name_not_found_exception import \
+    AssigneeNameNotFoundException
 
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,7 @@ def resolve_assignee_ids_strict(
         name_to_email: dict,
         email_to_id: Dict[str, int],
         assignee_names: List[str],
+        ignore_names: bool,
         ignore_mails: bool
 ) -> List[int]:
     """
@@ -27,12 +30,15 @@ def resolve_assignee_ids_strict(
 
     This function converts assignee names into ClickUp user IDs using
     provided mapping dictionaries. If some assignees cannot be resolved,
-    behavior depends on the `ignore_mails` flag.
+    behavior depends on the `ignore_mails` and `ignore_names` flag.
 
     Args:
         name_to_email (dict): Mapping of assignee names to email addresses.
         email_to_id (Dict[str, int]): Mapping of email addresses to ClickUp member IDs.
         assignee_names (List[str]): List of assignee names to resolve.
+        ignore_names (bool):
+            If True, names without an email mapping are ignored.
+            If False, an exception is raised for unresolved names.
         ignore_mails (bool):
             If True, unresolved assignees are ignored.
             If False, an exception is raised when resolution fails.
@@ -41,7 +47,10 @@ def resolve_assignee_ids_strict(
         List[int]: List of resolved ClickUp member IDs.
 
     Raises:
-        AssigneeEmailNotInClickUpException: If some assignees cannot be resolved and ignore_mails=False.
+        AssigneeNameNotFoundException: Raised when one or more assignee names cannot be
+            mapped to emails and `ignore_names=False`.
+        AssigneeEmailNotInClickUpException: Raised when one or more mapped emails are not
+            found in the ClickUp workspace and `ignore_mails=False`.
     """
     logger.info(
         "Starting assignee resolution (strict). input_count=%d.",
@@ -50,6 +59,7 @@ def resolve_assignee_ids_strict(
 
     resolved = []
     unresolved_emails = []
+    unresolved_names = []
 
     for name in assignee_names:
         if not name or name == "غير محدد":
@@ -60,7 +70,7 @@ def resolve_assignee_ids_strict(
 
         if not mail:
             logger.warning("No email mapping found for assignee name: '%s'.", name)
-            unresolved_emails.append(name)
+            unresolved_names.append(name)
             continue
 
         member_id = email_to_id.get(mail.lower())
@@ -76,6 +86,9 @@ def resolve_assignee_ids_strict(
         else:
             resolved.append(member_id)
 
+    if unresolved_names and not ignore_names:
+        raise AssigneeNameNotFoundException(unresolved_names)
+
     if unresolved_emails and not ignore_mails:
         raise AssigneeEmailNotInClickUpException(unresolved_emails)
 
@@ -88,23 +101,23 @@ def resolve_assignee_ids_strict(
     return resolved
 
 
-def priority_to_int(priority: str) -> int:
+def priority_to_str(priority: str) -> str:
     """
-    Convert a priority label to a numeric ranking.
+    Convert a priority label to a string ranking.
 
-    This function normalizes ClickUp priority labels into a numeric scale
+    This function normalizes ClickUp priority labels into a string scale
     where lower values represent higher priority.
 
     Args:
         priority: Priority label (e.g., "urgent", "high", "normal", "low").
 
     Returns:
-        int: Numeric priority rank (1 = highest, 4 = lowest).
+        str: string priority rank ("1" = highest, "4" = lowest).
     """
     mapping = {
-        "urgent": 1,
-        "high": 2,
-        "normal": 3,
-        "low": 4
+        "urgent": "1",
+        "high": "2",
+        "normal": "3",
+        "low": "4"
     }
-    return mapping.get(priority.lower(), 3)
+    return mapping.get(priority.lower(), "3")

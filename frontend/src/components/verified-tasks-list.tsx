@@ -1,17 +1,12 @@
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Check } from 'lucide-react';
-
-import type { GeneratedTask, VerifiedTask } from '@/api/api';
+import type { GeneratedTask, VerifiedTask, FolderWithListsMetadata } from '@/api/api';
+import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 import { AddTaskForm } from './ui/add-task-form';
-import { VerifiedTaskSkeletonCard } from './ui/verified-task-skeleton-card';
 import { VerifiedTaskCard } from './ui/verified-task-card';
 
-
-export const PRIORITY_CONFIG: Record<
-  string,
-  { badge: string; dot: string }
-> = {
+export const PRIORITY_CONFIG: Record<string, { badge: string; dot: string }> = {
   urgent: { badge: 'bg-red-50 text-red-700 border-red-100', dot: 'bg-red-500' },
   high: { badge: 'bg-amber-50 text-amber-700 border-amber-100', dot: 'bg-amber-500' },
   medium: { badge: 'bg-blue-50 text-blue-700 border-blue-100', dot: 'bg-blue-500' },
@@ -23,7 +18,6 @@ export function priorityConfig(p: string) {
   return PRIORITY_CONFIG[p?.toLowerCase()] ?? PRIORITY_CONFIG.normal;
 }
 
-
 interface Props {
   tasks: VerifiedTask[];
   isLoading: boolean;
@@ -32,6 +26,11 @@ interface Props {
   onSave: () => void;
   isSaving: boolean;
   savedOk: boolean;
+  canSave: boolean;
+  spaceId: string;
+  structure: FolderWithListsMetadata[];
+  structureLoading: boolean;
+  isStructureEmpty: boolean;
 }
 
 export function VerifiedTaskList({
@@ -42,22 +41,22 @@ export function VerifiedTaskList({
   onSave,
   isSaving,
   savedOk,
+  canSave,
+  spaceId,
+  structure,
+  structureLoading,
+  isStructureEmpty,
 }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
 
-
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-
     const raw = e.dataTransfer.getData('application/x-generated-task');
     if (!raw) return;
-
-    try {
-      onDrop(JSON.parse(raw));
-    } catch {}
+    try { onDrop(JSON.parse(raw)); } catch {}
   };
 
   const handleDelete = (idx: number) =>
@@ -67,18 +66,18 @@ export function VerifiedTaskList({
     onChange(tasks.map((t, i) => (i === idx ? updated : t)));
 
   const handleAdd = (task: VerifiedTask) => {
+    if (!task.task_priority)
+      task.task_priority = 'normal';
+    if(!task.task_status)
+      task.task_status = 'todo';
     onChange([...tasks, task]);
     setShowAddForm(false);
   };
 
-
   return (
     <div
       ref={dropRef}
-      onDragOver={e => {
-        e.preventDefault();
-        setIsDragOver(true);
-      }}
+      onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
       className={`space-y-3 rounded-xl transition ${
@@ -86,20 +85,26 @@ export function VerifiedTaskList({
       }`}
     >
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">
-          {isLoading
-            ? 'Verifying…'
-            : `${tasks.length} task${tasks.length !== 1 ? 's' : ''} · drop or add`}
-        </p>
+        {!isStructureEmpty && (
+          <p className="text-xs text-muted-foreground">
+            {!isLoading &&
+              `${tasks.length} task${tasks.length !== 1 ? 's' : ''} · drop or add`}
+          </p>
+        )}
+
+        {isStructureEmpty && (
+          <p className="text-xs text-muted-foreground">
+            {!isLoading &&
+            `${tasks.length} task${tasks.length !== 1 ? 's' : ''} gererated from the summary`}
+          </p>
+        )}
 
         {!isLoading && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1 h-7 text-xs"
+          <Button 
             onClick={() => setShowAddForm(p => !p)}
+            className="gap-2"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="w-4 h-4" />
             Add task
           </Button>
         )}
@@ -109,43 +114,55 @@ export function VerifiedTaskList({
         <AddTaskForm
           onAdd={handleAdd}
           onCancel={() => setShowAddForm(false)}
+          spaceId={spaceId}
         />
       )}
 
       <div className="flex flex-col gap-2">
         {isLoading
-          ? Array.from({ length: 3 }).map((_, i) => (
-              <VerifiedTaskSkeletonCard key={i} />
-            ))
+          ? Array.from({ length: 3 }).map((_, i) => <TaskSkeletonCard key={i} />)
           : tasks.map((task, i) => (
               <VerifiedTaskCard
                 key={`${task.task_name}-${i}`}
                 task={task}
                 onDelete={() => handleDelete(i)}
                 onUpdate={updated => handleUpdate(i, updated)}
-                priorityConfig={priorityConfig}  
+                priorityConfig={priorityConfig}
+                structure={structure}
+                structureLoading={structureLoading}
+                spaceId={spaceId}
               />
             ))}
       </div>
 
-      {!isLoading && tasks.length === 0 && !showAddForm && (
+      {!isLoading && tasks.length === 0 && !showAddForm && !isStructureEmpty && (
         <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
           No tasks yet — drag or add manually
         </div>
       )}
 
+      {!isLoading && tasks.length === 0 && !showAddForm && isStructureEmpty && (
+        <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
+          No tasks yet — add manually
+        </div>
+      )}
+
       {!isLoading && tasks.length > 0 && (
-        <div className="flex justify-end gap-3 pt-2">
+        <div className="relative  flex justify-end items-center gap-3 pt-2">
+          {!canSave && (
+            <p className="text-xs text-amber-600">
+              All tasks need a location before saving.
+            </p>
+          )}
           {savedOk && (
             <span className="flex items-center gap-1 text-green-600 text-sm">
               <Check className="w-4 h-4" />
               Saved
             </span>
           )}
-
           <Button
             onClick={onSave}
-            disabled={isSaving}
+            disabled={isSaving || !canSave}
             className="gap-2 bg-[#0F6E56] hover:bg-[#0a5442] text-white"
           >
             <Save className="w-4 h-4" />

@@ -165,15 +165,25 @@ export function ClickUpEditModal({ isOpen, editingSpace, onClose, onAdd, onUpdat
                     disabled={isSaving}
                 >
                     <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                    <SelectValue placeholder="Select a repository..." />
+                      <SelectValue placeholder="Select a repository..." />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border w-full">
-                    <SelectItem value="none">No repository</SelectItem>
-                    {repoOptions.map((repo, i) => (
-                        <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                        {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
-                        </SelectItem>
-                    ))}
+                      {repoOptions.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No repository available
+                      </SelectItem>
+                    ) : (
+                      <>
+                      <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                        <span className="text-muted-foreground">No repository selected</span>
+                      </SelectItem>
+                      {repoOptions.map((repo, i) => (
+                          <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
+                          {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                          </SelectItem>
+                      ))}
+                      </>
+                    )}
                     </SelectContent>
                 </Select>
                 {formData.repo?.name && (

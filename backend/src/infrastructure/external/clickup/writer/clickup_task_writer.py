@@ -18,7 +18,7 @@ from backend.src.domain.exceptions.clickup.clickup_task_create_exception import 
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, priority_to_int
+from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, priority_to_str
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             folders: List[FolderWithLists],
             members: List[dict],
             name_to_email: dict[str, str],
+            ignore_names: bool,
             ignore_mails: bool
     ) -> None:
         """
@@ -67,6 +68,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             folders (List[FolderWithLists]): ClickUp folder structure used to resolve list identifiers.
             members (List[dict]): Workspace members used for assignee resolution.
             name_to_email (dict[str, str]): Mapping of assignee names to email addresses.
+            ignore_names (bool):
+                If True, names without an email mapping are ignored.
+                If False, an exception is raised for unresolved names.
             ignore_mails (bool):
                 If True, unresolved assignees are ignored.
                 If False, an exception is raised when resolution fails.
@@ -85,7 +89,6 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(members),
         )
 
-        name_to_email = name_to_email
         email_to_id = {m["email"].lower(): m["id"] for m in members}
 
         location_list_map = ClickUpTaskWriter._build_location_list_map(folders)
@@ -107,7 +110,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     continue
 
                 try:
-                    self._create_task(list_id, result, name_to_email, email_to_id, ignore_mails)
+                    self._create_task(list_id, result, name_to_email, email_to_id, ignore_names, ignore_mails)
                     created_count += 1
                 except ClickUpTaskCreateException as e:
                     logger.error(
@@ -128,7 +131,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     continue
 
                 try:
-                    self._update_task(result, name_to_email, email_to_id, ignore_mails)
+                    self._update_task(result, name_to_email, email_to_id, ignore_names, ignore_mails)
                     updated_count += 1
                 except ClickUpTaskUpdateException as e:
                     logger.error(
@@ -153,6 +156,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             result: VerifiedTask,
             name_to_email: dict[str, str],
             email_to_id: dict[str, int],
+            ignore_names: bool,
             ignore_mails: bool
     ) -> None:
         """
@@ -166,6 +170,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             result: Verified task containing creation details.
             name_to_email: Mapping of usernames to emails for resolution.
             email_to_id: Mapping of emails to ClickUp member IDs.
+            ignore_names (bool):
+                If True, names without an email mapping are ignored.
+                If False, an exception is raised for unresolved names.
             ignore_mails (bool):
                 If True, unresolved assignees are ignored.
                 If False, an exception is raised when resolution fails.
@@ -189,11 +196,11 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             "name": result.task_name,
             "description": result.task_description,
             "status": result.task_status,
-            "priority": priority_to_int(result.task_priority),
+            "priority": priority_to_str(result.task_priority),
         }
 
         assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_mails)
+        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
 
         if assignee_ids:
             payload["assignees"] = assignee_ids
@@ -202,9 +209,10 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         if response.status_code == 200:
             logger.info(
-                "Task created successfully. task_name=%s location=%s status_code=%d.",
+                "Task created successfully. task_name=%s location=%s task_status=%s status_code=%d.",
                 result.task_name,
                 result.location,
+                result.task_status,
                 response.status_code,
             )
         else:
@@ -225,6 +233,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             result: VerifiedTask,
             name_to_email: dict[str, str],
             email_to_id: dict[str, int],
+            ignore_names: bool,
             ignore_mails: bool
     ) -> None:
         """
@@ -237,6 +246,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             result: Verified task containing update information.
             name_to_email: Mapping of usernames to emails for resolution.
             email_to_id: Mapping of emails to ClickUp member IDs.
+            ignore_names (bool):
+                If True, names without an email mapping are ignored.
+                If False, an exception is raised for unresolved names.
             ignore_mails (bool):
                 If True, unresolved assignees are ignored.
                 If False, an exception is raised when resolution fails.
@@ -257,11 +269,11 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         payload = {
             "status": result.task_status,
-            "priority": priority_to_int(result.task_priority),
+            "priority": priority_to_str(result.task_priority),
         }
 
         assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_mails)
+        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
         if assignee_ids:
             payload["assignees"] = {"add": assignee_ids}
 

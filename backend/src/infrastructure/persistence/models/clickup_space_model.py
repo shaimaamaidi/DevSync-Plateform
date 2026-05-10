@@ -10,10 +10,10 @@ Classes:
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from backend.src.infrastructure.persistence.base import Base
+from backend.src.infrastructure.persistence.base import BaseModel
 
 
-class ClickUpSpaceModel(Base):
+class ClickUpSpaceModel(BaseModel):
     """
     SQLAlchemy ORM model for a persisted ClickUp space record.
 
@@ -25,6 +25,7 @@ class ClickUpSpaceModel(Base):
         repo (GitRepoModel): Relationship to the associated Git repository.
     """
     __tablename__ = "clickup_spaces"
+
     id = Column(Integer, primary_key=True)
     name = Column(String(255), nullable=False)
     space_code = Column(String(100), nullable=False, unique=True)

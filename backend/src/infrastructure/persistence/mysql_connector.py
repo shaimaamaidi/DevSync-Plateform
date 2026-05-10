@@ -106,7 +106,7 @@ class MySQLConnector:
         try:
             engine = create_engine(f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}", echo=False)
             with engine.connect() as conn:
-                conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{self.db}`"))
+                conn.execute(text(f"CREATE DATABASE IF NOT EXISTS `{self.db}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"))
 
             logger.info("Database '%s' is ready.", self.db)
 
@@ -136,8 +136,8 @@ class MySQLConnector:
         )
 
         try:
-            connection_string = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
-            self.engine = create_engine(connection_string, echo=False)
+            connection_string = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}?charset=utf8mb4"
+            self.engine = create_engine(connection_string, echo=False, connect_args={"charset": "utf8mb4"})
             self.Session = sessionmaker(bind=self.engine)
 
             logger.info("Database connection established successfully.")

@@ -75,7 +75,7 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
 
         messages = self.prompt_loader.get_messages(
             folder_name="task_verification",
-            name="task_verification_agent",
+            name="task_verifier_agent",
             variables={
                 "existing_tasks": self._serialize_existing(existing_tasks),
                 "generated_tasks": self._serialize_generated(tasks)
@@ -110,18 +110,23 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
             ) from e
 
         except Exception as e:
-            logger.exception("Clickup tasks verifying failed.")
+            logger.exception("Click up tasks verifying failed.")
             raise LLMParsingException(
                 agent_name="ClickUpTaskVerifierAgent",
                 reason=str(e)
             ) from e
 
+        parsed: VerifiedTaskList = response.choices[0].message.parsed
+        if not parsed or not parsed.results:
+            logger.warning("No tasks extracted from meeting summary.")
+            return []
+
         logger.info(
             "Verification response received. results=%d.",
-            len(response.results) if hasattr(response, "results") else 0,
+            len(parsed.results) if parsed.results else 0,
         )
 
-        filtered = ClickUpTaskVerifierAgent._filter_unchanged_updates(response.results, existing_tasks)
+        filtered = ClickUpTaskVerifierAgent._filter_unchanged_updates(parsed.results, existing_tasks)
 
         logger.info(
             "Verification complete: %d action(s) to apply (%d create, %d update).",
@@ -183,7 +188,7 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
                     "task_status": t.task_status,
                     "task_priority": t.task_priority,
                     "task_assigne": t.task_assigne,
-                    "folder": t.folder,
+                    "location": t.location,
                 }
                 for t in tasks
             ],

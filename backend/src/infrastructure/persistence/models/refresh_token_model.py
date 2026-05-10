@@ -11,10 +11,10 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 
-from backend.src.infrastructure.persistence.base import Base
+from backend.src.infrastructure.persistence.base import BaseModel
 
 
-class RefreshTokenModel(Base):
+class RefreshTokenModel(BaseModel):
     """
     SQLAlchemy ORM model for a persisted refresh token for members.
 

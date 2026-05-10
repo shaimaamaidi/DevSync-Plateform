@@ -16,7 +16,6 @@ export const saveInClickupService = {
 
     await clickUpTasksApi.saveTasksToClickupClickupTasksSavePost(payload);
 
-    // Si aucune erreur n’est levée → succès
     return true;
   },
 };

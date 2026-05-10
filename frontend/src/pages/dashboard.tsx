@@ -8,22 +8,29 @@ import type {
   ClickUpSpaceUpdateDTO,
   DeploymentDTO,
   GitRepoCreateDTO,
-  GitRepoDetailDTO,
   GitRepoUpdateDTO,
   MemberCreateDTO,
-  MemberDTO,
   MemberUpdateDTO,
 } from '@/api/api';
 import { clickUpService } from '@/services/clickup-service';
 import { deploymentService } from '@/services/deployment-service';
-import { memberService } from '@/services/member-service';
-import { repoService } from '@/services/repo-service';
 import { useNavigate } from 'react-router-dom';
 import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-toaster';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
+import { useUpdateClickUpSpace } from '@/hooks/clickup-space-hooks/use-update-clickup-space';
+import { useDeleteClickUpSpace } from '@/hooks/clickup-space-hooks/use-delete-clickup-space';
+import { useAddClickUpSpace } from '@/hooks/clickup-space-hooks/use-add-clickup-space';
+import { useMembers } from '@/hooks/member-hooks/use-members';
+import { useUpdateMember } from '@/hooks/member-hooks/use-update-member';
+import { useDeleteMember } from '@/hooks/member-hooks/use-delete-member';
+import { useAddMember } from '@/hooks/member-hooks/use-add-member';
+import { useRepos } from '@/hooks/repository-hooks/use-repos';
+import { useUpdateRepo } from '@/hooks/repository-hooks/use-update-repo';
+import { useDeleteRepo } from '@/hooks/repository-hooks/use-delete-repo';
+import { useAddRepo } from '@/hooks/repository-hooks/use-add-repo';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
@@ -32,153 +39,131 @@ interface WorkspaceDashboardPageProps {
 }
 
 function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
-  const [isLoadingMain, setIsLoadingMain] = useState(true);
-  const [isLoadingDeployments, setIsLoadingDeployments] = useState(true);
+  const [isLoadingDeployments, setIsLoadingDeployments] = useState(false);
 
   const navigate = useNavigate();
-  const [repos, setRepos] = useState<GitRepoDetailDTO[]>([]);
+
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
-  const [members, setMembers] = useState<MemberDTO[]>([]);
+  const [clickupLoading, setClickupLoading] = useState(true);
 
+  const { repos, loading: reposLoading } = useRepos();
+  const { mutateAsync: updateRepo } = useUpdateRepo();
+  const { mutateAsync: deleteRepo } = useDeleteRepo();
+  const { mutateAsync: addRepo } = useAddRepo();
+
+  const { members, loading: membersLoading } = useMembers();
+  const { mutateAsync: updateMember } = useUpdateMember();
+  const { mutateAsync: deleteMember } = useDeleteMember();
+  const { mutateAsync: addMember } = useAddMember();
+    
   const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
+  const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
+  const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
+  const { mutateAsync: addClickUpSpace } = useAddClickUpSpace();
 
-  const refreshAllData = useCallback(async () => {
-    setIsLoadingMain(true);
+  const refreshClickUpData = useCallback(async () => {
+    setClickupLoading(true);
 
-    const [reposData, spacesData, membersData] = await Promise.all([
-      withErrorHandling(() => repoService.getAllReposWithDetails(), 'Load repositories', onError),
+    const [spacesData] = await Promise.all([
       withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load ClickUp spaces', onError),
-      withErrorHandling(() => memberService.getAllWithRepos(), 'Load members', onError),
     ]);
-    if (reposData) 
-      setRepos(reposData);
+
     if (spacesData) 
       setClickUpSpaces(spacesData);
-    if (membersData) 
-      setMembers(membersData.map(memberService.mapToMemberDTO));
 
-    setIsLoadingMain(false);
+    setClickupLoading(false);
   }, []);
 
   useEffect(() => {
-    refreshAllData();
-  }, [refreshAllData]);
+    refreshClickUpData();
+  }, [refreshClickUpData]);
 
   const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoUpdateDTO) => {
-    const result = await withErrorHandling(
-      () => repoService.updateRepo(updatedRepo),
-      'Update repository',
-      onError,
-    );
+    const result = await updateRepo(updatedRepo);
+
     if (!result) 
       return Promise.resolve(false);
-    await refreshAllData();
+
     showSuccessToast('Repository updated successfully');
     return Promise.resolve(true);
-  }, [refreshAllData]);
+  }, [updateRepo]);
 
   const handleUpdateMember = useCallback(async (member: MemberUpdateDTO) => {
-    const result = await withErrorHandling(
-      () => memberService.updateMember(member),
-      'Update member',
-      onError,
-  );
-  if (!result) 
-    return Promise.resolve(false);
-  await refreshAllData();
-  showSuccessToast('Member updated successfully');
-  return Promise.resolve(true);
-  }, [refreshAllData]);
-  
-  const handleUpdateClickUpSpace = useCallback(async (space: ClickUpSpaceUpdateDTO) => {
-    const result = await withErrorHandling(
-      () => clickUpService.updateSpace(space),
-      'Update clickup space',
-      onError,
-    );
+    const result = await updateMember(member)
     if (!result) 
       return Promise.resolve(false);
-    await refreshAllData();
+
+    showSuccessToast('Member updated successfully');
+    return Promise.resolve(true);
+  }, [updateMember]);
+  
+  const handleUpdateClickUpSpace = useCallback(async (space: ClickUpSpaceUpdateDTO) => {
+    const result = await updateClickUpSpace(space);
+    if (!result) 
+      return Promise.resolve(false);
+
     showSuccessToast('ClickUp space updated successfully');
     return Promise.resolve(true);
-  }, [refreshAllData]);
+  }, [updateClickUpSpace]);
 
   
   const handleDeleteRepo = useCallback(async (id: number) => {
-    const result = await withErrorHandling(
-      () => repoService.deleteRepo(id),
-      'Delete repository',
-      onError,
-    );
+    const result = await deleteRepo(id);
+
     if (!result) return;
-    await refreshAllData();
+
     showSuccessToast('Repository deleted successfully');
-  }, [refreshAllData]);
+  }, [deleteRepo]);
 
   const handleDeleteMember = useCallback(async (id: number) => {
-    const result = await withErrorHandling(
-      () => memberService.deleteMember(id),
-      'Delete member',
-      onError,
-    );
-    
+    const result = await deleteMember(id);
+
     if (!result)
       return;
-    await refreshAllData();
+
     showSuccessToast('Member deleted successfully');    
-  }, [refreshAllData]);
+  }, [deleteMember]);
 
   const handleDeleteClickUpSpace = useCallback(async (id: number) => {
-    const result = await withErrorHandling(
-      () => clickUpService.deleteSpace(id),
-      'Delete clickup space',
-      onError,
-    );
-    if (!result) return;
-    await refreshAllData();
+    const result = await deleteClickUpSpace(id);
+    
+    if (!result) 
+      return;
+
     showSuccessToast('ClickUp space deleted successfully');
-  }, [refreshAllData]);
+  }, [deleteClickUpSpace]);
 
   const handleAddRepo = useCallback(async (newRepo: GitRepoCreateDTO) => {
-    const result = await withErrorHandling(
-      () => repoService.createRepo(newRepo),
-      'Create repository',
-      onError,
-    );
+    const result = await addRepo(newRepo);
+
     if (!result) 
       return Promise.resolve(false);
-    await refreshAllData();
+
     showSuccessToast('Repository created successfully');
     return Promise.resolve(true);
-  }, [refreshAllData]);
+  }, [addRepo]);
 
   const handleAddMember = useCallback(async (newMember: MemberCreateDTO) => {
-    const result = await withErrorHandling(
-      () => memberService.createMember(newMember),
-      'Create member',
-      onError,
-    );
+    const result = await addMember(newMember);
+
     if (!result)
       return Promise.resolve(false);
-    await refreshAllData();
+
     showSuccessToast('Member created successfully');
     return Promise.resolve(true);
-  }, [refreshAllData]);
+  }, [addMember]);
 
   const handleAddClickUpSpace = useCallback(async (newSpace: ClickUpSpaceCreateDTO) => {
-    const result = await withErrorHandling(
-      () => clickUpService.createSpace(newSpace),
-      'Create clickup space',
-      onError,
-    );
+    const result = await addClickUpSpace(newSpace);
+
     if (!result) 
       return Promise.resolve(false);
-    await refreshAllData();
+
     showSuccessToast('ClickUp space created successfully');
     return Promise.resolve(true);
-  }, [refreshAllData]);
+  }, [addClickUpSpace]);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
     setIsLoadingDeployments(true);
@@ -196,7 +181,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   return (
     <>
-      <DashboardStats repos={repos} deployments={deployments} members={members} isLoading={isLoadingMain && isLoadingDeployments}/>
+      <DashboardStats repos={repos} deployments={deployments} members={members} isLoading={reposLoading || membersLoading || isLoadingDeployments}/>
 
       <div className="my-8 border-t border-border" />
 
@@ -209,7 +194,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateRepo}
             onDelete={handleDeleteRepo}
             onAdd={handleAddRepo}
-            isLoading={isLoadingMain}
+            isLoading={reposLoading || clickupLoading || membersLoading}
             />
         </div>
       )}
@@ -220,7 +205,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             deployments={deployments}
             repos={repos}
             onLoadDeployments={handleLoadDeployments}
-            isLoading={isLoadingDeployments}
+            isLoading={reposLoading || isLoadingDeployments}
           />
         </div>
       )}
@@ -232,7 +217,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateMember}
             onDelete={handleDeleteMember}
             onAdd={handleAddMember}
-            isLoading={isLoadingMain} 
+            isLoading={membersLoading} 
           />
         </div>
       )}
@@ -244,7 +229,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateClickUpSpace}
             onDelete={handleDeleteClickUpSpace}
             onAdd={handleAddClickUpSpace}
-            isLoading={isLoadingMain} 
+            isLoading={clickupLoading} 
             />
         </div>
       )}

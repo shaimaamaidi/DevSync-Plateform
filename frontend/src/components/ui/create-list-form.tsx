@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { CreateListRequest, CreateFolderRequest, ClickUpListMetadata } from '@/api/api';
+import type { ClickUpListMetadata } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -11,17 +11,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CheckCircle2, Loader2, X, List, FolderOpen, FolderPlus } from 'lucide-react';
-import { useClickUpStructure } from '@/hooks/use-clikcup_structure';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
-import { useNavigate } from 'react-router-dom';
-import { useClickUpSpacesList } from '@/hooks/use-clickup-spaces';
+import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
+import { useCreateList } from '@/hooks/clickup-structure-hooks/use-create-list';
+import { useCreateFolder } from '@/hooks/clickup-structure-hooks/use-create-folder';
+import { showSuccessToast } from '../global-toaster';
 
 export interface CreateListFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (list: ClickUpListMetadata) => void;
+  spaceId: string;
 }
 
 type PlacementMode = 'direct' | 'existing-folder' | 'new-folder';
@@ -47,25 +46,30 @@ const PLACEMENT_OPTIONS: { value: PlacementMode; label: string; description: str
   },
 ];
 
-export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormProps) {
-  const { spaces, loading: spacesLoading } = useClickUpSpacesList();
+export function CreateListForm({ isOpen, onClose, onSuccess, spaceId }: CreateListFormProps) {
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string>(spaceId);
+
+  const { mutateAsync: createFolder, isPending: isFolderPending } = useCreateFolder(selectedSpaceId); 
+  const { mutateAsync: createList, isPending: isListPending  } = useCreateList(selectedSpaceId);    
+  const isPending = isFolderPending || isListPending;
 
   const [placementMode, setPlacementMode] = useState<PlacementMode>('direct');
-  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
   const [listName, setListName] = useState('');
   const [selectedFolderId, setSelectedFolderId] = useState<string>('');
   const [newFolderName, setNewFolderName] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSaving, setIsSaving] = useState(false);
-
-  const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
   const { structure, loading: structureLoading } = useClickUpStructure(selectedSpaceId);
-
+  
   const existingFolders = structure.filter(
     (folder) => folder.id !== (folder.lists?.[0]?.id ?? null),
+  );
+
+  const hasFolders = !structureLoading && selectedSpaceId && existingFolders.length > 0;
+
+  const availablePlacementOptions = PLACEMENT_OPTIONS.filter(
+    (opt) => opt.value !== 'existing-folder' || hasFolders,
   );
 
   const existingFolderNames = existingFolders.map((f) => f.name);
@@ -94,14 +98,19 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
   useEffect(() => {
     if (isOpen) {
       setPlacementMode('direct');
-      setSelectedSpaceId('');
+      setSelectedSpaceId(spaceId);
       setListName('');
       setSelectedFolderId('');
       setNewFolderName('');
       setErrors({});
-      setIsSaving(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (placementMode === 'existing-folder' && !hasFolders && !structureLoading) {
+      setPlacementMode('direct');
+    }
+  }, [hasFolders, structureLoading, placementMode]);
 
   useEffect(() => {
     setSelectedFolderId('');
@@ -146,61 +155,56 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
   const handleSave = async () => {
     if (!validate()) 
         return;
+    
+    let folderId: string | null = null;
+    let folderName: string | undefined;
 
-    setIsSaving(true);
-    try {
-      let folderId: string | null = null;
-
-      if (placementMode === 'new-folder') {
-        const folderRequest: CreateFolderRequest = {
-          space_id: selectedSpaceId,
-          name: newFolderName.trim(),
-        };
-
-        const createdFolder = await withErrorHandling(
-          () => clickUpStructureCreationService.createFolder(folderRequest),
-          'Create folder',
-          onError,
-        );
-
-        if (!createdFolder) return;
-        folderId = createdFolder.id;
-      } else if (placementMode === 'existing-folder') {
-        folderId = selectedFolderId;
-      }
-
-      const listRequest: CreateListRequest = {
+    if (placementMode === 'new-folder') {
+      const createdFolder = await createFolder({
         space_id: selectedSpaceId,
-        name: listName.trim(),
-        folder_id: folderId,
-      };
-
-      const result = await withErrorHandling(
-        () => clickUpStructureCreationService.createList(listRequest),
-        'Create list',
-        onError,
-      );
-
-      if (!result) 
+        name: newFolderName.trim(),
+      });
+      if (!createdFolder) 
         return;
 
-      onSuccess?.(result);
-      onClose();
-    } finally {
-      setIsSaving(false);
+      showSuccessToast('Click Up folder created successfully');
+      folderId = createdFolder.id;
+      folderName = newFolderName.trim();
+    } else if (placementMode === 'existing-folder') {
+      folderId = selectedFolderId;
+      folderName = existingFolders.find(f => f.id === selectedFolderId)?.name; 
     }
-  };
+
+    const result = await createList({ 
+      space_id: selectedSpaceId,
+      name: listName.trim(),
+      folder_id: folderId,
+    });
+
+    if (!result) 
+      return;
+
+    showSuccessToast('Click Up list added successfully');
+
+    const enrichedResult: ClickUpListMetadata = folderName
+    ? { ...result, name: `${folderName} / ${result.name}` }
+    : result;
+
+    onSuccess?.(enrichedResult);
+
+    onClose();
+  } 
 
   const isSaveDisabled =
-    isSaving ||
-    !selectedSpaceId ||
+    isPending ||
+    selectedSpaceId === null ||
+    selectedSpaceId === '' ||
     !listName.trim() ||
-    structureLoading ||
     (placementMode === 'existing-folder' && !selectedFolderId) ||
     (placementMode === 'new-folder' && !newFolderName.trim());
 
   const savingLabel =
-    placementMode === 'new-folder' ? 'Creating folder & list…' : 'Saving…';
+    placementMode === 'new-folder' ? 'Creating folder & list…' : 'Creating list…';
 
   if (!isOpen) 
     return null;
@@ -210,12 +214,12 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
       <Card className="w-full max-w-[440px] border-border shadow-2xl">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-foreground">Create List</h2>
+            <h2 className="text-xl font-bold text-foreground">Create Click Up List</h2>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isPending}
               className="h-8 w-8"
             >
               <X className="w-4 h-4" />
@@ -225,12 +229,12 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
           <div className="space-y-4">
             <div>
               <Label className="text-foreground font-medium">Placement</Label>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {PLACEMENT_OPTIONS.map((opt) => (
+              <div className={`mt-2 grid gap-2 ${availablePlacementOptions.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                {availablePlacementOptions.map((opt) => (
                   <button
                     key={opt.value}
                     type="button"
-                    disabled={isSaving}
+                    disabled={isPending}
                     onClick={() => setPlacementMode(opt.value)}
                     className={`flex flex-col items-center gap-1.5 rounded-lg border px-2 py-3 text-center transition cursor-pointer
                       ${
@@ -247,48 +251,16 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
               </div>
             </div>
 
-            <div>
-              <Label className="text-foreground font-medium">ClickUp Space</Label>
-              <Select
-                value={selectedSpaceId || 'none'}
-                onValueChange={(v) => {
-                  setSelectedSpaceId(v === 'none' ? '' : v);
-                  setErrors((e) => ({ ...e, space: '' }));
-                }}
-                disabled={isSaving || spacesLoading}
-              >
-                <SelectTrigger
-                  className={`mt-2 bg-input w-full ${
-                    errors.space ? 'border-destructive/70' : 'border-border'
-                  } text-foreground`}
-                >
-                  <SelectValue
-                    placeholder={spacesLoading ? 'Loading spaces…' : 'Select a space…'}
-                  />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border w-full">
-                  {spaces.map((space) => (
-                    <SelectItem key={space.space_code} value={space.space_code?? 'none'}>
-                      {space.space_code}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.space && (
-                <div className="text-destructive text-xs mt-1 px-1">{errors.space}</div>
-              )}
-            </div>
-
             {placementMode === 'existing-folder' && (
               <div>
                 <Label className="text-foreground font-medium">Folder</Label>
                 <Select
-                  value={selectedFolderId || 'none'}
+                  value={selectedFolderId || undefined }
                   onValueChange={(v) => {
-                    setSelectedFolderId(v === 'none' ? '' : v);
+                    setSelectedFolderId(v);
                     setErrors((e) => ({ ...e, folder: '' }));
                   }}
-                  disabled={isSaving || structureLoading || !selectedSpaceId}
+                  disabled={isPending || structureLoading || !selectedSpaceId}
                 >
                   <SelectTrigger
                     className={`mt-2 bg-input w-full ${
@@ -303,16 +275,24 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
                           ? 'Loading folders…'
                           : existingFolders.length === 0
                           ? 'No folders found'
-                          : 'Select a folder…'
+                          : 'No folder selected'
                       }
                     />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border w-full">
-                    {existingFolders.map((folder) => (
-                      <SelectItem key={folder.id} value={folder.id}>
-                        {folder.name}
+                    {existingFolders.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No folder available
                       </SelectItem>
-                    ))}
+                    ) : (
+                      <>
+                      {existingFolders.map((folder) => (
+                        <SelectItem key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </SelectItem>
+                      ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.folder && (
@@ -333,7 +313,7 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
                     setErrors((err) => ({ ...err, newFolder: '' }));
                   }}
                   className={inputClass(!!errors.newFolder) + ' mt-2'}
-                  disabled={isSaving}
+                  disabled={isPending}
                 />
                 {errors.newFolder && (
                   <div className="text-destructive text-xs mt-1 px-1">{errors.newFolder}</div>
@@ -369,7 +349,7 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
                   setErrors((err) => ({ ...err, name: '' }));
                 }}
                 className={inputClass(!!errors.name) + ' mt-2'}
-                disabled={isSaving}
+                disabled={isPending}
               />
               {errors.name && (
                 <div className="text-destructive text-xs mt-1 px-1">{errors.name}</div>
@@ -397,7 +377,7 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
             <Button
               variant="outline"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isPending}
               className="flex-1"
             >
               Cancel
@@ -407,7 +387,7 @@ export function CreateListForm({ isOpen, onClose, onSuccess }: CreateListFormPro
               className="flex-1 gap-2"
               disabled={isSaveDisabled}
             >
-              {isSaving ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   {savingLabel}

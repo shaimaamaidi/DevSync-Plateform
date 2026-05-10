@@ -1,24 +1,20 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { KeyRound, User, Mail, Pen, Loader2 } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { memberService } from '@/services/member-service';
-import { withErrorHandling } from '@/services/api-error';
+import { useCurrentUser } from '@/hooks/member-hooks/use-current-user';
 import { showSuccessToast } from '@/components/global-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
-import { defaultOnError } from '@/lib/error-utils';
 import { FieldSkeleton } from '@/components/ui/field-skeleton';
+import { useUpdateMember } from '@/hooks/member-hooks/use-update-member';
+import { useNavigate } from 'react-router-dom';
 
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useCurrentUser();
-  const navigate = useNavigate();
-  const onError = defaultOnError(navigate);
-
+  const { mutateAsync: updateMember, isPending } = useUpdateMember();
   const [username, setUsername] = useState('');
   const [mail, setMail] = useState('');
   const [arabicName, setArabicName] = useState('');
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -37,7 +33,6 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!isDirty) 
       return;
-    setLoading(true);
 
     const member: MemberUpdateDTO = {
       id: user?.id,
@@ -47,16 +42,11 @@ export default function ProfilePage() {
     };
 
     try {
-      const result = await withErrorHandling(
-        () => memberService.updateMember(member),
-        'Update profile',
-        onError,
-      );
+      const result = await updateMember(member); 
+
       if (result) 
         showSuccessToast('Profile updated successfully!');
-    } finally {
-      setLoading(false);
-    }
+    } finally {}
   };
 
   const initials = username.slice(0, 2).toUpperCase();
@@ -155,10 +145,10 @@ export default function ProfilePage() {
 
               <button
                 type="submit"
-                disabled={!isDirty || loading}
+                disabled={!isDirty || isPending}
                 className="w-full h-11 mt-1 rounded-lg bg-foreground text-background text-sm font-medium tracking-wide transition hover:opacity-85 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? (
+                {isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Saving…

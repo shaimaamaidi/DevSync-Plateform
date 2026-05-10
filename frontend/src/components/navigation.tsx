@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GitBranch, Zap, Users, Boxes, LogOut, Settings, FlaskConical, Menu, X } from 'lucide-react';
+import { GitBranch, Zap, Users, Boxes, LogOut, Settings, FlaskConical, Menu, X, ClipboardList } from 'lucide-react';
 import { authService } from '@/services/auth-service';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
+type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation' | 'meeting-tasks';
 
 interface NavigationProps {
   activeTab?: HomeTab;
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { path: '/members', tab: 'members' as HomeTab, icon: Users, label: 'Members' },
   { path: '/spaces', tab: 'spaces' as HomeTab, icon: Boxes, label: 'Spaces' },
   { path: '/backlog-generation-chat', tab: 'backlog-generation' as HomeTab, icon: FlaskConical, label: 'Backlog Generation' },
+  { path: '/meeting-tasks', tab: 'meeting-tasks' as HomeTab, icon: ClipboardList, label: 'Meeting Tasks' },
 ];
 
 export function Navigation({ onTabChange }: NavigationProps) {

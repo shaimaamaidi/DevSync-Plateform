@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/use-current-user';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessToast } from '@/components/global-toaster';
 import { memberService } from '@/services/member-service';
 import type { MemberUpdateDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
+import { useCurrentUser } from '@/hooks/member-hooks/use-current-user';
 
 export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');

@@ -13,6 +13,8 @@ workspace structure decisions into ClickUp API requests.
 import logging
 from typing import Optional
 
+from requests import Response
+
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.status import ClickUpStatus
 from backend.src.domain.exceptions.clickup.clickup_write_exception import ClickUpWriteException
@@ -78,15 +80,16 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             )
             return data["id"], data["name"]
 
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
         logger.error(
             "Space creation failed. name=%s status_code=%d response=%s.",
             name,
             response.status_code,
-            response.text,
+            error_message,
         )
         raise ClickUpWriteException(
-            f"Failed to create space '{name}' "
-            f"(status {response.status_code}) — {response.text}"
+            f"Failed to create space '{name}': {error_message}"
         )
 
     def create_folder(self, space_id: str, name: str) -> tuple[str, str]:
@@ -119,15 +122,16 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             )
             return data["id"],data["name"]
 
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
         logger.error(
             "Folder creation failed. name=%s status_code=%d response=%s.",
             name,
             response.status_code,
-            response.text,
+            error_message,
         )
         raise ClickUpWriteException(
-            f"Failed to create folder '{name}' "
-            f"(status {response.status_code}) — {response.text}"
+            f"Failed to create folder '{name}': {error_message}"
         )
 
     def create_list(
@@ -185,15 +189,16 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
                             data.get("features", {}).get("priorities", {}).get("priorities", [])],
             )
 
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
         logger.error(
             "List creation failed. name=%s status_code=%d response=%s.",
             name,
             response.status_code,
-            response.text,
+            error_message,
         )
         raise ClickUpWriteException(
-            f"Failed to create list '{name}' "
-            f"(status {response.status_code}) — {response.text}"
+            f"Failed to create list '{name}': {error_message}"
         )
 
     def add_status_to_list(
@@ -235,7 +240,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             len(existing_statuses),
         )
 
-        response = self._http.put_raw(f"/list/{list_id}", {"statuses": merged})
+        response = self._http.put_raw(f"/list/{list_id}", {"statuses": merged, "override_statuses": True})
 
         if response.status_code == 200:
             data = response.json()
@@ -245,6 +250,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
                 status.status,
                 response.status_code,
             )
+            logger.info(data)
             return ClickUpListMetadata(
                 id=data["id"],
                 name=data["name"],
@@ -253,14 +259,25 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
                             data.get("features", {}).get("priorities", {}).get("priorities", [])],
             )
 
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
         logger.error(
             "Status add failed. list_id=%s status=%s status_code=%d response=%s.",
             list_id,
             status.status,
             response.status_code,
-            response.text,
+            error_message,
         )
         raise ClickUpWriteException(
-            f"Failed to add status '{status.status}' to list '{list_id}' "
-            f"(status {response.status_code}) — {response.text}"
+            f"Failed to add status '{status.status}' to list '{list_id}': {error_message}"
         )
+
+    @staticmethod
+    def _get_error_message(response: Response):
+        error_message = response.text
+        try:
+            error_json = response.json()
+            error_message = error_json.get("err", response.text)
+        except Exception:
+            pass
+        return error_message

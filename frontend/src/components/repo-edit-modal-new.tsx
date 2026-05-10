@@ -312,22 +312,30 @@ export function RepoEditModalNew({
                   disabled={isSaving}
                 >
                   <SelectTrigger className="mt-2 bg-input border-border text-foreground">
-                    <SelectValue placeholder="Assign to a ClickUp space..." />
-                  </SelectTrigger>
+                    <SelectValue placeholder="No click up space selected" />
+                  </SelectTrigger> 
                   <SelectContent className="bg-card border-border">
-                    <SelectItem value="none">
-                      <span className="text-muted-foreground">None</span>
-                    </SelectItem>
-                    {clickUpSpaces.map((space) => (
-                      <SelectItem
-                        key={space.id ?? space.space_code ?? space.name}
-                        value={space.id?.toString() ?? ''}
-                      >
-                        <div className="flex items-center gap-2">
-                          {space.name}
-                        </div>
+                    {clickUpSpaces.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        No ClickUp space available
                       </SelectItem>
-                    ))}
+                    ) : (
+                      <>
+                      <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                        <span className="text-muted-foreground">No ClickUp space selected</span>
+                      </SelectItem>
+                      {clickUpSpaces.map((space) => (
+                        <SelectItem
+                          key={space.id ?? space.space_code ?? space.name}
+                          value={space.id?.toString() ?? ''}
+                        >
+                          <div className="flex items-center gap-2">
+                            {space.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
 

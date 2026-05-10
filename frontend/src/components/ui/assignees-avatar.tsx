@@ -35,10 +35,11 @@ export function AssigneeAvatars({ value }: { value: string }) {
 
   const shown = names.slice(0, 3);
   const extra = names.length - shown.length;
+  const tooltipText = `${shown.join(', ')}${extra > 0 ? ` +${extra}` : ''}`;
 
   return (
     <div className="flex items-center gap-1.5">
-      <div className="flex -space-x-1.5">
+      <div className="flex -space-x-1.5" title={`${shown.join(', ')}${extra > 0 ? ` +${extra}` : ''}`}>
         {shown.map((name, i) => {
           const initials = getInitials(name);
           const color = AVATAR_COLORS[initials.charCodeAt(0) % AVATAR_COLORS.length];
@@ -58,9 +59,13 @@ export function AssigneeAvatars({ value }: { value: string }) {
           </div>
         )}
       </div>
-      <span className="text-xs text-muted-foreground">
-        {shown.join(', ')}{extra > 0 ? ` +${extra}` : ''}
-      </span>
+      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50
+                      hidden group-hover:block
+                      bg-popover text-popover-foreground
+                      text-xs rounded-md px-2 py-1 shadow-md border border-border
+                      whitespace-nowrap pointer-events-none">
+        {tooltipText}
+      </div>
     </div>
   );
 }

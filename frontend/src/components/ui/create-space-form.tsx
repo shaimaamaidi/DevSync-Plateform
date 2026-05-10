@@ -1,14 +1,12 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { ClickUpSpaceDTO, CreateSpaceRequest } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
-import { withErrorHandling } from '@/services/api-error';
-import { useClickUpSpacesList } from '@/hooks/use-clickup-spaces';
-import { useNavigate } from 'react-router-dom';
-import { defaultOnError } from '@/lib/error-utils';
+import { useClickUpSpacesList } from '@/hooks/clickup-structure-hooks/use-clickup-spaces';
+import { useCreateSpace } from '@/hooks/clickup-structure-hooks/use-create-space';
+import { showSuccessToast } from '../global-toaster';
 
 export interface CreateSpaceFormProps {
   isOpen: boolean;
@@ -18,14 +16,11 @@ export interface CreateSpaceFormProps {
 
 export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormProps) {
   const { spaces, loading: spacesLoading } = useClickUpSpacesList();
-
+  const { mutateAsync: createSpace, isPending } = useCreateSpace();
+  
   const [spaceName, setSpaceName] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSaving, setIsSaving] = useState(false);
 
-  const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
-  
   const inputClass = (hasError: boolean) =>
     `w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 ${
       hasError
@@ -37,7 +32,6 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
     if (isOpen) {
       setSpaceName('');
       setErrors({});
-      setIsSaving(false);
     }
   }, [isOpen]);
 
@@ -63,30 +57,24 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
   const handleSave = useCallback(async () => {
     if (!validate()) 
         return;
-
-    setIsSaving(true);
+    
     try {
       const request: CreateSpaceRequest = {
         space_id: spaceName.trim(),
       };
 
-      const result = await withErrorHandling(
-        () => clickUpStructureCreationService.createSpace(request),
-        'Create space',
-        onError,
-      );
+      const result = await createSpace(request);
 
       if (!result) 
         return;
 
+      showSuccessToast('Click Up space created successfully');
       onSuccess?.(result);
       onClose();
-    } finally {
-      setIsSaving(false);
-    }
-  }, [spaceName, spaces, onError, onSuccess, onClose]);
+    } finally {}
+  }, [spaceName, spaces, onSuccess, onClose]);
 
-  const isSaveDisabled = isSaving || spacesLoading || !spaceName.trim();
+  const isSaveDisabled = isPending || spacesLoading || !spaceName.trim();
 
   if (!isOpen) 
     return null;
@@ -96,12 +84,12 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
       <Card className="w-full max-w-[420px] border-border shadow-2xl">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-foreground">Create Space</h2>
+            <h2 className="text-xl font-bold text-foreground">Create Click up Space</h2>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isPending}
               className="h-8 w-8"
             >
               <X className="w-4 h-4" />
@@ -120,7 +108,7 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
                   setErrors((err) => ({ ...err, name: '' }));
                 }}
                 className={inputClass(!!errors.name) + ' mt-2'}
-                disabled={isSaving}
+                disabled={isPending}
               />
               {spaceName.trim() && !errors.name && (
                 <p className="text-xs text-muted-foreground mt-1 px-1">
@@ -158,7 +146,7 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
             <Button
               variant="outline"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isPending}
               className="flex-1"
             >
               Cancel
@@ -168,7 +156,7 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
               className="flex-1 gap-2"
               disabled={isSaveDisabled}
             >
-              {isSaving ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Creating…

@@ -23,10 +23,9 @@ from backend.src.domain.entities.clickup.folder_with_list_metadata import Folder
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.status import ClickUpStatus
 from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, ClickUpSpaceDTO
-from backend.src.domain.ports.input.i_clickup_service import IClickUpService
 from backend.src.domain.ports.input.i_clickup_structure_creation_use_case import IClickUpStructureCreationUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
-
+from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 
 logger = logging.getLogger(__name__)
 
@@ -45,19 +44,19 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
     registers domain-level data through ClickUpService when needed.
 
     Attributes:
-        _clickup_service (IClickUpService): Application service for persistence logic.
+        _clickup_repo (IClickUpRepository): ClickUp persistence port.
         _clickup_writer (IClickUpWorkSpaceWriter): Infrastructure port for ClickUp API writes.
     """
 
-    def __init__(self, clickup_service: IClickUpService, clickup_writer: IClickUpWorkSpaceWriter):
+    def __init__(self, clickup_repo: IClickUpRepository, clickup_writer: IClickUpWorkSpaceWriter):
         """
         Initialize the use case with a clickup service and workspace port.
 
         Args:
-            clickup_service (IClickUpService): Service responsible for domain persistence logic.
+            clickup_repo (IClickUpService): Service responsible for domain persistence logic.
             clickup_writer (IClickUpWorkSpaceWriter): Writer port for ClickUp API operations.
         """
-        self._clickup_service = clickup_service
+        self._clickup_repo = clickup_repo
         self._clickup_writer = clickup_writer
 
     def create_space(self, space: CreateSpaceRequest) -> ClickUpSpaceDTO:
@@ -80,7 +79,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             space_name,
         )
 
-        result = self._clickup_service.add_space(ClickUpSpaceCreateDTO(name=space_name, space_code=space_code))
+        result = self._clickup_repo.save(ClickUpSpaceCreateDTO(name=space_name, space_code=space_code))
 
         logger.info(
             "ClickUp space persisted successfully. space_id=%s.",

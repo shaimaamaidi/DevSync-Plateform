@@ -16,7 +16,6 @@ from backend.src.domain.entities.clickup.folder_with_list_metadata import Folder
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
-from backend.src.domain.exceptions.clickup.clickup_empty_space_exception import ClickUpEmptySpaceException
 from backend.src.domain.exceptions.clickup.clickup_workspace_members_exception import ClickUpWorkspaceMembersException
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
@@ -60,9 +59,6 @@ class ClickUpReader(IClickUpReader):
 
         Returns:
             List of Folder objects containing lists, tasks, statuses, and priorities.
-
-        Raises:
-            ClickUpEmptySpaceException: If the space has no folders.
         """
         logger.info("Fetching space structure. space_id=%s.", space_id)
 
@@ -71,9 +67,7 @@ class ClickUpReader(IClickUpReader):
 
         if not folders_data and not folderless_lists_data:
             logger.warning("Empty ClickUp space. space_id=%s.", space_id)
-            raise ClickUpEmptySpaceException(
-                f"No folder found in space '{space_id}'."
-            )
+            return []
 
         folders: List[FolderWithLists] = []
 
@@ -123,9 +117,6 @@ class ClickUpReader(IClickUpReader):
 
         Returns:
             List of FolderWithListsMetadata containing lists metadata.
-
-        Raises:
-            ClickUpEmptySpaceException: If the space has no folders or lists.
         """
         logger.info("Fetching space structure. space_id=%s.", space_id)
 
@@ -134,9 +125,7 @@ class ClickUpReader(IClickUpReader):
 
         if not folders_data and not folderless_lists_data:
             logger.warning("Empty ClickUp space. space_id=%s.", space_id)
-            raise ClickUpEmptySpaceException(
-                f"No folder found in space '{space_id}'."
-            )
+            return []
 
         folders: List[FolderWithListsMetadata] = []
 
@@ -317,12 +306,12 @@ class ClickUpReader(IClickUpReader):
         list_name = list_data.get("name", "<unknown>")
 
         list_details = self._get_list_details(list_id)
-
+        override = list_details.get("override_statuses", False)
         statuses = [
             s["status"]
             for s in list_details.get("statuses", [])
             if s.get("status")
-        ]
+        ]if override else []
 
         logger.info(
             "List '%s' built. list_id=%s statuses=%d.",
@@ -446,7 +435,7 @@ class ClickUpReader(IClickUpReader):
             Parsed JSON dict of list details.
         """
         logger.info("Fetching list details. list_id=%s.", list_id)
-        return self._http.get(f"/list/{list_id}")
+        return self._http.get(f"/list/{list_id}?override_statuses=true")
 
     def _get_folderless_lists(self, space_id: str):
         """Fetch lists that sit directly in a space (not inside any folder).

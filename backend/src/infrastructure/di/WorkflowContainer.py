@@ -28,7 +28,7 @@ from backend.src.application.use_cases.verify_task_use_case import VerifyTaskUse
 
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
-from backend.src.domain.ports.input.i_clickup_service import IClickUpService
+from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
 from backend.src.infrastructure.external.backlog_generation.agents.epic_generator_agent import EpicGeneratorAgent
@@ -384,7 +384,7 @@ class WorkflowContainer:
             clickup_writer=self.clickup_writer,
         )
 
-    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpService) -> ClickUpStructureCreationUseCase:
+    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository) -> ClickUpStructureCreationUseCase:
         """
         Factory method for ClickUpStructureCreationUseCase.
 
@@ -396,8 +396,7 @@ class WorkflowContainer:
             - The ClickUp workspace writer infrastructure component
 
         Args:
-            clickup_repo (IClickUpService):
-                Domain service abstraction used to interact with ClickUp API.
+            clickup_repo (IClickUpRepository): Request-scoped click up repository.
 
         Returns:
             ClickUpStructureCreationUseCase:
@@ -411,6 +410,6 @@ class WorkflowContainer:
             raise ServiceUnavailableException("ClickUp writer is not initialized.")
 
         return ClickUpStructureCreationUseCase(
-            clickup_service=clickup_repo,
+            clickup_repo=clickup_repo,
             clickup_writer=self.clickup_workspace_writer
         )

@@ -48,7 +48,7 @@ system: |
   - Prefer verbs such as:
     Implement, Integrate, Configure, Add, Fix, Create, Develop.
   - Do NOT use managerial or meta verbs such as:
-    Prioritize, Discuss, Plan, Consider, Evaluate, Organize.
+    Prioritize, Discuss, Plan, Consider, Evaluate, Organize, Review.
   - The task name must describe WHAT will be built or fixed,
     not the process of managing the task.
 
@@ -136,6 +136,8 @@ system: |
   Each location entry also includes:
   - available statuses  → use ONLY these for task_status
   - available priorities → use ONLY these for task_priority
+  - If the appropriate location cannot be determined from the available list → use ""
+  - If no locations are provided → use ""
 
   TASK EXTRACTION RULES
 
@@ -195,6 +197,11 @@ system: |
 
   If the meeting mentions multiple independent systems,
   create separate tasks.
+
+  Example:
+  "Integrate with WhatsApp and Facebook" → two separate tasks:
+  - Integrate with WhatsApp
+  - Integrate with Facebook
 
   OUTPUT FORMAT
 

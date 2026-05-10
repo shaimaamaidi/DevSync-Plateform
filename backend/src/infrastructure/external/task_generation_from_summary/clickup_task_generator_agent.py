@@ -63,7 +63,11 @@ class ClickUpTaskGeneratorAgent(BaseAgent, ITaskGenerator):
         logger.info("Starting task generation process from meeting summary.")
 
         # Convert the dictionary to JSON text to provide to the LLM
-        locations_text = json.dumps(locations_statuses, ensure_ascii=False, indent=2)
+        if locations_statuses:
+            locations_text = json.dumps(locations_statuses, ensure_ascii=False, indent=2)
+        else:
+            locations_text = "No locations available."
+
         messages = self.prompt_loader.get_messages(
             folder_name="task_generation_from_summary",
             name="clickup_task_generator_agent",
@@ -102,7 +106,7 @@ class ClickUpTaskGeneratorAgent(BaseAgent, ITaskGenerator):
             ) from e
 
         except Exception as e:
-            logger.exception("Clickup tasks generating from meeting summary failed.")
+            logger.exception("Click up tasks generating from meeting summary failed.")
             raise LLMParsingException(
                 agent_name="ClickUpTaskGeneratorAgent",
                 reason=str(e)

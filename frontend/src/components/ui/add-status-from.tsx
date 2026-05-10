@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { AddStatusRequest, ClickUpListMetadata } from '@/api/api';
 import { StatusType } from '@/api/api';
 import { Button } from '@/components/ui/button';
@@ -12,17 +12,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
-import { useClickUpStructure } from '@/hooks/use-clikcup_structure';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
-import { useNavigate } from 'react-router-dom';
+import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
+import { useAddStatus } from '@/hooks/clickup-structure-hooks/use-add-status';
+import { showSuccessToast } from '../global-toaster';
 
 export interface AddStatusFormProps {
   isOpen: boolean;
   spaceId: string;
+  listId: string;
   onClose: () => void;
-  onSuccess?: (list: ClickUpListMetadata) => void;
+  onSuccess?: (list: ClickUpListMetadata, addedStatus: string) => void;
 }
 
 interface ListOption {
@@ -37,10 +36,10 @@ const STATUS_TYPE_LABELS: Record<StatusType, string> = {
   [StatusType.Closed]: 'Closed',
 };
 
-export function AddStatusForm({ isOpen, spaceId, onClose, onSuccess }: AddStatusFormProps) {
-  const { structure, loading: structureLoading } = useClickUpStructure(spaceId);
-
-  const [selectedListId, setSelectedListId] = useState<string>('');
+export function AddStatusForm({ isOpen, spaceId, listId, onClose, onSuccess }: AddStatusFormProps) {
+  const { structure } = useClickUpStructure(spaceId);
+  const { mutateAsync: addStatus, isPending } = useAddStatus(spaceId);
+  
   const [statusName, setStatusName] = useState('');
   const [color, setColor] = useState('#4f46e5');
   const [statusType, setStatusType] = useState<StatusType>(StatusType.Custom);
@@ -48,21 +47,18 @@ export function AddStatusForm({ isOpen, spaceId, onClose, onSuccess }: AddStatus
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
-  const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
-
   const listOptions: ListOption[] = structure.flatMap((folder) => {
-    const isFolderless = folder.id === (folder.lists?.[0]?.id ?? null);
+    const isFolderless = folder.name === '__folderless__'; 
     return (folder.lists ?? []).map((list) => ({
       id: list.id,
       label: isFolderless
-        ? `${list.name} (${list.id})`
-        : `${folder.name}/${list.name} (${list.id})`,
+        ? list.name                          
+        : `${folder.name}/${list.name}`,
       statuses: list.statuses ?? [],
     }));
   });
 
-  const selectedList = listOptions.find((l) => l.id === selectedListId);
+  const selectedList = listOptions.find((l) => l.label === listId);
   const existingStatuses = selectedList?.statuses ?? [];
 
   const inputClass = (hasError: boolean) =>
@@ -74,20 +70,16 @@ export function AddStatusForm({ isOpen, spaceId, onClose, onSuccess }: AddStatus
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedListId('');
       setStatusName('');
       setColor('#4f46e5');
       setStatusType(StatusType.Custom);
       setErrors({});
       setIsSaving(false);
     }
-  }, [isOpen]);
+  }, [isOpen, listId]);
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!selectedListId) 
-        newErrors.list = 'Please select a list';
     if (!statusName.trim()) {
       newErrors.name = 'Status name is required';
     } else if (
@@ -98,7 +90,7 @@ export function AddStatusForm({ isOpen, spaceId, onClose, onSuccess }: AddStatus
       newErrors.name = `"${statusName.trim().toUpperCase()}" already exists in this list`;
     }
     if (!color) newErrors.color = 'Color is required';
-
+    if (!statusType) newErrors.type = 'Status type is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -109,31 +101,29 @@ const handleSave = async () => {
 
     setIsSaving(true);
     try {
-      const request: AddStatusRequest = {
-        list_id: selectedListId,
-        status: statusName.trim().toUpperCase(),
-        color,
-        type: statusType,
-      };
+      if (selectedList?.id){
+        const request: AddStatusRequest = {
+          list_id: selectedList?.id,
+          status: statusName.trim().toUpperCase(),
+          color,
+          type: statusType,
+        };
 
-      const result = await withErrorHandling(
-        () => clickUpStructureCreationService.addStatus(request),
-        'Add status',
-        onError,
-      );
+        const result = await addStatus(request);
 
-      if (!result) 
-        return;
-
-      onSuccess?.(result);
-      onClose();
+        if (!result) 
+          return;
+        
+        showSuccessToast('Click Up status added successfully');
+        onSuccess?.(result, statusName.trim().toUpperCase());
+        onClose();
+      }
     } finally {
       setIsSaving(false);
     }
   };
 
-  const isSaveDisabled =
-    isSaving || !selectedListId || !statusName.trim() || !color;
+  const isSaveDisabled =isPending || !listId || !statusName.trim() || !color;
 
   if (!isOpen) 
     return null;
@@ -156,40 +146,6 @@ const handleSave = async () => {
           </div>
 
           <div className="space-y-4">
-            <div>
-              <Label className="text-foreground font-medium">ClickUp List</Label>
-              <Select
-                value={selectedListId || 'none'}
-                onValueChange={(v) => {
-                  setSelectedListId(v === 'none' ? '' : v);
-                  setErrors((e) => ({ ...e, list: '' }));
-                }}
-                disabled={isSaving || structureLoading}
-              >
-                <SelectTrigger
-                  className={`mt-2 bg-input w-full ${
-                    errors.list ? 'border-destructive/70' : 'border-border'
-                  } text-foreground`}
-                >
-                  <SelectValue
-                    placeholder={
-                      structureLoading ? 'Loading lists…' : 'Select a list…'
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border w-full">
-                  {listOptions.map((opt) => (
-                    <SelectItem key={opt.id} value={opt.id}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.list && (
-                <div className="text-destructive text-xs mt-1 px-1">{errors.list}</div>
-              )}
-            </div>
-
             <div>
               <Label className="text-foreground font-medium">Status Name</Label>
               <input
@@ -259,7 +215,7 @@ const handleSave = async () => {
                 disabled={isSaving}
               >
                 <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                  <SelectValue />
+                  <SelectValue placeholder='No status type selected' />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border w-full">
                   {Object.values(StatusType).map((t) => (

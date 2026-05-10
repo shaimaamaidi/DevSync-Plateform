@@ -102,7 +102,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
         if name_to_email :
             members = self._clickup_task_service.get_workspace_members(space_id)
 
-        self._clickup_writer.apply_results(tasks, folders, members, name_to_email, ignore_mails)
+        self._clickup_writer.apply_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
 
         logger.info(
             "Tasks saved to ClickUp successfully: space_id=%s created_tasks=%d.",

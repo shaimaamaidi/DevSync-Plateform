@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, X } from 'lucide-react';
-import { useMembers } from '@/hooks/use-members';
+import { useMembers } from '@/hooks/member-hooks/use-members';
 import { UNASSIGNED } from './assignees-avatar';
 
 export function AssigneeField({
@@ -17,13 +17,12 @@ export function AssigneeField({
   const selected =
     value === UNASSIGNED || !value
       ? []
-      : value.split(',').map(s => s.trim());
+      : value.split(',').map(s => s.trim()).filter(Boolean);
 
   const toggle = (name: string) => {
     const next = selected.includes(name)
       ? selected.filter(n => n !== name)
       : [...selected, name];
-
     onChange(next.length ? next.join(', ') : UNASSIGNED);
   };
 
@@ -32,8 +31,7 @@ export function AssigneeField({
     onChange(next.length ? next.join(', ') : UNASSIGNED);
   };
 
-  // close outside click
-  useState(() => {
+  useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
@@ -41,40 +39,39 @@ export function AssigneeField({
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  });
+  }, []);
 
   return (
     <div ref={ref} className="relative">
       <div
         onClick={() => setOpen(p => !p)}
-        className="border border-border rounded-md px-2 py-1 min-h-[34px] flex flex-wrap gap-1 cursor-pointer"
+        className="border border-border rounded-md px-2 py-1 min-h-[34px] flex flex-wrap gap-1 items-center cursor-pointer"
       >
         {selected.length === 0 ? (
-          <span className="text-muted-foreground">Unassigned</span>
+          <span className="text-muted-foreground text-sm">Unassigned</span>
         ) : (
           selected.map(name => (
             <span
               key={name}
               className="bg-primary/10 text-primary text-xs px-1.5 py-0.5 rounded-md flex items-center gap-1"
             >
-              {name}
+              <span dir="rtl">{name}</span>
               <X
                 className="w-3 h-3 cursor-pointer"
-                onClick={e => {
-                  e.stopPropagation();
-                  remove(name);
-                }}
+                onClick={e => { e.stopPropagation(); remove(name); }}
               />
             </span>
           ))
         )}
-        <ChevronDown className="ml-auto w-3.5 h-3.5" />
+        <ChevronDown className="ml-auto w-3.5 h-3.5 flex-shrink-0" />
       </div>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full bg-white border rounded-md shadow">
+        <div className="absolute z-50 mt-1 w-full bg-popover border border-border rounded-md shadow-md max-h-48 overflow-y-auto">
           {loading ? (
-            <div className="p-2 text-xs">Loading...</div>
+            <div className="p-2 text-xs text-muted-foreground">Loading members…</div>
+          ) : members.length === 0 ? (
+            <div className="p-2 text-xs text-muted-foreground">No members found</div>
           ) : (
             members.map(m => {
               const name = m.arabic_name ?? '';
@@ -84,16 +81,16 @@ export function AssigneeField({
                 <div
                   key={m.id}
                   onClick={() => toggle(name)}
-                  className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted"
+                  className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted transition-colors"
                 >
                   <div
-                    className={`w-4 h-4 border flex items-center justify-center ${
-                      isSelected ? 'bg-primary' : ''
+                    className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
+                      isSelected ? 'bg-primary border-primary' : 'border-border'
                     }`}
                   >
-                    {isSelected && <Check className="w-3 h-3" />}
+                    {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
                   </div>
-                  <span dir="rtl">{name}</span>
+                  <span dir="rtl" className="text-sm">{name}</span>
                 </div>
               );
             })

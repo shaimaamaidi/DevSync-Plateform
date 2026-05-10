@@ -35,6 +35,7 @@ def create_admin():
 
         member = MemberCreateDTO(
             username="admin",
+            arabic_name="شيماء",
             mail="admin@gmail.com",
             password="admin",
         )

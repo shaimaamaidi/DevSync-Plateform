@@ -1,62 +1,80 @@
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
-import type { GeneratedTask } from '@/api/api';
+import type { FolderWithListsMetadata, GeneratedTask } from '@/api/api';
 import { GeneratedTaskCard } from './ui/generated-task-card';
-import { GeneratedTaskSkeletonCard } from './ui/generated-task-skeleton-card';
-
+import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 
 interface Props {
   tasks: GeneratedTask[];
   isLoading: boolean;
+  onUpdate: (index: number, updated: GeneratedTask) => void;
   onDelete: (index: number) => void;
   onVerify: () => void;
   isVerifying: boolean;
+  canVerify: boolean;
+  structure: FolderWithListsMetadata[];
+  structureLoading: boolean;
+  spaceId: string;
+  isStep3Done: boolean;
 }
 
 export function GeneratedTaskList({
   tasks,
   isLoading,
+  onUpdate,
   onDelete,
   onVerify,
   isVerifying,
+  canVerify,
+  structure,
+  structureLoading,
+  spaceId,
+  isStep3Done,
 }: Props) {
   return (
     <div className="space-y-3">
-      {/* header */}
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs text-muted-foreground">
-          {isLoading
-            ? 'Generating…'
-            : `${tasks.length} task${tasks.length !== 1 ? 's' : ''} · drag into Step 3`}
+          {!isLoading &&
+            `${tasks.length} task${tasks.length !== 1 ? 's' : ''} generated${isStep3Done ? ' · drag any task into Step 3 to add it manually' : ''}`}
         </p>
-        <span className="text-xs text-muted-foreground/60">⇠ drag</span>
+        {isStep3Done && (
+          <span className="text-xs text-muted-foreground/60">⇠ drag</span>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">
         {isLoading
-          ? Array.from({ length: 3 }).map((_, i) => (
-              <GeneratedTaskSkeletonCard key={i} />
-            ))
+          ?  Array.from({ length: 3 }).map((_, i) => <TaskSkeletonCard key={i} />)
           : tasks.map((task, i) => (
               <GeneratedTaskCard
                 key={`${task.task_name}-${i}`}
                 task={task}
                 onDelete={() => onDelete(i)}
+                onUpdate={updated => onUpdate(i, updated)}
+                structure={structure}
+                structureLoading={structureLoading}
+                spaceId={spaceId}
+                draggable={isStep3Done}
               />
             ))}
       </div>
 
-      {/* footer */}
       {!isLoading && tasks.length > 0 && (
-        <div className="flex justify-end pt-1">
+        <div className="flex items-center justify-end gap-3 pt-1">
+          {!canVerify && (
+            <p className="text-xs text-amber-600">
+              All tasks need a location before verifying.
+            </p>
+          )}
           <Button
             onClick={onVerify}
-            disabled={isVerifying}
+            disabled={isVerifying || !canVerify}
             variant="outline"
             className="gap-2"
           >
             <ShieldCheck className="w-4 h-4" />
-            {isVerifying ? 'Verifying…' : 'Verify tasks →'}
+            {isVerifying ? 'Verifying…' : 'Verify tasks'}
           </Button>
         </div>
       )}

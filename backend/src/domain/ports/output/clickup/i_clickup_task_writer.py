@@ -27,6 +27,7 @@ class IClickUpTaskWriter(ABC):
             folders: List[FolderWithLists],
             members: List[dict],
             name_to_email: dict[str, str],
+            ignore_names: bool,
             ignore_mails: bool
     ) -> None:
         """
@@ -39,8 +40,11 @@ class IClickUpTaskWriter(ABC):
             results: List of verification results describing actions to apply.
             folders: ClickUp space structure used to resolve folders and lists.
             members: Workspace members with their metadata (id, username, email).
-            name_to_email: Mapping of usernames to email addresses.$
-            ignore_mails (bool):Flag indicating whether email-based assignment should be ignored.
+            name_to_email: Mapping of usernames to email addresses.
+            ignore_names (bool):Flag indicating whether name-based assignment should
+                be ignored.
+            ignore_mails (bool):Flag indicating whether email-based assignment should
+                be ignored.
 
         Returns:
             None

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { CreateFolderRequest, FolderWithListsMetadata } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,30 +11,27 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
-import { useClickUpStructure } from '@/hooks/use-clikcup_structure';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
-import { useNavigate } from 'react-router-dom';
-import { useClickUpSpacesList } from '@/hooks/use-clickup-spaces';
+import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
+import { useClickUpSpacesList } from '@/hooks/clickup-structure-hooks/use-clickup-spaces';
+import { useCreateFolder } from '@/hooks/clickup-structure-hooks/use-create-folder';
+import { showSuccessToast } from '../global-toaster';
 
 export interface CreateFolderFormProps {
+  spaceId?: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (folder: FolderWithListsMetadata) => void;
 }
 
-export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFormProps) {
+export function CreateFolderForm({ spaceId, isOpen, onClose, onSuccess }: CreateFolderFormProps) {
   const { spaces, loading: spacesLoading } = useClickUpSpacesList();
 
-  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string>(spaceId || '');
+  const { mutateAsync: createFolder, isPending } = useCreateFolder(selectedSpaceId); // 👈
+
   const [folderName, setFolderName] = useState('');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSaving, setIsSaving] = useState(false);
-
-  const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
   const { structure, loading: structureLoading } = useClickUpStructure(selectedSpaceId);
 
@@ -51,10 +48,9 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedSpaceId('');
+      setSelectedSpaceId(spaceId || '');
       setFolderName('');
       setErrors({});
-      setIsSaving(false);
     }
   }, [isOpen]);
 
@@ -85,31 +81,25 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
     if (!validate()) 
         return;
 
-    setIsSaving(true);
     try {
       const request: CreateFolderRequest = {
         space_id: selectedSpaceId,
         name: folderName.trim(),
       };
 
-      const result = await withErrorHandling(
-        () => clickUpStructureCreationService.createFolder(request),
-        'Create folder',
-        onError,
-      );
+      const result = await createFolder(request);
 
       if (!result) 
         return;
 
+      showSuccessToast('Click Up folder created successfully');
       onSuccess?.(result);
       onClose();
-    } finally {
-      setIsSaving(false);
-    }
+    }finally{}
   };
 
   const isSaveDisabled =
-    isSaving || !selectedSpaceId || !folderName.trim() || structureLoading;
+    isPending || !selectedSpaceId || !folderName.trim() || structureLoading;
 
   if (!isOpen) 
     return null;
@@ -124,7 +114,7 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
               variant="ghost"
               size="icon"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isPending}
               className="h-8 w-8"
             >
               <X className="w-4 h-4" />
@@ -140,23 +130,29 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
                   setSelectedSpaceId(v === 'none' ? '' : v);
                   setErrors((e) => ({ ...e, space: '' }));
                 }}
-                disabled={isSaving || spacesLoading}
+                disabled={isPending || spacesLoading}
               >
                 <SelectTrigger
                   className={`mt-2 bg-input w-full ${
                     errors.space ? 'border-destructive/70' : 'border-border'
                   } text-foreground`}
                 >
-                  <SelectValue
-                    placeholder={spacesLoading ? 'Loading spaces…' : 'Select a space…'}
-                  />
+                  <SelectValue placeholder={spacesLoading ? 'Loading spaces…' : 'No ClickUp space selected'} />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border w-full">
-                  {spaces.map((space) => (
-                    <SelectItem key={space.space_code} value={space.space_code || 'none'}>
-                      {space.space_code}
+                  {spaces.length === 0 ? (
+                    <SelectItem value="none" disabled>
+                      No ClickUp space available
                     </SelectItem>
-                  ))}
+                  ) : (
+                    <>
+                    {spaces.map((space) => (
+                      <SelectItem key={space.space_code} value={space.space_code || 'none'}>
+                        {space.space_code}
+                      </SelectItem>
+                    ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
               {errors.space && (
@@ -175,7 +171,7 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
                   setErrors((err) => ({ ...err, name: '' }));
                 }}
                 className={inputClass(!!errors.name) + ' mt-2'}
-                disabled={isSaving}
+                disabled={isPending}
               />
               {errors.name && (
                 <div className="text-destructive text-xs mt-1 px-1">{errors.name}</div>
@@ -212,7 +208,7 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
             <Button
               variant="outline"
               onClick={onClose}
-              disabled={isSaving}
+              disabled={isPending}
               className="flex-1"
             >
               Cancel
@@ -222,7 +218,7 @@ export function CreateFolderForm({ isOpen, onClose, onSuccess }: CreateFolderFor
               className="flex-1 gap-2"
               disabled={isSaveDisabled}
             >
-              {isSaving ? (
+              {isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Saving…

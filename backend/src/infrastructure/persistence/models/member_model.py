@@ -10,11 +10,11 @@ Classes:
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from backend.src.infrastructure.persistence.base import Base
+from backend.src.infrastructure.persistence.base import BaseModel
 from backend.src.infrastructure.persistence.models.member_repo_association import member_repo_association
 
 
-class MemberModel(Base):
+class MemberModel(BaseModel):
     """
     SQLAlchemy ORM model for a persisted member record.
 
@@ -28,6 +28,7 @@ class MemberModel(Base):
         refresh_tokens (list[RefreshTokenModel]): List of associated refresh tokens.
     """
     __tablename__ = "members"
+
     id = Column(Integer, primary_key=True)
     username = Column(String(255), nullable=False)
     arabic_name = Column(String(255), nullable=False)
