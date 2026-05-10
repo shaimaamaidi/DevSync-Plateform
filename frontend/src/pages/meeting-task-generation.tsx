@@ -290,7 +290,7 @@ export function MeetingTaskManager() {
               <Select
                 value={selectedSpaceId || 'none'}
                 onValueChange={handleSpaceChange}
-                disabled={spacesLoading || isGenerating}
+                disabled={spacesLoading || isGenerating || isSavingStep}
               >
                 <SelectTrigger  className={`w-[500px] bg-input border-border ${!selectedSpaceId || selectedSpaceId === 'none'? 'text-muted-foreground': 'text-foreground'}`}>
                   <SelectValue
@@ -317,7 +317,7 @@ export function MeetingTaskManager() {
               </Select>
               <Button 
                 onClick={handleCreateNewSpace} 
-                disabled={isGenerating} className="gap-2"
+                disabled={isGenerating || isSavingStep} className="gap-2"
               >
                 <Plus className="w-4 h-4" />
                 New click up space
@@ -339,7 +339,7 @@ export function MeetingTaskManager() {
             <span className="text-xs text-muted-foreground">{summary.length} characters</span>
             <Button
               onClick={() => handleGenerate()}
-              disabled={!canGenerate || isGenerating}
+              disabled={!canGenerate || isGenerating || isSavingStep}
               className="gap-2"
               title={
                 !selectedSpaceId
@@ -481,10 +481,11 @@ export function MeetingTaskManager() {
             <Button
               variant="outline"
               onClick={() => { setShowSpaceChangeDialog(false); setPendingSpaceId(null); }}
+              disabled={isSavingStep}
             >
               Cancel
             </Button>
-            <Button onClick={handleConfirmSpaceChangeAndGenerate}>
+            <Button onClick={handleConfirmSpaceChangeAndGenerate} disabled={isSavingStep}>
               Yes, switch &amp; regenerate
             </Button>
           </DialogFooter>
