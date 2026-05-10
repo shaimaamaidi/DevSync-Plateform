@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, Loader2 } from 'lucide-react';
-import type { FolderWithListsMetadata } from '@/api';
+import type { FolderWithListsMetadata } from '@/api/api';
 
 const DEFAULT_PRIORITIES = ['urgent', 'high', 'normal', 'low'];
 

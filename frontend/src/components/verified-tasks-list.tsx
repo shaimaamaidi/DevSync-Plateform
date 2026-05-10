@@ -31,6 +31,7 @@ interface Props {
   structure: FolderWithListsMetadata[];
   structureLoading: boolean;
   isStructureEmpty: boolean;
+  disabled: boolean;
 }
 
 export function VerifiedTaskList({
@@ -46,6 +47,7 @@ export function VerifiedTaskList({
   structure,
   structureLoading,
   isStructureEmpty,
+  disabled,
 }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -102,6 +104,7 @@ export function VerifiedTaskList({
         {!isLoading && (
           <Button 
             onClick={() => setShowAddForm(p => !p)}
+            disabled={disabled}
             className="gap-2"
           >
             <Plus className="w-4 h-4" />
@@ -131,6 +134,7 @@ export function VerifiedTaskList({
                 structure={structure}
                 structureLoading={structureLoading}
                 spaceId={spaceId}
+                disabled={disabled}
               />
             ))}
       </div>
@@ -162,7 +166,7 @@ export function VerifiedTaskList({
           )}
           <Button
             onClick={onSave}
-            disabled={isSaving || !canSave}
+            disabled={isSaving || !canSave || disabled}
             className="gap-2 bg-[#0F6E56] hover:bg-[#0a5442] text-white"
           >
             <Save className="w-4 h-4" />

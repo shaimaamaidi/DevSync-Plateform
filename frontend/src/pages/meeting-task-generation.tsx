@@ -68,6 +68,7 @@ export function MeetingTaskManager() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
+  const [isSavingStep, setIsSavingStep] = useState(false);
 
   const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
   const [showCreateSpace, setShowCreateSpace] = useState(false);
@@ -222,6 +223,7 @@ export function MeetingTaskManager() {
     setIsSaving(true);
 
     try {
+      setIsSavingStep(true);
       const result = await saveInClickupService.saveTasks(
         selectedSpaceId,
         verifiedTasks as unknown as VerifiedTask[],
@@ -383,6 +385,7 @@ export function MeetingTaskManager() {
                     structureLoading={isFetching}
                     spaceId={selectedSpaceId}
                     isStep3Done={isStep3Done}
+                    disabled={isSavingStep}
                   />
                 )}
               </div>
@@ -416,6 +419,7 @@ export function MeetingTaskManager() {
                     structureLoading={isFetching}
                     isStructureEmpty={isStructureEmpty}
                     canSave={allTasksHaveLocation(verifiedTasks)}
+                    disabled={isSavingStep}
                   />
                 )}
               </div>
@@ -451,6 +455,7 @@ export function MeetingTaskManager() {
                       structureLoading={isFetching}
                       isStructureEmpty={isStructureEmpty}
                       canSave={allTasksHaveLocation(verifiedTasks)}
+                      disabled={isSavingStep}
                     />
                   )}
                 </div>

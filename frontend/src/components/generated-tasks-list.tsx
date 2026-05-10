@@ -16,6 +16,7 @@ interface Props {
   structureLoading: boolean;
   spaceId: string;
   isStep3Done: boolean;
+  disabled: boolean;
 }
 
 export function GeneratedTaskList({
@@ -30,6 +31,7 @@ export function GeneratedTaskList({
   structureLoading,
   spaceId,
   isStep3Done,
+  disabled,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -56,6 +58,7 @@ export function GeneratedTaskList({
                 structureLoading={structureLoading}
                 spaceId={spaceId}
                 draggable={isStep3Done}
+                disabled ={disabled}
               />
             ))}
       </div>
@@ -69,7 +72,7 @@ export function GeneratedTaskList({
           )}
           <Button
             onClick={onVerify}
-            disabled={isVerifying || !canVerify}
+            disabled={isVerifying || !canVerify || disabled}
             variant="outline"
             className="gap-2"
           >

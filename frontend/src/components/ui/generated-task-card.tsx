@@ -25,7 +25,8 @@ interface Props {
   structure: FolderWithListsMetadata[];        
   structureLoading: boolean;                   
   spaceId: string;    
-  draggable: boolean;                         
+  draggable: boolean; 
+  disabled: boolean;                        
 }
 
 export function GeneratedTaskCard({
@@ -36,6 +37,7 @@ export function GeneratedTaskCard({
   structureLoading,
   spaceId,
   draggable,
+  disabled 
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -97,6 +99,7 @@ export function GeneratedTaskCard({
             <div ref={dropRef} className="relative" onClick={e => e.stopPropagation()}>
               <button
                 type="button"
+                disabled={disabled}
                 onClick={() => setLocationOpen(p => !p)}
                 className={`text-xs px-2 py-0.5 rounded-md border transition-colors ${
                   task.location?.trim()
@@ -124,6 +127,7 @@ export function GeneratedTaskCard({
                           onUpdate({ ...task, location: opt.label });
                           setLocationOpen(false);
                         }}
+                        disabled={disabled}
                         className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
                           task.location === opt.label ? 'bg-muted font-medium' : ''
                         }`}
@@ -136,6 +140,7 @@ export function GeneratedTaskCard({
                     <button
                       type="button"
                       onClick={() => { setLocationOpen(false); setShowCreateList(true); }}
+                      disabled={disabled}
                       className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 font-medium"
                     >
                       <Plus className="w-3.5 h-3.5" />
@@ -165,6 +170,7 @@ export function GeneratedTaskCard({
           <Button
             variant="ghost"
             size="sm"
+            disabled={disabled}
             className="h-7 w-7 p-0"
             onClick={e => {
               e.stopPropagation();

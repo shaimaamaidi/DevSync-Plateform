@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Trash2, Pen, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { VerifiedTask, FolderWithListsMetadata, ClickUpListMetadata } from '@/api/api';
-import { VerifiedTaskActionEnum } from '@/api/api';
 import { EditableField } from './editable-field';
 import { AssigneeField } from './assignee-field';
 import { LocationField } from './location-field';
@@ -12,27 +11,8 @@ import { AddStatusForm } from './add-status-from';
 import { CreateListForm } from './create-list-form';
 import { buildLocationOptions } from './location-field';
 import { AssigneeAvatars } from './assignees-avatar';
+import { ActionBadge } from './action-badge';
 
-function ActionBadge({
-  action,
-  taskId,
-}: {
-  action: VerifiedTaskActionEnum;
-  taskId?: string | null;
-}) {
-  if (action === VerifiedTaskActionEnum.Create) {
-    return (
-      <span className="text-xs px-2 py-0.5 rounded-md border bg-green-50 text-green-700 border-green-100 font-medium">
-        create
-      </span>
-    );
-  }
-  return (
-    <span className="text-xs px-2 py-0.5 rounded-md border bg-amber-50 text-amber-700 border-amber-100 font-medium">
-      update {taskId ? `#${taskId}` : ''}
-    </span>
-  );
-}
 
 interface Props {
   task: VerifiedTask;
@@ -42,6 +22,7 @@ interface Props {
   structure: FolderWithListsMetadata[];
   structureLoading: boolean;
   spaceId: string;
+  disabled: boolean;
 }
 
 export function VerifiedTaskCard({
@@ -52,6 +33,7 @@ export function VerifiedTaskCard({
   structure,
   structureLoading,
   spaceId,
+  disabled,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -118,7 +100,7 @@ export function VerifiedTaskCard({
           editing ? 'border-ring' : 'border-border/60 hover:border-border'
         }`}
       >
-        {editing ? (
+        {editing && !disabled ? (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <ActionBadge action={task.action} taskId={task.task_id} />
@@ -197,12 +179,14 @@ export function VerifiedTaskCard({
                 variant="outline"
                 size="sm"
                 onClick={() => { setDraft(task); setEditing(false); }}
+                disabled={disabled}
               >
                 Cancel
               </Button>
               <Button
                 size="sm"
                 onClick={() => { onUpdate(draft); setEditing(false); }}
+                disabled={disabled}
               >
                 Save
               </Button>
@@ -236,6 +220,7 @@ export function VerifiedTaskCard({
                   <button
                     type="button"
                     onClick={() => setLocationOpen(p => !p)}
+                    disabled={disabled}
                     className={`text-xs px-2 py-0.5 rounded-md border transition-colors ${
                       task.location?.trim()
                         ? 'bg-muted/50 text-muted-foreground border-border hover:border-primary/40'
@@ -262,6 +247,7 @@ export function VerifiedTaskCard({
                               onUpdate({ ...task, location: opt.label });
                               setLocationOpen(false);
                             }}
+                            disabled={disabled}
                             className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
                               task.location === opt.label ? 'bg-muted font-medium' : ''
                             }`}
@@ -274,6 +260,7 @@ export function VerifiedTaskCard({
                         <button
                           type="button"
                           onClick={() => { setLocationOpen(false); setShowAddList(true); }}
+                          disabled={disabled}
                           className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 font-medium"
                         >
                           <Plus className="w-3.5 h-3.5" />
@@ -292,6 +279,7 @@ export function VerifiedTaskCard({
                 size="sm"
                 className="h-7 w-7 p-0 text-gray-500 hover:text-gray-700"
                 onClick={() => setEditing(true)}
+                disabled={disabled}
               >
                 <Pen className="w-3.5 h-3.5" />
               </Button>
@@ -300,6 +288,7 @@ export function VerifiedTaskCard({
                 size="sm"
                 className="h-7 w-7 p-0 text-destructive"
                 onClick={onDelete}
+                disabled={disabled}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </Button>

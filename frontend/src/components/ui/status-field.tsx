@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, Check, Loader2 } from 'lucide-react';
-import type { FolderWithListsMetadata } from '@/api';
+import type { FolderWithListsMetadata } from '@/api/api';
 
 interface Props {
   value: string;
