@@ -20,7 +20,7 @@ from fastapi import APIRouter, Depends, status
 from backend.src.domain.entities.verify_tasks.verify_tasks_request import VerifyTasksRequest
 from backend.src.domain.entities.verify_tasks.verify_tasks_response import VerifyTasksResponse
 from backend.src.domain.ports.input.i_verify_task_use_case import IVerifyTaskUseCase
-from backend.src.presentation.api.deps import get_verify_task_use_case
+from backend.src.presentation.api.deps import get_verify_tasks_use_case
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ router = APIRouter()
 )
 def verify_tasks(
         request: VerifyTasksRequest,
-        use_case: IVerifyTaskUseCase = Depends(get_verify_task_use_case),
+        use_case: IVerifyTaskUseCase = Depends(get_verify_tasks_use_case),
 ) -> VerifyTasksResponse:
     """
     Verify generated tasks against existing ClickUp tasks.

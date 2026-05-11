@@ -428,6 +428,55 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         return resolved
 
+    def find_by_mails(self, mails: list[str]) -> Dict[str, str]:
+        """
+        Fetch members by their mails and return a mapping to their arabic names.
+
+        This method resolves a list of mails into a dictionary mapping
+        normalized mail to arabic names. If some names cannot be resolved,
+        then we ignore them.
+
+        Args:
+            mails (list[str]): List of mails to resolve into members.
+
+        Returns:
+            Dict[str, str]: Mapping of normalized mails to arabic names.
+
+        Raises:
+            MemberPersistenceException: If a database error occurs during the query.
+        """
+        logger.info("Fetching members by arabic names.")
+
+        if not mails:
+            logger.warning(
+                "Invalid input for member fetching by arabic names (List provided is empty)."
+            )
+            return {}
+
+        resolved: Dict[str, str] = {}
+
+        try:
+            for mail in mails:
+                m = self._session.query(MemberModel).filter_by(mail=mail).first()
+                if not m:
+                    logger.warning("Member not found (mail=%s).", mail)
+                else:
+                    name = m.arabic_name
+                    mail = mail.lower()
+                    resolved[mail] = name
+        except SQLAlchemyError as e:
+            self._session.rollback()
+            logger.exception(
+                "Error fetching members by arabic names."
+            )
+            raise MemberPersistenceException(str(e)) from e
+
+        logger.info(
+            "Members fetched successfully by arabic names.",
+        )
+
+        return resolved
+
     def find_by_mail(self, mail: str) -> MemberWithReposDTO:
         """
         Fetch a member by mail.

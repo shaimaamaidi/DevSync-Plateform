@@ -26,7 +26,11 @@ class IVerifyTaskUseCase:
     (create or update operations), abstracting comparison logic and rules.
     """
 
-    def verify_tasks(self, tasks: List[GeneratedTask], space_id) -> List[VerifiedTask]:
+    def verify_tasks(
+        self,
+        tasks: List[GeneratedTask],
+        space_id: str,
+    ) -> List[VerifiedTask]:
         """
         Verify generated tasks against existing ClickUp tasks.
 

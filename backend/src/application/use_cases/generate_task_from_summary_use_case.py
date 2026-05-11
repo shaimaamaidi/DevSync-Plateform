@@ -15,8 +15,8 @@ from typing import List
 
 from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 from backend.src.domain.helpers.clickup_folder_helpers import get_folders_statuses_and_priorities
-from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.input.i_generate_task_from_summary_use_case import IGenerateTaskFromSummaryUseCase
+from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.services.task_generation_from_summary.i_task_generator import ITaskGenerator
 
 
@@ -32,19 +32,19 @@ class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
     to a task generator service.
 
     Attributes:
-        _clickup_task_service (IClickUpTaskService): Service to retrieve ClickUp structure.
+        _clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
         _task_generator (ITaskGenerator): Service responsible for generating tasks.
     """
 
-    def __init__(self, clickup_task_service: IClickUpTaskService, task_generator: ITaskGenerator):
+    def __init__(self, clickup_reader: IClickUpReader, task_generator: ITaskGenerator):
         """
         Initialize the use case with required services.
 
         Args:
-            clickup_task_service (IClickUpTaskService): ClickUp task service.
+            clickup_reader (IClickUpReader): ClickUp reader port implementation.
             task_generator (ITaskGenerator): Task generator service.
         """
-        self._clickup_task_service = clickup_task_service
+        self._clickup_reader = clickup_reader
         self._task_generator = task_generator
 
     def generate_tasks_from_meeting_summary(self, meeting_summary: str, space_id) -> List[GeneratedTask]:
@@ -67,7 +67,7 @@ class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
             space_id,
         )
 
-        folders = self._clickup_task_service.get_space_structure(space_id)
+        folders = self._clickup_reader.get_space_structure_metadata(space_id)
         locations_statuses = get_folders_statuses_and_priorities(folders)
 
         tasks = self._task_generator.generate_tasks(

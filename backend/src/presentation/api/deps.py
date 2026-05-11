@@ -36,7 +36,6 @@ logger = logging.getLogger(__name__)
 
 
 # Request-scoped container
-
 def get_container(request: Request) -> Generator[Container, None, None]:
     """
     Provide a request-scoped dependency injection container.
@@ -89,7 +88,6 @@ def get_container(request: Request) -> Generator[Container, None, None]:
 
 
 # Singleton use cases (initialized at startup)
-
 def get_backlog_use_case(request: Request) -> GenerateBacklogUseCase:
     """
     Retrieve the backlog generation use case instance.
@@ -133,44 +131,6 @@ def get_backlog_use_case(request: Request) -> GenerateBacklogUseCase:
         logger.exception("Failed to retrieve backlog use case: %s", str(e))
         raise ServiceUnavailableException("Backlog service is unavailable.") from e
 
-
-def get_verify_task_use_case(request: Request) -> VerifyTaskUseCase:
-    """
-    Retrieve the task verification use case instance.
-
-    Singleton initialized at application startup. Verifies ClickUp tasks
-    against defined acceptance criteria using an LLM-based agent.
-
-    Args:
-        request (Request):
-            The incoming FastAPI request object.
-
-    Returns:
-        VerifyTaskUseCase:
-            The initialized task verification use case.
-
-    Raises:
-        ServiceUnavailableException:
-            If the use case is not initialized in the application state.
-        Exception:
-            If an unexpected runtime error occurs while resolving the dependency.
-    """
-    try:
-        use_case = request.app.state.workflow_container.verify_tasks_use_case
-
-        if use_case is None:
-            raise ServiceUnavailableException("Task verification use case is not initialized.")
-
-        return use_case
-
-    except ServiceUnavailableException:
-        raise
-
-    except Exception as e:
-        logger.exception("Failed to retrieve task verification use case: %s", str(e))
-        raise ServiceUnavailableException("Task verification service is unavailable.") from e
-
-
 def get_generate_task_from_summary_use_case(request: Request) -> GenerateTaskFromSummaryUseCase:
     """
     Retrieve the task generation from summary use case instance.
@@ -209,7 +169,6 @@ def get_generate_task_from_summary_use_case(request: Request) -> GenerateTaskFro
 
 
 # Request-scoped use case (requires member_repo)
-
 def get_save_task_use_case(
     request: Request,
     container: Container = Depends(get_container),
@@ -248,8 +207,46 @@ def get_save_task_use_case(
         logger.exception("Failed to build save task use case: %s", str(e))
         raise ServiceUnavailableException("Save task service is unavailable.") from e
 
-# Request-scoped use case (requires clickup_repo)
+# Request-scoped use case (requires member_repo)
+def get_verify_tasks_use_case(
+    request: Request,
+    container: Container = Depends(get_container),
+) -> VerifyTaskUseCase:
+    """
+    Build and provide the verify tasks use case for the current request.
 
+    Unlike the other use cases, VerifyTaskUseCase requires member_repo
+    which is request-scoped (bound to a SQLAlchemy session). It is therefore
+    constructed fresh per request by combining:
+        - Singleton ClickUp infrastructure from WorkflowContainer (app.state)
+        - Request-scoped member_repo from the session-bound Container
+
+    Args:
+        request (Request):
+            The incoming FastAPI request object.
+        container (Container):
+            The request-scoped DI container providing member_repo.
+
+    Returns:
+        VerifyTaskUseCase:
+            A fully initialized verify tasks use case for this request.
+
+    Raises:
+        ServiceUnavailableException:
+            If the ClickUp infrastructure is not initialized in the application state,
+            or if an unexpected error occurs while building the use case.
+    """
+    try:
+        return request.app.state.workflow_container.create_tasks_verification_use_case(
+            member_repo=container.member_repo
+        )
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to build save task use case: %s", str(e))
+        raise ServiceUnavailableException("Verify task service is unavailable.") from e
+
+# Request-scoped use case (requires clickup_repo)
 def get_clickup_structure_creation_use_case(
     request: Request,
     container: Container = Depends(get_container),

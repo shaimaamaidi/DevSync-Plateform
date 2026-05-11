@@ -16,8 +16,9 @@ from backend.src.domain.entities.generate_tasks_from_summary.generated_task impo
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.helpers.clickup_folder_helpers import get_generated_tasks_by_location, get_tasks_by_location
 
-from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.input.i_verify_task_use_case import IVerifyTaskUseCase
+from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
+from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.services.clickup_task_verification.i_clickup_task_verifier import \
     IClickUpTaskVerifier
 
@@ -33,20 +34,28 @@ class VerifyTaskUseCase(IVerifyTaskUseCase):
     per folder, then delegates verification logic to a task verifier service.
 
     Attributes:
-        _clickup_task_service (IClickUpTaskService): Service for retrieving ClickUp structure.
+        _clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
         _task_verifier (IClickUpTaskVerifier): Service responsible for task verification logic.
+        _member_repo (IMemberRepository): Repository for resolving member identities.
     """
 
-    def __init__(self, clickup_task_service: IClickUpTaskService, task_verifier: IClickUpTaskVerifier):
+    def __init__(
+        self,
+        clickup_reader: IClickUpReader,
+        task_verifier: IClickUpTaskVerifier,
+        member_repo: IMemberRepository
+    ):
         """
         Initialize the use case with required services.
 
         Args:
-            clickup_task_service (IClickUpTaskService): ClickUp task service.
+            clickup_reader (IClickUpReader): ClickUp reader port implementation.
             task_verifier (IClickUpTaskVerifier): Task verifier service.
+            member_repo (IMemberRepository): Member repository.
         """
-        self._clickup_task_service = clickup_task_service
+        self._clickup_reader = clickup_reader
         self._task_verifier = task_verifier
+        self._member_repo =member_repo
 
 
     def verify_tasks(self, tasks: List[GeneratedTask], space_id) -> List[VerifiedTask]:
@@ -70,14 +79,42 @@ class VerifyTaskUseCase(IVerifyTaskUseCase):
             len(tasks),
         )
 
-        folders = self._clickup_task_service.get_space_structure(space_id)
+        folders = self._clickup_reader.get_space_full_structure(space_id)
 
-        existing_by_folder = get_tasks_by_location(folders)
-        generated_by_folder = get_generated_tasks_by_location(tasks)
+        existing_by_location = get_tasks_by_location(folders)
+
+        assignee_mails_list: List[str] = list({
+            email.strip()
+            for existing_tasks in existing_by_location.values()
+            for task in existing_tasks
+            if task.assignee
+            for email in task.assignee.split(",")
+            if email.strip()
+        })
+
+        email_to_name: dict[str, str] = {}
+
+        if assignee_mails_list:
+            email_to_name = self._member_repo.find_by_mails(assignee_mails_list)
+
+        for existing_tasks in existing_by_location.values():
+            for task in existing_tasks:
+                if not task.assignee:
+                    continue
+
+                resolved_names = [
+                    email_to_name[email.strip()]
+                    for email in task.assignee.split(",")
+                    if email.strip() and email.strip() in email_to_name
+                ]
+
+                task.assignee = ", ".join(resolved_names) if resolved_names else None
+
+        generated_by_location = get_generated_tasks_by_location(tasks)
 
         all_results = []
-        for folder_name, gen_tasks in generated_by_folder.items():
-            existing = existing_by_folder.get(folder_name, [])
+        for location, gen_tasks in generated_by_location.items():
+            existing = existing_by_location.get(location, [])
             results = self._task_verifier.verify_tasks(
                 existing_tasks=existing,
                 tasks=gen_tasks,

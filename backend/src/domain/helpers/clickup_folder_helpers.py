@@ -14,6 +14,7 @@ Functions:
 import logging
 from typing import List, Dict
 
+from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
 
@@ -27,7 +28,7 @@ def get_tasks_by_location(folders) -> Dict[str, List[ClickUpTask]]:
 
     Location label format:
     - "FolderName / ListName" for lists inside a folder
-    - "ListName"              for folderless lists (folder.id == lst.id)
+    - "ListName" for folderless lists (folder.id == lst.id)
 
     Args:
         folders: Iterable of Folder objects containing lists and tasks.
@@ -72,7 +73,7 @@ def get_generated_tasks_by_location(generated_tasks: List[GeneratedTask]) -> Dic
 
     return result
 
-def get_folders_statuses_and_priorities(folders) -> Dict[str, Dict[str, List[str]]]:
+def get_folders_statuses_and_priorities(folders: List[FolderWithListsMetadata]) -> Dict[str, Dict[str, List[str]]]:
     """
     Collect statuses and priorities available per folder.
 

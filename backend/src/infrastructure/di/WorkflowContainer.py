@@ -18,7 +18,6 @@ Classes:
 
 import logging
 
-from backend.src.application.services.clickup_space_reader_service import ClickUpTaskService
 from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
@@ -91,7 +90,6 @@ class WorkflowContainer:
             Use case responsible for executing backlog generation.
 
         # ClickUp infrastructure
-        clickup_task_service (ClickUpTaskService | None): Service for reading ClickUp tasks.
         clickup_writer (ClickUpTaskWriter | None): Service for writing tasks to ClickUp.
         clickup_workspace_writer (ClickUpWorkSpaceWriter | None): Service for writing ClickUp workspace structure.
         http_client (ClickUpHttpClient): HTTP client used for ClickUp API communication.
@@ -100,7 +98,6 @@ class WorkflowContainer:
         # Task-related use cases
         clickup_task_generator_use_case (GenerateTaskFromSummaryUseCase | None):
             Use case for generating ClickUp tasks from a summary.
-        verify_tasks_use_case (VerifyTaskUseCase | None): Use case for verifying generated tasks.
         clickup_structure_metadata_use_case (ClickUpStructureMetadataUseCase | None):
             Use case responsible for retrieving ClickUp workspace structure metadata.
 
@@ -151,13 +148,11 @@ class WorkflowContainer:
         self.backlog_workflow_orchestrator: BacklogWorkflowOrchestrator | None = None
         self.generate_backlog_use_case: GenerateBacklogUseCase | None = None
 
-        self.clickup_task_service: ClickUpTaskService | None = None
         self.clickup_writer: ClickUpTaskWriter | None = None
         self.clickup_workspace_writer: ClickUpWorkSpaceWriter | None = None
 
 
         self.clickup_task_generator_use_case: GenerateTaskFromSummaryUseCase | None = None
-        self.verify_tasks_use_case: VerifyTaskUseCase | None = None
         self.clickup_structure_metadata_use_case: ClickUpStructureMetadataUseCase | None = None
 
         self.prompt_loader = PromptLoader()
@@ -168,7 +163,7 @@ class WorkflowContainer:
 
             self._init_clickup_external_service()
             self._init_tasks_generation_from_summary()
-            self._init_tasks_verification()
+            self._init_tasks_verification_agent()
             self._init_clickup_structure_metadata_use_case()
 
             logger.info("Workflow container initialized successfully.")
@@ -310,7 +305,6 @@ class WorkflowContainer:
         self.clickup_reader = ClickUpReader(self.http_client)
         self.clickup_writer = ClickUpTaskWriter(self.http_client)
         self.clickup_workspace_writer = ClickUpWorkSpaceWriter(self.http_client)
-        self.clickup_task_service = ClickUpTaskService(self.clickup_reader)
 
     def _init_tasks_generation_from_summary(self):
         """
@@ -320,21 +314,17 @@ class WorkflowContainer:
 
         self.clickup_task_generator_agent = ClickUpTaskGeneratorAgent(self.prompt_loader)
         self.clickup_task_generator_use_case = GenerateTaskFromSummaryUseCase(
-            self.clickup_task_service,
+            self.clickup_reader,
             self.clickup_task_generator_agent,
         )
 
-    def _init_tasks_verification(self):
+    def _init_tasks_verification_agent(self):
         """
         Initialize the task verification use case.
         """
-        logger.info("Initializing task verification use case.")
+        logger.info("Initializing task verification agent.")
 
         self.clickup_task_verifier_agent = ClickUpTaskVerifierAgent(self.prompt_loader)
-        self.verify_tasks_use_case = VerifyTaskUseCase(
-            self.clickup_task_service,
-            self.clickup_task_verifier_agent,
-        )
 
     def _init_clickup_structure_metadata_use_case(self):
         """
@@ -372,14 +362,14 @@ class WorkflowContainer:
         Raises:
             ServiceUnavailableException: If ClickUp infrastructure is not initialized.
         """
-        if self.clickup_task_service is None:
+        if self.clickup_reader is None:
             raise ServiceUnavailableException("ClickUp task service is not initialized.")
 
         if self.clickup_writer is None:
             raise ServiceUnavailableException("ClickUp writer is not initialized.")
 
         return SaveTaskInClickUpUseCase(
-            clickup_task_service=self.clickup_task_service,
+            clickup_reader=self.clickup_reader,
             member_repo=member_repo,
             clickup_writer=self.clickup_writer,
         )
@@ -413,4 +403,38 @@ class WorkflowContainer:
             clickup_repo=clickup_repo,
             clickup_reader=self.clickup_reader,
             clickup_writer=self.clickup_workspace_writer
+        )
+
+    def create_tasks_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTaskUseCase:
+        """
+        Factory method for VerifyTaskUseCase.
+
+        This method creates a use case responsible for verifying generated ClickUp.
+
+        It combines:
+            - The external member service (repository abstraction)
+            - The ClickUp workspace reader infrastructure component
+            - the agent who verify the tasks
+
+        Args:
+            member_repo (IMemberRepository): Request-scoped member repository.
+
+        Returns:
+            VerifyTaskUseCase:
+                Fully initialized use case ready to verify generated ClickUp.
+
+        Raises:
+            ServiceUnavailableException:
+                If required ClickUp writer infrastructure is not initialized.
+        """
+        if self.clickup_reader is None:
+            raise ServiceUnavailableException("ClickUp writer is not initialized.")
+
+        if self.clickup_task_verifier_agent is None:
+            raise ServiceUnavailableException("Verifier agent is not initialized.")
+
+        return VerifyTaskUseCase(
+            clickup_reader=self.clickup_reader,
+            task_verifier=self.clickup_task_verifier_agent,
+            member_repo=member_repo,
         )

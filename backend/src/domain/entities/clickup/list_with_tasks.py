@@ -23,7 +23,7 @@ class ClickUpTask:
         name: Task name or title.
         description: Task description.
         status: Current task status.
-        assignee: Username of the assignee, if any.
+        assignee: mails' list of the assignee, if any.
         priority: Priority level of the task, if any.
     """
     id: str

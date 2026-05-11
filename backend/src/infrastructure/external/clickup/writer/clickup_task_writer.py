@@ -12,7 +12,7 @@ task decisions into ClickUp API requests.
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
@@ -47,10 +47,13 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         """
         self._http = http_client
 
+
+
+
     def apply_results(
             self,
             results: List[VerifiedTask],
-            folders: List[FolderWithLists],
+            folders: List[FolderWithListsMetadata],
             members: List[dict],
             name_to_email: dict[str, str],
             ignore_names: bool,
@@ -65,7 +68,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         Args:
             results (List[VerifiedTask]): List of verified task operations to apply.
-            folders (List[FolderWithLists]): ClickUp folder structure used to resolve list identifiers.
+            folders (List[FolderWithListsMetadata]): ClickUp folder structure used to resolve list identifiers.
             members (List[dict]): Workspace members used for assignee resolution.
             name_to_email (dict[str, str]): Mapping of assignee names to email addresses.
             ignore_names (bool):
@@ -300,7 +303,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             )
 
     @staticmethod
-    def _build_location_list_map(folders: List[FolderWithLists]) -> dict:
+    def _build_location_list_map(folders: List[FolderWithListsMetadata]) -> dict:
         """
         Build a mapping of location label to list ID.
 
@@ -309,7 +312,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         - "ListName" for folderless lists (folder.id == lst.id)
 
         Args:
-            folders: Folder objects with lists.
+            folders: Folder objects with lists metadata.
 
         Returns:
             Mapping of location label to list ID.

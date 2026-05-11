@@ -14,8 +14,8 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
-from backend.src.domain.ports.input.i_clickup_task_service import IClickUpTaskService
 from backend.src.domain.ports.input.i_save_task_in_clickup_use_case import ISaveTaskInClickUpUseCase
+from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
@@ -31,27 +31,27 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
     using member repository, and delegates task creation/update to a ClickUp writer.
 
     Attributes:
-        _clickup_task_service (IClickUpTaskService): Service for ClickUp structure and members.
         _member_repo (IMemberRepository): Repository for resolving member identities.
+        _clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
         _clickup_writer (IClickUpTaskWriter): Writer responsible for applying tasks in ClickUp.
     """
 
     def __init__(
             self,
-            clickup_task_service: IClickUpTaskService,
             member_repo: IMemberRepository,
+            clickup_reader: IClickUpReader,
             clickup_writer: IClickUpTaskWriter
     ):
         """
         Initialize the use case with required services and repositories.
 
         Args:
-            clickup_task_service (IClickUpTaskService): ClickUp task service.
             member_repo (IMemberRepository): Member repository.
+            clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
             clickup_writer (IClickUpTaskWriter): ClickUp writer.
         """
-        self._clickup_task_service = clickup_task_service
         self._member_repo = member_repo
+        self._clickup_reader = clickup_reader
         self._clickup_writer = clickup_writer
 
     def save_to_clickup(
@@ -80,7 +80,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
             len(tasks),
         )
 
-        folders = self._clickup_task_service.get_space_structure(space_id)
+        folders = self._clickup_reader.get_space_structure_metadata(space_id)
 
         assignee_names_list: List[str] = list({
             a.strip()
@@ -98,7 +98,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
         members: List[dict] = []
 
         if name_to_email :
-            members = self._clickup_task_service.get_workspace_members(space_id)
+            members = self._clickup_reader.get_workspace_members(space_id)
 
         self._clickup_writer.apply_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
 

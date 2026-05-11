@@ -361,9 +361,13 @@ class ClickUpReader(IClickUpReader):
         Returns:
             ClickUpTask domain entity.
         """
-        assignees = task.get("assignees") or []
+        assignees_raw = task.get("assignees") or []
         assignee: Optional[str] = (
-            assignees[0].get("username") if assignees else None
+                ", ".join(
+                    m.get("email", "")
+                    for m in assignees_raw
+                    if m.get("email")
+                ) or None
         )
 
         status_field = task.get("status") or {}
