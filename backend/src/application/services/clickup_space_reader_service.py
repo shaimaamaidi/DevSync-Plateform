@@ -3,7 +3,6 @@ ClickUp task service module.
 
 This module provides the ClickUpTaskService class, which manages ClickUp-related
 operations such as retrieving space structure and workspace members.
-It also handles caching for performance optimization.
 
 Classes:
     ClickUpTaskService: Main service for ClickUp task and structure operations.
@@ -25,11 +24,10 @@ class ClickUpTaskService(IClickUpTaskService):
     Application service for ClickUp operations: retrieving space structure
     and workspace members.
 
-    Coordinates data fetching from ClickUp and applies caching to optimize performance.
+    Coordinates data fetching from ClickUp.
 
     Attributes:
         _clickup_reader (IClickUpReader): ClickUp reader port.
-        _cache (dict[str, List[Folder]]): In-memory cache for space structures.
     """
 
     def __init__(self, clickup_reader: IClickUpReader):
@@ -40,13 +38,10 @@ class ClickUpTaskService(IClickUpTaskService):
             clickup_reader (IClickUpReader): ClickUp reader port.
         """
         self._clickup_reader = clickup_reader
-        self._cache: dict[str, List[FolderWithLists]] = {}
 
     def get_space_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Retrieve the structure of a ClickUp space.
-
-        Uses an in-memory cache to avoid redundant API calls.
 
         Args:
             space_id (str): ClickUp space identifier.
@@ -56,10 +51,7 @@ class ClickUpTaskService(IClickUpTaskService):
         """
         logger.info("Fetching space structure with lists. space_id=%s.", space_id)
 
-        if space_id not in self._cache:
-            self._cache[space_id] = self._clickup_reader.get_space_full_structure(space_id)
-
-        result = self._cache[space_id]
+        result = self._clickup_reader.get_space_full_structure(space_id)
 
         logger.info(
             "Space structure with lists fetched successfully. space_id=%s folders=%d.",
@@ -90,17 +82,3 @@ class ClickUpTaskService(IClickUpTaskService):
         )
 
         return result
-
-    def invalidate(self, space_id: str) -> None:
-        """
-        Invalidate the cache for a given space.
-
-        Typically called after a write operation to force a fresh fetch
-        on the next retrieval.
-
-        Args:
-            space_id (str): ClickUp space identifier.
-        """
-        logger.info("Invalidating cache. space_id=%s.", space_id)
-        self._cache.pop(space_id, None)
-        logger.info("Cache invalidated successfully. space_id=%s.", space_id)

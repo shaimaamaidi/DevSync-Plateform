@@ -82,8 +82,6 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
 
         folders = self._clickup_task_service.get_space_structure(space_id)
 
-        self._clickup_task_service.invalidate(space_id)
-
         assignee_names_list: List[str] = list({
             a.strip()
             for task in tasks

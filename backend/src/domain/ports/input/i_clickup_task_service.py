@@ -7,7 +7,6 @@ for retrieving ClickUp space structure, workspace members, and managing cached d
 It acts as a contract for application-level services responsible for:
 - Retrieving ClickUp space hierarchy (folders, lists, tasks)
 - Fetching workspace members
-- Managing in-memory cache for performance optimization
 """
 
 from typing import List
@@ -45,17 +44,5 @@ class IClickUpTaskService:
 
         Returns:
             List[dict]: List of workspace members with metadata.
-        """
-        pass
-
-    def invalidate(self, space_id: str) -> None:
-        """
-        Invalidate cached space structure.
-
-        This method clears cached data for the given space to ensure fresh
-        retrieval on the next request.
-
-        Args:
-            space_id (str): ClickUp space identifier.
         """
         pass
