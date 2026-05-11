@@ -55,6 +55,18 @@ class IMemberService(ABC):
         pass
 
     @abstractmethod
+    def get_by_id(self, member_id: int) -> MemberDTO:
+        """
+        Retrieve a member by their ID.
+
+        Args:
+            member_id (int): The member's database ID.
+
+        Returns:
+            MemberDTO: The member data transfer object.
+        """
+        pass
+    @abstractmethod
     def get_members_by_repo(self, repo: GitRepoDTO) -> List[MemberDTO]:
         """
         Fetch members associated with a repository.

@@ -81,6 +81,25 @@ class MemberService(IMemberService):
 
         return result
 
+    def get_by_id(self, member_id: int) -> MemberDTO:
+        """
+        Retrieve a member by their ID.
+
+        Args:
+            member_id (int): The member's database ID.
+
+        Returns:
+            MemberDTO: The member data transfer object.
+        """
+        logger.info("Fetching member by id=%s.", member_id)
+
+        result = self._repo.find_by_id(member_id)
+
+        logger.info("Member fetched successfully: id=%s, username=%s, mail=%s.", result.id, result.username,
+                    result.mail)
+
+        return result
+
     def get_members_by_repo(self, repo_id: int) -> List[MemberDTO]:
         """
         Fetch members associated with a repository.

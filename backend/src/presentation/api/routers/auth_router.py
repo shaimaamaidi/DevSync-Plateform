@@ -11,9 +11,9 @@ Routes:
 
 import logging
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, Request
 
-from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO
+from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO, MemberDTO
 from backend.src.infrastructure.di.container import Container
 from backend.src.presentation.api.deps import get_container
 
@@ -107,3 +107,25 @@ def logout(refresh_token: str, container: Container = Depends(get_container)) ->
     logger.info("Member logged out successfully.")
 
     return True
+
+@router.get("/me", response_model=MemberDTO)
+def get_me(request: Request, container: Container = Depends(get_container)) -> MemberDTO:
+    """
+    Get the currently authenticated member.
+
+    Args:
+        request (Request): The incoming FastAPI request containing the current member payload.
+        container (Container): Dependency injection container.
+
+    Returns:
+        MemberDTO: The authenticated member's data.
+    """
+    logger.info("Get current member attempt.")
+
+    payload = request.state.current_member
+    member_id = int(payload.get("sub"))
+    result = container.member_service.get_by_id(member_id)
+
+    logger.info("Current member retrieved successfully: id=%s.", member_id)
+
+    return result
