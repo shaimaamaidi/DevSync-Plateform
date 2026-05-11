@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { withErrorHandling, handleApiError, normalizeErrorMessage } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
-import { showSuccessToast } from '@/components/global-toaster';
+import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { GeneratedTask, VerifiedTask } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-structure-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
@@ -256,13 +256,20 @@ export function MeetingTaskManager() {
   const handleIgnoreMails = () => { setAssigneeDialog({ open: false }); executeSave(true, true); };
 
   const handleDropFromGenerated = (task: GeneratedTask) => {
+    if (realIsStructureEmpty)
+      return;
     if (!isStep3Done) 
       return;
 
-    const alreadyExists = verifiedTasks.some(
-      v => v.task_name === task.task_name && v.task_assigne === task.task_assigne,
+    const sameTitle = verifiedTasks.find(
+      v => v.task_name.trim().toLowerCase() === task.task_name.trim().toLowerCase(),
     );
-    if (alreadyExists) return;
+
+    if (sameTitle) {
+      showErrorToast('Task already exists and was not added', `Duplicate task`);
+      return;  
+    }
+    
     setVerifiedTasks(prev => [
       ...prev,
       {
