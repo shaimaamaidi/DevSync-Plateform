@@ -22,7 +22,9 @@ from typing import Generator
 
 from fastapi import Depends, Request
 
+from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
 from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.clickup_task_creation_use_case import ClickUpTaskCreationUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
@@ -167,6 +169,69 @@ def get_generate_task_from_summary_use_case(request: Request) -> GenerateTaskFro
         logger.exception("Failed to retrieve task generation use case: %s", str(e))
         raise ServiceUnavailableException("Task generation service is unavailable.") from e
 
+
+def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskCreationUseCase:
+    """
+    Retrieve the ClickUp task creation use case instance.
+
+    This dependency provides access to a singleton instance of the task
+    creation use case, initialized at application startup. It handles
+    task creation, update, and deletion operations.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        ClickUpTaskCreationUseCase: The initialized task creation use case.
+
+    Raises:
+        ServiceUnavailableException: If the use case is not initialized.
+    """
+    try:
+        use_case = request.app.state.workflow_container.clickup_task_creation_use_case
+
+        if use_case is None:
+            raise ServiceUnavailableException("ClickUp task creation use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+
+    except Exception as e:
+        logger.exception("Failed to retrieve ClickUp task creation use case: %s", str(e))
+        raise ServiceUnavailableException("ClickUp task creation service is unavailable.") from e
+
+def get_clickup_space_task_reader_use_case(request: Request) -> ClickUpSpaceTaskReaderUseCase:
+    """
+    Retrieve the ClickUp space task reader use case instance.
+
+    Provides access to a singleton instance initialized at application
+    startup for read-only access to ClickUp space task structures.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        ClickUpSpaceTaskReaderUseCase: The initialized use case.
+
+    Raises:
+        ServiceUnavailableException: If the use case is not initialized.
+    """
+    try:
+        use_case = request.app.state.workflow_container.clickup_space_task_reader_use_case
+
+        if use_case is None:
+            raise ServiceUnavailableException("ClickUp space task reader use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+
+    except Exception as e:
+        logger.exception("Failed to retrieve ClickUp space task reader use case: %s", str(e))
+        raise ServiceUnavailableException("ClickUp space task reader service is unavailable.") from e
 
 # Request-scoped use case (requires member_repo)
 def get_save_task_use_case(

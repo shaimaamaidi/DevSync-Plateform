@@ -36,7 +36,8 @@ from backend.src.presentation.api.routers import (
     associator_router, clickup_router, repo_router, member_router,
     deployment_router, auth_router, backlog_router, health_router, verification_tasks_router,
     generate_tasks_from_summary_router, clickup_task_save_router,
-    clickup_structure_metadata_router, clickup_structure_creation_router
+    clickup_structure_metadata_router, clickup_structure_creation_router, clickup_task_creation_router,
+    clickup_space_task_reader_router
 )
 
 
@@ -197,6 +198,16 @@ def create_app() -> FastAPI:
         clickup_structure_creation_router.router,
         prefix="/clickup/structure",
         tags=["ClickUp Structure Creation"],
+    )
+    app.include_router(
+        clickup_task_creation_router.router,
+        prefix="/clickup/tasks/manage",
+        tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        clickup_space_task_reader_router.router,
+        prefix="/clickup/tasks/spaces",
+        tags=["ClickUp - Tasks"],
     )
 
     return app
