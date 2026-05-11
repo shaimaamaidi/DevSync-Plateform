@@ -51,7 +51,6 @@ def resolve_assignee_ids_from_mails(
 
     resolved = []
     unresolved_emails = []
-    unresolved_names = []
 
     for mail in assignee_mails:
         member_id = email_to_id.get(mail.lower())

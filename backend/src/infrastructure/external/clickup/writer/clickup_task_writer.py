@@ -295,7 +295,10 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(members),
         )
 
-        email_to_id = {m["email"].lower(): m["id"] for m in members}
+        email_to_id={}
+
+        if members:
+            email_to_id = {m["email"].lower(): m["id"] for m in members}
 
         location_list_map = ClickUpTaskWriter._build_location_list_map(folders)
 

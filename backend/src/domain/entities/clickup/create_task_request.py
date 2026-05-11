@@ -1,0 +1,41 @@
+"""
+Domain DTO for task creation requests.
+
+This module defines the CreateTaskRequest DTO used to encapsulate
+data required to create a task in the ClickUp domain. It standardizes
+the structure of task creation operations across application layers.
+
+Main classes:
+    CreateTaskRequest
+"""
+
+from pydantic import BaseModel
+
+
+class CreateTaskRequest(BaseModel):
+    """
+    Request payload used to create a ClickUp task.
+
+    This DTO contains all necessary information to create a new task
+    within a specific list and space, including metadata, assignment
+    details, and notification control.
+
+    Attributes:
+        list_id: Identifier of the ClickUp list where the task will be created.
+        space_id: Identifier of the ClickUp space containing the list.
+        name: Task name.
+        description: Task description.
+        status: Initial task status.
+        priority: Task priority level (optional).
+        assignees: Assignees (emails separated by commas).
+        ignore_mails: If True, email notifications will be ignored during creation.
+    """
+
+    list_id: str
+    space_id: str
+    name: str
+    description: str
+    status: str
+    priority: str | None
+    assignees: str | None  # comma-separated emails
+    ignore_mails: bool = False

@@ -26,7 +26,7 @@ class ClickUpTask:
         assignee: mails' list of the assignee, if any.
         priority: Priority level of the task, if any.
     """
-    id: str
+    id: str | None
     name: str
     description: str
     status: str
