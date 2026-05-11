@@ -21,7 +21,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
-from backend.src.domain.entities.clickup.task import Task
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_delete_exception import ClickUpTaskDeleteException
@@ -60,7 +60,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
     def create_task_by_list(
         self,
         list_id: str,
-        task: Task,
+        task: ClickUpTask,
         email_to_id: dict[str, int],
         ignore_mails:bool
     ):
@@ -87,20 +87,20 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         """
         logger.info(
             "Creating ClickUp task. task_name=%s list_id=%s.",
-            task.task_name,
+            task.name,
             list_id,
         )
 
         endpoint = f"/list/{list_id}/task"
 
         payload = {
-            "name": task.task_name,
-            "description": task.task_description,
-            "status": task.task_status,
-            "priority": priority_to_str(task.task_priority),
+            "name": task.name,
+            "description": task.description,
+            "status": task.status,
+            "priority": priority_to_str(task.priority),
         }
 
-        assignee_mails = [a.strip() for a in task.task_assigne.split(",")]
+        assignee_mails = [a.strip() for a in task.assignee.split(",")]
 
         assignee_ids = []
 
@@ -114,29 +114,27 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         if response.status_code == 200:
             logger.info(
-                "Task created successfully. task_name=%s location=%s task_status=%s status_code=%d.",
-                task.task_name,
-                task.location,
-                task.task_status,
+                "Task created successfully. task_name=%s task_status=%s status_code=%d.",
+                task.name,
+                task.status,
                 response.status_code,
             )
         else:
             logger.error(
-                "Task creation failed. task_name=%s location=%s status_code=%d response=%s.",
-                task.task_name,
-                task.location,
+                "Task creation failed. task_name=%s status_code=%d response=%s.",
+                task.name,
                 response.status_code,
                 response.text,
             )
             raise ClickUpTaskCreateException(
-                f"Failed to create '{task.task_name}' "
+                f"Failed to create '{task.name}' "
                 f"(status {response.status_code}) — {response.text}"
             )
 
     def update_task(
         self,
         task_id: str,
-        task_content: Task,
+        task_content: ClickUpTask,
         old_assignees: str,
         email_to_id: dict[str, int],
         ignore_mails: bool
@@ -167,17 +165,17 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         logger.info(
             "Updating ClickUp task. task_id=%s task_name=%s.",
             task_id,
-            task_content.task_name,
+            task_content.name,
         )
 
         endpoint = f"/task/{task_id}"
 
         payload = {
-            "status": task_content.task_status,
-            "priority": priority_to_str(task_content.task_priority),
+            "status": task_content.status,
+            "priority": priority_to_str(task_content.priority),
         }
 
-        new_assignee_mails = [a.strip() for a in task_content.task_assigne.split(",") if a.strip()]
+        new_assignee_mails = [a.strip() for a in task_content.assignee.split(",") if a.strip()]
         old_assignee_mails = [a.strip() for a in old_assignees.split(",") if a.strip()] if old_assignees else []
 
         new_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, new_assignee_mails, ignore_mails) if new_assignee_mails else []
@@ -202,19 +200,19 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             logger.info(
                 "Task updated successfully. task_id=%s task_name=%s status_code=%d.",
                 task_id,
-                task_content.task_name,
+                task_content.name,
                 response.status_code,
             )
         else:
             logger.error(
                 "Task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
                 task_id,
-                task_content.task_name,
+                task_content.name,
                 response.status_code,
                 response.text,
             )
             raise ClickUpTaskUpdateException(
-                f"Failed to update '{task_content.task_name}' id='{task_id}' "
+                f"Failed to update '{task_content.name}' id='{task_id}' "
                 f"(status {response.status_code}) — {response.text}"
             )
 

@@ -9,7 +9,7 @@ from abc import abstractmethod, ABC
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
-from backend.src.domain.entities.clickup.task import Task
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
@@ -26,7 +26,7 @@ class IClickUpTaskWriter(ABC):
     def create_task_by_list(
         self,
         list_id: str,
-        task: Task,
+        task: ClickUpTask,
         email_to_id: dict[str, int],
         ignore_mails:bool
     ):
@@ -57,7 +57,7 @@ class IClickUpTaskWriter(ABC):
     def update_task(
         self,
         task_id: str,
-        task_content: Task,
+        task_content: ClickUpTask,
         old_assignees: str,
         email_to_id: dict[str, int],
         ignore_mails: bool
