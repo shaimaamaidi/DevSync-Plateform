@@ -108,7 +108,7 @@ class VerifyTaskUseCase(IVerifyTaskUseCase):
                     if email.strip() and email.strip() in email_to_name
                 ]
 
-                task.assignee = ", ".join(resolved_names) if resolved_names else None
+                task.assignee = ", ".join(resolved_names) if resolved_names else "غير محدد"
 
         generated_by_location = get_generated_tasks_by_location(tasks)
 

@@ -222,6 +222,14 @@ class ClickUpHttpClient:
             headers=self._headers
         )
 
+    def delete_raw(self, endpoint: str) -> requests.Response:
+        logger.info("DELETE (raw) %s", endpoint)
+
+        return requests.delete(
+            f"{self.BASE_URL}{endpoint}",
+            headers=self._headers
+        )
+
     @staticmethod
     def _handle_response(response: requests.Response) -> None:
         """

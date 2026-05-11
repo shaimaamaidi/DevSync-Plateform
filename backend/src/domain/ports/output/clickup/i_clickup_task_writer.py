@@ -9,6 +9,7 @@ from abc import abstractmethod, ABC
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
+from backend.src.domain.entities.clickup.task import Task
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
@@ -20,6 +21,92 @@ class IClickUpTaskWriter(ABC):
     (create/update tasks) to ClickUp using verified task results and
     workspace context.
     """
+
+    @abstractmethod
+    def create_task_by_list(
+        self,
+        list_id: str,
+        task: Task,
+        email_to_id: dict[str, int],
+        ignore_mails:bool
+    ):
+        """
+        Create a task directly in a ClickUp list.
+
+        This method builds a ClickUp task payload from a Task entity and sends
+        a creation request to the ClickUp API. Assignee emails are resolved into
+        ClickUp member IDs before the request is sent.
+
+        Args:
+            list_id: Identifier of the ClickUp list where the task will be created.
+            task: Task entity containing task details.
+            email_to_id: Mapping of user emails to ClickUp member IDs.
+            ignore_mails:
+                If True, unresolved assignee emails are ignored.
+                If False, an exception is raised for unresolved emails.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskCreateException: Raised when the ClickUp API task creation request fails.
+        """
+        pass
+
+    @abstractmethod
+    def update_task(
+        self,
+        task_id: str,
+        task_content: Task,
+        old_assignees: str,
+        email_to_id: dict[str, int],
+        ignore_mails: bool
+    ):
+        """
+        Update an existing ClickUp task.
+
+        This method updates task status, priority, and assignees in ClickUp.
+        It compares existing assignees with the new assignees to determine
+        which assignees should be added or removed.
+
+        Args:
+            task_id: Identifier of the ClickUp task to update.
+            task_content: Updated task content and metadata.
+            old_assignees: Comma-separated list of previous assignee emails.
+            email_to_id: Mapping of user emails to ClickUp member IDs.
+            ignore_mails:
+                If True, unresolved assignee emails are ignored.
+                If False, an exception is raised for unresolved emails.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskUpdateException:
+                Raised when the ClickUp API update request fails.
+        """
+        pass
+
+    @abstractmethod
+    def delete_task(self, task_id: str):
+        """
+        Delete a task from ClickUp.
+
+        This method sends a deletion request to the ClickUp API for the
+        specified task identifier.
+
+        Args:
+            task_id: Identifier of the ClickUp task to delete.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskDeleteException:
+                Raised when the ClickUp API deletion request fails.
+        """
+        pass
+
     @abstractmethod
     def apply_results(
             self,

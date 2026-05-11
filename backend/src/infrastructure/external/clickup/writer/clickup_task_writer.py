@@ -1,25 +1,35 @@
 """
-ClickUp task writer adapter for applying create/update actions.
+ClickUp task writer adapter for applying task create, update, and delete operations.
 
-This module defines the ClickUpTaskWriter class, which implements the
-IClickUpTaskWriter port. It is responsible for applying task creation and update
-operations to ClickUp based on verified domain results.
+This module defines the ClickUpTaskWriter class, an infrastructure adapter
+responsible for synchronizing verified task operations with ClickUp.
 
-This adapter acts as an infrastructure layer component translating domain-level
-task decisions into ClickUp API requests.
+The adapter translates domain-level task actions into ClickUp API requests and
+handles:
+- Task creation
+- Task updates
+- Task deletion
+- Assignee resolution
+- Folder/list mapping resolution
+
+It ensures consistency between verified domain decisions and the remote
+ClickUp workspace state while providing centralized logging and error handling
+for task write operations.
 """
 
 import logging
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
+from backend.src.domain.entities.clickup.task import Task
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
+from backend.src.domain.exceptions.clickup.clickup_task_delete_exception import ClickUpTaskDeleteException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, priority_to_str
-
+from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, \
+    priority_to_str, resolve_assignee_ids_from_mails
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +57,203 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         """
         self._http = http_client
 
+    def create_task_by_list(
+        self,
+        list_id: str,
+        task: Task,
+        email_to_id: dict[str, int],
+        ignore_mails:bool
+    ):
+        """
+        Create a task directly in a ClickUp list.
 
+        This method builds a ClickUp task payload from a Task entity and sends
+        a creation request to the ClickUp API. Assignee emails are resolved into
+        ClickUp member IDs before the request is sent.
 
+        Args:
+            list_id: Identifier of the ClickUp list where the task will be created.
+            task: Task entity containing task details.
+            email_to_id: Mapping of user emails to ClickUp member IDs.
+            ignore_mails:
+                If True, unresolved assignee emails are ignored.
+                If False, an exception is raised for unresolved emails.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskCreateException: Raised when the ClickUp API task creation request fails.
+        """
+        logger.info(
+            "Creating ClickUp task. task_name=%s list_id=%s.",
+            task.task_name,
+            list_id,
+        )
+
+        endpoint = f"/list/{list_id}/task"
+
+        payload = {
+            "name": task.task_name,
+            "description": task.task_description,
+            "status": task.task_status,
+            "priority": priority_to_str(task.task_priority),
+        }
+
+        assignee_mails = [a.strip() for a in task.task_assigne.split(",")]
+
+        assignee_ids = []
+
+        if assignee_mails:
+            assignee_ids = resolve_assignee_ids_from_mails(email_to_id, assignee_mails, ignore_mails)
+
+        if assignee_ids:
+            payload["assignees"] = assignee_ids
+
+        response = self._http.post_raw(endpoint, payload)
+
+        if response.status_code == 200:
+            logger.info(
+                "Task created successfully. task_name=%s location=%s task_status=%s status_code=%d.",
+                task.task_name,
+                task.location,
+                task.task_status,
+                response.status_code,
+            )
+        else:
+            logger.error(
+                "Task creation failed. task_name=%s location=%s status_code=%d response=%s.",
+                task.task_name,
+                task.location,
+                response.status_code,
+                response.text,
+            )
+            raise ClickUpTaskCreateException(
+                f"Failed to create '{task.task_name}' "
+                f"(status {response.status_code}) — {response.text}"
+            )
+
+    def update_task(
+        self,
+        task_id: str,
+        task_content: Task,
+        old_assignees: str,
+        email_to_id: dict[str, int],
+        ignore_mails: bool
+    ):
+        """
+        Update an existing ClickUp task.
+
+        This method updates task status, priority, and assignees in ClickUp.
+        It compares existing assignees with the new assignees to determine
+        which assignees should be added or removed.
+
+        Args:
+            task_id: Identifier of the ClickUp task to update.
+            task_content: Updated task content and metadata.
+            old_assignees: Comma-separated list of previous assignee emails.
+            email_to_id: Mapping of user emails to ClickUp member IDs.
+            ignore_mails:
+                If True, unresolved assignee emails are ignored.
+                If False, an exception is raised for unresolved emails.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskUpdateException:
+                Raised when the ClickUp API update request fails.
+        """
+        logger.info(
+            "Updating ClickUp task. task_id=%s task_name=%s.",
+            task_id,
+            task_content.task_name,
+        )
+
+        endpoint = f"/task/{task_id}"
+
+        payload = {
+            "status": task_content.task_status,
+            "priority": priority_to_str(task_content.task_priority),
+        }
+
+        new_assignee_mails = [a.strip() for a in task_content.task_assigne.split(",") if a.strip()]
+        old_assignee_mails = [a.strip() for a in old_assignees.split(",") if a.strip()] if old_assignees else []
+
+        new_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, new_assignee_mails, ignore_mails) if new_assignee_mails else []
+        old_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, old_assignee_mails, ignore_mails) if old_assignee_mails else []
+
+        new_set = set(new_assignee_ids)
+        old_set = set(old_assignee_ids)
+
+        added_ids = list(new_set - old_set)
+        rem_ids = list(old_set - new_set)
+
+        if added_ids or rem_ids:
+            payload["assignees"] = {}
+            if added_ids:
+                payload["assignees"]["add"] = added_ids
+            if rem_ids:
+                payload["assignees"]["rem"] = rem_ids
+
+        response = self._http.put_raw(endpoint, payload)
+
+        if response.status_code == 200:
+            logger.info(
+                "Task updated successfully. task_id=%s task_name=%s status_code=%d.",
+                task_id,
+                task_content.task_name,
+                response.status_code,
+            )
+        else:
+            logger.error(
+                "Task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
+                task_id,
+                task_content.task_name,
+                response.status_code,
+                response.text,
+            )
+            raise ClickUpTaskUpdateException(
+                f"Failed to update '{task_content.task_name}' id='{task_id}' "
+                f"(status {response.status_code}) — {response.text}"
+            )
+
+    def delete_task(self, task_id: str):
+        """
+        Delete a task from ClickUp.
+
+        This method sends a deletion request to the ClickUp API for the
+        specified task identifier.
+
+        Args:
+            task_id: Identifier of the ClickUp task to delete.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskDeleteException:
+                Raised when the ClickUp API deletion request fails.
+        """
+        logger.info("Deleting task. task_id=%s.", task_id)
+
+        endpoint = f"/task/{task_id}"
+        response = self._http.delete_raw(endpoint)
+
+        if response.status_code in (200, 204):
+            logger.info("Task deleted successfully. task_id=%s.", task_id)
+            return
+
+        logger.error(
+            "Task deletion failed. task_id=%s status_code=%d response=%s.",
+            task_id,
+            response.status_code,
+            response.text,
+        )
+        raise ClickUpTaskDeleteException(
+            f"Failed to delete task '{task_id}' "
+            f"(status {response.status_code}) — {response.text}"
+        )
 
     def apply_results(
             self,
@@ -277,6 +482,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         assignee_names = [a.strip() for a in result.task_assigne.split(",")]
         assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
+
         if assignee_ids:
             payload["assignees"] = {"add": assignee_ids}
 

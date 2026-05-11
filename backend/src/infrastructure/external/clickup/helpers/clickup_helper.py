@@ -18,6 +18,65 @@ from backend.src.domain.exceptions.clickup.clickup_assignee_name_not_found_excep
 logger = logging.getLogger(__name__)
 
 
+def resolve_assignee_ids_from_mails(
+        email_to_id: Dict[str, int],
+        assignee_mails: List[str],
+        ignore_mails: bool
+) -> List[int]:
+    """
+    Resolve assignee mails to ClickUp member IDs.
+
+    This function converts assignee mails into ClickUp user IDs using
+    provided mapping dictionaries. If some assignees cannot be resolved,
+    behavior depends on the `ignore_mails` flag.
+
+    Args:
+        email_to_id (Dict[str, int]): Mapping of email addresses to ClickUp member IDs.
+        assignee_mails (List[str]): List of assignee mails to resolve.
+        ignore_mails (bool):
+            If True, unresolved assignees are ignored.
+            If False, an exception is raised when resolution fails.
+
+    Returns:
+        List[int]: List of resolved ClickUp member IDs.
+
+    Raises:
+        AssigneeEmailNotInClickUpException: Raised when one or more mapped emails are not
+            found in the ClickUp workspace and `ignore_mails=False`.
+    """
+    logger.info(
+        "Starting assignee resolution (strict). input_count=%d.",
+        len(assignee_mails),
+    )
+
+    resolved = []
+    unresolved_emails = []
+    unresolved_names = []
+
+    for mail in assignee_mails:
+        member_id = email_to_id.get(mail.lower())
+
+        if not member_id:
+            logger.warning(
+                "mail '%s' not found in ClickUp workspace.",
+                mail,
+            )
+            unresolved_emails.append(mail)
+
+        else:
+            resolved.append(member_id)
+
+    if unresolved_emails and not ignore_mails:
+        raise AssigneeEmailNotInClickUpException(unresolved_emails)
+
+    logger.info(
+        "Assignee resolution (strict): %d/%d resolved.",
+        len(resolved),
+        len([n for n in assignee_mails if n ]),
+    )
+
+    return resolved
+
 def resolve_assignee_ids_strict(
         name_to_email: dict,
         email_to_id: Dict[str, int],
