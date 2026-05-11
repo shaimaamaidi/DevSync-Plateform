@@ -16,6 +16,7 @@ from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
+from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_generation_orchestrator import \
     IBacklogGenerationOrchestrator
@@ -137,6 +138,8 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
 
             return cleaned_backlog
         except BacklogGenerationException:
+            raise
+        except AppException:
             raise
         except Exception as e:
             logger.exception("Backlog generation failed.")

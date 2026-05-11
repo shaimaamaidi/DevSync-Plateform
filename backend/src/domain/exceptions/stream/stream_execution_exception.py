@@ -36,5 +36,5 @@ class StreamExecutionException(AppException):
         super().__init__(
             message=message,
             code="STREAM_EXECUTION_ERROR",
-            http_status=500
+            http_status=503
         )

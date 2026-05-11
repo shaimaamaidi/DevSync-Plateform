@@ -131,6 +131,7 @@ class FastAPIExceptionHandler:
                 "Not Found Error [%s]: %s",
                 exc.code,
                 exc.message,
+                exc_info=exc
             )
         elif exc.code in _PERSISTENCE_CODES:
             logger.error(
@@ -144,18 +145,21 @@ class FastAPIExceptionHandler:
                 "Validation Error [%s]: %s",
                 exc.code,
                 exc.message,
+                exc_info=exc
             )
         elif exc.code in _GITHUB_CODES:
             logger.warning(
                 "GitHub API Error [%s]: %s",
                 exc.code,
                 exc.message,
+                exc_info=exc
             )
         elif exc.code in _AUTH_CODES:
             logger.warning(
                 "Auth Error [%s]: %s",
                 exc.code,
                 exc.message,
+                exc_info=exc
             )
         elif exc.code in _AZURE_CODES:
             logger.error(
