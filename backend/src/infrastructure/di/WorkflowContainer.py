@@ -18,8 +18,10 @@ Classes:
 
 import logging
 
+from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
 from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
+from backend.src.application.use_cases.clickup_task_creation_use_case import ClickUpTaskCreationUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
@@ -100,6 +102,10 @@ class WorkflowContainer:
             Use case for generating ClickUp tasks from a summary.
         clickup_structure_metadata_use_case (ClickUpStructureMetadataUseCase | None):
             Use case responsible for retrieving ClickUp workspace structure metadata.
+        clickup_space_task_reader_use_case (ClickUpSpaceTaskReaderUseCase | None):
+            Use case responsible for retrieving ClickUp tasks by un space id
+        clickup_task_creation_use_case (clickUpTaskCreationUseCase | None):
+            Use case responsible for creating, updating and deleting ClickUp tasks
 
         # Prompt system
         prompt_loader (PromptLoader): Loader responsible for retrieving LLM prompt templates.
@@ -154,6 +160,8 @@ class WorkflowContainer:
 
         self.clickup_task_generator_use_case: GenerateTaskFromSummaryUseCase | None = None
         self.clickup_structure_metadata_use_case: ClickUpStructureMetadataUseCase | None = None
+        self.clickup_space_task_reader_use_case: ClickUpSpaceTaskReaderUseCase | None = None
+        self.clickup_task_creation_use_case: ClickUpTaskCreationUseCase | None = None
 
         self.prompt_loader = PromptLoader()
 
@@ -165,6 +173,8 @@ class WorkflowContainer:
             self._init_tasks_generation_from_summary()
             self._init_tasks_verification_agent()
             self._init_clickup_structure_metadata_use_case()
+            self._init_clickup_space_task_reader_use_case()
+            self._init_clickup_task_creation_use_case()
 
             logger.info("Workflow container initialized successfully.")
 
@@ -344,9 +354,52 @@ class WorkflowContainer:
             AppException:
                 If required ClickUp infrastructure is not properly initialized.
         """
+        logger.info("Initializing ClickUpStructureMetadataUseCase.")
+
         self.clickup_structure_metadata_use_case = ClickUpStructureMetadataUseCase(
             self.clickup_reader
         )
+
+    def _init_clickup_task_creation_use_case(self):
+        """
+        Initialize ClickUpTaskCreationUseCase.
+
+        This method wires the use case responsible for managing ClickUp tasks,
+        including creation, update, and deletion operations.
+
+        It injects the required ClickUp infrastructure components:
+            - ClickUpTaskWriter for write operations (create, update, delete)
+            - ClickUpReader for retrieving workspace and member data
+
+        The resulting use case acts as the application layer entry point
+        for task lifecycle management.
+        """
+        logger.info("Initializing ClickUpTaskCreationUseCase.")
+
+        self.clickup_task_creation_use_case = ClickUpTaskCreationUseCase(
+            self.clickup_writer,
+            self.clickup_reader,
+        )
+
+    def _init_clickup_space_task_reader_use_case(self):
+        """
+        Initialize ClickUpSpaceTaskReaderUseCase.
+
+        This method wires the use case responsible for retrieving tasks
+        associated with a specific ClickUp space.
+
+        It uses the ClickUpReader infrastructure to fetch task data from
+        the ClickUp API without applying any business transformation or caching.
+
+        The resulting use case provides read-only access to space-level tasks
+        within the ClickUp workspace.
+        """
+        logger.info("Initializing ClickUpSpaceTaskReaderUseCase.")
+
+        self.clickup_space_task_reader_use_case = ClickUpSpaceTaskReaderUseCase(
+            self.clickup_reader
+        )
+
     def create_save_task_use_case(self, member_repo: IMemberRepository) -> SaveTaskInClickUpUseCase:
         """
         Factory method for SaveTaskInClickUpUseCase.
