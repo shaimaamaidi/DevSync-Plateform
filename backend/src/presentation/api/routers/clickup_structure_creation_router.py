@@ -26,7 +26,7 @@ from backend.src.domain.entities.clickup.create_list_request import CreateListRe
 from backend.src.domain.entities.clickup.create_space_request import CreateSpaceRequest
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
 from backend.src.presentation.api.deps import get_clickup_structure_creation_use_case
 
 
@@ -35,6 +35,34 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
+@router.post(
+    "/spaces/register",
+    response_model=ClickUpSpaceDTO,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a ClickUp space",
+    description=(
+        "Validate a ClickUp space existence and persist it "
+        "in the application layer."
+    ),
+)
+def register_space(
+    body: ClickUpSpaceRegisterDTO,
+    use_case: ClickUpStructureCreationUseCase = Depends(get_clickup_structure_creation_use_case),
+) -> ClickUpSpaceDTO:
+    """
+    Register a ClickUp space.
+
+    Args:
+        body (ClickUpSpaceRegisterDTO): Space registration payload.
+        use_case (ClickUpStructureCreationUseCase): Injected use case.
+
+    Returns:
+        ClickUpSpaceDTO: Persisted space DTO.
+    """
+    logger.info("POST /clickup/structure/spaces/register. space_code=%s.", body.space_code)
+
+    return use_case.register_space(body)
 
 @router.post(
     "/spaces",
