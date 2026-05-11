@@ -5,8 +5,8 @@ This module defines Data Transfer Objects (DTOs) for ClickUp space management, i
 update, retrieval, and association with repositories.
 
 Main classes:
-    ClickUpSpaceDTO, ClickUpSpaceCreateDTO, ClickUpSpaceUpdateDTO, ClickUpSpaceLightDTO,
-    ClickUpSpaceDetailDTO, ClickUpRepoDTO, ClickUpRepoRefDTO
+    ClickUpSpaceDTO, ClickUpSpaceCreateDTO, ClickUpSpaceRegisterDTO, ClickUpSpaceUpdateDTO,
+    ClickUpSpaceLightDTO, ClickUpSpaceDetailDTO, ClickUpRepoDTO, ClickUpRepoRefDTO
 """
 
 from typing import Optional
@@ -61,6 +61,19 @@ class ClickUpSpaceCreateDTO(BaseModel):
     """
     name: Optional[str] = None
     space_code: Optional[str] = None
+
+class ClickUpSpaceRegisterDTO(BaseModel):
+    """
+    Payload for ClickUp space registration.
+
+    Attributes:
+        name: ClickUp space name.
+        space_code: ClickUp space code.
+        ignore_name: If True, skips space name validation against ClickUp.
+    """
+    name: Optional[str] = None
+    space_code: Optional[str] = None
+    ignore_name: bool = False
 
 class ClickUpSpaceUpdateDTO(BaseModel):
     """

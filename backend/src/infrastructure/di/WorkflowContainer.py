@@ -411,5 +411,6 @@ class WorkflowContainer:
 
         return ClickUpStructureCreationUseCase(
             clickup_repo=clickup_repo,
+            clickup_reader=self.clickup_reader,
             clickup_writer=self.clickup_workspace_writer
         )

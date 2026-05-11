@@ -48,6 +48,26 @@ class ClickUpReader(IClickUpReader):
         """
         self._http = http_client
 
+    def space_exists(self, space_code: str) -> str:
+        """
+        Check whether a ClickUp space exists and is accessible.
+
+        Args:
+            space_code: ClickUp space identifier in the click up.
+
+        Returns:
+            Space name if the space exists and is accessible.
+        """
+        logger.info("Checking space existence. space_code=%s.", space_code)
+
+        response = self._http.get(f"/space/{space_code}")
+
+        space_name = response.get("name", "")
+
+        logger.info("Space found. space_code=%s, name=%s.", space_code, space_name)
+
+        return space_name
+
     def get_space_full_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Retrieve full ClickUp space structure.

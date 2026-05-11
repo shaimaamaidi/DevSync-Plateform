@@ -21,6 +21,19 @@ class IClickUpReader(ABC):
     """
 
     @abstractmethod
+    def space_exists(self, space_code: str) -> str:
+        """
+        Check whether a ClickUp space exists and is accessible.
+
+        Args:
+            space_code: ClickUp space identifier in the click up.
+
+        Returns:
+            Space name if the space exists and is accessible.
+        """
+        pass
+
+    @abstractmethod
     def get_space_full_structure(self, space_id: str) -> List[FolderWithLists]:
         """
         Fetch the full ClickUp space structure.

@@ -20,7 +20,7 @@ from backend.src.domain.entities.clickup.create_list_request import CreateListRe
 from backend.src.domain.entities.clickup.create_space_request import CreateSpaceRequest
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
-from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
 
 
 class IClickUpStructureCreationUseCase(ABC):
@@ -31,6 +31,23 @@ class IClickUpStructureCreationUseCase(ABC):
     structural components (spaces, folders, lists, statuses) while delegating
     infrastructure operations to external adapters.
     """
+
+    @abstractmethod
+    def register_space(self, space: ClickUpSpaceRegisterDTO) -> ClickUpSpaceDTO:
+        """
+        Validate a ClickUp space existence and persist it in the database.
+
+        Args:
+            space(ClickUpSpaceRegisterDTO): Request DTO containing space registration data.
+
+        Returns:
+            ClickUpSpaceDTO: Persisted space.
+
+        Raises:
+            ClickUpSpaceNameMismatchException: If the provided name does not match the
+                ClickUp space name.
+        """
+        pass
 
     @abstractmethod
     def create_space(self, space: CreateSpaceRequest) -> ClickUpSpaceDTO:

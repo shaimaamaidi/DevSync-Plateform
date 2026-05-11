@@ -10,7 +10,7 @@ from backend.src.domain.exceptions.base.app_exception import AppException
 
 class ClickUpSpaceNotFoundException(AppException):
     """
-    Exception raised when a ClickUp space is not found.
+    Exception raised when a ClickUp space is not found in database.
 
     This exception is used when a requested ClickUp space cannot be located using its ID or space code.
     It typically indicates that the resource does not exist in ClickUp or is inaccessible.

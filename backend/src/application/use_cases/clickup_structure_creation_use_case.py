@@ -22,8 +22,11 @@ from backend.src.domain.entities.clickup.create_space_request import CreateSpace
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.status import ClickUpStatus
-from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, ClickUpSpaceDTO
+from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
+from backend.src.domain.exceptions.clickup.clickup_space_name_mismatch_exception import \
+    ClickUpSpaceNameMismatchException
 from backend.src.domain.ports.input.i_clickup_structure_creation_use_case import IClickUpStructureCreationUseCase
+from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 
@@ -48,16 +51,52 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         _clickup_writer (IClickUpWorkSpaceWriter): Infrastructure port for ClickUp API writes.
     """
 
-    def __init__(self, clickup_repo: IClickUpRepository, clickup_writer: IClickUpWorkSpaceWriter):
+    def __init__(self, clickup_repo: IClickUpRepository, clickup_reader: IClickUpReader, clickup_writer: IClickUpWorkSpaceWriter):
         """
         Initialize the use case with a clickup service and workspace port.
 
         Args:
             clickup_repo (IClickUpService): Service responsible for domain persistence logic.
+            clickup_reader (IClickUpReader): Reader port for ClickUp API operations.
             clickup_writer (IClickUpWorkSpaceWriter): Writer port for ClickUp API operations.
         """
         self._clickup_repo = clickup_repo
+        self._clickup_reader = clickup_reader
         self._clickup_writer = clickup_writer
+
+    def register_space(self, space: ClickUpSpaceRegisterDTO) -> ClickUpSpaceDTO:
+        """
+        Validate a ClickUp space existence and persist it in the database.
+
+        Args:
+            space(ClickUpSpaceRegisterDTO): Request DTO containing space registration data.
+
+        Returns:
+            ClickUpSpaceDTO: Persisted space.
+
+        Raises:
+            ClickUpSpaceNameMismatchException: If the provided name does not match the
+                ClickUp space name.
+        """
+        logger.info("Registering ClickUp space. space_code=%s.", space.space_code)
+
+        space_name = self._clickup_reader.space_exists(space.space_code)
+
+        if (not space_name) and (not space.name )and (space_name.strip().lower() != space.name.strip().lower()) and  (not space.ignore_name):
+            logger.warning(
+                "Space name mismatch. space_code=%s expected=%s actual=%s.",
+                space.space_code,
+                space.name,
+                space_name,
+            )
+            raise ClickUpSpaceNameMismatchException(expected=space.name, actual=space_name)
+
+        result = self._clickup_repo.save(ClickUpSpaceCreateDTO(name=space.name, space_code=space.space_code))
+
+        logger.info("ClickUp space registered successfully. space_id=%s.", space.space_code)
+
+        return result
+
 
     def create_space(self, space: CreateSpaceRequest) -> ClickUpSpaceDTO:
         """
