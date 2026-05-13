@@ -200,7 +200,7 @@ def create_app() -> FastAPI:
         tags=["ClickUp Structure Creation"],
     )
     app.include_router(
-        clickup_task_creation_router.router,
+        clickup_task_management_router.router,
         prefix="/clickup/tasks/manage",
         tags=["ClickUp - Tasks"],
     )
