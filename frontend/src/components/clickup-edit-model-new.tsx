@@ -88,7 +88,7 @@ export function ClickUpEditModal({
     if (creationMode === 'create' && !formData.name?.trim()) 
       return true;
     if (creationMode === 'register' && !formData.name?.trim() && !formData.space_code?.trim()) 
-       true;
+       return true;
     return false;
   })();
 

@@ -266,10 +266,11 @@ export function ClickUpSpacesTable({
             <Button variant="outline" onClick={() => setDeleteConfirmSpaceId(null)}>No</Button>
             <Button
               variant="destructive"
-              onClick={() => {
+              onClick={async () => {
                 if (deleteConfirmSpaceId !== null) {
-                  onDelete(deleteConfirmSpaceId);
+                  await onDelete(deleteConfirmSpaceId);
                   setDeleteConfirmSpaceId(null);
+                  refreshSpaces?.();
                 }
               }}
             >

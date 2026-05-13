@@ -215,9 +215,9 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
             <Button variant="outline" onClick={() => setDeleteConfirmMemberId(null)}>No</Button>
             <Button
               variant="destructive"
-              onClick={() => {
+              onClick={async () => {
                 if (deleteConfirmMemberId !== null) {
-                  onDelete(deleteConfirmMemberId);
+                  await onDelete(deleteConfirmMemberId);
                   setDeleteConfirmMemberId(null);
                 }
               }}

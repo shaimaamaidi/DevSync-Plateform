@@ -25,6 +25,7 @@ from backend.src.domain.entities.clickup.status import ClickUpStatus
 from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
 from backend.src.domain.exceptions.clickup.clickup_space_name_mismatch_exception import \
     ClickUpSpaceNameMismatchException
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_clickup_structure_creation_use_case import IClickUpStructureCreationUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
@@ -80,9 +81,18 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         """
         logger.info("Registering ClickUp space. space_code=%s.", space.space_code)
 
+        if not space.space_code or not space.name:
+            logger.warning(
+                "Invalid input for clickup space creation (name=%s, space_code=%s).",
+                space.name,
+                space.space_code
+            )
+            raise InvalidInputException(
+                "ClickUp space must have a valid 'name' and 'space_code' for register."
+            )
         space_name = self._clickup_reader.space_exists(space.space_code)
 
-        if (not space_name) and (not space.name )and (space_name.strip().lower() != space.name.strip().lower()) and  (not space.ignore_name):
+        if space.name and (space_name.strip().lower() != space.name.strip().lower()) and  (not space.ignore_name):
             logger.warning(
                 "Space name mismatch. space_code=%s expected=%s actual=%s.",
                 space.space_code,
@@ -109,6 +119,15 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             ClickUpSpaceDTO: Created space DTO.
         """
         logger.info("Creating ClickUp space. space_name=%s.", space.space_name)
+
+        if not space.space_name:
+            logger.warning(
+                "Invalid input for clickup space creation (name=%s, space_code=%s).",
+                space.space_name,
+            )
+            raise InvalidInputException(
+                "ClickUp space must have a valid 'name' for create."
+            )
 
         space_code, space_name = self._clickup_writer.create_space(space.space_name)
 

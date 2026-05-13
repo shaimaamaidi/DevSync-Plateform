@@ -86,9 +86,9 @@ export function MemberEditModal({
     }
 
     setIsSaving(true);
-    let success = false;
 
     try {
+      let success = false;
       if (editingMember) {
         success = await onUpdate({
           id: editingMember.id,
@@ -105,11 +105,11 @@ export function MemberEditModal({
           password: formData.password,
         } as MemberCreateDTO);
       }
+      if (success) 
+        onClose();
     } finally {
       setIsSaving(false);
     }
-
-    if (success) onClose();
   };
 
   return (
