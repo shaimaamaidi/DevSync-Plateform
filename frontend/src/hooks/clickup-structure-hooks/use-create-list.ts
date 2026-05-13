@@ -15,7 +15,7 @@ export function useCreateList(spaceId: string) {
     mutationFn: async (request) => {
       const result = await withErrorHandling(
         () => clickUpStructureCreationService.createList(request),
-        'Create list',
+        'Create click up list',
         onError,
       );
 

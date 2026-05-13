@@ -19,8 +19,9 @@ class ClickUpSpaceNameMismatchException(AppException):
     inconsistency in ClickUp data.
 
     Attributes:
-        expected: The expected space name.
-        actual: The actual space name retrieved from ClickUp.
+        message: Human-readable error message.
+        code: Stable internal error code identifying the error type.
+        http_status: HTTP status code associated with the error.
     """
 
     def __init__(self, expected: str, actual: str):

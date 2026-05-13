@@ -17,11 +17,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { withErrorHandling, handleApiError, normalizeErrorMessage } from '@/services/api-error';
+import { 
+  withErrorHandling, 
+  handleApiError, 
+  normalizeErrorMessage, 
+  extractErrorCode 
+} from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { GeneratedTask, VerifiedTask } from '@/api/api';
-import { useClickUpSpacesList } from '@/hooks/clickup-structure-hooks/use-clickup-spaces';
+import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
 import { taskGenerationService } from '@/services/task-generation-from-summary-service';
 import { taskVerificationService } from '@/services/task-verification-service';
@@ -43,16 +48,7 @@ function extractListFromMessage(message: string): string[] {
     .split(',')
     .map(s => s.trim().replace(/^['"]|['"]$/g, ''))
     .filter(Boolean);
-}
-
-function extractErrorCode(err: unknown): string | null {
-  try {
-    const data = (err as any)?.response?.data;
-    return data?.error?.code ?? data?.code ?? null;
-  } catch {
-    return null;
-  }
-}
+};
 
 export function MeetingTaskManager() {
   const navigate = useNavigate();

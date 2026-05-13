@@ -6,7 +6,7 @@ import type { CreateSpaceRequest, ClickUpSpaceDTO } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 
-export function useCreateSpace() {
+export function useCreateClickUpSpace() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
@@ -15,7 +15,7 @@ export function useCreateSpace() {
     mutationFn: async (request) => {
       const result = await withErrorHandling(
         () => clickUpStructureCreationService.createSpace(request),
-        'Create space',
+        'Create click up space',
         onError,
       );
 

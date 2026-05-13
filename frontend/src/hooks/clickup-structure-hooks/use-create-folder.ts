@@ -15,7 +15,7 @@ export function useCreateFolder(spaceId: string) {
     mutationFn: async (request) => {
       const result = await withErrorHandling(
         () => clickUpStructureCreationService.createFolder(request),
-        'Create folder',
+        'Create click upfolder',
         onError,
       );
 

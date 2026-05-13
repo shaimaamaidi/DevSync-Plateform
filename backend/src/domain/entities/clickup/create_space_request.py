@@ -11,6 +11,7 @@ Main classes:
 
 from dataclasses import dataclass
 
+
 @dataclass
 class CreateSpaceRequest:
     """
@@ -20,6 +21,6 @@ class CreateSpaceRequest:
     operations such as folder or list creation. It mainly carries the space identifier.
 
     Attributes:
-        space_id: ClickUp space identifier.
+        space_name: ClickUp space name.
     """
-    space_id: str
+    space_name: str

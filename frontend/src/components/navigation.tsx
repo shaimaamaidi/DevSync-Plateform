@@ -1,7 +1,18 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { GitBranch, Zap, Users, Boxes, LogOut, Settings, FlaskConical, Menu, X, ClipboardList } from 'lucide-react';
+import { 
+  GitBranch, 
+  Zap, 
+  Users, 
+  Boxes, 
+  LogOut, 
+  Settings, 
+  FlaskConical, 
+  Menu, 
+  X, 
+  ClipboardList 
+} from 'lucide-react';
 import { authService } from '@/services/auth-service';
 import { useIsMobile } from '@/hooks/use-mobile';
 

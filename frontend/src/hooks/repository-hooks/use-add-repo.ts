@@ -15,7 +15,7 @@ export function useAddRepo() {
     mutationFn: async (newRepo: GitRepoCreateDTO) => {
       const result = await withErrorHandling(
         () => repoService.createRepo(newRepo),
-        'Create repository',
+        'Create GitHub repository',
         onError,
       );
       return result;

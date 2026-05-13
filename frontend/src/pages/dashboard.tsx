@@ -3,9 +3,11 @@ import { DashboardStats } from '@/components/dashboard-stats';
 import { DeploymentsTracker } from '@/components/deployments-tracker';
 import { ReposTable } from '@/components/repos-table';
 import type {
-  ClickUpSpaceCreateDTO,
+  AssociateClickUpSpaceRequest,
   ClickUpSpaceLightDTO,
+  ClickUpSpaceRegisterDTO,
   ClickUpSpaceUpdateDTO,
+  CreateSpaceRequest,
   DeploymentDTO,
   GitRepoCreateDTO,
   GitRepoUpdateDTO,
@@ -22,7 +24,6 @@ import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/lib/error-utils';
 import { useUpdateClickUpSpace } from '@/hooks/clickup-space-hooks/use-update-clickup-space';
 import { useDeleteClickUpSpace } from '@/hooks/clickup-space-hooks/use-delete-clickup-space';
-import { useAddClickUpSpace } from '@/hooks/clickup-space-hooks/use-add-clickup-space';
 import { useMembers } from '@/hooks/member-hooks/use-members';
 import { useUpdateMember } from '@/hooks/member-hooks/use-update-member';
 import { useDeleteMember } from '@/hooks/member-hooks/use-delete-member';
@@ -31,6 +32,9 @@ import { useRepos } from '@/hooks/repository-hooks/use-repos';
 import { useUpdateRepo } from '@/hooks/repository-hooks/use-update-repo';
 import { useDeleteRepo } from '@/hooks/repository-hooks/use-delete-repo';
 import { useAddRepo } from '@/hooks/repository-hooks/use-add-repo';
+import { useCreateClickUpSpace } from '@/hooks/clickup-structure-hooks/use-create-space';
+import { useRegisterClickUpSpace } from '@/hooks/clickup-structure-hooks/use-register-space';
+import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github-clickup';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
@@ -61,7 +65,12 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
   const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
-  const { mutateAsync: addClickUpSpace } = useAddClickUpSpace();
+  const { mutateAsync: createClickUpSpace } = useCreateClickUpSpace();
+  const { mutateAsync: registerClickUpSpace } = useRegisterClickUpSpace();
+
+  const { mutateAsync: associateClickUpSpace } = useAssociateRepoWithClickUpSpace();
+  const [showNotFoundDialog, setShowNotFoundDialog] = useState(false);
+  const [showNameMismatchDialog, setShowNameMismatchDialog] = useState(false);
 
   const refreshClickUpData = useCallback(async () => {
     setClickupLoading(true);
@@ -155,15 +164,43 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     return Promise.resolve(true);
   }, [addMember]);
 
-  const handleAddClickUpSpace = useCallback(async (newSpace: ClickUpSpaceCreateDTO) => {
-    const result = await addClickUpSpace(newSpace);
+  const handleCreateClickUpSpace = useCallback(async (newSpace: CreateSpaceRequest) => {
+    const result = await createClickUpSpace(newSpace);
 
     if (!result) 
       return Promise.resolve(false);
 
     showSuccessToast('ClickUp space created successfully');
     return Promise.resolve(true);
-  }, [addClickUpSpace]);
+  }, [createClickUpSpace]);
+
+  const handleRegisterClickUpSpace = useCallback(async (newSpace: ClickUpSpaceRegisterDTO) => {
+    const result = await registerClickUpSpace(newSpace);
+
+  if (result.ok) {
+    showSuccessToast('ClickUp space registered successfully');
+    return Promise.resolve(true);
+  }
+
+  if (result.reason === 'not_found') {
+    setShowNotFoundDialog(true);
+    return Promise.resolve(false);
+  }
+
+  if (result.reason === 'name_mismatch') {
+    setShowNameMismatchDialog(true);
+    return Promise.resolve(false);
+  }
+  }, [registerClickUpSpace]);
+
+  const handleAssociateClickUpSpace = useCallback(async (association: AssociateClickUpSpaceRequest) => {
+    const result = await associateClickUpSpace(association);
+    if (!result) 
+      return Promise.resolve(false);
+
+    showSuccessToast('GitHub repository associated with ClickUp space successfully');
+    return Promise.resolve(true);
+  }, [associateClickUpSpace]);
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
     setIsLoadingDeployments(true);
@@ -195,6 +232,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onDelete={handleDeleteRepo}
             onAdd={handleAddRepo}
             isLoading={reposLoading || clickupLoading || membersLoading}
+            onAssociate={handleAssociateClickUpSpace}
             />
         </div>
       )}
@@ -228,8 +266,15 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             spaces={clickUpSpaces}
             onUpdate={handleUpdateClickUpSpace}
             onDelete={handleDeleteClickUpSpace}
-            onAdd={handleAddClickUpSpace}
+            onCreate={handleCreateClickUpSpace}
+            onRegister={handleRegisterClickUpSpace}
             isLoading={clickupLoading} 
+            showNotFoundDialog={showNotFoundDialog}
+            onNotFoundDialogChange={setShowNotFoundDialog}
+            showNameMismatchDialog={showNameMismatchDialog}
+            onNameMismatchDialogChange={setShowNameMismatchDialog}
+            repositories={repos}
+            onAssociate={handleAssociateClickUpSpace}
             />
         </div>
       )}

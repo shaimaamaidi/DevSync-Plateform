@@ -1,5 +1,10 @@
 import { memberApi } from '@/apiClient';
-import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO } from '@/api/api';
+import type { 
+  MemberCreateDTO, 
+  MemberDTO, 
+  MemberUpdateDTO, 
+  MemberWithReposDTO 
+} from '@/api/api';
 
 export const memberService = {
   mapToMemberDTO(member: MemberWithReposDTO): MemberDTO {

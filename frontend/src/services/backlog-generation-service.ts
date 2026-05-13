@@ -1,5 +1,9 @@
 import { BASE_PATH } from '@/api/base';
-import type { ReplyBacklogStreamRequest, ReplyStreamRequest, StartBacklogRequest } from '@/api/api';
+import type { 
+  ReplyBacklogStreamRequest, 
+  ReplyStreamRequest, 
+  StartBacklogRequest 
+} from '@/api/api';
 import { authService } from '@/services/auth-service';
 import type { ApiErrorType } from '@/types/api-error-type';
 import { SseError } from '@/types/sse-error';

@@ -15,7 +15,7 @@ export function useAddStatus(spaceId: string) {
     mutationFn: async (request) => {
       const result = await withErrorHandling(
         () => clickUpStructureCreationService.addStatus(request),
-        'Add status',
+        'Add click up status',
         onError,
       );
 

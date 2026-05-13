@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
-import { useClickUpSpacesList } from '@/hooks/clickup-structure-hooks/use-clickup-spaces';
+import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useCreateFolder } from '@/hooks/clickup-structure-hooks/use-create-folder';
 import { showSuccessToast } from '../global-toaster';
 

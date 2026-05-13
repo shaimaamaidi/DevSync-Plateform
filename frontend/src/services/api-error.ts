@@ -77,6 +77,16 @@ export const handleApiError = (
   return 'backend_error';
 };
 
+
+export function extractErrorCode(err: unknown): string | null {
+  try {
+    const data = (err as any)?.response?.data;
+    return data?.error?.code ?? data?.code ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export const withErrorHandling = async <T>(
   fn: () => Promise<T>,
   context: string,

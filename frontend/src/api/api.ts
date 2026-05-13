@@ -183,10 +183,10 @@ export interface CreateListRequest {
     'folder_id'?: string | null;
 }
 /**
- * Request model for creating or referencing a ClickUp space.  This DTO represents the payload required to identify a ClickUp space for further operations such as folder or list creation. It mainly carries the space identifier.  Attributes:     space_id: ClickUp space identifier.
+ * Request model for creating or referencing a ClickUp space.  This DTO represents the payload required to identify a ClickUp space for further operations such as folder or list creation. It mainly carries the space identifier.  Attributes:     space_name: ClickUp space name.
  */
 export interface CreateSpaceRequest {
-    'space_id': string;
+    'space_name': string;
 }
 /**
  * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     list_id: Identifier of the ClickUp list where the task will be created.     space_id: Identifier of the ClickUp space containing the list.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.

@@ -91,7 +91,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             )
             raise ClickUpSpaceNameMismatchException(expected=space.name, actual=space_name)
 
-        result = self._clickup_repo.save(ClickUpSpaceCreateDTO(name=space.name, space_code=space.space_code))
+        result = self._clickup_repo.save(ClickUpSpaceCreateDTO(name=space_name, space_code=space.space_code))
 
         logger.info("ClickUp space registered successfully. space_id=%s.", space.space_code)
 
@@ -108,9 +108,9 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         Returns:
             ClickUpSpaceDTO: Created space DTO.
         """
-        logger.info("Creating ClickUp space. space_id=%s.", space.space_id)
+        logger.info("Creating ClickUp space. space_name=%s.", space.space_name)
 
-        space_code, space_name = self._clickup_writer.create_space(space.space_id)
+        space_code, space_name = self._clickup_writer.create_space(space.space_name)
 
         logger.info(
             "ClickUp space created successfully via API. space_id=%s name=%s.",

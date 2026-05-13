@@ -14,7 +14,7 @@ export function useDeleteRepo() {
     mutationFn: async (id: number) => {
       const result = await withErrorHandling(
         () => repoService.deleteRepo(id),
-        'Delete repository',
+        'Delete GitHub repository',
         onError,
       );
       return result;

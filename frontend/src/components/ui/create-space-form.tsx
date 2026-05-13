@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { CheckCircle2, Loader2, X } from 'lucide-react';
-import { useClickUpSpacesList } from '@/hooks/clickup-structure-hooks/use-clickup-spaces';
-import { useCreateSpace } from '@/hooks/clickup-structure-hooks/use-create-space';
+import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
+import { useCreateClickUpSpace } from '@/hooks/clickup-structure-hooks/use-create-space';
 import { showSuccessToast } from '../global-toaster';
 
 export interface CreateSpaceFormProps {
@@ -16,7 +16,7 @@ export interface CreateSpaceFormProps {
 
 export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormProps) {
   const { spaces, loading: spacesLoading } = useClickUpSpacesList();
-  const { mutateAsync: createSpace, isPending } = useCreateSpace();
+  const { mutateAsync: createSpace, isPending } = useCreateClickUpSpace();
   
   const [spaceName, setSpaceName] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,7 +60,7 @@ export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormP
     
     try {
       const request: CreateSpaceRequest = {
-        space_id: spaceName.trim(),
+        space_name: spaceName.trim(),
       };
 
       const result = await createSpace(request);

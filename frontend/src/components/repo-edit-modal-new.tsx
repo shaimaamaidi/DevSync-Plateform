@@ -1,10 +1,15 @@
 ﻿import { useState, useEffect } from 'react';
 import type {
+  AssociateClickUpSpaceRequest,
   ClickUpSpaceLightDTO,
+  GitRepoCreateDTO,
   GitRepoDetailDTO,
+  GitRepoUpdateDTO,
   MemberDTO,
   RepoClickUpSpaceDTO,
+  RepoClickUpSpaceRefDTO,
   RepoMemberDTO,
+  RepoMemberRefDTO,
 } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -22,19 +27,23 @@ import { X, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 interface RepoEditModalNewProps {
   repo: GitRepoDetailDTO | null;
   isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSave: (repo: GitRepoDetailDTO) => Promise<void>;
+  onClose: () => void;
+  onSave: (repo: GitRepoCreateDTO) => Promise<boolean>;
+  onUpdate: (repo: GitRepoUpdateDTO) => Promise<boolean>;
   clickUpSpaces: ClickUpSpaceLightDTO[];
   availableMembers: MemberDTO[];
+  onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
 }
 
 export function RepoEditModalNew({
   repo,
   isOpen,
-  onOpenChange,
+  onClose,
   onSave,
+  onUpdate,
   clickUpSpaces,
   availableMembers,
+  onAssociate,
 }: RepoEditModalNewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const initialFormData: GitRepoDetailDTO = {
@@ -69,7 +78,9 @@ export function RepoEditModalNew({
   const [showAddMembersPanel, setShowAddMembersPanel] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
+  const clickupOptions = clickUpSpaces.filter(
+    (space): space is ClickUpSpaceLightDTO & { id: number } => typeof space.id === 'number' && space.repo === null,
+  );
   useEffect(() => {
     if (!isOpen) {
       setErrors({});
@@ -82,22 +93,20 @@ export function RepoEditModalNew({
       const repoUrlChanged = formData.url !== repo.url;
       const spaceChanged = formData.clickup_space?.id !== repo.clickup_space?.id;
       const membersChanged = membersToRemove.length > 0 || newMembers.length > 0;
-
       setHasChanges(repoNameChanged || repoUrlChanged || spaceChanged || membersChanged);
     }
   }, [formData, membersToRemove, newMembers, repo]);
 
-  // --- Button state rules (mirroring ClickUp pattern) ---
   const isFormEmpty = !formData.name?.trim() || !formData.url?.trim();
 
   const isCancelDisabled = isSaving;
   const isSaveDisabled = repo
-    ? !hasChanges || isSaving   // Update: disabled if no changes OR saving
-    : isFormEmpty || isSaving;  // Create: disabled if empty fields OR saving
+    ? !hasChanges || isSaving   
+    : isFormEmpty || isSaving;  
 
-  // ------------------------------------------------------
 
   const validateForm = () => {
+    setErrors({});
     const newErrors: Record<string, string> = {};
 
     if (!formData.name?.trim()) {
@@ -173,9 +182,9 @@ export function RepoEditModalNew({
     setNewMembers((prev) => prev.filter((m) => memberKey(m) !== memberId));
   };
 
-  const handleSave = async () => {
-    setErrors({});
-    if (!validateForm()) return;
+  const handleSaveOrUpdate = async () => {
+    if (!validateForm()) 
+      return;
 
     const originalMembers = repo?.members || [];
     const filteredMembers = originalMembers.filter((member) =>
@@ -193,10 +202,44 @@ export function RepoEditModalNew({
 
     setIsSaving(true);
     try {
-      await onSave(updatedRepo);
-      setMembersToRemove([]);
-      setNewMembers([]);
-      setShowAddMembersPanel(false);
+      let success = false;
+      if(repo){
+        const members: RepoMemberRefDTO[] | null = updatedRepo.members
+          ? updatedRepo.members.map((member) => ({
+          id: member.id ?? undefined,
+          mail: member.mail ?? undefined,
+        }))
+        : null;
+              
+        const clickupSpace: RepoClickUpSpaceRefDTO | null = updatedRepo.clickup_space
+          ? {
+          id: updatedRepo.clickup_space.id ?? undefined,
+          space_code: updatedRepo.clickup_space.space_code ?? undefined,
+        }
+        : null;
+        success = await onUpdate({
+          id: updatedRepo.id,
+          name: updatedRepo.name ?? null,
+          url: updatedRepo.url ?? null,
+          members: members,
+          clickup_space: clickupSpace,
+        } as GitRepoUpdateDTO);
+      }else{
+        success = await onSave({
+          name: updatedRepo.name ?? null,
+          url: updatedRepo.url ?? null,
+        } as GitRepoCreateDTO);
+      }
+      if(success && formData.clickup_space && !repo){
+        const payload: AssociateClickUpSpaceRequest = {
+          space_code: formData.clickup_space.space_code!,
+          repo_url: formData.url!,
+        };
+        await onAssociate(payload);
+      }
+      if (success) 
+        onClose();
+      
     } finally {
       setIsSaving(false);
     }
@@ -232,7 +275,7 @@ export function RepoEditModalNew({
                 onClick={() => {
                   if (isCancelDisabled) return;
                   setErrors({});
-                  onOpenChange(false);
+                  onClose();
                   setShowAddMembersPanel(!showAddMembersPanel)
                 }}
                 disabled={isCancelDisabled}
@@ -315,7 +358,7 @@ export function RepoEditModalNew({
                     <SelectValue placeholder="No click up space selected" />
                   </SelectTrigger> 
                   <SelectContent className="bg-card border-border">
-                    {clickUpSpaces.length === 0 ? (
+                    {clickupOptions.length === 0 ? (
                       <SelectItem value="none" disabled>
                         No ClickUp space available
                       </SelectItem>
@@ -324,7 +367,7 @@ export function RepoEditModalNew({
                       <SelectItem value="none" className="text-muted-foreground hidden" disabled>
                         <span className="text-muted-foreground">No ClickUp space selected</span>
                       </SelectItem>
-                      {clickUpSpaces.map((space) => (
+                      {clickupOptions.map((space) => (
                         <SelectItem
                           key={space.id ?? space.space_code ?? space.name}
                           value={space.id?.toString() ?? ''}
@@ -504,14 +547,14 @@ export function RepoEditModalNew({
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => onClose()}
                 className="border-border"
                 disabled={isCancelDisabled}
               >
                 Cancel
               </Button>
               <Button
-                onClick={handleSave}
+                onClick={handleSaveOrUpdate}
                 disabled={isSaveDisabled}
                 className="gap-2"
               >

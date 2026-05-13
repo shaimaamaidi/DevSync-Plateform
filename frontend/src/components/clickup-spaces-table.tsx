@@ -7,7 +7,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import type { ClickUpSpaceLightDTO, ClickUpSpaceCreateDTO, ClickUpSpaceUpdateDTO } from '@/api/api';
+import type { 
+  ClickUpSpaceLightDTO, 
+  ClickUpSpaceUpdateDTO, 
+  CreateSpaceRequest, 
+  ClickUpSpaceRegisterDTO, 
+  GitRepoDetailDTO, 
+  AssociateClickUpSpaceRequest 
+} from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, Link as LinkIcon } from 'lucide-react';
 import { ClickUpEditModal } from './clickup-edit-model-new';
@@ -16,11 +23,31 @@ export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
   onUpdate: (space: ClickUpSpaceUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
-  onAdd: (space: ClickUpSpaceCreateDTO) => Promise<boolean>;
+  onCreate: (space: CreateSpaceRequest) => Promise<boolean>;
+  onRegister: (space: ClickUpSpaceRegisterDTO) => Promise<boolean | undefined>;
   isLoading?: boolean;
+  showNotFoundDialog?: boolean;
+  onNotFoundDialogChange?: (show: boolean) => void;
+  showNameMismatchDialog?: boolean;
+  onNameMismatchDialogChange?: (show: boolean) => void;
+  repositories: GitRepoDetailDTO[];
+  onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
 }
 
-export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd, isLoading }: ClickUpSpacesTableProps) {
+export function ClickUpSpacesTable({ 
+  spaces, 
+  onUpdate, 
+  onDelete, 
+  onCreate, 
+  onRegister, 
+  isLoading ,
+  showNotFoundDialog,
+  onNotFoundDialogChange,
+  showNameMismatchDialog,
+  onNameMismatchDialogChange,
+  repositories,
+  onAssociate,
+}: ClickUpSpacesTableProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
@@ -208,10 +235,17 @@ export function ClickUpSpacesTable({ spaces, onUpdate, onDelete, onAdd, isLoadin
 
       <ClickUpEditModal
         isOpen={isModalOpen}
+        repositories={repositories}
         editingSpace={editingSpace}
         onClose={handleModalClose}
-        onAdd={onAdd}
+        onCreate={onCreate}
+        onRegister={onRegister}
         onUpdate={onUpdate}
+        showNotFoundDialog={showNotFoundDialog}
+        onNotFoundDialogChange={onNotFoundDialogChange}
+        showNameMismatchDialog={showNameMismatchDialog}
+        onNameMismatchDialogChange={onNameMismatchDialogChange}
+        onAssociate={onAssociate}
       />
 
       <Dialog

@@ -84,7 +84,7 @@ class AssociateClickUpSpaceResponse(BaseModel):
         clickup_space: Associated ClickUp space DTO.
     """
     repo: AssociatorRepoDTO
-    clickup_space: Optional[ClickUpSpaceDTO] = None
+    clickup_space: ClickUpSpaceDTO
 
 class AssociateMembersResponse(BaseModel):
     """

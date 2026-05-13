@@ -15,7 +15,7 @@ export function useRepos() {
     queryFn: async () => {
       const data = await withErrorHandling(
         () => repoService.getAllReposWithDetails(),
-        'Load repositories',
+        'Load GitHub repositories',
         onError,
       );
       return data;

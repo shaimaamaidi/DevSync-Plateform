@@ -3,6 +3,7 @@ import type {
   AddStatusRequest,
   ClickUpListMetadata,
   ClickUpSpaceDTO,
+  ClickUpSpaceRegisterDTO,
   CreateFolderRequest,
   CreateListRequest,
   CreateSpaceRequest,
@@ -10,9 +11,14 @@ import type {
 } from '@/api/api';
 
 export const clickUpStructureCreationService = {
+  async registerSpace(request: ClickUpSpaceRegisterDTO): Promise<ClickUpSpaceDTO | null> {
+    const response = await clickUpStructureCreationApi.registerSpaceClickupStructureSpacesRegisterPost(request);
+    return response.data?? null;
+  },
+
   async createSpace(request: CreateSpaceRequest): Promise<ClickUpSpaceDTO | null> {
     const payload: CreateSpaceRequest = {
-      space_id: request.space_id,
+      space_name: request.space_name,
     };
 
     const response = await clickUpStructureCreationApi.createSpaceClickupStructureSpacesPost(payload);

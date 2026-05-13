@@ -1,7 +1,11 @@
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Check } from 'lucide-react';
-import type { GeneratedTask, VerifiedTask, FolderWithListsMetadata } from '@/api/api';
+import type { 
+  GeneratedTask, 
+  VerifiedTask, 
+  FolderWithListsMetadata 
+} from '@/api/api';
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 import { AddTaskForm } from './ui/add-task-form';
 import { VerifiedTaskCard } from './ui/verified-task-card';

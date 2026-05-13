@@ -15,7 +15,7 @@ export function useUpdateRepo() {
     mutationFn: async (repo: GitRepoUpdateDTO) => {
       const result = await withErrorHandling(
         () => repoService.updateRepo(repo),
-        'Update repository',
+        'Update GitHubrepository',
         onError,
       );
       return result;

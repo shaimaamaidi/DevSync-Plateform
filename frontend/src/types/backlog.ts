@@ -1,5 +1,3 @@
-/* Shared types for backlog generation */
-
 export interface RefinedMarketIntelligence {
   refined_market_trends: string;
   refined_competitor_features: string[];

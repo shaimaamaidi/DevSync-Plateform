@@ -1,4 +1,10 @@
-import type { BacklogPayload, MarketSummary, RefinedMarketIntelligence, UiEpic, UiSprint } from "@/types/backlog";
+import type { 
+  BacklogPayload, 
+  MarketSummary, 
+  RefinedMarketIntelligence, 
+  UiEpic, 
+  UiSprint 
+} from "@/types/backlog";
 
 
 export function refinedToSummary(r: RefinedMarketIntelligence): MarketSummary {

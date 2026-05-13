@@ -1,7 +1,21 @@
 ﻿import { useState } from 'react';
-import type { ClickUpSpaceLightDTO, GitRepoCreateDTO, GitRepoDetailDTO, GitRepoUpdateDTO, MemberDTO, RepoClickUpSpaceRefDTO, RepoMemberRefDTO } from '@/api/api';
+import type { 
+  AssociateClickUpSpaceRequest, 
+  ClickUpSpaceLightDTO, 
+  GitRepoCreateDTO, 
+  GitRepoDetailDTO, 
+  GitRepoUpdateDTO, 
+  MemberDTO 
+} from '@/api/api';
 import { Button } from '@/components/ui/button';
-import { Edit2, Trash2, Plus, GitBranch, Users, Link as LinkIcon } from 'lucide-react';
+import { 
+  Edit2, 
+  Trash2, 
+  Plus, 
+  GitBranch, 
+  Users, 
+  Link as LinkIcon 
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { RepoEditModalNew } from './repo-edit-modal-new';
@@ -22,9 +36,10 @@ interface ReposTableProps {
   onDelete: (id: number) => void;
   onAdd: (repo: GitRepoCreateDTO) => Promise<boolean>;
   isLoading?: boolean;
+  onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
 }
 
-export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd, isLoading }: ReposTableProps) {
+export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd, isLoading, onAssociate }: ReposTableProps) {
   const [selectedRepo, setSelectedRepo] = useState<GitRepoDetailDTO | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -40,41 +55,6 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
     setIsAddModalOpen(true);
   };
 
-  const handleSave = async (updatedRepo: GitRepoDetailDTO) => {
-    let success = false;
-    if (selectedRepo) {
-      const members: RepoMemberRefDTO[] | null = updatedRepo.members
-        ? updatedRepo.members.map((member) => ({
-        id: member.id ?? undefined,
-        mail: member.mail ?? undefined,
-      }))
-      : null;
-      
-      const clickupSpace: RepoClickUpSpaceRefDTO | null = updatedRepo.clickup_space
-        ? {
-        id: updatedRepo.clickup_space.id ?? undefined,
-        space_code: updatedRepo.clickup_space.space_code ?? undefined,
-        }
-      : null;
-      success = await onUpdate({
-        id: updatedRepo.id,
-        name: updatedRepo.name ?? null,
-        url: updatedRepo.url ?? null,
-        members: members,
-        clickup_space: clickupSpace,
-      } as GitRepoUpdateDTO);
-    } else {
-      success = await onAdd({
-        name: updatedRepo.name ?? null,
-        url: updatedRepo.url ?? null,
-      } as GitRepoCreateDTO);
-    }
-    if(success){
-      setIsEditModalOpen(false);
-      setIsAddModalOpen(false);
-      setSelectedRepo(null);
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -322,16 +302,16 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
       <RepoEditModalNew
         repo={selectedRepo}
         isOpen={isEditModalOpen || isAddModalOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setIsEditModalOpen(false);
-            setIsAddModalOpen(false);
-            setSelectedRepo(null);
-          }
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setIsAddModalOpen(false);
+          setSelectedRepo(null);
         }}
-        onSave={handleSave}
+        onSave={onAdd}
+        onUpdate={onUpdate}
         clickUpSpaces={clickUpSpaces}
         availableMembers={availableMembers}
+        onAssociate={onAssociate}
       />
       <Dialog open={deleteConfirmRepoId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmRepoId(null); }}>
         <DialogContent>
