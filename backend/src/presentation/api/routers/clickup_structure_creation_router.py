@@ -88,7 +88,7 @@ def create_space(
     Returns:
         ClickUpSpaceDTO: Created space DTO.
     """
-    logger.info("POST /clickup/structure/spaces. space_id=%s.", body.space_id)
+    logger.info("POST /clickup/structure/spaces. space_name=%s.", body.space_name)
 
     return use_case.create_space(body)
 

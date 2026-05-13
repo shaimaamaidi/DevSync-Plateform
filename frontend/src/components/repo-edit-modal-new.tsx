@@ -33,6 +33,7 @@ interface RepoEditModalNewProps {
   clickUpSpaces: ClickUpSpaceLightDTO[];
   availableMembers: MemberDTO[];
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
+  refreshSpaces?: () => void;
 }
 
 export function RepoEditModalNew({
@@ -44,6 +45,7 @@ export function RepoEditModalNew({
   clickUpSpaces,
   availableMembers,
   onAssociate,
+  refreshSpaces,
 }: RepoEditModalNewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const initialFormData: GitRepoDetailDTO = {
@@ -224,6 +226,9 @@ export function RepoEditModalNew({
           members: members,
           clickup_space: clickupSpace,
         } as GitRepoUpdateDTO);
+        if (success && clickupSpace !== null){
+          refreshSpaces?.();
+        }
       }else{
         success = await onSave({
           name: updatedRepo.name ?? null,
@@ -236,6 +241,7 @@ export function RepoEditModalNew({
           repo_url: formData.url!,
         };
         await onAssociate(payload);
+        refreshSpaces?.();
       }
       if (success) 
         onClose();
@@ -358,27 +364,31 @@ export function RepoEditModalNew({
                     <SelectValue placeholder="No click up space selected" />
                   </SelectTrigger> 
                   <SelectContent className="bg-card border-border">
-                    {clickupOptions.length === 0 ? (
+                    {clickUpSpaces.length === 0 ? (
                       <SelectItem value="none" disabled>
                         No ClickUp space available
                       </SelectItem>
-                    ) : (
-                      <>
-                      <SelectItem value="none" className="text-muted-foreground hidden" disabled>
-                        <span className="text-muted-foreground">No ClickUp space selected</span>
-                      </SelectItem>
-                      {clickupOptions.map((space) => (
-                        <SelectItem
-                          key={space.id ?? space.space_code ?? space.name}
-                          value={space.id?.toString() ?? ''}
-                        >
-                          <div className="flex items-center gap-2">
-                            {space.name}
-                          </div>
+                    ) : clickupOptions.length === 0 ? (
+                        <SelectItem value="none" disabled>
+                          No ClickUp space available for association (all are already linked)
                         </SelectItem>
-                      ))}
-                      </>
-                    )}
+                      ) : (
+                        <>
+                        <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                          <span className="text-muted-foreground">No ClickUp space selected</span>
+                        </SelectItem>
+                        {clickupOptions.map((space) => (
+                          <SelectItem
+                            key={space.id ?? space.space_code ?? space.name}
+                            value={space.id?.toString() ?? ''}
+                          >
+                            <div className="flex items-center gap-2">
+                              {space.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                        </>
+                      )}
                   </SelectContent>
                 </Select>
 

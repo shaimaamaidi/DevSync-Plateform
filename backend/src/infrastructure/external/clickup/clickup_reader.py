@@ -16,6 +16,8 @@ from backend.src.domain.entities.clickup.folder_with_list_metadata import Folder
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
+from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception import ClickUpResourceNotFoundException
 from backend.src.domain.exceptions.clickup.clickup_workspace_members_exception import ClickUpWorkspaceMembersException
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
@@ -60,9 +62,14 @@ class ClickUpReader(IClickUpReader):
         """
         logger.info("Checking space existence. space_code=%s.", space_code)
 
-        response = self._http.get(f"/space/{space_code}")
+        try:
+            response = self._http.get(f"/space/{space_code}")
 
-        space_name = response.get("name", "")
+            space_name = response.get("name", "")
+        except ClickUpClientException as e:
+            raise ClickUpResourceNotFoundException(
+                f"Space not found: {space_code}"
+            ) from e
 
         logger.info("Space found. space_code=%s, name=%s.", space_code, space_name)
 
@@ -420,7 +427,15 @@ class ClickUpReader(IClickUpReader):
             List of folder dicts from the API response.
         """
         logger.info("Fetching folders. space_id=%s.", space_id)
-        return self._http.get(f"/space/{space_id}/folder").get("folders", [])
+
+        try:
+            results = self._http.get(f"/space/{space_id}/folder").get("folders", [])
+        except ClickUpClientException as e:
+            raise ClickUpResourceNotFoundException(
+                f"Space not found: {space_id}"
+            ) from e
+
+        return results
 
     def _get_lists(self, folder_id: str) -> list:
         """
@@ -433,8 +448,15 @@ class ClickUpReader(IClickUpReader):
             List of list dicts from the API response.
         """
         logger.info("Fetching lists. folder_id=%s.", folder_id)
-        return self._http.get(f"/folder/{folder_id}/list").get("lists", [])
 
+        try:
+            results = self._http.get(f"/folder/{folder_id}/list").get("lists", [])
+        except ClickUpClientException as e:
+            raise ClickUpResourceNotFoundException(
+                f"Folder not found: {folder_id}"
+            ) from e
+
+        return results
     def _get_tasks(self, list_id: str) -> list:
         """
         Fetch tasks for a list.
@@ -446,7 +468,8 @@ class ClickUpReader(IClickUpReader):
             List of task dicts from the API response.
         """
         logger.info("Fetching tasks. list_id=%s.", list_id)
-        return self._http.get(f"/list/{list_id}/task").get("tasks", [])
+
+        return  self._http.get(f"/list/{list_id}/task").get("tasks", [])
 
     def _get_list_details(self, list_id: str) -> dict:
         """
@@ -459,6 +482,7 @@ class ClickUpReader(IClickUpReader):
             Parsed JSON dict of list details.
         """
         logger.info("Fetching list details. list_id=%s.", list_id)
+
         return self._http.get(f"/list/{list_id}?override_statuses=true")
 
     def _get_folderless_lists(self, space_id: str):
@@ -470,4 +494,12 @@ class ClickUpReader(IClickUpReader):
         Returns:
             Parsed JSON response of folderless lists.
         """
-        return self._http.get(f"/space/{space_id}/list").get("lists", [])
+
+        try:
+            results = self._http.get(f"/space/{space_id}/list").get("lists", [])
+        except ClickUpClientException as e:
+            raise ClickUpResourceNotFoundException(
+                f"Space not found: {space_id}"
+            ) from e
+
+        return results

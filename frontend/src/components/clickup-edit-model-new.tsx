@@ -10,12 +10,12 @@ import type {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { CheckCircle2, Database, Loader2, Plus, X } from 'lucide-react';
 import {
@@ -40,6 +40,7 @@ export interface ClickUpEditModalProps {
   showNameMismatchDialog?: boolean;
   onNameMismatchDialogChange?: (show: boolean) => void;
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
+  refreshSpaces?: () => void;
 }
 
 export type CreationMode = 'create' | 'register';
@@ -57,20 +58,16 @@ export function ClickUpEditModal({
   showNameMismatchDialog,
   onNameMismatchDialogChange,
   onAssociate,
+  refreshSpaces,
 }: ClickUpEditModalProps) {
   const [formData, setFormData] = useState<Partial<ClickUpSpaceLightDTO>>({});
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [creationMode, setCreationMode] = useState<CreationMode | null>(null);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setErrors({});
-    }
-  }, [isOpen]);
-
   const repoOptions = repositories.filter(
-    (repo): repo is GitRepoDetailDTO & { id: number } => typeof repo.id === 'number' && repo.clickup_space === null,
+    (repo): repo is GitRepoDetailDTO & { id: number } =>
+      typeof repo.id === 'number' && repo.clickup_space === null,
   );
 
   const hasChanges = editingSpace
@@ -88,10 +85,10 @@ export function ClickUpEditModal({
       return !hasChanges;
     if (!creationMode) 
       return true;
-    if (!formData.space_code?.trim()) 
+    if (creationMode === 'create' && !formData.name?.trim()) 
       return true;
-    if (creationMode === 'register' && !formData.name?.trim()) 
-      return true;
+    if (creationMode === 'register' && !formData.name?.trim() && !formData.space_code?.trim()) 
+       true;
     return false;
   })();
 
@@ -121,22 +118,25 @@ export function ClickUpEditModal({
       setErrors({});
       setIsSaving(false);
       setCreationMode(null);
-      setFormData(editingSpace ? { ...editingSpace } : { name: '', space_code: '' });
+      setFormData(editingSpace ? { ...editingSpace } : { name: '', space_code: '', repo: null });
     }
   }, [isOpen, editingSpace]);
 
   const handleModeChange = (mode: CreationMode) => {
     setCreationMode(mode);
     setErrors({});
-    setFormData((prev) => ({ ...prev, name: '', space_code: '' }));
+    setFormData((prev) => ({ ...prev, name: '', space_code: '', repo: null }));
   };
 
   const validate = (): boolean => {
+    setErrors({});
     const newErrors: Record<string, string> = {};
-    if (!formData.space_code?.trim()) newErrors.space_code = 'Space ID is required';
-    if (editingSpace || creationMode === 'register') {
-      if (!formData.name?.trim()) newErrors.name = 'Space name is required';
-    }
+    if (!formData.name?.trim()) 
+        newErrors.name = 'Space name is required';
+
+    if ((editingSpace || creationMode === 'register') &&!formData.space_code?.trim()) 
+      newErrors.space_code = 'Space ID is required';
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -144,12 +144,13 @@ export function ClickUpEditModal({
   const handleSaveOrUpdate = async () => {
     if (!validate()) 
       return;
+    
     setIsSaving(true);
     let success: boolean | undefined = false;
     try {
       if (editingSpace) {
         success = await onUpdate({ ...editingSpace, ...formData } as ClickUpSpaceUpdateDTO);
-      } else { 
+      } else {
         if (creationMode === 'register') {
           success = await onRegister({
             name: formData.name!,
@@ -157,10 +158,10 @@ export function ClickUpEditModal({
             ignore_name: false,
           } as ClickUpSpaceRegisterDTO);
         } else {
-          success = await onCreate({ space_name: formData.space_code! } as CreateSpaceRequest);
+          success = await onCreate({ space_name: formData.name! } as CreateSpaceRequest);
         }
 
-        if(success && formData.repo){
+        if (success && formData.repo) {
           const payload: AssociateClickUpSpaceRequest = {
             space_code: formData.space_code!,
             repo_url: formData.repo?.url!,
@@ -169,9 +170,10 @@ export function ClickUpEditModal({
         }
       }
 
-      if (success) 
+      if (success) {
         onClose();
-
+        refreshSpaces?.();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -181,9 +183,19 @@ export function ClickUpEditModal({
     onNotFoundDialogChange?.(false);
     setIsSaving(true);
     try {
-      const success = await onCreate({ space_name: formData.space_code! } as CreateSpaceRequest);
-      if (success) 
+      let success = false;
+      success = await onCreate({ space_name: formData.space_code! } as CreateSpaceRequest);
+      if (success && formData.repo) {
+          const payload: AssociateClickUpSpaceRequest = {
+            space_code: formData.space_code!,
+            repo_url: formData.repo?.url!,
+          };
+          success = await onAssociate(payload);
+      }
+      if (success) {
         onClose();
+        refreshSpaces?.();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -198,13 +210,23 @@ export function ClickUpEditModal({
     onNameMismatchDialogChange?.(false);
     setIsSaving(true);
     try {
-      const success = await onRegister({
+      let success: boolean | undefined = false;
+      success = await onRegister({
         name: formData.name!,
         space_code: formData.space_code!,
         ignore_name: true,
       } as ClickUpSpaceRegisterDTO);
-      if (success) 
+      if (success && formData.repo) {
+          const payload: AssociateClickUpSpaceRequest = {
+            space_code: formData.space_code!,
+            repo_url: formData.repo?.url!,
+          };
+          success = await onAssociate(payload);
+      }
+      if (success) {
         onClose();
+        refreshSpaces?.();
+      }
     } finally {
       setIsSaving(false);
     }
@@ -248,7 +270,9 @@ export function ClickUpEditModal({
                       className={inputClass(!!errors.name) + ' mt-2'}
                       disabled={isSaving}
                     />
-                    {errors.name && <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>}
+                    {errors.name && (
+                      <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
+                    )}
                   </div>
 
                   <div>
@@ -261,7 +285,9 @@ export function ClickUpEditModal({
                       className={inputClass(!!errors.space_code) + ' mt-2'}
                       disabled={isSaving}
                     />
-                    {errors.space_code && <p className="text-destructive text-xs mt-1 px-1">{errors.space_code}</p>}
+                    {errors.space_code && (
+                      <p className="text-destructive text-xs mt-1 px-1">{errors.space_code}</p>
+                    )}
                   </div>
 
                   <div>
@@ -275,8 +301,10 @@ export function ClickUpEditModal({
                         <SelectValue placeholder="Select a repository..." />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border w-full">
-                        {repoOptions.length === 0 ? (
+                        {repositories.length === 0 ? (
                           <SelectItem value="none" disabled>No repository available</SelectItem>
+                        ) :  repoOptions.length === 0 ? (
+                          <SelectItem value="none" disabled>No repository available for association (all are already linked)</SelectItem>
                         ) : (
                           <>
                             <SelectItem value="none" className="text-muted-foreground hidden" disabled>
@@ -291,17 +319,18 @@ export function ClickUpEditModal({
                         )}
                       </SelectContent>
                     </Select>
+                    {formData.repo?.name && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selected: <span className="font-semibold">{formData.repo.name}</span>
+                      </p>
+                    )}
                   </div>
-                  {formData.repo?.name && (
-                    <p className="text-xs text-muted-foreground -mt-2">
-                      Selected: <span className="font-semibold">{formData.repo.name}</span>
-                    </p>
-                  )}
                 </div>
               )}
 
               {!editingSpace && (
-                <>
+                <div className="space-y-4">
+
                   <div className="space-y-2">
                     <Label className="text-foreground font-medium">Mode</Label>
                     <div className="grid grid-cols-2 gap-2 mt-2">
@@ -341,40 +370,22 @@ export function ClickUpEditModal({
                     </div>
                   </div>
 
-                  {creationMode && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
-
+                  {creationMode === 'create' && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                       <div>
-                        <Label className="text-foreground font-medium">Space ID</Label>
+                        <Label className="text-foreground font-medium">Space Name</Label>
                         <input
                           type="text"
-                          placeholder="cus_prod_001"
-                          value={formData.space_code || ''}
-                          onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
-                          className={inputClass(!!errors.space_code) + ' mt-2'}
+                          placeholder="My ClickUp Space"
+                          value={formData.name || ''}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className={inputClass(!!errors.name) + ' mt-2'}
                           disabled={isSaving}
                         />
-                        {errors.space_code && (
-                          <p className="text-destructive text-xs mt-1 px-1">{errors.space_code}</p>
+                        {errors.name && (
+                          <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
                         )}
                       </div>
-
-                      {creationMode === 'register' && (
-                        <div className="animate-in fade-in slide-in-from-top-1 duration-150">
-                          <Label className="text-foreground font-medium">Space Name</Label>
-                          <input
-                            type="text"
-                            placeholder="My ClickUp Space"
-                            value={formData.name || ''}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className={inputClass(!!errors.name) + ' mt-2'}
-                            disabled={isSaving}
-                          />
-                          {errors.name && (
-                            <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
-                          )}
-                        </div>
-                      )}
 
                       <div>
                         <Label className="text-foreground font-medium">Linked Repository</Label>
@@ -403,22 +414,99 @@ export function ClickUpEditModal({
                             )}
                           </SelectContent>
                         </Select>
+                        {formData.repo?.name && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Selected: <span className="font-semibold">{formData.repo.name}</span>
+                          </p>
+                        )}
                       </div>
-                      {formData.repo?.name && (
-                        <p className="text-xs text-muted-foreground -mt-2">
-                          Selected: <span className="font-semibold">{formData.repo.name}</span>
-                        </p>
-                      )}
                     </div>
                   )}
-                </>
+
+                  {creationMode === 'register' && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div>
+                        <Label className="text-foreground font-medium">Space ID</Label>
+                        <input
+                          type="text"
+                          placeholder="cus_prod_001"
+                          value={formData.space_code || ''}
+                          onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
+                          className={inputClass(!!errors.space_code) + ' mt-2'}
+                          disabled={isSaving}
+                        />
+                        {errors.space_code && (
+                          <p className="text-destructive text-xs mt-1 px-1">{errors.space_code}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="text-foreground font-medium">Space Name</Label>
+                        <input
+                          type="text"
+                          placeholder="My ClickUp Space"
+                          value={formData.name || ''}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className={inputClass(!!errors.name) + ' mt-2'}
+                          disabled={isSaving}
+                        />
+                        {errors.name && (
+                          <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <Label className="text-foreground font-medium">Linked Repository</Label>
+                        <Select
+                          value={formData.repo?.id?.toString() || 'none'}
+                          onValueChange={handleRepoChange}
+                          disabled={isSaving}
+                        >
+                          <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
+                            <SelectValue placeholder="Select a repository..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-card border-border w-full">
+                            {repoOptions.length === 0 ? (
+                              <SelectItem value="none" disabled>No repository available</SelectItem>
+                            ) : (
+                              <>
+                                <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                                  No repository selected
+                                </SelectItem>
+                                {repoOptions.map((repo, i) => (
+                                  <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
+                                    {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                                  </SelectItem>
+                                ))}
+                              </>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        {formData.repo?.name && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Selected: <span className="font-semibold">{formData.repo.name}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
 
               <div className="flex gap-2 pt-4 border-t border-border">
-                <Button variant="outline" onClick={onClose} disabled={isCancelDisabled} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isCancelDisabled}
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleSaveOrUpdate} className="flex-1 gap-2" disabled={isSaveDisabled}>
+                <Button
+                  onClick={handleSaveOrUpdate}
+                  className="flex-1 gap-2"
+                  disabled={isSaveDisabled}
+                >
                   {isSaving ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -438,7 +526,6 @@ export function ClickUpEditModal({
         </div>
       )}
 
-      {/* Not Found Dialog */}
       <Dialog
         open={!!showNotFoundDialog}
         onOpenChange={(open) => { if (!open) handleNotFoundCancel(); }}

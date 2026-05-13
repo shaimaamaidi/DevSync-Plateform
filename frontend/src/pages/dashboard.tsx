@@ -110,6 +110,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
   
   const handleUpdateClickUpSpace = useCallback(async (space: ClickUpSpaceUpdateDTO) => {
     const result = await updateClickUpSpace(space);
+
     if (!result) 
       return Promise.resolve(false);
 
@@ -233,6 +234,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onAdd={handleAddRepo}
             isLoading={reposLoading || clickupLoading || membersLoading}
             onAssociate={handleAssociateClickUpSpace}
+            refreshSpaces={refreshClickUpData}
             />
         </div>
       )}
@@ -275,6 +277,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onNameMismatchDialogChange={setShowNameMismatchDialog}
             repositories={repos}
             onAssociate={handleAssociateClickUpSpace}
+            refreshSpaces={refreshClickUpData}
             />
         </div>
       )}

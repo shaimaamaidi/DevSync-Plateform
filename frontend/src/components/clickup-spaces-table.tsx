@@ -32,6 +32,7 @@ export interface ClickUpSpacesTableProps {
   onNameMismatchDialogChange?: (show: boolean) => void;
   repositories: GitRepoDetailDTO[];
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
+  refreshSpaces?: () => void;
 }
 
 export function ClickUpSpacesTable({ 
@@ -47,6 +48,7 @@ export function ClickUpSpacesTable({
   onNameMismatchDialogChange,
   repositories,
   onAssociate,
+  refreshSpaces,
 }: ClickUpSpacesTableProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
@@ -246,6 +248,7 @@ export function ClickUpSpacesTable({
         showNameMismatchDialog={showNameMismatchDialog}
         onNameMismatchDialogChange={onNameMismatchDialogChange}
         onAssociate={onAssociate}
+        refreshSpaces={refreshSpaces}
       />
 
       <Dialog

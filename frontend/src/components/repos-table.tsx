@@ -37,9 +37,10 @@ interface ReposTableProps {
   onAdd: (repo: GitRepoCreateDTO) => Promise<boolean>;
   isLoading?: boolean;
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
+  refreshSpaces?: () => void;
 }
 
-export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd, isLoading, onAssociate }: ReposTableProps) {
+export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd, isLoading, onAssociate, refreshSpaces }: ReposTableProps) {
   const [selectedRepo, setSelectedRepo] = useState<GitRepoDetailDTO | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -312,6 +313,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
         clickUpSpaces={clickUpSpaces}
         availableMembers={availableMembers}
         onAssociate={onAssociate}
+        refreshSpaces={refreshSpaces}
       />
       <Dialog open={deleteConfirmRepoId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmRepoId(null); }}>
         <DialogContent>
