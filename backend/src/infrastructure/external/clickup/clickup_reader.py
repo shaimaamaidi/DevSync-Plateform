@@ -59,6 +59,9 @@ class ClickUpReader(IClickUpReader):
 
         Returns:
             Space name if the space exists and is accessible.
+
+        Raises:
+            ClickUpResourceNotFoundException: When a space is not found.
         """
         logger.info("Checking space existence. space_code=%s.", space_code)
 
@@ -425,6 +428,9 @@ class ClickUpReader(IClickUpReader):
 
         Returns:
             List of folder dicts from the API response.
+
+         Raises:
+             ClickUpResourceNotFoundException: When a space is not found.
         """
         logger.info("Fetching folders. space_id=%s.", space_id)
 
@@ -449,14 +455,8 @@ class ClickUpReader(IClickUpReader):
         """
         logger.info("Fetching lists. folder_id=%s.", folder_id)
 
-        try:
-            results = self._http.get(f"/folder/{folder_id}/list").get("lists", [])
-        except ClickUpClientException as e:
-            raise ClickUpResourceNotFoundException(
-                f"Folder not found: {folder_id}"
-            ) from e
+        return self._http.get(f"/folder/{folder_id}/list").get("lists", [])
 
-        return results
     def _get_tasks(self, list_id: str) -> list:
         """
         Fetch tasks for a list.
@@ -493,6 +493,9 @@ class ClickUpReader(IClickUpReader):
 
         Returns:
             Parsed JSON response of folderless lists.
+
+        Raises:
+            ClickUpResourceNotFoundException: When a space is not found.
         """
 
         try:

@@ -14,7 +14,7 @@ import logging
 
 from fastapi import APIRouter, Depends, status
 
-from backend.src.application.use_cases.clickup_task_creation_use_case import ClickUpTaskCreationUseCase
+from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
 from backend.src.presentation.api.deps import get_clickup_task_creation_use_case
@@ -34,14 +34,14 @@ router = APIRouter()
 )
 def create_task(
     body: CreateTaskRequest,
-    use_case: ClickUpTaskCreationUseCase = Depends(get_clickup_task_creation_use_case),
+    use_case: ClickUpTaskManagementUseCase = Depends(get_clickup_task_creation_use_case),
 ) -> None:
     """
     Create a ClickUp task.
 
     Args:
         body (CreateTaskRequest): Task creation payload.
-        use_case (ClickUpTaskCreationUseCase): Injected use case.
+        use_case (ClickUpTaskManagementUseCase): Injected use case.
     """
     logger.info(
         "POST /clickup/tasks/manage. list_id=%s name=%s.",
@@ -61,7 +61,7 @@ def create_task(
 def update_task(
     task_id: str,
     body: UpdateTaskRequest,
-    use_case: ClickUpTaskCreationUseCase = Depends(get_clickup_task_creation_use_case),
+    use_case: ClickUpTaskManagementUseCase = Depends(get_clickup_task_creation_use_case),
 ) -> None:
     """
     Update a ClickUp task.
@@ -69,7 +69,7 @@ def update_task(
     Args:
         task_id (str): ClickUp task identifier (path param).
         body (UpdateTaskRequest): Task update payload.
-        use_case (ClickUpTaskCreationUseCase): Injected use case.
+        use_case (ClickUpTaskManagementUseCase): Injected use case.
     """
     logger.info("PUT /clickup/tasks/manage/%s.", task_id)
 
@@ -86,14 +86,14 @@ def update_task(
 )
 def delete_task(
     task_id: str,
-    use_case: ClickUpTaskCreationUseCase = Depends(get_clickup_task_creation_use_case),
+    use_case: ClickUpTaskManagementUseCase = Depends(get_clickup_task_creation_use_case),
 ) -> None:
     """
     Delete a ClickUp task.
 
     Args:
         task_id (str): ClickUp task identifier (path param).
-        use_case (ClickUpTaskCreationUseCase): Injected use case.
+        use_case (ClickUpTaskManagementUseCase): Injected use case.
     """
     logger.info("DELETE /clickup/tasks/manage/%s.", task_id)
 

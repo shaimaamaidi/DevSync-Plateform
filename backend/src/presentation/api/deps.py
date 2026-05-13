@@ -24,7 +24,7 @@ from fastapi import Depends, Request
 
 from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
 from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
-from backend.src.application.use_cases.clickup_task_creation_use_case import ClickUpTaskCreationUseCase
+from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
@@ -170,7 +170,7 @@ def get_generate_task_from_summary_use_case(request: Request) -> GenerateTaskFro
         raise ServiceUnavailableException("Task generation service is unavailable.") from e
 
 
-def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskCreationUseCase:
+def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskManagementUseCase:
     """
     Retrieve the ClickUp task creation use case instance.
 
@@ -182,7 +182,7 @@ def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskCreationU
         request (Request): The incoming FastAPI request object.
 
     Returns:
-        ClickUpTaskCreationUseCase: The initialized task creation use case.
+        ClickUpTaskManagementUseCase: The initialized task creation use case.
 
     Raises:
         ServiceUnavailableException: If the use case is not initialized.

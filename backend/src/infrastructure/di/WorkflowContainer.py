@@ -21,7 +21,7 @@ import logging
 from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
 from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
-from backend.src.application.use_cases.clickup_task_creation_use_case import ClickUpTaskCreationUseCase
+from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
@@ -104,7 +104,7 @@ class WorkflowContainer:
             Use case responsible for retrieving ClickUp workspace structure metadata.
         clickup_space_task_reader_use_case (ClickUpSpaceTaskReaderUseCase | None):
             Use case responsible for retrieving ClickUp tasks by un space id
-        clickup_task_creation_use_case (clickUpTaskCreationUseCase | None):
+        clickup_task_creation_use_case (ClickUpTaskManagementUseCase | None):
             Use case responsible for creating, updating and deleting ClickUp tasks
 
         # Prompt system
@@ -161,7 +161,7 @@ class WorkflowContainer:
         self.clickup_task_generator_use_case: GenerateTaskFromSummaryUseCase | None = None
         self.clickup_structure_metadata_use_case: ClickUpStructureMetadataUseCase | None = None
         self.clickup_space_task_reader_use_case: ClickUpSpaceTaskReaderUseCase | None = None
-        self.clickup_task_creation_use_case: ClickUpTaskCreationUseCase | None = None
+        self.clickup_task_creation_use_case: ClickUpTaskManagementUseCase | None = None
 
         self.prompt_loader = PromptLoader()
 
@@ -362,7 +362,7 @@ class WorkflowContainer:
 
     def _init_clickup_task_creation_use_case(self):
         """
-        Initialize ClickUpTaskCreationUseCase.
+        Initialize ClickUpTaskManagementUseCase.
 
         This method wires the use case responsible for managing ClickUp tasks,
         including creation, update, and deletion operations.
@@ -374,9 +374,9 @@ class WorkflowContainer:
         The resulting use case acts as the application layer entry point
         for task lifecycle management.
         """
-        logger.info("Initializing ClickUpTaskCreationUseCase.")
+        logger.info("Initializing ClickUpTaskManagementUseCase.")
 
-        self.clickup_task_creation_use_case = ClickUpTaskCreationUseCase(
+        self.clickup_task_creation_use_case = ClickUpTaskManagementUseCase(
             self.clickup_writer,
             self.clickup_reader,
         )

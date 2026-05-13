@@ -17,7 +17,7 @@ import logging
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
-from backend.src.domain.ports.input.i_clickup_task_creation_use_case import IClickUpTaskCreationUseCase
+from backend.src.domain.ports.input.i_clickup_task_management_use_case import IClickUpTaskManagementUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 
@@ -25,7 +25,7 @@ from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClick
 logger = logging.getLogger(__name__)
 
 
-class ClickUpTaskCreationUseCase(IClickUpTaskCreationUseCase):
+class ClickUpTaskManagementUseCase(IClickUpTaskManagementUseCase):
     """
     Application use case for ClickUp task lifecycle management.
 
