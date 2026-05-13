@@ -73,6 +73,16 @@ export interface AssociatorRepoDTO {
     'url'?: string | null;
 }
 /**
+ * ClickUp list containing tasks and configuration metadata.  This object represents a complete ClickUp list, including its tasks and configuration data such as available statuses and priority options.  Attributes:     id: ClickUp list identifier.     name: List name.     tasks: List of tasks contained in the list.     statuses: List of available task statuses in the list.     priorities: List of available task priority levels.
+ */
+export interface ClickUpList {
+    'id': string;
+    'name': string;
+    'tasks'?: Array<ClickUpTask>;
+    'statuses'?: Array<string>;
+    'priorities'?: Array<string>;
+}
+/**
  * ClickUp list containing configuration metadata.  This object represents a ClickUp list along with its available statuses and priority options.  Attributes:     id: ClickUp list identifier.     name: List name.     statuses: List of available task statuses in the list.     priorities: List of available task priority levels.
  */
 export interface ClickUpListMetadata {
@@ -130,6 +140,14 @@ export interface ClickUpSpaceLightDTO {
     'repo'?: ClickUpRepoDTO | null;
 }
 /**
+ * Payload for ClickUp space registration.  Attributes:     name: ClickUp space name.     space_code: ClickUp space code.     ignore_name: If True, skips space name validation against ClickUp.
+ */
+export interface ClickUpSpaceRegisterDTO {
+    'name'?: string | null;
+    'space_code'?: string | null;
+    'ignore_name'?: boolean;
+}
+/**
  * Payload for ClickUp space updates.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.     repo: Reference to associated repository.
  */
 export interface ClickUpSpaceUpdateDTO {
@@ -137,6 +155,17 @@ export interface ClickUpSpaceUpdateDTO {
     'name'?: string | null;
     'space_code'?: string | null;
     'repo'?: ClickUpRepoRefDTO | null;
+}
+/**
+ * Task representation within a ClickUp list.  Attributes:     id: Task identifier.     name: Task name or title.     description: Task description.     status: Current task status.     assignee: mails\' list of the assignee, if any.     priority: Priority level of the task, if any.
+ */
+export interface ClickUpTask {
+    'id': string | null;
+    'name': string;
+    'description': string;
+    'status': string;
+    'assignee': string | null;
+    'priority': string | null;
 }
 /**
  * Request model for creating a ClickUp folder.  This DTO represents the payload required to create a new folder in a specific ClickUp space. It contains the target space identifier and the folder name.  Attributes:     space_id: ClickUp space identifier where the folder will be created.     name: Name of the folder to create.
@@ -160,6 +189,19 @@ export interface CreateSpaceRequest {
     'space_id': string;
 }
 /**
+ * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     list_id: Identifier of the ClickUp list where the task will be created.     space_id: Identifier of the ClickUp space containing the list.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.
+ */
+export interface CreateTaskRequest {
+    'list_id': string;
+    'space_id': string;
+    'name': string;
+    'description': string;
+    'status': string;
+    'priority': string | null;
+    'assignees': string | null;
+    'ignore_mails'?: boolean;
+}
+/**
  * Deployment information returned by GitHub.  Attributes:     dep_id: Deployment identifier.     environment: Deployment environment.     ref: Git reference.     sha: Commit SHA.     creator: Creator username.     created_at: Creation timestamp.     description: Deployment description.     state: Deployment state.     log_url: URL to deployment logs.
  */
 export interface DeploymentDTO {
@@ -172,6 +214,14 @@ export interface DeploymentDTO {
     'description': string;
     'state': string;
     'log_url': string;
+}
+/**
+ * ClickUp folder containing multiple lists with tasks.  This object represents a complete ClickUp folder, including its lists and their associated tasks, forming a hierarchical structure within a ClickUp space.  Attributes:     id: ClickUp folder identifier.     name: Folder name.     lists: List of ClickUp lists (with tasks) contained in the folder.
+ */
+export interface FolderWithLists {
+    'id': string;
+    'name': string;
+    'lists'?: Array<ClickUpList>;
 }
 /**
  * ClickUp folder containing multiple lists metadata.  This object represents a ClickUp folder and its associated lists metadata, forming a hierarchical configuration structure within a ClickUp space.  Attributes:     id: ClickUp folder identifier.     name: Folder name.     lists: List of ClickUp lists metadata contained in the folder.
@@ -414,6 +464,19 @@ export const StatusType = {
 export type StatusType = typeof StatusType[keyof typeof StatusType];
 
 
+/**
+ * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.
+ */
+export interface UpdateTaskRequest {
+    'task_id': string;
+    'name': string;
+    'description': string;
+    'status': string;
+    'priority': string | null;
+    'assignees': string | null;
+    'old_assignees': string | null;
+    'ignore_mails'?: boolean;
+}
 export interface ValidationError {
     'loc': Array<LocationInner>;
     'msg': string;
@@ -782,6 +845,36 @@ export class AssociatorApi extends BaseAPI {
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMeAuthMeGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/auth/me`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
          * @summary Login
          * @param {MemberAuthDTO} memberAuthDTO 
@@ -900,6 +993,18 @@ export const AuthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
+         * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getMeAuthMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MemberDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getMeAuthMeGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.getMeAuthMeGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
          * @summary Login
          * @param {MemberAuthDTO} memberAuthDTO 
@@ -948,6 +1053,15 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = AuthApiFp(configuration)
     return {
         /**
+         * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
+         * @summary Get Me
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getMeAuthMeGet(options?: RawAxiosRequestConfig): AxiosPromise<MemberDTO> {
+            return localVarFp.getMeAuthMeGet(options).then((request) => request(axios, basePath));
+        },
+        /**
          * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
          * @summary Login
          * @param {MemberAuthDTO} memberAuthDTO 
@@ -984,6 +1098,16 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  * AuthApi - object-oriented interface
  */
 export class AuthApi extends BaseAPI {
+    /**
+     * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
+     * @summary Get Me
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getMeAuthMeGet(options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).getMeAuthMeGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
      * @summary Login
@@ -1845,6 +1969,41 @@ export const ClickUpStructureCreationApiAxiosParamCreator = function (configurat
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Validate a ClickUp space existence and persist it in the application layer.
+         * @summary Register a ClickUp space
+         * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        registerSpaceClickupStructureSpacesRegisterPost: async (clickUpSpaceRegisterDTO: ClickUpSpaceRegisterDTO, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'clickUpSpaceRegisterDTO' is not null or undefined
+            assertParamExists('registerSpaceClickupStructureSpacesRegisterPost', 'clickUpSpaceRegisterDTO', clickUpSpaceRegisterDTO)
+            const localVarPath = `/clickup/structure/spaces/register`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(clickUpSpaceRegisterDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -1907,6 +2066,19 @@ export const ClickUpStructureCreationApiFp = function(configuration?: Configurat
             const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.createSpaceClickupStructureSpacesPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * Validate a ClickUp space existence and persist it in the application layer.
+         * @summary Register a ClickUp space
+         * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO: ClickUpSpaceRegisterDTO, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpSpaceDTO>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.registerSpaceClickupStructureSpacesRegisterPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -1956,6 +2128,16 @@ export const ClickUpStructureCreationApiFactory = function (configuration?: Conf
          */
         createSpaceClickupStructureSpacesPost(createSpaceRequest: CreateSpaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpSpaceDTO> {
             return localVarFp.createSpaceClickupStructureSpacesPost(createSpaceRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Validate a ClickUp space existence and persist it in the application layer.
+         * @summary Register a ClickUp space
+         * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO: ClickUpSpaceRegisterDTO, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpSpaceDTO> {
+            return localVarFp.registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2007,6 +2189,17 @@ export class ClickUpStructureCreationApi extends BaseAPI {
      */
     public createSpaceClickupStructureSpacesPost(createSpaceRequest: CreateSpaceRequest, options?: RawAxiosRequestConfig) {
         return ClickUpStructureCreationApiFp(this.configuration).createSpaceClickupStructureSpacesPost(createSpaceRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Validate a ClickUp space existence and persist it in the application layer.
+     * @summary Register a ClickUp space
+     * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO: ClickUpSpaceRegisterDTO, options?: RawAxiosRequestConfig) {
+        return ClickUpStructureCreationApiFp(this.configuration).registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -2119,6 +2312,75 @@ export class ClickUpStructureMetadataApi extends BaseAPI {
 export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Create a new task inside a ClickUp list.
+         * @summary Create a ClickUp task
+         * @param {CreateTaskRequest} createTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTaskClickupTasksManagePost: async (createTaskRequest: CreateTaskRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createTaskRequest' is not null or undefined
+            assertParamExists('createTaskClickupTasksManagePost', 'createTaskRequest', createTaskRequest)
+            const localVarPath = `/clickup/tasks/manage/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createTaskRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Delete an existing ClickUp task by its identifier.
+         * @summary Delete a ClickUp task
+         * @param {string} taskId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteTaskClickupTasksManageTaskIdDelete: async (taskId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'taskId' is not null or undefined
+            assertParamExists('deleteTaskClickupTasksManageTaskIdDelete', 'taskId', taskId)
+            const localVarPath = `/clickup/tasks/manage/{task_id}`
+                .replace(`{${"task_id"}}`, encodeURIComponent(String(taskId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
          * @summary Generate Tasks From Summary
          * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
@@ -2154,6 +2416,40 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
+         * Retrieve all folders, lists, and tasks for a given ClickUp space.
+         * @summary Get ClickUp space tasks
+         * @param {string} spaceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTasksBySpaceClickupTasksSpacesSpaceIdGet: async (spaceId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'spaceId' is not null or undefined
+            assertParamExists('getTasksBySpaceClickupTasksSpacesSpaceIdGet', 'spaceId', spaceId)
+            const localVarPath = `/clickup/tasks/spaces/{space_id}`
+                .replace(`{${"space_id"}}`, encodeURIComponent(String(spaceId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
          * @summary Save verified tasks into ClickUp
          * @param {SaveTasksRequest} saveTasksRequest 
@@ -2182,6 +2478,45 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(saveTasksRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Update an existing ClickUp task by its identifier.
+         * @summary Update a ClickUp task
+         * @param {string} taskId 
+         * @param {UpdateTaskRequest} updateTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateTaskClickupTasksManageTaskIdPut: async (taskId: string, updateTaskRequest: UpdateTaskRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'taskId' is not null or undefined
+            assertParamExists('updateTaskClickupTasksManageTaskIdPut', 'taskId', taskId)
+            // verify required parameter 'updateTaskRequest' is not null or undefined
+            assertParamExists('updateTaskClickupTasksManageTaskIdPut', 'updateTaskRequest', updateTaskRequest)
+            const localVarPath = `/clickup/tasks/manage/{task_id}`
+                .replace(`{${"task_id"}}`, encodeURIComponent(String(taskId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(updateTaskRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2233,6 +2568,32 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ClickUpTasksApiAxiosParamCreator(configuration)
     return {
         /**
+         * Create a new task inside a ClickUp list.
+         * @summary Create a ClickUp task
+         * @param {CreateTaskRequest} createTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createTaskClickupTasksManagePost(createTaskRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.createTaskClickupTasksManagePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Delete an existing ClickUp task by its identifier.
+         * @summary Delete a ClickUp task
+         * @param {string} taskId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTaskClickupTasksManageTaskIdDelete(taskId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.deleteTaskClickupTasksManageTaskIdDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
          * @summary Generate Tasks From Summary
          * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
@@ -2246,6 +2607,19 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Retrieve all folders, lists, and tasks for a given ClickUp space.
+         * @summary Get ClickUp space tasks
+         * @param {string} spaceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<FolderWithLists>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.getTasksBySpaceClickupTasksSpacesSpaceIdGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
          * @summary Save verified tasks into ClickUp
          * @param {SaveTasksRequest} saveTasksRequest 
@@ -2256,6 +2630,20 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveTasksToClickupClickupTasksSavePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Update an existing ClickUp task by its identifier.
+         * @summary Update a ClickUp task
+         * @param {string} taskId 
+         * @param {UpdateTaskRequest} updateTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async updateTaskClickupTasksManageTaskIdPut(taskId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTaskClickupTasksManageTaskIdPut(taskId, updateTaskRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.updateTaskClickupTasksManageTaskIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2281,6 +2669,26 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
     const localVarFp = ClickUpTasksApiFp(configuration)
     return {
         /**
+         * Create a new task inside a ClickUp list.
+         * @summary Create a ClickUp task
+         * @param {CreateTaskRequest} createTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.createTaskClickupTasksManagePost(createTaskRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Delete an existing ClickUp task by its identifier.
+         * @summary Delete a ClickUp task
+         * @param {string} taskId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.deleteTaskClickupTasksManageTaskIdDelete(taskId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
          * @summary Generate Tasks From Summary
          * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
@@ -2291,6 +2699,16 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
             return localVarFp.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Retrieve all folders, lists, and tasks for a given ClickUp space.
+         * @summary Get ClickUp space tasks
+         * @param {string} spaceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<FolderWithLists>> {
+            return localVarFp.getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
          * @summary Save verified tasks into ClickUp
          * @param {SaveTasksRequest} saveTasksRequest 
@@ -2299,6 +2717,17 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          */
         saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
             return localVarFp.saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Update an existing ClickUp task by its identifier.
+         * @summary Update a ClickUp task
+         * @param {string} taskId 
+         * @param {UpdateTaskRequest} updateTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        updateTaskClickupTasksManageTaskIdPut(taskId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.updateTaskClickupTasksManageTaskIdPut(taskId, updateTaskRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Receives a list of generated tasks and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
@@ -2318,6 +2747,28 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
  */
 export class ClickUpTasksApi extends BaseAPI {
     /**
+     * Create a new task inside a ClickUp list.
+     * @summary Create a ClickUp task
+     * @param {CreateTaskRequest} createTaskRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).createTaskClickupTasksManagePost(createTaskRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Delete an existing ClickUp task by its identifier.
+     * @summary Delete a ClickUp task
+     * @param {string} taskId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).deleteTaskClickupTasksManageTaskIdDelete(taskId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
      * @summary Generate Tasks From Summary
      * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
@@ -2329,6 +2780,17 @@ export class ClickUpTasksApi extends BaseAPI {
     }
 
     /**
+     * Retrieve all folders, lists, and tasks for a given ClickUp space.
+     * @summary Get ClickUp space tasks
+     * @param {string} spaceId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
      * @summary Save verified tasks into ClickUp
      * @param {SaveTasksRequest} saveTasksRequest 
@@ -2337,6 +2799,18 @@ export class ClickUpTasksApi extends BaseAPI {
      */
     public saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig) {
         return ClickUpTasksApiFp(this.configuration).saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Update an existing ClickUp task by its identifier.
+     * @summary Update a ClickUp task
+     * @param {string} taskId 
+     * @param {UpdateTaskRequest} updateTaskRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public updateTaskClickupTasksManageTaskIdPut(taskId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).updateTaskClickupTasksManageTaskIdPut(taskId, updateTaskRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
