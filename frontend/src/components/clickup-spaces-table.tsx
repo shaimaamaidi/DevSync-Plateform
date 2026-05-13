@@ -17,7 +17,7 @@ import type {
 } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2, Link as LinkIcon } from 'lucide-react';
-import { ClickUpEditModal } from './clickup-edit-model-new';
+import { ClickUpEditModal } from './ui/clickup-edit-model-new';
 
 export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];

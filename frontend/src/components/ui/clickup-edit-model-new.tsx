@@ -25,7 +25,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './ui/dialog';
+} from './dialog';
 
 export interface ClickUpEditModalProps {
   isOpen: boolean;

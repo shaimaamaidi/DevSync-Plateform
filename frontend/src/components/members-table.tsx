@@ -10,7 +10,7 @@ import {
 import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
-import { MemberEditModal } from './member-edit-model-new';
+import { MemberEditModal } from './ui/member-edit-model-new';
 
 export interface MembersTableProps {
   members: MemberDTO[];

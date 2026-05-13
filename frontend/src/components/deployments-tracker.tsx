@@ -11,7 +11,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Search } from 'lucide-react';
-import { DeploymentsList } from './deployments-list';
+import { DeploymentsList } from './ui/deployments-list';
 
 interface DeploymentsTrackerProps {
   deployments: DeploymentDTO[];

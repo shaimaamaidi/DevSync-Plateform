@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { RepoEditModalNew } from './repo-edit-modal-new';
+import { RepoEditModalNew } from './ui/repo-edit-modal-new';
 import {
   Dialog,
   DialogContent,
