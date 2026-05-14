@@ -22,6 +22,7 @@ export default function App() {
             <Route path="/deployments" element={<Dashboard activeTab="deployments" />} />
             <Route path="/members" element={<Dashboard activeTab="members" />} />
             <Route path="/spaces" element={<Dashboard activeTab="spaces" />} />
+            <Route path="/spaces/:spaceId/tasks" element={<Dashboard activeTab="space-tasks" />} />
             <Route path="/backlog-generation-chat" element={<BacklogGenerationChat />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />

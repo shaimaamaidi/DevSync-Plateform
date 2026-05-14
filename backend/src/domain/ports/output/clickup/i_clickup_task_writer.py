@@ -29,7 +29,7 @@ class IClickUpTaskWriter(ABC):
         task: ClickUpTask,
         email_to_id: dict[str, int],
         ignore_mails:bool
-    ):
+    ) -> ClickUpTask:
         """
         Create a task directly in a ClickUp list.
 
@@ -46,7 +46,7 @@ class IClickUpTaskWriter(ABC):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            None.
+            ClickUpTask: created task.
 
         Raises:
             ClickUpTaskCreateException: Raised when the ClickUp API task creation request fails.
@@ -61,7 +61,7 @@ class IClickUpTaskWriter(ABC):
         old_assignees: str,
         email_to_id: dict[str, int],
         ignore_mails: bool
-    ):
+    ) -> ClickUpTask:
         """
         Update an existing ClickUp task.
 
@@ -79,7 +79,7 @@ class IClickUpTaskWriter(ABC):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            None.
+            ClickUpTask: updated task.
 
         Raises:
             ClickUpTaskUpdateException:
@@ -88,7 +88,7 @@ class IClickUpTaskWriter(ABC):
         pass
 
     @abstractmethod
-    def delete_task(self, task_id: str):
+    def delete_task(self, task_id: str) -> bool:
         """
         Delete a task from ClickUp.
 
@@ -99,7 +99,7 @@ class IClickUpTaskWriter(ABC):
             task_id: Identifier of the ClickUp task to delete.
 
         Returns:
-            None.
+            bool: True if task was deleted successfully.
 
         Raises:
             ClickUpTaskDeleteException:

@@ -29,7 +29,7 @@ from backend.src.domain.exceptions.clickup.clickup_task_update_exception import 
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
 from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, \
-    priority_to_str, resolve_assignee_ids_from_mails
+    priority_to_str, resolve_assignee_ids_from_mails, parse_task
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +63,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         task: ClickUpTask,
         email_to_id: dict[str, int],
         ignore_mails:bool
-    ):
+    ) -> ClickUpTask:
         """
         Create a task directly in a ClickUp list.
 
@@ -80,7 +80,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            None.
+            ClickUpTask: created task.
 
         Raises:
             ClickUpTaskCreateException: Raised when the ClickUp API task creation request fails.
@@ -96,15 +96,19 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         payload = {
             "name": task.name,
             "description": task.description,
-            "status": task.status,
-            "priority": priority_to_str(task.priority),
         }
 
-        assignee_mails = [a.strip() for a in task.assignee.split(",")]
+        priority = priority_to_str(task.priority)
+        if priority is not None:
+            payload["priority"] = priority
+
+        if task.status:
+            payload["status"] = task.status
 
         assignee_ids = []
 
-        if assignee_mails:
+        if task.assignee:
+            assignee_mails = [a.strip() for a in task.assignee.split(",")]
             assignee_ids = resolve_assignee_ids_from_mails(email_to_id, assignee_mails, ignore_mails)
 
         if assignee_ids:
@@ -119,6 +123,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 task.status,
                 response.status_code,
             )
+            return parse_task(response.json())
         else:
             logger.error(
                 "Task creation failed. task_name=%s status_code=%d response=%s.",
@@ -138,7 +143,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         old_assignees: str,
         email_to_id: dict[str, int],
         ignore_mails: bool
-    ):
+    ) -> ClickUpTask:
         """
         Update an existing ClickUp task.
 
@@ -156,7 +161,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            None.
+            ClickUpTask: updated task.
 
         Raises:
             ClickUpTaskUpdateException:
@@ -171,21 +176,29 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         endpoint = f"/task/{task_id}"
 
         payload = {
-            "status": task_content.status,
-            "priority": priority_to_str(task_content.priority),
+            "name": task_content.name,
+            "description": task_content.description,
         }
 
-        new_assignee_mails = [a.strip() for a in task_content.assignee.split(",") if a.strip()]
-        old_assignee_mails = [a.strip() for a in old_assignees.split(",") if a.strip()] if old_assignees else []
+        priority = priority_to_str(task_content.priority)
+        if priority is not None:
+            payload["priority"] = priority
 
-        new_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, new_assignee_mails, ignore_mails) if new_assignee_mails else []
-        old_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, old_assignee_mails, ignore_mails) if old_assignee_mails else []
+        if task_content.status:
+            payload["status"] = task_content.status
 
-        new_set = set(new_assignee_ids)
-        old_set = set(old_assignee_ids)
+        added_ids = []
+        rem_ids = []
 
-        added_ids = list(new_set - old_set)
-        rem_ids = list(old_set - new_set)
+        if task_content.assignee or old_assignees:
+            new_assignee_mails = [a.strip() for a in task_content.assignee.split(",") if a.strip()]
+            old_assignee_mails = [a.strip() for a in old_assignees.split(",") if a.strip()] if old_assignees else []
+
+            new_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, new_assignee_mails, ignore_mails) if new_assignee_mails else []
+            old_assignee_ids = resolve_assignee_ids_from_mails(email_to_id, old_assignee_mails, ignore_mails) if old_assignee_mails else []
+
+            added_ids = list(set(new_assignee_ids) - set(old_assignee_ids))
+            rem_ids = list(set(old_assignee_ids) - set(new_assignee_ids))
 
         if added_ids or rem_ids:
             payload["assignees"] = {}
@@ -203,6 +216,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 task_content.name,
                 response.status_code,
             )
+            return parse_task(response.json())
         else:
             logger.error(
                 "Task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
@@ -216,7 +230,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 f"(status {response.status_code}) — {response.text}"
             )
 
-    def delete_task(self, task_id: str):
+    def delete_task(self, task_id: str) -> bool:
         """
         Delete a task from ClickUp.
 
@@ -227,7 +241,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             task_id: Identifier of the ClickUp task to delete.
 
         Returns:
-            None.
+            bool: True if deletion was successful.
 
         Raises:
             ClickUpTaskDeleteException:
@@ -240,7 +254,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         if response.status_code in (200, 204):
             logger.info("Task deleted successfully. task_id=%s.", task_id)
-            return
+            return True
 
         logger.error(
             "Task deletion failed. task_id=%s status_code=%d response=%s.",
@@ -407,8 +421,11 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             "status": result.task_status,
             "priority": priority_to_str(result.task_priority),
         }
+        assignee_names = []
+        if result.task_assigne:
+            assignee_names = [a.strip() for a in result.task_assigne.split(",")]
 
-        assignee_names = [a.strip() for a in result.task_assigne.split(",")]
+
         assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
 
         if assignee_ids:
@@ -481,7 +498,10 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             "priority": priority_to_str(result.task_priority),
         }
 
-        assignee_names = [a.strip() for a in result.task_assigne.split(",")]
+        assignee_names = []
+        if result.task_assigne:
+            assignee_names = [a.strip() for a in result.task_assigne.split(",")]
+
         assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
 
         if assignee_ids:

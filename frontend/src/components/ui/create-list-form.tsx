@@ -395,7 +395,7 @@ export function CreateListForm({ isOpen, onClose, onSuccess, spaceId }: CreateLi
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  Create List
+                  Create new location
                 </>
               )}
             </Button>

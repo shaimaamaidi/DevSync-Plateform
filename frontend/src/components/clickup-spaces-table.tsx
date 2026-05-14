@@ -16,8 +16,9 @@ import type {
   AssociateClickUpSpaceRequest 
 } from '@/api/api';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit2, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Link as LinkIcon } from 'lucide-react';
 import { ClickUpEditModal } from './ui/clickup-edit-model-new';
+import { useNavigate } from 'react-router-dom';
 
 export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
@@ -50,6 +51,7 @@ export function ClickUpSpacesTable({
   onAssociate,
   refreshSpaces,
 }: ClickUpSpacesTableProps) {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
@@ -98,6 +100,7 @@ export function ClickUpSpacesTable({
                     <div className="flex justify-end gap-2">
                       <div className="w-8 h-8 rounded bg-muted animate-pulse" />
                       <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
                     </div>
                   </td>
                 </tr>
@@ -111,7 +114,7 @@ export function ClickUpSpacesTable({
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Space Name</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Space ID</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Linked Repository</th>
-                <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">Actions</th>
+                <th className="px-6 py-4 pr-14 text-right text-sm font-semibold text-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -154,6 +157,15 @@ export function ClickUpSpacesTable({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => space.space_code ? navigate(`/spaces/${space.space_code}/tasks`) : null}
+                          className="h-8 w-8"
+                          disabled={!space.space_code}
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -205,6 +217,9 @@ export function ClickUpSpacesTable({
               <div className="flex items-center justify-between">
                 <span className="font-medium text-foreground">{space.name}</span>
                 <div className="flex gap-1">
+                  <Button variant="ghost" size="icon" onClick={() => space.space_code ? navigate(`/spaces/${space.space_code}/tasks`) : null} className="h-8 w-8" disabled={!space.space_code}>
+                    <Eye className="w-4 h-4" />
+                  </Button>
                   <Button variant="ghost" size="icon" onClick={() => handleEditClick(space)} className="h-8 w-8">
                     <Edit2 className="w-4 h-4" />
                   </Button>

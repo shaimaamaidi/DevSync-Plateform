@@ -9,9 +9,9 @@ import { StatusField } from './status-field';
 import { PriorityField } from './priority-field';
 import { AddStatusForm } from './add-status-from';
 import { CreateListForm } from './create-list-form';
-import { buildLocationOptions } from './location-field';
 import { AssigneeAvatars } from './assignees-avatar';
 import { ActionBadge } from './action-badge';
+import { buildLocationWithMetadataOptions } from '@/lib/tasks-utils';
 
 
 interface Props {
@@ -45,7 +45,7 @@ export function VerifiedTaskCard({
 
   const [locationOpen, setLocationOpen] = useState(false);
   const locationRef = useRef<HTMLDivElement>(null);
-  const options = buildLocationOptions(structure);
+  const options = buildLocationWithMetadataOptions(structure);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -264,7 +264,7 @@ export function VerifiedTaskCard({
                           className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 font-medium"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          Create new list…
+                          Create new location…
                         </button>
                       </div>
                     </div>

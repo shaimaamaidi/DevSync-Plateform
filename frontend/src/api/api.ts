@@ -46,7 +46,7 @@ export interface AssociateClickUpSpaceRequest {
  */
 export interface AssociateClickUpSpaceResponse {
     'repo': AssociatorRepoDTO;
-    'clickup_space'?: ClickUpSpaceDTO | null;
+    'clickup_space': ClickUpSpaceDTO;
 }
 /**
  * Response payload for member association operations.  Attributes:     repo: Repository summary.     members: List of associated member DTOs.
@@ -196,7 +196,7 @@ export interface CreateTaskRequest {
     'space_id': string;
     'name': string;
     'description': string;
-    'status': string;
+    'status': string | null;
     'priority': string | null;
     'assignees': string | null;
     'ignore_mails'?: boolean;
@@ -465,9 +465,10 @@ export type StatusType = typeof StatusType[keyof typeof StatusType];
 
 
 /**
- * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.
+ * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     space_id: Identifier of the task\'s space.     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.
  */
 export interface UpdateTaskRequest {
+    'space_id': string;
     'task_id': string;
     'name': string;
     'description': string;
@@ -2487,18 +2488,18 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
         /**
          * Update an existing ClickUp task by its identifier.
          * @summary Update a ClickUp task
-         * @param {string} taskId 
+         * @param {string} spaceId 
          * @param {UpdateTaskRequest} updateTaskRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTaskClickupTasksManageTaskIdPut: async (taskId: string, updateTaskRequest: UpdateTaskRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'taskId' is not null or undefined
-            assertParamExists('updateTaskClickupTasksManageTaskIdPut', 'taskId', taskId)
+        updateTaskClickupTasksManageSpaceIdPut: async (spaceId: string, updateTaskRequest: UpdateTaskRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'spaceId' is not null or undefined
+            assertParamExists('updateTaskClickupTasksManageSpaceIdPut', 'spaceId', spaceId)
             // verify required parameter 'updateTaskRequest' is not null or undefined
-            assertParamExists('updateTaskClickupTasksManageTaskIdPut', 'updateTaskRequest', updateTaskRequest)
-            const localVarPath = `/clickup/tasks/manage/{task_id}`
-                .replace(`{${"task_id"}}`, encodeURIComponent(String(taskId)));
+            assertParamExists('updateTaskClickupTasksManageSpaceIdPut', 'updateTaskRequest', updateTaskRequest)
+            const localVarPath = `/clickup/tasks/manage/{space_id}`
+                .replace(`{${"space_id"}}`, encodeURIComponent(String(spaceId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2574,7 +2575,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+        async createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpTask>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createTaskClickupTasksManagePost(createTaskRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.createTaskClickupTasksManagePost']?.[localVarOperationServerIndex]?.url;
@@ -2587,7 +2588,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTaskClickupTasksManageTaskIdDelete(taskId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.deleteTaskClickupTasksManageTaskIdDelete']?.[localVarOperationServerIndex]?.url;
@@ -2635,15 +2636,15 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
         /**
          * Update an existing ClickUp task by its identifier.
          * @summary Update a ClickUp task
-         * @param {string} taskId 
+         * @param {string} spaceId 
          * @param {UpdateTaskRequest} updateTaskRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTaskClickupTasksManageTaskIdPut(taskId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTaskClickupTasksManageTaskIdPut(taskId, updateTaskRequest, options);
+        async updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpTask>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.updateTaskClickupTasksManageTaskIdPut']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.updateTaskClickupTasksManageSpaceIdPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -2675,7 +2676,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+        createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTask> {
             return localVarFp.createTaskClickupTasksManagePost(createTaskRequest, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2685,7 +2686,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        deleteTaskClickupTasksManageTaskIdDelete(taskId: string, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.deleteTaskClickupTasksManageTaskIdDelete(taskId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2721,13 +2722,13 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
         /**
          * Update an existing ClickUp task by its identifier.
          * @summary Update a ClickUp task
-         * @param {string} taskId 
+         * @param {string} spaceId 
          * @param {UpdateTaskRequest} updateTaskRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTaskClickupTasksManageTaskIdPut(taskId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
-            return localVarFp.updateTaskClickupTasksManageTaskIdPut(taskId, updateTaskRequest, options).then((request) => request(axios, basePath));
+        updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTask> {
+            return localVarFp.updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Receives a list of generated tasks and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
@@ -2804,13 +2805,13 @@ export class ClickUpTasksApi extends BaseAPI {
     /**
      * Update an existing ClickUp task by its identifier.
      * @summary Update a ClickUp task
-     * @param {string} taskId 
+     * @param {string} spaceId 
      * @param {UpdateTaskRequest} updateTaskRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public updateTaskClickupTasksManageTaskIdPut(taskId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig) {
-        return ClickUpTasksApiFp(this.configuration).updateTaskClickupTasksManageTaskIdPut(taskId, updateTaskRequest, options).then((request) => request(this.axios, this.basePath));
+    public updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

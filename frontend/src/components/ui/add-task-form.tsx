@@ -1,81 +1,123 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import type { ClickUpListMetadata, VerifiedTask } from '@/api/api';
-import { VerifiedTaskActionEnum } from '@/api/api';
-import { EditableField } from './editable-field';
-import { AssigneeField } from './assignee-field';
-import { LocationField } from './location-field';
-import { StatusField } from './status-field';
-import { PriorityField } from './priority-field';
-import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
-import { CreateListForm } from './create-list-form';
-import { AddStatusForm } from './add-status-from';
+import type { ClickUpListMetadata, ClickUpTask, CreateTaskRequest, FolderWithListsMetadata, MemberDTO } from "@/api/api";
+import { AddStatusForm } from "./add-status-from";
+import { Button } from "./button";
+import { AlertCircle, Loader2, Plus } from "lucide-react";
+import { PriorityField } from "./priority-field";
+import { StatusField } from "./status-field";
+import { AssigneeSelect } from "./assignee-select";
+import { EditableField } from "./editable-field";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { defaultOnError } from "@/lib/error-utils";
+import { withErrorHandling } from "@/services/api-error";
+import { clickupTaskManagementService } from "@/services/clickup-task-management-sevice";
+import type { TaskDraft } from "@/lib/tasks-utils";
 
-const EMPTY_TASK: VerifiedTask = {
-  action: VerifiedTaskActionEnum.Create,
-  task_name: '',
-  task_description: '',
-  task_assigne: '',
-  task_status: '',
-  task_priority: '',
-  location: '',
+const EMPTY_DRAFT: TaskDraft = {
+  name: '',
+  description: '',
+  status: '',
+  priority: '',
+  assignees: [],
 };
 
-interface Props {
-  onAdd: (t: VerifiedTask) => void;
-  onCancel: () => void;
+interface AddTaskFormProps {
+  listId: string;
   spaceId: string;
+  statuses: string[];
+  priorities: string[];
+  structureForFields: FolderWithListsMetadata[];
+  structureLoading: boolean;
+  members: MemberDTO[];
+  membersLoading: boolean;
+  onCreated: (task: ClickUpTask) => void;
+  onCancel: () => void;
 }
 
-export function AddTaskForm({ onAdd, onCancel, spaceId }: Props) {
-  const [draft, setDraft] = useState<VerifiedTask>(EMPTY_TASK);
-  const [currentStatuses, setCurrentStatuses] = useState<string[]>([]);
-  const [currentPriorities, setCurrentPriorities] = useState<string[]>([]);
-  const [showAddList, setShowAddList] = useState(false);
+export function AddTaskForm({
+  listId,
+  spaceId,
+  statuses,
+  priorities,
+  structureForFields,
+  structureLoading,
+  members,
+  membersLoading,
+  onCreated,
+  onCancel,
+}: AddTaskFormProps) {
+  const navigate = useNavigate();
+  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+
+  const [draft, setDraft] = useState<TaskDraft>(EMPTY_DRAFT);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showAddStatus, setShowAddStatus] = useState(false);
+  const [localStatuses, setLocalStatuses] = useState<string[]>(statuses);
 
-  const { structure, loading: structureLoading, } = useClickUpStructure(spaceId);
+  useEffect(() => setLocalStatuses(statuses), [statuses]);
 
-  const set = (key: keyof VerifiedTask) => (value: string) =>
-    setDraft(prev => ({ ...prev, [key]: value }));
+  const set =
+    <K extends keyof TaskDraft>(key: K) =>
+    (value: TaskDraft[K]) =>
+      setDraft((prev) => ({ ...prev, [key]: value }));
 
-  const handleLocationChange = (label: string, statuses: string[], priorities: string[]) => {
-    setDraft(prev => ({
-      ...prev,
-      location: label,
-      task_status: statuses[0] ?? '',
-      task_priority: 'normal',
-    }));
-    setCurrentStatuses(statuses);
-    setCurrentPriorities(priorities);
+  const handleCreate = async () => {
+    if (!draft.name.trim()) {
+      setError('Task name is required.');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+
+    const req: CreateTaskRequest = {
+      list_id: listId,
+      space_id: spaceId,
+      name: draft.name,
+      description: draft.description,
+      status: draft.status || null,
+      priority: draft.priority || null,
+      assignees: draft.assignees.length > 0 ? draft.assignees.join(',') : null,
+    };
+    console.log(req);
+    const result = await withErrorHandling(
+      () => clickupTaskManagementService.createTask(req),
+      'Create ClickUp task',
+      onError,
+    );
+
+    setSaving(false);
+
+    if (result) {
+      onCreated(result);
+      setDraft(EMPTY_DRAFT);
+    } else {
+      setError('Failed to create task. Please try again.');
+    }
   };
-
-  const handleListCreated = (list: ClickUpListMetadata) => {
-    const label = list.name; 
-    const statuses = list.statuses ?? [];
-    const priorities = list.priorities ?? [];
-    handleLocationChange(label, statuses, priorities);
-    setShowAddList(false);
-  }
-
-  const locationNotSelected = !draft.location;
 
   return (
     <>
       <div className="border border-ring rounded-xl px-4 py-3.5 space-y-3 bg-card">
         <p className="text-xs font-medium text-muted-foreground">New task</p>
 
+        {error && (
+          <div className="flex items-center gap-2 text-xs text-destructive">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            {error}
+          </div>
+        )}
+
         <EditableField
-          value={draft.task_name}
-          onChange={set('task_name')}
+          value={draft.name}
+          onChange={(v) => set('name')(v)}
           placeholder="Task name"
           className="font-medium"
         />
 
         <EditableField
-          value={draft.task_description}
-          onChange={set('task_description')}
+          value={draft.description}
+          onChange={(v) => set('description')(v)}
           type="textarea"
           placeholder="Description"
         />
@@ -83,33 +125,23 @@ export function AddTaskForm({ onAdd, onCancel, spaceId }: Props) {
         <div className="grid grid-cols-2 gap-2">
           <div className="col-span-2">
             <p className="text-xs text-muted-foreground mb-1">Assignees</p>
-            <AssigneeField
-              value={draft.task_assigne}
-              onChange={set('task_assigne')}
-            />
-          </div>
-
-          <div className="col-span-2">
-            <p className="text-xs text-muted-foreground mb-1">Location</p>
-            <LocationField
-              value={draft.location}
-              onChange={handleLocationChange}
-              structure={structure}
-              structureLoading={structureLoading}
-              spaceId={spaceId}
-              onRequestAddList={() => setShowAddList(true)}
+            <AssigneeSelect
+              value={draft.assignees}
+              onChange={set('assignees')}
+              members={members}
+              loading={membersLoading}
             />
           </div>
 
           <div>
             <p className="text-xs text-muted-foreground mb-1">Status</p>
             <StatusField
-              value={draft.task_status}
-              onChange={set('task_status')}
-              statuses={currentStatuses}
-              disabled={locationNotSelected}
+              value={draft.status}
+              onChange={(v) => set('status')(v)}
+              statuses={localStatuses}
+              disabled={false}
               structureLoading={structureLoading}
-              structure={structure}
+              structure={structureForFields}
               onRequestAddStatus={() => setShowAddStatus(true)}
             />
           </div>
@@ -117,56 +149,45 @@ export function AddTaskForm({ onAdd, onCancel, spaceId }: Props) {
           <div>
             <p className="text-xs text-muted-foreground mb-1">Priority</p>
             <PriorityField
-              value={draft.task_priority}
-              onChange={set('task_priority')}
-              priorities={currentPriorities}
-              disabled={locationNotSelected}
-              structure={structure}
+              value={draft.priority}
+              onChange={(v) => set('priority')(v)}
+              priorities={priorities}
+              disabled={false}
+              structure={structureForFields}
               structureLoading={structureLoading}
             />
           </div>
         </div>
 
-        {locationNotSelected && (
-          <p className="text-xs text-muted-foreground/70 italic">
-            Select a location to enable status and priority
-          </p>
-        )}
-
         <div className="flex justify-end gap-2 pt-1">
-          <Button variant="outline" size="sm" onClick={onCancel}>
+          <Button variant="outline" size="sm" onClick={onCancel} disabled={saving}>
             Cancel
           </Button>
-          <Button 
-            onClick={() => { if (draft.task_name.trim()) onAdd(draft); }}
-            disabled={!draft.task_name.trim()}
+          <Button
+            size="sm"
+            onClick={handleCreate}
+            disabled={saving || !draft.name.trim()}
             className="gap-2"
           >
-            <Plus className="w-4 h-4" />
+            {saving ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Plus className="w-3.5 h-3.5" />
+            )}
             Add task
           </Button>
         </div>
       </div>
 
-      <CreateListForm
-        isOpen={showAddList}
-        onClose={() => setShowAddList(false)}
-        onSuccess={handleListCreated} 
-        spaceId={spaceId}
-      />
-
       <AddStatusForm
         isOpen={showAddStatus}
         spaceId={spaceId}
-        listId={draft.location}
+        listId={listId}
         onClose={() => setShowAddStatus(false)}
         onSuccess={(updatedList: ClickUpListMetadata, addedStatus: string) => {
           if (updatedList.statuses) {
-            setCurrentStatuses(updatedList.statuses);
-            setDraft(prev => ({
-              ...prev,
-              task_status: addedStatus,
-            }));
+            setLocalStatuses(updatedList.statuses);
+            set('status')(addedStatus);
           }
           setShowAddStatus(false);
         }}

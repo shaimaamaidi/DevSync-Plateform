@@ -16,6 +16,7 @@ details and infrastructure-specific implementations.
 from abc import ABC, abstractmethod
 
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
 
 
@@ -33,7 +34,7 @@ class IClickUpTaskManagementUseCase(ABC):
     """
 
     @abstractmethod
-    def create_task(self, request: CreateTaskRequest):
+    def create_task(self, request: CreateTaskRequest) -> ClickUpTask:
         """
         Create a new task in ClickUp.
 
@@ -42,12 +43,12 @@ class IClickUpTaskManagementUseCase(ABC):
             to create a ClickUp task (title, description, list, assignees, etc.).
 
         Returns:
-            Any: The created task response (typically task metadata or API response).
+            ClickUpTask: The created ClickUp task entity containing task metadata returned by the ClickUp API.
         """
         pass
 
     @abstractmethod
-    def update_task(self, request: UpdateTaskRequest):
+    def update_task(self, request: UpdateTaskRequest) -> ClickUpTask:
         """
         Update an existing ClickUp task.
 
@@ -56,12 +57,13 @@ class IClickUpTaskManagementUseCase(ABC):
             and fields to update (name, status, description, assignees, etc.).
 
         Returns:
-            Any: The updated task response from ClickUp.
+            ClickUpTask: The updated ClickUp task entity reflecting the latest state returned by
+                the ClickUp API.
         """
         pass
 
     @abstractmethod
-    def delete_task(self, task_id: str):
+    def delete_task(self, task_id: str) -> bool:
         """
         Delete a ClickUp task.
 
@@ -69,6 +71,6 @@ class IClickUpTaskManagementUseCase(ABC):
             task_id (str): Identifier of the task to delete.
 
         Returns:
-            Any: Confirmation response from ClickUp after deletion.
+            bool: True if the task was successfully deleted.
         """
         pass

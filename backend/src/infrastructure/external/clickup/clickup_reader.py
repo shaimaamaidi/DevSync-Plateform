@@ -21,7 +21,7 @@ from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception 
 from backend.src.domain.exceptions.clickup.clickup_workspace_members_exception import ClickUpWorkspaceMembersException
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-
+from backend.src.infrastructure.external.clickup.helpers.clickup_helper import parse_task
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +298,7 @@ class ClickUpReader(IClickUpReader):
         list_details = self._get_list_details(list_id)
         tasks_data = self._get_tasks(list_id)
 
-        tasks = [self._parse_task(task) for task in tasks_data]
+        tasks = [parse_task(task) for task in tasks_data]
 
         statuses = [
             s["status"]
@@ -355,44 +355,6 @@ class ClickUpReader(IClickUpReader):
             name=list_name,
             statuses=statuses,
             priorities=PRIORITIES,
-        )
-
-    @staticmethod
-    def _parse_task(task: dict) -> ClickUpTask:
-        """
-        Build a ClickUpTask domain entity from a raw API task dict.
-
-        Uses safe .get() access on every field to prevent KeyError
-        when the API response has an unexpected or incomplete structure.
-
-        Args:
-            task: Raw task dictionary from ClickUp API.
-
-        Returns:
-            ClickUpTask domain entity.
-        """
-        assignees_raw = task.get("assignees") or []
-        assignee: Optional[str] = (
-                ", ".join(
-                    m.get("email", "")
-                    for m in assignees_raw
-                    if m.get("email")
-                ) or None
-        )
-
-        status_field = task.get("status") or {}
-        status: str = status_field.get("status", "")
-
-        priority_field = task.get("priority") or {}
-        priority: Optional[str] = priority_field.get("priority")
-
-        return ClickUpTask(
-            id=task.get("id", ""),
-            name=task.get("name", ""),
-            description=task.get("description", ""),
-            status=status,
-            assignee=assignee,
-            priority=priority,
         )
 
     @staticmethod

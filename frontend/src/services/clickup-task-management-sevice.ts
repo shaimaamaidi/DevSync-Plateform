@@ -1,22 +1,23 @@
 import type { CreateTaskRequest, UpdateTaskRequest } from "@/api/api";
+import type { ClickUpTask } from "@/api/api";
 import { clickUpTasksApi } from "@/apiClient";
 
 export const clickupTaskManagementService = {
-    async createTask(request: CreateTaskRequest): Promise<boolean> {
-        await clickUpTasksApi.createTaskClickupTasksManagePost(request);
-        return true;
+    async createTask(request: CreateTaskRequest): Promise<ClickUpTask | null> {
+        const response = await clickUpTasksApi.createTaskClickupTasksManagePost(request);
+        return response.data ?? null;
     },
 
-    async updateTask(taskId: string, request: Omit<UpdateTaskRequest, "task_id">): Promise<boolean> {
-        await clickUpTasksApi.updateTaskClickupTasksManageTaskIdPut(taskId, {
+    async updateTask(spaceId: string, request: Omit<UpdateTaskRequest, "space_id">): Promise<ClickUpTask | null> {
+        const response = await clickUpTasksApi.updateTaskClickupTasksManageSpaceIdPut(spaceId, {
             ...request,
-            task_id: taskId,
+            space_id: spaceId,
         });
-        return true;
+        return response.data ?? null;
     },
 
     async deleteTask(taskId: string): Promise<boolean> {
-        await clickUpTasksApi.deleteTaskClickupTasksManageTaskIdDelete(taskId);
-        return true;
+        const response = await clickUpTasksApi.deleteTaskClickupTasksManageTaskIdDelete(taskId);
+        return response.data ?? false;
     },
 };

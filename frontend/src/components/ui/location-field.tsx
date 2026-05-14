@@ -1,35 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, Loader2, List } from 'lucide-react';
 import type { FolderWithListsMetadata } from '@/api/api';
-
-const FOLDERLESS_MARKER = '__folderless__';
-
-export interface LocationOption {
-  listId: string;
-  label: string;       // "FolderName / ListName" or "ListName"
-  statuses: string[];
-  priorities: string[];
-}
-
-export function buildLocationOptions(structure: FolderWithListsMetadata[]): LocationOption[] {
-  const opts: LocationOption[] = [];
-  for (const folder of structure) {
-    const isFolderless =
-      folder.name === FOLDERLESS_MARKER ||
-      folder.id === (folder.lists?.[0]?.id ?? null);
-    for (const list of folder.lists ?? []) {
-      opts.push({
-        listId: list.id,
-        label: isFolderless
-          ? list.name
-          : `${folder.name} / ${list.name}`,
-        statuses: list.statuses ?? [],
-        priorities: list.priorities ?? [],
-      });
-    }
-  }
-  return opts;
-}
+import { buildLocationWithMetadataOptions, type LocationWithMetadataOption } from '@/lib/tasks-utils';
 
 interface Props {
   value: string;                     
@@ -50,7 +22,7 @@ export function LocationField({
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [stale, setStale] = useState(false);
-  const options = buildLocationOptions(structure);
+  const options = buildLocationWithMetadataOptions(structure);
   const isLoading = structureLoading || stale; 
 
   useEffect(() => {
@@ -67,7 +39,7 @@ export function LocationField({
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleSelect = (opt: LocationOption) => {
+  const handleSelect = (opt: LocationWithMetadataOption) => {
     onChange(opt.label, opt.statuses, opt.priorities);
     setOpen(false);
   };
@@ -125,7 +97,7 @@ export function LocationField({
                   className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 transition-colors font-medium"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  Create new list…
+                  Create new location…
                 </button>
               </div>
             </>

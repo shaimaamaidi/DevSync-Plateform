@@ -35,9 +35,10 @@ import { useAddRepo } from '@/hooks/repository-hooks/use-add-repo';
 import { useCreateClickUpSpace } from '@/hooks/clickup-structure-hooks/use-create-space';
 import { useRegisterClickUpSpace } from '@/hooks/clickup-structure-hooks/use-register-space';
 import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github-clickup';
+import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
 
 
-type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation';
+type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';
 interface WorkspaceDashboardPageProps {
   activeTab?: WorkspaceSection;
 }
@@ -279,6 +280,11 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onAssociate={handleAssociateClickUpSpace}
             refreshSpaces={refreshClickUpData}
             />
+        </div>
+      )}
+      {activeTab === 'space-tasks' && (
+        <div className="animate-in fade-in duration-300">
+          <SpaceTasksViewer />
         </div>
       )}
     </>

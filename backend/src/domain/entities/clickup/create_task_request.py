@@ -21,8 +21,8 @@ class CreateTaskRequest(BaseModel):
     details, and notification control.
 
     Attributes:
-        list_id: Identifier of the ClickUp list where the task will be created.
         space_id: Identifier of the ClickUp space containing the list.
+        list_id: Identifier of the ClickUp list where the task will be created.
         name: Task name.
         description: Task description.
         status: Initial task status.
@@ -30,12 +30,11 @@ class CreateTaskRequest(BaseModel):
         assignees: Assignees (emails separated by commas).
         ignore_mails: If True, email notifications will be ignored during creation.
     """
-
-    list_id: str
     space_id: str
+    list_id: str
     name: str
     description: str
-    status: str
+    status: str | None
     priority: str | None
     assignees: str | None  # comma-separated emails
     ignore_mails: bool = False

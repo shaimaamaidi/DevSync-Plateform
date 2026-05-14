@@ -7,8 +7,9 @@ between assignee identifiers and ClickUp workspace members.
 """
 
 import logging
-from typing import List, Dict
+from typing import List, Dict, Optional
 
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.exceptions.clickup.clickup_assignee_email_not_found_exception import \
     AssigneeEmailNotInClickUpException
 from backend.src.domain.exceptions.clickup.clickup_assignee_name_not_found_exception import \
@@ -159,7 +160,7 @@ def resolve_assignee_ids_strict(
     return resolved
 
 
-def priority_to_str(priority: str) -> str:
+def priority_to_str(priority: str) -> str | None :
     """
     Convert a priority label to a string ranking.
 
@@ -178,4 +179,44 @@ def priority_to_str(priority: str) -> str:
         "normal": "3",
         "low": "4"
     }
-    return mapping.get(priority.lower(), "3")
+    if priority:
+        return mapping.get(priority.lower())
+    else:
+        return None
+
+def parse_task(task: dict) -> ClickUpTask:
+    """
+    Build a ClickUpTask domain entity from a raw API task dict.
+
+    Uses safe .get() access on every field to prevent KeyError
+    when the API response has an unexpected or incomplete structure.
+
+    Args:
+        task: Raw task dictionary from ClickUp API.
+
+    Returns:
+        ClickUpTask domain entity.
+    """
+    assignees_raw = task.get("assignees") or []
+    assignee: Optional[str] = (
+            ", ".join(
+                m.get("email", "")
+                for m in assignees_raw
+                if m.get("email")
+            ) or None
+    )
+
+    status_field = task.get("status") or {}
+    status: str = status_field.get("status", "")
+
+    priority_field = task.get("priority") or {}
+    priority: Optional[str] = priority_field.get("priority")
+
+    return ClickUpTask(
+        id=task.get("id", ""),
+        name=task.get("name", ""),
+        description=task.get("description", ""),
+        status=status,
+        assignee=assignee,
+        priority=priority,
+    )

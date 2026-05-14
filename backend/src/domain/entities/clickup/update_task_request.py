@@ -20,6 +20,7 @@ class UpdateTaskRequest(BaseModel):
     including metadata updates, assignment changes, and control flags.
 
     Attributes:
+        space_id: Identifier of the task's space.
         task_id: Identifier of the task to update.
         name: Updated task name.
         description: Updated task description.
@@ -29,7 +30,7 @@ class UpdateTaskRequest(BaseModel):
         old_assignees: Previous assignees (emails separated by commas).
         ignore_mails: If True, email notifications will be ignored during update.
     """
-
+    space_id: str
     task_id: str
     name: str
     description: str
