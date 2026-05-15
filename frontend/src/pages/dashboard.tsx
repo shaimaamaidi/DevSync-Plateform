@@ -77,7 +77,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     setClickupLoading(true);
 
     const [spacesData] = await Promise.all([
-      withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load ClickUp spaces', onError),
+      withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load click up spaces', onError),
     ]);
 
     if (spacesData) 
@@ -115,7 +115,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     if (!result) 
       return Promise.resolve(false);
 
-    showSuccessToast('ClickUp space updated successfully');
+    showSuccessToast('Click up space updated successfully');
     return Promise.resolve(true);
   }, [updateClickUpSpace]);
 
@@ -141,9 +141,10 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     const result = await deleteClickUpSpace(id);
     
     if (!result) 
-      return;
+      return Promise.resolve(false);
 
-    showSuccessToast('ClickUp space deleted successfully');
+    showSuccessToast('Click up space deleted successfully');
+    return Promise.resolve(true);
   }, [deleteClickUpSpace]);
 
   const handleAddRepo = useCallback(async (newRepo: GitRepoCreateDTO) => {
@@ -172,7 +173,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     if (!result) 
       return Promise.resolve(false);
 
-    showSuccessToast('ClickUp space created successfully');
+    showSuccessToast('Click up space created successfully');
     return Promise.resolve(true);
   }, [createClickUpSpace]);
 
@@ -180,7 +181,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     const result = await registerClickUpSpace(newSpace);
 
   if (result.ok) {
-    showSuccessToast('ClickUp space registered successfully');
+    showSuccessToast('Click up space registered successfully');
     return Promise.resolve(true);
   }
 
@@ -200,7 +201,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     if (!result) 
       return Promise.resolve(false);
 
-    showSuccessToast('GitHub repository associated with ClickUp space successfully');
+    showSuccessToast('GitHub repository associated with click up space successfully');
     return Promise.resolve(true);
   }, [associateClickUpSpace]);
 

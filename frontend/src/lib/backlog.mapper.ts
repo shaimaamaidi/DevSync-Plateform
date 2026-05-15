@@ -9,11 +9,11 @@ import type {
 
 export function refinedToSummary(r: RefinedMarketIntelligence): MarketSummary {
   return {
-    market_trends:       r.refined_market_trends,
+    market_trends: r.refined_market_trends,
     competitor_features: r.refined_competitor_features,
-    user_pain_points:    r.refined_user_pain_points,
-    best_practices:      r.refined_best_practices,
-    enrichment_notes:    r.refined_enrichment_notes,
+    user_pain_points: r.refined_user_pain_points,
+    best_practices: r.refined_best_practices,
+    enrichment_notes: r.refined_enrichment_notes,
   };
 };
 
@@ -29,18 +29,18 @@ export function normalizeMarketSummary(value: MarketSummary): MarketSummary {
 
 export function normalizeBacklog(epics: UiEpic[]): UiEpic[] {
   return (epics ?? []).map((epic) => ({
-    id:          epic.id          ?? `E${Math.random()}`,
-    title:       epic.title       ?? "",
+    id: epic.id ?? `E${Math.random()}`,
+    title: epic.title ?? "",
     description: epic.description ?? "",
     stories: (epic.stories ?? []).map((story) => ({
-      id:      story.id      ?? `US${Math.random()}`,
-      title:   story.title   ?? "",
-      as_a:    story.as_a    ?? "user",
-      i_want:  story.i_want  ?? "",
+      id: story.id ?? `US${Math.random()}`,
+      title: story.title ?? "",
+      as_a: story.as_a ?? "user",
+      i_want: story.i_want ?? "",
       so_that: story.so_that ?? "",
       tasks: (story.tasks ?? []).map((task) => ({
-        id:       task.id       ?? `T${Math.random()}`,
-        title:    task.title    ?? "",
+        id: task.id ?? `T${Math.random()}`,
+        title: task.title ?? "",
         description: task.description ?? "?",
       })),
     })),

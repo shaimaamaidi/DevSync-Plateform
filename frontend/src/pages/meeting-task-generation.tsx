@@ -35,20 +35,13 @@ import { GeneratedTaskList } from '@/components/generated-tasks-list';
 import { VerifiedTaskList } from '@/components/verified-tasks-list';
 import { CreateSpaceForm } from '@/components/ui/create-space-form';
 import { StepHeader } from '@/components/ui/step-header';
+import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
 
 type AssigneeDialogState =
   | { open: false }
   | { open: true; type: 'names'; items: string[] }
   | { open: true; type: 'mails'; items: string[] };
 
-function extractListFromMessage(message: string): string[] {
-  const match = message.match(/\[([^\]]+)\]/);
-  if (!match) return [message];
-  return match[1]
-    .split(',')
-    .map(s => s.trim().replace(/^['"]|['"]$/g, ''))
-    .filter(Boolean);
-};
 
 export function MeetingTaskManager() {
   const navigate = useNavigate();
@@ -182,7 +175,7 @@ export function MeetingTaskManager() {
     );
 
     if (result){
-      showSuccessToast('Click Up tasks generated successfully');
+      showSuccessToast('Click up tasks generated successfully');
       setGeneratedTasks(result);
       shouldAutoVerify.current = true;
     }
@@ -236,9 +229,9 @@ export function MeetingTaskManager() {
       const message = normalizeErrorMessage(err);
 
       if (code === 'ASSIGNEE_NAME_NOT_FOUND' && !ignoreNames) {
-        setAssigneeDialog({ open: true, type: 'names', items: extractListFromMessage(message) });
+        setAssigneeDialog({ open: true, type: 'names', items: extractAssigneeListFromError(message) });
       } else if (code === 'ASSIGNEE_EMAIL_NOT_IN_CLICKUP') {
-        setAssigneeDialog({ open: true, type: 'mails', items: extractListFromMessage(message) });
+        setAssigneeDialog({ open: true, type: 'mails', items: extractAssigneeListFromError(message) });
       } else {
         onError(handleApiError(err), message);
       }

@@ -23,7 +23,7 @@ import { useNavigate } from 'react-router-dom';
 export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
   onUpdate: (space: ClickUpSpaceUpdateDTO) => Promise<boolean>;
-  onDelete: (id: number) => void;
+  onDelete: (id: number) => Promise<boolean>;
   onCreate: (space: CreateSpaceRequest) => Promise<boolean>;
   onRegister: (space: ClickUpSpaceRegisterDTO) => Promise<boolean | undefined>;
   isLoading?: boolean;
@@ -283,9 +283,11 @@ export function ClickUpSpacesTable({
               variant="destructive"
               onClick={async () => {
                 if (deleteConfirmSpaceId !== null) {
-                  await onDelete(deleteConfirmSpaceId);
+                  const result = await onDelete(deleteConfirmSpaceId);
                   setDeleteConfirmSpaceId(null);
-                  refreshSpaces?.();
+                  if(result){
+                    refreshSpaces?.();
+                  }
                 }
               }}
             >

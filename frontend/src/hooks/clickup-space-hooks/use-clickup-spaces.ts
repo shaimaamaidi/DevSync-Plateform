@@ -15,7 +15,7 @@ export function useClickUpSpacesList() {
     queryFn: async () => {
       const data = await withErrorHandling(
         () => clickUpService.getAllSpaces(),
-        'Load ClickUp spaces',
+        'Load click up spaces',
         onError,
       );
 
@@ -26,6 +26,6 @@ export function useClickUpSpacesList() {
   return {
     spaces: data ?? [],
     loading: isLoading,
-    error: isError ? 'Unable to load ClickUp spaces' : null,
+    error: isError ? 'Unable to load click up spaces' : null,
   };
 }

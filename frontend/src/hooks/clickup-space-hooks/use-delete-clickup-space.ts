@@ -14,7 +14,7 @@ export function useDeleteClickUpSpace() {
     mutationFn: async (id: number) => {
       const result = await withErrorHandling(
         () => clickUpService.deleteSpace(id),
-        'Delete clickup space',
+        'Delete click up space',
         onError,
       );
       return result;

@@ -37,6 +37,26 @@ export function parseAssignees(raw: string | null | undefined): string[] {
   return raw ? raw.split(',').map((s) => s.trim()).filter(Boolean) : [];
 }
 
+function buildInitialDraft(task: ClickUpTask): TaskDraft {
+  return {
+    name: task.name,
+    description: task.description,
+    status: task.status,
+    priority: task.priority ?? '',
+    assignees: parseAssignees(task.assignee),
+  };
+}
+
+function isDraftDirty(draft: TaskDraft, task: ClickUpTask): boolean {
+  return (
+    draft.name !== task.name ||
+    draft.description !== task.description ||
+    draft.status !== task.status ||
+    draft.priority !== (task.priority ?? '') ||
+    draft.assignees.join(',') !== parseAssignees(task.assignee).join(',')
+  );
+}
+
 export function TaskCard({
   task,
   statuses,
@@ -57,33 +77,42 @@ export function TaskCard({
   const [showAddStatus, setShowAddStatus] = useState(false);
   const [localStatuses, setLocalStatuses] = useState<string[]>(statuses);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string }>({});
 
-  const [draft, setDraft] = useState<TaskDraft>({
-    name: task.name,
-    description: task.description,
-    status: task.status,
-    priority: task.priority ?? '',
-    assignees: parseAssignees(task.assignee),
-  });
+  const [draft, setDraft] = useState<TaskDraft>(() => buildInitialDraft(task));
 
   useEffect(() => setLocalStatuses(statuses), [statuses]);
 
   useEffect(() => {
-    setDraft({
-      name: task.name,
-      description: task.description,
-      status: task.status,
-      priority: task.priority ?? '',
-      assignees: parseAssignees(task.assignee),
-    });
+    setDraft(buildInitialDraft(task));
   }, [task]);
 
   const set =
     <K extends keyof TaskDraft>(key: K) =>
-    (value: TaskDraft[K]) =>
+    (value: TaskDraft[K]) => {
       setDraft((prev) => ({ ...prev, [key]: value }));
+      if (key === 'name' || key === 'description') {
+        setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
+      }
+    };
+
+  const validate = (): boolean => {
+    const errors: { name?: string; description?: string } = {};
+    if (!draft.name?.trim()) {
+      errors.name = 'Task name cannot be empty.';
+    }
+    if (!draft.description?.trim()) {
+      errors.description = 'Description cannot be empty.';
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const dirty = isDraftDirty(draft, task);
+  const canSave = dirty && !saving && !busy;
 
   const handleSave = async () => {
+    if (!validate()) return;
     setSaving(true);
     await onSave({
       name: draft.name,
@@ -97,7 +126,18 @@ export function TaskCard({
     setEditing(false);
   };
 
+  const handleCancel = () => {
+    setDraft(buildInitialDraft(task));
+    setFieldErrors({});
+    setEditing(false);
+  };
+
   const cfg = priorityConfig(task.priority ?? '');
+
+  const inputErrorClass = (hasError: boolean) =>
+    hasError
+      ? 'border-destructive/70 focus:border-destructive focus:ring-destructive/15'
+      : '';
 
   return (
     <>
@@ -110,19 +150,30 @@ export function TaskCard({
           <div className="space-y-3">
             <span className="text-xs text-muted-foreground">editing</span>
 
-            <EditableField
-              value={draft.name}
-              onChange={(v) => set('name')(v)}
-              placeholder="Task name"
-              className="font-medium"
-            />
+            <div className="space-y-1">
+              <EditableField
+                value={draft.name}
+                onChange={(v) => set('name')(v)}
+                placeholder="Task name"
+                className={`font-medium ${inputErrorClass(!!fieldErrors.name)}`}
+              />
+              {fieldErrors.name && (
+                <p className="text-destructive text-xs px-1">{fieldErrors.name}</p>
+              )}
+            </div>
 
-            <EditableField
-              value={draft.description}
-              onChange={(v) => set('description')(v)}
-              type="textarea"
-              placeholder="Description"
-            />
+            <div className="space-y-1">
+              <EditableField
+                value={draft.description}
+                onChange={(v) => set('description')(v)}
+                type="textarea"
+                placeholder="Description"
+                className={inputErrorClass(!!fieldErrors.description)}
+              />
+              {fieldErrors.description && (
+                <p className="text-destructive text-xs px-1">{fieldErrors.description}</p>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="col-span-2">
@@ -166,21 +217,12 @@ export function TaskCard({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  setDraft({
-                    name: task.name,
-                    description: task.description,
-                    status: task.status,
-                    priority: task.priority ?? '',
-                    assignees: parseAssignees(task.assignee),
-                  });
-                  setEditing(false);
-                }}
+                onClick={handleCancel}
                 disabled={saving || busy}
               >
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={saving || busy}>
+              <Button size="sm" onClick={handleSave} disabled={!canSave}>
                 {saving && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
                 Save
               </Button>
@@ -246,7 +288,6 @@ export function TaskCard({
         )}
       </div>
 
-      {/* Delete confirmation dialog */}
       <Dialog
         open={showDeleteDialog}
         onOpenChange={(open) => { if (!open) setShowDeleteDialog(false); }}

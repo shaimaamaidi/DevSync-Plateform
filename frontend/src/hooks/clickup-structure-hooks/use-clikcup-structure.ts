@@ -15,7 +15,7 @@ export function useClickUpStructure(spaceId: string) {
     queryFn: async () => {
       const data = await withErrorHandling(
         () => clickUpStructureMetadataService.getSpaceStructure(spaceId),
-        'Load ClickUp space structure',
+        'Load click up space structure',
         onError,
       );
       return data;
@@ -28,6 +28,6 @@ export function useClickUpStructure(spaceId: string) {
     loading: isLoading,
     isFetching: isFetching,
     isStructureEmpty: data?.length === 0,
-    error: isError ? 'Unable to load ClickUp space structure' : null,
+    error: isError ? 'Unable to load click up space structure' : null,
   };
 }

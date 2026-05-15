@@ -15,7 +15,7 @@ export function useUpdateClickUpSpace() {
     mutationFn: async (space: ClickUpSpaceUpdateDTO) => {
       const result = await withErrorHandling(
         () => clickUpService.updateSpace(space),
-        'Update clickup space',
+        'Update click up space',
         onError,
       );
 
