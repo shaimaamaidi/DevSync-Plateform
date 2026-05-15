@@ -1,4 +1,4 @@
-import type { MemberAuthDTO } from '@/api/api';
+import type { MemberAuthDTO, MemberDTO } from '@/api/api';
 import { AuthApi } from '@/api/api';
 
 function setRefreshTokenCookie(value: string) {
@@ -18,6 +18,12 @@ const REFRESH_TOKEN_EXPIRE_DAYS = Number(import.meta.env.VITE_REFRESH_TOKEN_EXPI
 const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * REFRESH_TOKEN_EXPIRE_DAYS;
 
 class AuthService {
+  async getMe(): Promise<MemberDTO> {
+    const api = new AuthApi();
+    const { data } = await api.getMeAuthMeGet();
+    return data;
+  }
+
   async login(credentials: MemberAuthDTO): Promise<boolean> {
     try{
       const api = new AuthApi();

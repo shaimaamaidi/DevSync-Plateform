@@ -33,6 +33,13 @@ import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError
 import { useSpaceTasks } from '@/hooks/clickup-space-hooks/clickup-space-tasks';
 import type { AssigneeDialogState } from '@/types/clickup';
 import { showSuccessToast } from './global-toaster';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 type PendingUpdate = {
   taskId: string;
@@ -183,8 +190,7 @@ export function SpaceTasksViewer() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Space Tasks</h2>
-              <p className="text-xs text-muted-foreground font-mono mt-0.5">{spaceId}</p>
+              <h2 className="text-2xl font-bold text-foreground">Click Up Space Tasks</h2>
             </div>
           </div>
 
@@ -210,26 +216,44 @@ export function SpaceTasksViewer() {
             <>
               {locationOptions.length === 0 ? (
                 <p className="text-sm text-muted-foreground italic text-center py-4">
-                  No lists found in this space.
+                  No location available.
                 </p>
               ) : (
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide whitespace-nowrap">
-                    Location
-                  </span>
-                  <div className="relative flex-1 max-w-sm">
-                    <select
-                      value={selectedListId}
-                      onChange={(e) => setSelectedListId(e.target.value)}
-                      className="w-full appearance-none rounded-md border border-border bg-background px-3 py-2 pr-8 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  <div className="flex-1 max-w-sm">
+                    <Select
+                      value={selectedListId || 'none'}
+                      onValueChange={(val) => setSelectedListId(val === 'none' ? '' : val)}
+                      disabled={busy}
                     >
-                      <option value="" disabled>Select a location…</option>
-                      {locationOptions.map((opt) => (
-                        <option key={opt.listId} value={opt.listId}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger
+                        className={`w-full max-w-sm bg-input border-border ${
+                          !selectedListId || selectedListId === 'none'
+                            ? 'text-muted-foreground'
+                            : 'text-foreground'
+                        }`}
+                      >
+                        <SelectValue placeholder="Select a location…" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        {locationOptions.length === 0 ? (
+                          <SelectItem value="none" className="text-muted-foreground" disabled>
+                            No location available
+                          </SelectItem>
+                        ) : (
+                          <>
+                            <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                              Select a location…
+                            </SelectItem>
+                            {locationOptions.map((opt) => (
+                              <SelectItem key={opt.listId} value={opt.listId}>
+                                {opt.label}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
                     <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   </div>
                 </div>

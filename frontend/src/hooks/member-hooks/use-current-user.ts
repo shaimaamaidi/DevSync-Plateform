@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { memberService } from '@/services/member-service';
-import type { MemberWithReposDTO } from '@/api/api';
+import { authService } from '@/services/auth-service';
+import type { MemberDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
@@ -8,20 +8,16 @@ import { useMemo } from 'react';
 
 export function useCurrentUser() {
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
+  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery<MemberWithReposDTO | null>({
-    queryKey: ['members'], 
-    queryFn: async () => {
-      const members = await withErrorHandling(
-        () => memberService.getAllWithRepos(),
+  const { data, isLoading, isError } = useQuery<MemberDTO | null>({
+    queryKey: ['currentUser'],
+    queryFn: async () =>
+      withErrorHandling(
+        () => authService.getMe(),
         'Load current user',
         onError,
-      );
-      if (!members || members.length === 0) 
-        return null;
-      return members[0];
-    },
+      ) ?? null,
   });
 
   return {

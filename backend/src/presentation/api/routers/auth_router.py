@@ -7,6 +7,7 @@ Routes:
     POST /login: Authenticate a member and return tokens.
     POST /refresh: Issue new tokens from a valid refresh token.
     POST /logout: Revoke a refresh token.
+    Get /me: Get the currently authenticated member.
 """
 
 import logging

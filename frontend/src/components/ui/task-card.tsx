@@ -17,6 +17,7 @@ import {
 } from "./dialog";
 import type { TaskDraft } from "@/types/clickup";
 import { priorityConfig } from "@/lib/priority";
+import { AssigneeBadges } from "./assignee-badge";
 
 interface TaskCardProps {
   task: ClickUpTask;
@@ -72,7 +73,6 @@ export function TaskCard({
   busy,
 }: TaskCardProps) {
   const [editing, setEditing] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showAddStatus, setShowAddStatus] = useState(false);
   const [localStatuses, setLocalStatuses] = useState<string[]>(statuses);
@@ -232,33 +232,38 @@ export function TaskCard({
           <div className="flex items-start gap-3">
             <div className={`w-2 h-2 mt-[7px] rounded-full flex-shrink-0 ${cfg.dot}`} />
 
-            <div
-              className="flex-1 min-w-0 cursor-pointer"
-              onClick={() => setExpanded((p) => !p)}
-            >
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">{task.name}</p>
               <p
-                className={`text-sm text-muted-foreground mt-1 ${
-                  expanded ? '' : 'line-clamp-2'
-                }`}
+                className={'text-sm text-muted-foreground mt-1 line-clamp-2'}
               >
                 {task.description}
               </p>
 
               <div className="flex items-center gap-2 mt-3 flex-wrap">
-                {task.assignee && (
-                  <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground">
-                    👤 {task.assignee}
+                {parseAssignees(task.assignee).length > 0 ? (
+                  <AssigneeBadges assignee={task.assignee} members={members} />
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic">
+                    No assignee
                   </span>
                 )}
-                {task.priority && (
+                {task.priority ? (
                   <span className={`text-xs px-2 py-0.5 rounded-md border ${cfg.badge}`}>
                     {task.priority}
                   </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic">
+                    No priority
+                  </span>
                 )}
-                {task.status && (
+                {task.status ? (
                   <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground">
                     {task.status}
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic">
+                    No status
                   </span>
                 )}
               </div>
