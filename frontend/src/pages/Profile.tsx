@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { KeyRound, User, Mail, Pen, Loader2 } from 'lucide-react';
-import { useCurrentUser } from '@/hooks/member-hooks/use-current-user';
 import { showSuccessToast } from '@/components/global-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
 import { FieldSkeleton } from '@/components/ui/field-skeleton';
-import { useUpdateMember } from '@/hooks/member-hooks/use-update-member';
 import { useNavigate } from 'react-router-dom';
+import { useUpdateCurrentUser } from '@/hooks/current-user-hooks/use-update-current-member';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 
 export default function ProfilePage() {
   const { user, loading: userLoading } = useCurrentUser();
-  const { mutateAsync: updateMember, isPending } = useUpdateMember();
+  const { mutateAsync: updateMember, isPending } = useUpdateCurrentUser();
   const [username, setUsername] = useState('');
   const [mail, setMail] = useState('');
   const [arabicName, setArabicName] = useState('');

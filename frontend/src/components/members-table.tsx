@@ -11,6 +11,7 @@ import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { MemberEditModal } from './ui/member-edit-model-new';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 export interface MembersTableProps {
   members: MemberDTO[];
@@ -21,6 +22,8 @@ export interface MembersTableProps {
 }
 
 export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: MembersTableProps) {
+  const { user: currentUser } = useCurrentUser();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
   const [deleteConfirmMemberId, setDeleteConfirmMemberId] = useState<number | null>(null);
@@ -115,18 +118,20 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
                         >
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (typeof member.id === 'number') {
-                              setDeleteConfirmMemberId(member.id);
-                            }
-                          }}
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {currentUser?.id !== member.id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              if (typeof member.id === 'number') {
+                                setDeleteConfirmMemberId(member.id);
+                              }
+                            }}
+                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -174,14 +179,16 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
                 >
                   <Edit2 className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => typeof member.id === 'number' && setDeleteConfirmMemberId(member.id)}
-                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                {currentUser?.id !== member.id && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => typeof member.id === 'number' && setDeleteConfirmMemberId(member.id)}
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </div>
           ))

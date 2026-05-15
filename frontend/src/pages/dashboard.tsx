@@ -21,7 +21,6 @@ import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-toaster';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
 import { useUpdateClickUpSpace } from '@/hooks/clickup-space-hooks/use-update-clickup-space';
 import { useDeleteClickUpSpace } from '@/hooks/clickup-space-hooks/use-delete-clickup-space';
 import { useMembers } from '@/hooks/member-hooks/use-members';
@@ -36,6 +35,7 @@ import { useCreateClickUpSpace } from '@/hooks/clickup-structure-hooks/use-creat
 import { useRegisterClickUpSpace } from '@/hooks/clickup-structure-hooks/use-register-space';
 import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github-clickup';
 import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
+import { defaultOnError } from '@/utils/error-handler';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';

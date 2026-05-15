@@ -6,7 +6,7 @@ import { memberService } from '@/services/member-service';
 import type { MemberUpdateDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/utils/error-handler';
-import { useCurrentUser } from '@/hooks/member-hooks/use-current-user';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState('');

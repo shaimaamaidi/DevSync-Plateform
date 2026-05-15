@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import { useNavigate, useParams } from 'react-router-dom';
 import { extractErrorCode, handleApiError, normalizeErrorMessage, withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
 import type {
   ClickUpTask,
   ClickUpList,
@@ -40,6 +39,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { defaultOnError } from '@/utils/error-handler';
 
 type PendingUpdate = {
   taskId: string;
