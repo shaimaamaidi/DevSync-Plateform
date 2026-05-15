@@ -23,7 +23,9 @@ export function useUpdateMember() {
     onSuccess: (result) => {
       if (!result) 
         return;
+      
       queryClient.invalidateQueries({ queryKey: ['members'] });
+
       const currentUser = queryClient.getQueryData<MemberDTO>(['currentUser']);
       if (currentUser?.id === result.id)
         queryClient.invalidateQueries({ queryKey: ['currentUser'] });
