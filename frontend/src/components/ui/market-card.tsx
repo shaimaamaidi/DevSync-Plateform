@@ -14,7 +14,7 @@ import {
   areMarketSummariesEqual,
   cloneMarketSummary,
   normalizeMarketSummary,
-} from "@/utils/backlog.mapper";
+} from "@/lib/backlog.mapper";
 
 type Accent = "info" | "danger" | "success" | "amber" | null;
 type SectionKey = keyof MarketSummary;

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import type { FolderWithListsMetadata } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
 import { clickUpStructureMetadataService } from '@/services/clickup-space-structure-metadata-service';
 import { useMemo } from 'react';

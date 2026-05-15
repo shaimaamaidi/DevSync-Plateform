@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { ChatMessage, MarketSummary, UiEpic, BacklogPayload } from "@/types/backlog";
 import { readSseStream } from "@/utils/stream-parser";
-import { extractBacklogPayload, isRefinedMarketIntelligence, isSprintPlanning } from "@/utils/type-guards";
+import { extractBacklogPayload, isRefinedMarketIntelligence, isSprintPlanning } from "@/lib/guards";
 import {
   areBacklogsEqual,
   areMarketSummariesEqual,
@@ -11,7 +11,7 @@ import {
   refinedToSummary,
   sprintPlanningToUi,
   uiToBacklog,
-} from "@/utils/backlog.mapper";
+} from "@/lib/backlog.mapper";
 import { backlogGenerationService } from "@/services/backlog-generation-service";
 import { showErrorToast } from "@/components/global-toaster";
 import { authService } from "@/services/auth-service";

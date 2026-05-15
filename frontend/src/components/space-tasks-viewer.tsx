@@ -8,8 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate, useParams } from 'react-router-dom';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
-import { buildLocationWithTasksOptions } from '@/lib/tasks-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import type {
   ClickUpTask,
   ClickUpList,
@@ -23,6 +22,7 @@ import { clickupSpaceTaskReaderService } from '@/services/clickup-space-task-rea
 import { ViewerSkeleton } from './ui/viewer-skeletion-card';
 import { AddTaskForm } from './ui/add-task-form';
 import { TaskCard } from './ui/task-card';
+import { buildLocationWithTasksOptions } from '@/lib/location';
 
 export function SpaceTasksViewer() {
   const { spaceId } = useParams<{ spaceId: string }>();

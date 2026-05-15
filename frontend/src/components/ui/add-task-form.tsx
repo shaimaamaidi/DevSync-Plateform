@@ -8,10 +8,10 @@ import { AssigneeSelect } from "./assignee-select";
 import { EditableField } from "./editable-field";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { defaultOnError } from "@/lib/error-utils";
+import { defaultOnError } from "@/utils/error-handler";
 import { withErrorHandling } from "@/services/api-error";
 import { clickupTaskManagementService } from "@/services/clickup-task-management-sevice";
-import type { TaskDraft } from "@/lib/tasks-utils";
+import type { TaskDraft } from "@/types/clickup";
 
 const EMPTY_DRAFT: TaskDraft = {
   name: '',

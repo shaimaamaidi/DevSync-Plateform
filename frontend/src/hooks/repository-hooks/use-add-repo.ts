@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { repoService } from '@/services/repo-service';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import type { GitRepoCreateDTO } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';

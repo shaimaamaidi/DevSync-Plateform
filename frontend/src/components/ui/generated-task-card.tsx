@@ -3,20 +3,10 @@ import { Trash2, GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { FolderWithListsMetadata, GeneratedTask } from '@/api/api';
 import { AssigneeAvatars } from '../ui/assignees-avatar';
-import { buildLocationOptions } from './location-field';
 import { CreateListForm } from './create-list-form';
+import { buildLocationWithMetadataOptions } from '@/lib/location';
+import { priorityConfig } from '@/lib/priority';
 
-const PRIORITY_CONFIG: Record<string, { badge: string; dot: string }> = {
-  urgent: { badge: 'bg-red-50 text-red-700 border-red-100', dot: 'bg-red-500' },
-  high: { badge: 'bg-amber-50 text-amber-700 border-amber-100', dot: 'bg-amber-500' },
-  medium: { badge: 'bg-blue-50 text-blue-700 border-blue-100', dot: 'bg-blue-500' },
-  normal: { badge: 'bg-blue-50 text-blue-700 border-blue-100', dot: 'bg-blue-500' },
-  low: { badge: 'bg-muted text-muted-foreground border-border', dot: 'bg-muted-foreground' },
-};
-
-function priorityConfig(p: string) {
-  return PRIORITY_CONFIG[p?.toLowerCase()] ?? PRIORITY_CONFIG['normal'];
-}
 
 interface Props {
   task: GeneratedTask;
@@ -44,7 +34,7 @@ export function GeneratedTaskCard({
   const [showCreateList, setShowCreateList] = useState(false);
   const dropRef = useRef<HTMLDivElement>(null);
   const cfg = priorityConfig(task.task_priority);
-  const options = buildLocationOptions(structure);
+  const options = buildLocationWithMetadataOptions(structure);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {

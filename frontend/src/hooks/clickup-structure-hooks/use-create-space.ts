@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import type { CreateSpaceRequest, ClickUpSpaceDTO } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';

@@ -11,14 +11,14 @@ import { AddStatusForm } from './add-status-from';
 import { CreateListForm } from './create-list-form';
 import { AssigneeAvatars } from './assignees-avatar';
 import { ActionBadge } from './action-badge';
-import { buildLocationWithMetadataOptions } from '@/lib/tasks-utils';
+import { buildLocationWithMetadataOptions } from '@/lib/location';
+import { priorityConfig } from '@/lib/priority';
 
 
 interface Props {
   task: VerifiedTask;
   onDelete: () => void;
   onUpdate: (updated: VerifiedTask) => void;
-  priorityConfig: (priority: string) => { badge: string; dot: string };
   structure: FolderWithListsMetadata[];
   structureLoading: boolean;
   spaceId: string;
@@ -29,7 +29,6 @@ export function VerifiedTaskCard({
   task,
   onDelete,
   onUpdate,
-  priorityConfig,
   structure,
   structureLoading,
   spaceId,

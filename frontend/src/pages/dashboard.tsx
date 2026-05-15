@@ -21,7 +21,7 @@ import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-toaster';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import { useUpdateClickUpSpace } from '@/hooks/clickup-space-hooks/use-update-clickup-space';
 import { useDeleteClickUpSpace } from '@/hooks/clickup-space-hooks/use-delete-clickup-space';
 import { useMembers } from '@/hooks/member-hooks/use-members';

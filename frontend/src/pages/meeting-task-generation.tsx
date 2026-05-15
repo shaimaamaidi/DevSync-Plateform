@@ -23,7 +23,7 @@ import {
   normalizeErrorMessage, 
   extractErrorCode 
 } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { GeneratedTask, VerifiedTask } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { memberService } from '@/services/member-service';
 import type { MemberWithReposDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 

@@ -9,7 +9,6 @@ import type {
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 import { AddVerifiedTaskForm } from './ui/add-verified-task-form';
 import { VerifiedTaskCard } from './ui/verified-task-card';
-import { priorityConfig } from '@/lib/tasks-utils';
 
 
 interface Props {
@@ -124,7 +123,6 @@ export function VerifiedTaskList({
                 task={task}
                 onDelete={() => handleDelete(i)}
                 onUpdate={updated => handleUpdate(i, updated)}
-                priorityConfig={priorityConfig}
                 structure={structure}
                 structureLoading={structureLoading}
                 spaceId={spaceId}

@@ -5,7 +5,7 @@ import { showSuccessToast } from '@/components/global-toaster';
 import { Eye, EyeOff } from 'lucide-react';
 import { withErrorHandling } from '@/services/api-error';
 import type { MemberAuthDTO } from '@/api/api';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 
 export default function LoginPage() {
   const [mail, setMail] = useState('');

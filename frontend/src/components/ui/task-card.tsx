@@ -7,7 +7,6 @@ import { StatusField } from "./status-field";
 import { AssigneeSelect } from "./assignee-select";
 import { EditableField } from "./editable-field";
 import { useEffect, useState } from "react";
-import { priorityConfig, type TaskDraft } from "@/lib/tasks-utils";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +15,8 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./dialog";
+import type { TaskDraft } from "@/types/clickup";
+import { priorityConfig } from "@/lib/priority";
 
 interface TaskCardProps {
   task: ClickUpTask;

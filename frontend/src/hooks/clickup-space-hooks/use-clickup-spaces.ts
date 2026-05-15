@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { clickUpService } from '@/services/clickup-service';
 import type { RepoClickUpSpaceDTO } from '@/api/api';
 import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/lib/error-utils';
+import { defaultOnError } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 

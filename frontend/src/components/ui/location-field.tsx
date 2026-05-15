@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Plus, Loader2, List } from 'lucide-react';
 import type { FolderWithListsMetadata } from '@/api/api';
-import { buildLocationWithMetadataOptions, type LocationWithMetadataOption } from '@/lib/tasks-utils';
+import type { LocationWithMetadataOption } from '@/types/clickup';
+import { buildLocationWithMetadataOptions } from '@/lib/location';
 
 interface Props {
   value: string;                     

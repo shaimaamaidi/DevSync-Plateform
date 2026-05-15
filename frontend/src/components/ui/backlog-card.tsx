@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import {
-  ChevronDown, ChevronRight, Layers, BookOpen, ListTodo,
-  Plus, Check, X, Trash2, FlagTriangleRight,
+  ChevronDown, 
+  ChevronRight, 
+  Layers, 
+  BookOpen, 
+  ListTodo,
+  Plus, 
+  Check, 
+  X, 
+  Trash2, 
+  FlagTriangleRight
 } from "lucide-react";
 import type { UiEpic, UiStory, UiTask } from "@/types/backlog";
-import { areBacklogsEqual, cloneBacklog, normalizeBacklog, uiToBacklog } from "@/utils/backlog.mapper";
+import { areBacklogsEqual, cloneBacklog, normalizeBacklog, uiToBacklog } from "@/lib/backlog.mapper";
 import { EditableText } from "./editable-text";
 
 const EPIC_PALETTE = [
