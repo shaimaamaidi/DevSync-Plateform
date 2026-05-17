@@ -16,6 +16,7 @@ from typing import Optional
 from requests import Response
 
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
+from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberInvitation
 from backend.src.domain.entities.clickup.status import ClickUpStatus
 from backend.src.domain.exceptions.clickup.clickup_write_exception import ClickUpWriteException
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
@@ -90,6 +91,44 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
         )
         raise ClickUpWriteException(
             f"Failed to create space '{name}': {error_message}"
+        )
+
+    def delete_space(self, space_id: str) -> bool:
+        """
+        Delete a Space from the ClickUp workspace.
+
+        Args:
+            space_id: ClickUp Space identifier.
+
+        Returns:
+            True if the space was deleted successfully.
+
+        Raises:
+            ClickUpWriteException: If the API request fails.
+        """
+        logger.info("Deleting Space. space_id=%s.", space_id)
+
+        endpoint = f"/space/{space_id}"
+        response = self._http.delete_raw(endpoint)
+
+        if response.status_code == 200:
+            logger.info(
+                "Space deleted successfully. space_id=%s status_code=%d.",
+                space_id,
+                response.status_code,
+            )
+            return True
+
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
+        logger.error(
+            "Space deletion failed. space_id=%s status_code=%d response=%s.",
+            space_id,
+            response.status_code,
+            error_message,
+        )
+        raise ClickUpWriteException(
+            f"Failed to delete space '{space_id}': {error_message}"
         )
 
     def create_folder(self, space_id: str, name: str) -> tuple[str, str]:
@@ -270,6 +309,89 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
         )
         raise ClickUpWriteException(
             f"Failed to add status '{status.status}' to list '{list_id}': {error_message}"
+        )
+
+    def add_workspace_member(self, member: ClickUpMemberInvitation) -> bool:
+        """
+        Invite a new member to the ClickUp workspace (team) by email.
+
+        Args:
+            member: ClickUpMemberInvitation containing email and role.
+
+        Returns:
+            True if the invitation was sent successfully.
+
+        Raises:
+            ClickUpWriteException: If the API request fails.
+        """
+        logger.info("Adding member to workspace. email=%s role=%s.", member.email, member.role.name)
+
+        endpoint = f"/team/{self._http.team_id}/user"
+        payload = {
+            "email": member.email,
+            "role": member.role.value,
+        }
+
+        response = self._http.post_raw(endpoint, payload)
+
+        if response.status_code == 200:
+            logger.info(
+                "Member invited successfully to workspace. email=%s status_code=%d.",
+                member.email,
+                response.status_code,
+            )
+            return True
+
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
+        logger.error(
+            "Member invitation failed. email=%s status_code=%d response=%s.",
+            member.email,
+            response.status_code,
+            error_message,
+        )
+        raise ClickUpWriteException(
+            f"Failed to invite member '{member.email}' to workspace: {error_message}"
+        )
+
+    def remove_workspace_member(self, user_id: int) -> bool:
+        """
+        Remove a member from the ClickUp workspace (team).
+
+        The user_id can be retrieved via get_workspace_members().
+
+        Args:
+            user_id: ClickUp user ID to remove.
+
+        Returns:
+            True if the member was removed successfully.
+
+        Raises:
+            ClickUpWriteException: If the API request fails.
+        """
+        logger.info("Removing member from workspace. user_id=%d.", user_id)
+
+        endpoint = f"/team/{self._http.team_id}/user/{user_id}"
+        response = self._http.delete_raw(endpoint)
+
+        if response.status_code == 200:
+            logger.info(
+                "Member removed successfully from workspace. user_id=%d status_code=%d.",
+                user_id,
+                response.status_code,
+            )
+            return True
+
+        error_message = ClickUpWorkSpaceWriter._get_error_message(response)
+
+        logger.error(
+            "Member remove failed. user_id=%d status_code=%d response=%s.",
+            user_id,
+            response.status_code,
+            error_message,
+        )
+        raise ClickUpWriteException(
+            f"Failed to remove member '{user_id}' from workspace: {error_message}"
         )
 
     @staticmethod

@@ -273,3 +273,4 @@ class ClickUpHttpClient:
             raise ClickUpApiException(
                 f"Server error ({status}) — {response.text}",
             )
+

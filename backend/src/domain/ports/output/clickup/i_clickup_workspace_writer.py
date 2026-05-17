@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
+from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberInvitation
 from backend.src.domain.entities.clickup.status import ClickUpStatus
 
 class IClickUpWorkSpaceWriter(ABC):
@@ -52,6 +53,21 @@ class IClickUpWorkSpaceWriter(ABC):
 
         Returns:
             tuple[str, str]: A tuple containing the created folder ID and name.
+        """
+        pass
+
+    def delete_space(self, space_id: str) -> bool:
+        """
+        Delete a Space from the ClickUp workspace.
+
+        Args:
+            space_id: ClickUp Space identifier.
+
+        Returns:
+            True if the space was deleted successfully.
+
+        Raises:
+            ClickUpWriteException: If the API request fails.
         """
         pass
 
@@ -98,5 +114,37 @@ class IClickUpWorkSpaceWriter(ABC):
             ClickUpListMetadata: A domain object representing the created List, including
                 it ID, name, priorities and the updated list of status names after adding
                 the new status.
+        """
+        pass
+
+    def add_workspace_member(self, member: ClickUpMemberInvitation) -> bool:
+        """
+        Invite a new member to the ClickUp workspace (team) by email.
+
+        Args:
+            member: ClickUpMemberInvitation containing email and role.
+
+        Returns:
+            True if the invitation was sent successfully.
+
+        Raises:
+            ClickUpWriteException: If the API request fails.
+        """
+        pass
+
+    def remove_workspace_member(self, user_id: int) -> bool:
+        """
+        Remove a member from the ClickUp workspace (team).
+
+        The user_id can be retrieved via get_workspace_members().
+
+        Args:
+            user_id: ClickUp user ID to remove.
+
+        Returns:
+            True if the member was removed successfully.
+
+        Raises:
+            ClickUpWriteException: If the API request fails.
         """
         pass
