@@ -24,11 +24,14 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useMemo, useState, useCallback } from 'react';
 import { defaultOnError } from '@/utils/error-handler';
 import { clickupTaskManagementService } from '@/services/clickup-task-management-sevice';
-import type { AssigneeDialogState, TaskDraft } from '@/types/clickup';
+import type { TaskDraft } from '@/types/clickup';
 import { extractErrorCode, handleApiError, normalizeErrorMessage } from '@/services/api-error';
 import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
 import { showSuccessToast } from '../global-toaster';
 
+export type AssigneeDialogState =
+  | { open: false }
+  | { open: true; type: 'mails'; items: string[] };
 
 const EMPTY_DRAFT: TaskDraft = {
   name: '',

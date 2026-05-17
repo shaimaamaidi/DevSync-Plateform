@@ -44,40 +44,39 @@ type AssigneeDialogState =
 
 
 export function MeetingTaskManager() {
+  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
+  const [summary, setSummary] = useState('');
+
   const navigate = useNavigate();
   const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
   const { spaces, loading: spacesLoading } = useClickUpSpacesList();
+  const { structure, loading: structureLoading, isStructureEmpty, isFetching} = useClickUpStructure(selectedSpaceId);
+  const [realIsStructureEmpty, setRealIsStructureEmpty] = useState(true);
 
-  const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
-  const [summary, setSummary] = useState('');
   const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
   const [verifiedTasks, setVerifiedTasks] = useState<VerifiedTask[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
-  const [isSavingStep, setIsSavingStep] = useState(false);
+  const [isVerificationFinished, setIsVerificationFinished] = useState(false);
 
+  const [disabledAll, setDisabledAll] = useState(false);
+
+  const [showSpaceChangeDialog, setShowSpaceChangeDialog] = useState(false);
   const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
+  
   const [showCreateSpace, setShowCreateSpace] = useState(false);
   const [isCreateNewSpace, setIsCreateNewSpace] = useState(false);
-
-  const { structure, loading: structureLoading, isStructureEmpty, isFetching} = useClickUpStructure(selectedSpaceId);
-  
-  const [realIsStructureEmpty, setRealIsStructureEmpty] = useState(true);
-  
-  const canGenerate = summary.trim().length > 0 && selectedSpaceId !== '';
-
-  const [isStep3Done, setIsStep3Done] = useState(false);
-
   const [pendingSpaceId, setPendingSpaceId] = useState<string | null>(null);
-  const [showSpaceChangeDialog, setShowSpaceChangeDialog] = useState(false);
 
-  const hasStarted = generatedTasks.length > 0 || verifiedTasks.length > 0 || isGenerating || isVerifying;
-  
   const shouldAutoGenerate = useRef(false);
   const shouldAutoVerify = useRef(false);
+
+  const canGenerate = summary.trim().length > 0 && selectedSpaceId !== '';
+
+  const hasStarted = generatedTasks.length > 0 || verifiedTasks.length > 0 || isGenerating || isVerifying;
 
 
   const allTasksHaveLocation = (tasks: GeneratedTask[] | VerifiedTask[]) =>
@@ -88,8 +87,10 @@ export function MeetingTaskManager() {
     setVerifiedTasks([]);
     setIsGenerating(false);
     setIsVerifying(false);
+    setIsSaving(false);
     setSavedOk(false);
-    setIsStep3Done(false);
+    setIsVerificationFinished(false);
+    setDisabledAll(false);
   };
 
   const handleSpaceChange = (value: string) => {
@@ -102,6 +103,13 @@ export function MeetingTaskManager() {
  
     setPendingSpaceId(newId);
     setShowSpaceChangeDialog(true);
+  };
+
+  const handleNewSummary = () => {
+    setSummary('');
+    setSelectedSpaceId('');
+    setPendingSpaceId(null);
+    resetProcess();
   };
 
   const handleConfirmSpaceChangeAndGenerate = async () => {
@@ -162,15 +170,13 @@ export function MeetingTaskManager() {
     if (!canGenerate) 
       return;
 
+    resetProcess();
     setRealIsStructureEmpty(isStructureEmpty);
     setIsGenerating(true);
-    setSavedOk(false);
-    setGeneratedTasks([]);
-    setVerifiedTasks([]);
 
     const result = await withErrorHandling(
       () => taskGenerationService.generateFromSummary(summary, spaceId),
-      'Generate tasks',
+      'Generate tasks from summary',
       onError,
     );
 
@@ -192,12 +198,12 @@ export function MeetingTaskManager() {
 
     const result = await withErrorHandling(
       () => taskVerificationService.verifyTasks(selectedSpaceId, generatedTasks),
-      'Verify tasks',
+      'Verify tasks generated from summary',
       onError,
     );
     if (result){
-      setIsStep3Done(true);
-      showSuccessToast('Click Up task verified successfully');
+      setIsVerificationFinished(true);
+      showSuccessToast('Click up task verified successfully');
       if (result?.tasks) {
         setVerifiedTasks(result.tasks as unknown as VerifiedTask[]);
       }
@@ -212,7 +218,6 @@ export function MeetingTaskManager() {
     setIsSaving(true);
 
     try {
-      setIsSavingStep(true);
       const result = await saveInClickupService.saveTasks(
         selectedSpaceId,
         verifiedTasks as unknown as VerifiedTask[],
@@ -221,8 +226,9 @@ export function MeetingTaskManager() {
 
       if (result) {
         setSavedOk(true);
+        setDisabledAll(true);
         setAssigneeDialog({ open: false });
-        showSuccessToast('Click Up tasks saved successfully');
+        showSuccessToast('Click up tasks saved successfully');
       }
     } catch (err: unknown) {
       const code = extractErrorCode(err);
@@ -236,7 +242,6 @@ export function MeetingTaskManager() {
         onError(handleApiError(err), message);
       }
     }
-
     setIsSaving(false);
   };
 
@@ -247,7 +252,7 @@ export function MeetingTaskManager() {
   const handleDropFromGenerated = (task: GeneratedTask) => {
     if (realIsStructureEmpty)
       return;
-    if (!isStep3Done) 
+    if (!isVerificationFinished) 
       return;
 
     const sameTitle = verifiedTasks.find(
@@ -275,172 +280,155 @@ export function MeetingTaskManager() {
 
   return (
     <div className="w-full space-y-8 py-2">
+      <div className={`flex justify-end overflow-hidden transition-all duration-500 ease-out ${
+        hasStarted ? 'opacity-100 max-h-20 translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
+      }`}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNewSummary}
+          disabled={isGenerating || isVerifying || isSaving}
+          className={`gap-2 ${isGenerating || isVerifying || isSaving ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          New summary
+        </Button>
+      </div>
+      <div className="w-full space-y-8">
+        <div className={`overflow-hidden transition-all duration-500 ease-out ${
+          hasStarted ? 'translate-y-2 max-h-[1000px]' : 'translate-y-0 max-h-[1000px]'
+        }`}>
+        <section>
+          <StepHeader number={1} title="Meeting summary" />
+          <div className="mt-3 space-y-3 border border-gray-300 rounded-lg p-3">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">ClickUp space</label>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={selectedSpaceId || 'none'}
+                  onValueChange={handleSpaceChange}
+                  disabled={spacesLoading || isGenerating || isVerifying || isSaving}
+                >
+                  <SelectTrigger  className={`w-[500px] bg-input border-border ${!selectedSpaceId || selectedSpaceId === 'none'? 'text-muted-foreground': 'text-foreground'}`}>
+                    <SelectValue
+                      placeholder={spacesLoading ? 'Loading spaces…' : 'Select a ClickUp space…'}
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {!spacesLoading && spaces.length === 0 ? (
+                      <SelectItem value="none" className="text-muted-foreground" disabled>No ClickUp space found</SelectItem>
+                    ) : (
+                      <>
+                        <SelectItem value="none" className="text-muted-foreground hidden" disabled>No Click up space selected</SelectItem>
+                        {spaces.map(space => (
+                          <SelectItem
+                            key={space.space_code ?? ''}
+                            value={space.space_code ?? ''}
+                          >
+                            {space.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  onClick={handleCreateNewSpace} 
+                  disabled={isGenerating || isVerifying || isSaving || disabledAll} className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New click up space
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">Meeting Summary</label>
+              <textarea
+                value={summary}
+                onChange={e => setSummary(e.target.value)}
+                placeholder={`Paste or type your meeting summary in arabic here…`}
+                className="w-full min-h-[120px] resize-y rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition"
+              />
+            </div>
 
-      <section>
-        <StepHeader number={1} title="Meeting summary" />
-        <div className="mt-3 space-y-3">
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">ClickUp space</label>
-            <div className="flex items-center gap-2">
-              <Select
-                value={selectedSpaceId || 'none'}
-                onValueChange={handleSpaceChange}
-                disabled={spacesLoading || isGenerating || isSavingStep}
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">{summary.length} characters</span>
+              <Button
+                onClick={() => handleGenerate()}
+                disabled={!canGenerate || isGenerating || isVerifying || isSaving || disabledAll}
+                className="gap-2"
+                title={
+                  !selectedSpaceId
+                    ? 'Select a ClickUp space first'
+                    : !summary.trim()
+                    ? 'Enter meeting summary first'
+                    : ''
+                }
               >
-                <SelectTrigger  className={`w-[500px] bg-input border-border ${!selectedSpaceId || selectedSpaceId === 'none'? 'text-muted-foreground': 'text-foreground'}`}>
-                  <SelectValue
-                    placeholder={spacesLoading ? 'Loading spaces…' : 'Select a ClickUp space…'}
-                  />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border">
-                  {!spacesLoading && spaces.length === 0 ? (
-                    <SelectItem value="none" className="text-muted-foreground" disabled>No ClickUp space found</SelectItem>
-                  ) : (
-                    <>
-                      <SelectItem value="none" className="text-muted-foreground hidden" disabled>No Click up space selected</SelectItem>
-                      {spaces.map(space => (
-                        <SelectItem
-                          key={space.space_code ?? ''}
-                          value={space.space_code ?? ''}
-                        >
-                          {space.name}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-              <Button 
-                onClick={handleCreateNewSpace} 
-                disabled={isGenerating || isSavingStep} className="gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                New click up space
+                <Sparkles className="w-4 h-4" />
+                {isGenerating ? 'Generating…' : 'Generate tasks'}
               </Button>
             </div>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-muted-foreground">Meeting Summary</label>
-            <textarea
-              value={summary}
-              onChange={e => setSummary(e.target.value)}
-              placeholder={`Paste or type your meeting summary in arabic here…`}
-              className="w-full min-h-[120px] resize-y rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition"
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{summary.length} characters</span>
-            <Button
-              onClick={() => handleGenerate()}
-              disabled={!canGenerate || isGenerating || isSavingStep}
-              className="gap-2"
-              title={
-                !selectedSpaceId
-                  ? 'Select a ClickUp space first'
-                  : !summary.trim()
-                  ? 'Enter meeting summary first'
-                  : ''
-              }
-            >
-              <Sparkles className="w-4 h-4" />
-              {isGenerating ? 'Generating…' : 'Generate tasks'}
-            </Button>
-          </div>
+        </section>
         </div>
-      </section>
-      {!realIsStructureEmpty ? (
-        <>
-          {(generatedTasks.length > 0 || isGenerating) && (
-            <section>
-              <StepHeader
-                number={2}
-                isLoading={isGenerating}
-                title="Generated tasks"
-                subtitle="Delete irrelevant tasks, then verify."
-              />
-              <div className="mt-3">
-                {!isGenerating && generatedTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                    No tasks generated from this summary.
-                  </p>
-                ) : (
-                  <GeneratedTaskList
-                    tasks={generatedTasks}
-                    isLoading={isGenerating}
-                    onDelete={idx => setGeneratedTasks(prev => prev.filter((_, i) => i !== idx))}
-                    onUpdate={(idx, updated) =>
-                      setGeneratedTasks(prev => prev.map((t, i) => (i === idx ? updated : t)))
-                    }
-                    onVerify={handleVerify}
-                    isVerifying={isVerifying}
-                    canVerify={allTasksHaveLocation(generatedTasks)}
-                    structure={structure}
-                    structureLoading={isFetching}
-                    spaceId={selectedSpaceId}
-                    isStep3Done={isStep3Done}
-                    disabled={isSavingStep}
-                  />
-                )}
-              </div>
-            </section>
-          )}
-
-          {(verifiedTasks.length > 0 || isVerifying) && (
-            <section>
-              <StepHeader
-                number={3}
-                isLoading={isVerifying}
-                title="Verified tasks"
-                subtitle="Edit, add, or remove tasks. These will be saved to ClickUp."
-              />
-              <div className="mt-3">
-                {!isVerifying && verifiedTasks.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                    No tasks to add — all tasks already exist in ClickUp.
-                  </p>
-                ) : (
-                  <VerifiedTaskList
-                    tasks={verifiedTasks}
-                    isLoading={isVerifying}
-                    onChange={setVerifiedTasks}
-                    onDrop={handleDropFromGenerated}
-                    onSave={handleSave}
-                    isSaving={isSaving}
-                    savedOk={savedOk}
-                    spaceId={selectedSpaceId}
-                    structure={structure}
-                    structureLoading={isFetching}
-                    isStructureEmpty={isStructureEmpty}
-                    canSave={allTasksHaveLocation(verifiedTasks)}
-                    disabled={isSavingStep}
-                  />
-                )}
-              </div>
-            </section>
-          )}
-        </>
-      ) : (
-        <>
-          {(verifiedTasks.length > 0 || isGenerating) && (
-            <section>
+        {!realIsStructureEmpty ? (
+          <>
+            <div className={`overflow-hidden transition-all duration-500 ease-out ${
+              (generatedTasks.length > 0 || isGenerating) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
+            }`}>
+              <section>
                 <StepHeader
                   number={2}
                   isLoading={isGenerating}
                   title="Generated tasks"
-                  subtitle="Edit, add, or remove tasks. These will be directly saved to ClickUp (click up space chosen contain no folder and no list)."
+                  subtitle="Delete irrelevant tasks, then verify."
                 />
-                <div className="mt-3">
-                  {!isGenerating && verifiedTasks.length === 0 ? (
+                <div className="mt-3 border border-gray-300 rounded-lg p-3">
+                  {!isGenerating && generatedTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
+                      No tasks generated from this summary.
+                    </p>
+                  ) : (
+                    <GeneratedTaskList
+                      tasks={generatedTasks}
+                      isLoading={isGenerating}
+                      onDelete={idx => setGeneratedTasks(prev => prev.filter((_, i) => i !== idx))}
+                      onUpdate={(idx, updated) =>
+                        setGeneratedTasks(prev => prev.map((t, i) => (i === idx ? updated : t)))
+                      }
+                      onVerify={handleVerify}
+                      isVerifying={isVerifying}
+                      canVerify={allTasksHaveLocation(generatedTasks)}
+                      structure={structure}
+                      structureLoading={isFetching}
+                      spaceId={selectedSpaceId}
+                      isVerificationFinished={isVerificationFinished}
+                      disabled={disabledAll}
+                    />
+                  )}
+                </div>
+              </section>
+            </div>
+            <div className={`overflow-hidden transition-all duration-500 ease-out ${
+              (verifiedTasks.length > 0 || isVerifying) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
+            }`}>
+              <section>
+                <StepHeader
+                  number={3}
+                  isLoading={isVerifying}
+                  title="Verified tasks"
+                  subtitle="Edit, add, or remove tasks. These will be saved to ClickUp."
+                />
+                <div className="mt-3 border border-gray-300 rounded-lg p-3">
+                  {!isVerifying && verifiedTasks.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
                       No tasks to add — all tasks already exist in ClickUp.
                     </p>
                   ) : (
                     <VerifiedTaskList
                       tasks={verifiedTasks}
-                      isLoading={isGenerating}
+                      isLoading={isVerifying}
                       onChange={setVerifiedTasks}
                       onDrop={handleDropFromGenerated}
                       onSave={handleSave}
@@ -451,14 +439,53 @@ export function MeetingTaskManager() {
                       structureLoading={isFetching}
                       isStructureEmpty={isStructureEmpty}
                       canSave={allTasksHaveLocation(verifiedTasks)}
-                      disabled={isSavingStep}
+                      disabled={disabledAll}
                     />
                   )}
                 </div>
               </section>
-          )}
-        </>
-      )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={`overflow-hidden transition-all duration-500 ease-out ${
+              (verifiedTasks.length > 0 || isGenerating) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
+            }`}>
+              <section>
+                  <StepHeader
+                    number={2}
+                    isLoading={isGenerating}
+                    title="Generated tasks"
+                    subtitle="Edit, add, or remove tasks. These will be directly saved to ClickUp (click up space chosen contain no folder and no list)."
+                  />
+                  <div className="mt-3 border border-gray-300 rounded-lg p-3">
+                    {!isGenerating && verifiedTasks.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
+                        No tasks to add — all tasks already exist in ClickUp.
+                      </p>
+                    ) : (
+                      <VerifiedTaskList
+                        tasks={verifiedTasks}
+                        isLoading={isGenerating}
+                        onChange={setVerifiedTasks}
+                        onDrop={handleDropFromGenerated}
+                        onSave={handleSave}
+                        isSaving={isSaving}
+                        savedOk={savedOk}
+                        spaceId={selectedSpaceId}
+                        structure={structure}
+                        structureLoading={isFetching}
+                        isStructureEmpty={isStructureEmpty}
+                        canSave={allTasksHaveLocation(verifiedTasks)}
+                        disabled={disabledAll}
+                      />
+                    )}
+                  </div>
+                </section>
+            </div>
+          </>
+        )}
+      </div>
       <Dialog
         open={showSpaceChangeDialog}
         onOpenChange={open => { if (!open) { setShowSpaceChangeDialog(false); setPendingSpaceId(null); } }}
@@ -477,11 +504,10 @@ export function MeetingTaskManager() {
             <Button
               variant="outline"
               onClick={() => { setShowSpaceChangeDialog(false); setPendingSpaceId(null); }}
-              disabled={isSavingStep}
             >
               Cancel
             </Button>
-            <Button onClick={handleConfirmSpaceChangeAndGenerate} disabled={isSavingStep}>
+            <Button onClick={handleConfirmSpaceChangeAndGenerate}>
               Yes, switch &amp; regenerate
             </Button>
           </DialogFooter>

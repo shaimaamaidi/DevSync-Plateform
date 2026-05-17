@@ -15,8 +15,9 @@ interface Props {
   structure: FolderWithListsMetadata[];        
   structureLoading: boolean;                   
   spaceId: string;    
-  draggable: boolean; 
-  disabled: boolean;                        
+  isVerificationFinished: boolean; 
+  disabled: boolean; 
+  isVerifying: boolean;
 }
 
 export function GeneratedTaskCard({
@@ -26,8 +27,9 @@ export function GeneratedTaskCard({
   structure,
   structureLoading,
   spaceId,
-  draggable,
-  disabled 
+  isVerificationFinished,
+  disabled,
+  isVerifying,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -53,10 +55,10 @@ export function GeneratedTaskCard({
     <div className="bg-card border border-border/60 rounded-xl px-4 py-3.5 hover:border-border transition-colors group">
       <div className="flex items-start gap-3">
         <div
-          draggable={draggable && !disabled}
-          onDragStart={draggable && !disabled ? handleDragStart : undefined}
+          draggable={isVerificationFinished && !disabled}
+          onDragStart={isVerificationFinished && !disabled ? handleDragStart : undefined}
           className={`flex-shrink-0 mt-[3px] ${
-            !disabled && draggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+            !disabled && isVerificationFinished ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
           }`}
         >
           <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground" />
@@ -90,7 +92,7 @@ export function GeneratedTaskCard({
               <div ref={dropRef} className="relative" onClick={e => e.stopPropagation()}>
                 <button
                   type="button"
-                  disabled={disabled}
+                  disabled={disabled || isVerifying}
                   onClick={() => setLocationOpen(p => !p)}
                   className={`text-xs px-2 py-0.5 rounded-md border transition-colors ${
                     task.location?.trim()
@@ -118,7 +120,7 @@ export function GeneratedTaskCard({
                             onUpdate({ ...task, location: opt.label });
                             setLocationOpen(false);
                           }}
-                          disabled={disabled}
+                          disabled={disabled || isVerifying}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
                             task.location === opt.label ? 'bg-muted font-medium' : ''
                           }`}
@@ -131,7 +133,7 @@ export function GeneratedTaskCard({
                       <button
                         type="button"
                         onClick={() => { setLocationOpen(false); setShowCreateList(true); }}
-                        disabled={disabled}
+                        disabled={disabled || isVerifying}
                         className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 font-medium"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -161,7 +163,7 @@ export function GeneratedTaskCard({
             <Button
               variant="ghost"
               size="sm"
-              disabled={disabled}
+              disabled={disabled || isVerifying || isVerificationFinished}
               className="h-7 w-7 p-0"
               onClick={e => {
                 e.stopPropagation();

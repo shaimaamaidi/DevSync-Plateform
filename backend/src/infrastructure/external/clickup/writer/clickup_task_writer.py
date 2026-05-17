@@ -337,9 +337,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     created_count += 1
                 except ClickUpTaskCreateException as e:
                     logger.error(
-                        "Create failed: task_name=%s folder=%s error=%s.",
+                        "Create failed: task_name=%s location=%s error=%s.",
                         result.task_name,
-                        result.folder,
+                        result.location,
                         str(e),
                     )
                     raise
@@ -417,10 +417,16 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         payload = {
             "name": result.task_name,
-            "description": result.task_description,
-            "status": result.task_status,
-            "priority": priority_to_str(result.task_priority),
+            "description": result.task_description
         }
+
+        if result.task_status:
+            payload["status"] = result.task_status
+
+        priority = priority_to_str(result.task_priority)
+        if priority:
+            payload["priority"] = priority
+
         assignee_names = []
         if result.task_assigne:
             assignee_names = [a.strip() for a in result.task_assigne.split(",")]
@@ -493,10 +499,15 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         endpoint = f"/task/{result.task_id}"
 
-        payload = {
-            "status": result.task_status,
-            "priority": priority_to_str(result.task_priority),
-        }
+        payload = {}
+
+        if result.task_status:
+            payload["status"] = result.task_status
+
+        priority = priority_to_str(result.task_priority)
+        if priority:
+            payload["priority"] = priority
+
 
         assignee_names = []
         if result.task_assigne:

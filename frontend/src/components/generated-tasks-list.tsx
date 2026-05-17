@@ -15,7 +15,7 @@ interface Props {
   structure: FolderWithListsMetadata[];
   structureLoading: boolean;
   spaceId: string;
-  isStep3Done: boolean;
+  isVerificationFinished: boolean;
   disabled: boolean;
 }
 
@@ -30,7 +30,7 @@ export function GeneratedTaskList({
   structure,
   structureLoading,
   spaceId,
-  isStep3Done,
+  isVerificationFinished,
   disabled,
 }: Props) {
   return (
@@ -38,9 +38,9 @@ export function GeneratedTaskList({
       <div className="flex items-center justify-between mb-1">
         <p className="text-xs text-muted-foreground">
           {!isLoading &&
-            `${tasks.length} task${tasks.length !== 1 ? 's' : ''} generated${isStep3Done ? ' · drag any task into Step 3 to add it manually' : ''}`}
+            `${tasks.length} task${tasks.length !== 1 ? 's' : ''} generated${isVerificationFinished ? ' · drag any task into Step 3 to add it manually' : ''}`}
         </p>
-        {isStep3Done && (
+        {isVerificationFinished && (
           <span className="text-xs text-muted-foreground/60">⇠ drag</span>
         )}
       </div>
@@ -57,8 +57,9 @@ export function GeneratedTaskList({
                 structure={structure}
                 structureLoading={structureLoading}
                 spaceId={spaceId}
-                draggable={isStep3Done}
+                isVerificationFinished={isVerificationFinished}
                 disabled ={disabled}
+                isVerifying={isVerifying}
               />
             ))}
       </div>

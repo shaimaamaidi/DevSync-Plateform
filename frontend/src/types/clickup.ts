@@ -20,7 +20,3 @@ export interface LocationWithMetadataOption {
   statuses: string[];
   priorities: string[];
 };
-
-export type AssigneeDialogState =
-  | { open: false }
-  | { open: true; type: 'mails'; items: string[] };
