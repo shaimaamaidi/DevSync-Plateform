@@ -55,6 +55,5 @@ class ClickUpMemberInvitation(BaseModel):
         role: Workspace role assigned to the invited member
             (OWNER / ADMIN / MEMBER / GUEST).
     """
-
     email: str
     role: ClickUpMemberRole = ClickUpMemberRole.MEMBER

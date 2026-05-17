@@ -26,6 +26,7 @@ from backend.src.domain.entities.clickup.create_list_request import CreateListRe
 from backend.src.domain.entities.clickup.create_space_request import CreateSpaceRequest
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
+from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberInvitation
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
 from backend.src.presentation.api.deps import get_clickup_structure_creation_use_case
 
@@ -92,6 +93,86 @@ def create_space(
 
     return use_case.create_space(body)
 
+@router.delete(
+    "/spaces/{space_id}",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Delete a ClickUp space",
+    description="Delete a ClickUp space from both ClickUp and the application layer.",
+)
+def delete_space(
+    space_id: str,
+    use_case: ClickUpStructureCreationUseCase = Depends(get_clickup_structure_creation_use_case),
+) -> bool:
+    """
+    Delete a ClickUp space.
+
+    Args:
+        space_id (str): ClickUp space identifier (path param).
+        use_case (ClickUpStructureCreationUseCase): Injected use case.
+
+    Returns:
+        bool: True if deletion succeeds.
+    """
+    logger.info("DELETE /clickup/structure/spaces/%s.", space_id)
+
+    return use_case.delete_space(space_id)
+
+
+@router.post(
+    "/members/invite",
+    response_model=bool,
+    status_code=status.HTTP_201_CREATED,
+    summary="Invite a member to the ClickUp workspace",
+    description="Send an invitation to a member to join the ClickUp workspace.",
+)
+def invite_member(
+    body: ClickUpMemberInvitation,
+    use_case: ClickUpStructureCreationUseCase = Depends(get_clickup_structure_creation_use_case),
+) -> bool:
+    """
+    Invite a member to a ClickUp workspace.
+
+    Args:
+        body (ClickUpMemberInvitation): Member invitation payload.
+        use_case (ClickUpStructureCreationUseCase): Injected use case.
+
+    Returns:
+        bool: True if the invitation succeeds.
+    """
+    logger.info(
+        "POST /clickup/structure/members/invite. email=%s role=%s.",
+        body.email,
+        body.role,
+    )
+
+    return use_case.invite_member(body)
+
+
+@router.delete(
+    "/members/{member_id}",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Remove a member from the ClickUp workspace",
+    description="Remove a member from the ClickUp workspace by their database ID.",
+)
+def remove_member_from_workspace(
+    member_id: int,
+    use_case: ClickUpStructureCreationUseCase = Depends(get_clickup_structure_creation_use_case),
+) -> bool:
+    """
+    Remove a member from the ClickUp workspace.
+
+    Args:
+        member_id (int): Member identifier in the database (path param).
+        use_case (ClickUpStructureCreationUseCase): Injected use case.
+
+    Returns:
+        bool: True if removal succeeds.
+    """
+    logger.info("DELETE /clickup/structure/members/%s.", member_id)
+
+    return use_case.remove_member_from_workspace(member_id)
 
 @router.post(
     "/folders",

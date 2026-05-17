@@ -345,7 +345,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         """
         logger.info(
             "Inviting member to ClickUp workspace. "
-            "workspace_id=%s email=%s role=%s.",
+            "email=%s role=%s.",
             member.email,
             member.role,
         )
@@ -354,8 +354,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
 
         logger.info(
             "Member invited successfully to ClickUp workspace. "
-            "workspace_id=%s email=%s.",
-            member.workspace_id,
+            "email=%s.",
             member.email,
         )
 
