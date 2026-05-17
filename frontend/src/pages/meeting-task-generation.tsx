@@ -311,15 +311,15 @@ export function MeetingTaskManager() {
                 >
                   <SelectTrigger  className={`w-[500px] bg-input border-border ${!selectedSpaceId || selectedSpaceId === 'none'? 'text-muted-foreground': 'text-foreground'}`}>
                     <SelectValue
-                      placeholder={spacesLoading ? 'Loading spaces…' : 'Select a ClickUp space…'}
+                      placeholder={spacesLoading ? 'Loading spaces…' : 'Select a click up space…'}
                     />
                   </SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     {!spacesLoading && spaces.length === 0 ? (
-                      <SelectItem value="none" className="text-muted-foreground" disabled>No ClickUp space found</SelectItem>
+                      <SelectItem value="none" className="text-muted-foreground" disabled>No click up space found</SelectItem>
                     ) : (
                       <>
-                        <SelectItem value="none" className="text-muted-foreground hidden" disabled>No Click up space selected</SelectItem>
+                        <SelectItem value="none" className="text-muted-foreground hidden" disabled>No click up space selected</SelectItem>
                         {spaces.map(space => (
                           <SelectItem
                             key={space.space_code ?? ''}

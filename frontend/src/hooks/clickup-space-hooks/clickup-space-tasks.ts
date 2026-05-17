@@ -4,12 +4,13 @@ import { withErrorHandling } from '@/services/api-error';
 import { defaultOnError } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
+import type { FolderWithLists } from '@/api/api';
 
 export function useSpaceTasks(spaceId: string) {
   const navigate = useNavigate();
   const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError } = useQuery<FolderWithLists[] | null>({
     queryKey: ['space-tasks', spaceId],
     queryFn: async () => {
       const result = await withErrorHandling(

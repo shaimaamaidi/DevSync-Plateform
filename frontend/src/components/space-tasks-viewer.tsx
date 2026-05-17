@@ -15,12 +15,14 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { extractErrorCode, handleApiError, normalizeErrorMessage, withErrorHandling } from '@/services/api-error';
 import type {
   ClickUpTask,
   ClickUpList,
   UpdateTaskRequest,
   FolderWithListsMetadata,
+  ClickUpListMetadata,
 } from '@/api/api';
 import { clickupTaskManagementService } from '@/services/clickup-task-management-sevice';
 import { useMembers } from '@/hooks/member-hooks/use-members';
@@ -30,7 +32,6 @@ import { TaskCard } from './ui/task-card';
 import { buildLocationWithTasksOptions } from '@/lib/location';
 import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
 import { useSpaceTasks } from '@/hooks/clickup-space-hooks/clickup-space-tasks';
-import type { AssigneeDialogState } from '@/types/clickup';
 import { showSuccessToast } from './global-toaster';
 import { 
   Select, 
@@ -40,6 +41,11 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { defaultOnError } from '@/utils/error-handler';
+import { CreateListForm } from './ui/create-list-form'; 
+
+export type AssigneeDialogState =
+  | { open: false }
+  | { open: true; type: 'mails'; items: string[] };
 
 type PendingUpdate = {
   taskId: string;
@@ -48,27 +54,48 @@ type PendingUpdate = {
 
 export function SpaceTasksViewer() {
   const { spaceId } = useParams<{ spaceId: string }>();
+  const [selectedListId, setSelectedListId] = useState<string>('');
+
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const onError = useMemo(() => defaultOnError(navigate), [navigate]);
 
   const { members, loading: membersLoading } = useMembers();
-
   const { folders, loading: dataLoading, error: dataError } = useSpaceTasks(spaceId ?? '');
-
-  const locationOptions = useMemo(
-    () => buildLocationWithTasksOptions(folders),
-    [folders],
-  );
-
-  const [selectedListId, setSelectedListId] = useState<string>('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [busy, setBusy] = useState(false);
-
+  const [extraLists, setExtraLists] = useState<ClickUpListMetadata[]>([]);
   const [tasksByList, setTasksByList] = useState<Record<string, ClickUpTask[]>>({});
+
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showCreateListForm, setShowCreateListForm] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
   const [pendingUpdate, setPendingUpdate] = useState<PendingUpdate | null>(null);
 
+  const locationOptions = useMemo(() => {
+    const base = buildLocationWithTasksOptions(folders);
+    const extra = extraLists
+      .filter((l) => !base.some((o) => o.listId === l.id))
+      .map((l) => ({
+        listId: l.id,
+        label: l.name,
+        list: { 
+          id: l.id, 
+          name: l.name, 
+          statuses: l.statuses ?? [],
+          priorities: l.priorities ?? [] 
+        } as ClickUpList,
+      }));
+    return [...base, ...extra];
+  }, [folders, extraLists]);
+
+  const selectedOption = locationOptions.find((o) => o.listId === selectedListId);
+  const selectedList: ClickUpList | null = selectedOption?.list ?? null;
+  const statuses: string[] = selectedList?.statuses ?? [];
+  const priorities: string[] = selectedList?.priorities ?? [];
+  const currentTasks: ClickUpTask[] = tasksByList[selectedListId] ?? [];
+  const emptyStructureForFields: FolderWithListsMetadata[] = [];
+  
   useEffect(() => {
     if (folders.length === 0) 
       return;
@@ -86,12 +113,6 @@ export function SpaceTasksViewer() {
     setShowAddForm(false);
   }, [selectedListId]);
 
-  const selectedOption = locationOptions.find((o) => o.listId === selectedListId);
-  const selectedList: ClickUpList | null = selectedOption?.list ?? null;
-  const statuses: string[] = selectedList?.statuses ?? [];
-  const priorities: string[] = selectedList?.priorities ?? [];
-  const currentTasks: ClickUpTask[] = tasksByList[selectedListId] ?? [];
-  const emptyStructureForFields: FolderWithListsMetadata[] = [];
 
   const handleCreated = useCallback((task: ClickUpTask) => {
     setTasksByList((prev) => ({
@@ -101,6 +122,13 @@ export function SpaceTasksViewer() {
     setShowAddForm(false);
   }, [selectedListId]);
 
+  const handleListCreated = useCallback((list: ClickUpListMetadata) => {
+    setExtraLists((prev) => [...prev, list]);  
+    setTasksByList((prev) => ({ ...prev, [list.id]: [] }));  
+    setSelectedListId(list.id);              
+    setShowCreateListForm(false);
+    queryClient.invalidateQueries({ queryKey: ['space-tasks', spaceId] });
+  }, []);
 
   const handleDelete = async (taskId: string) => {
     setBusy(true);
@@ -219,7 +247,7 @@ export function SpaceTasksViewer() {
                   No location available.
                 </p>
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex-1 max-w-sm">
                     <Select
                       value={selectedListId || 'none'}
@@ -233,18 +261,23 @@ export function SpaceTasksViewer() {
                             : 'text-foreground'
                         }`}
                       >
-                        <SelectValue placeholder="Select a location…" />
+                        { dataLoading ? (
+                            <span className="text-muted-foreground">Loading…</span>
+                          ) : (
+                            <SelectValue placeholder="No click up location selected" />
+                        )}                      
                       </SelectTrigger>
                       <SelectContent className="bg-card border-border">
-                        {locationOptions.length === 0 ? (
+                        { dataLoading ? (
+                          <div className="px-3 py-2 text-xs text-muted-foreground">Loading…</div>
+                        ):
+                          locationOptions.length === 0 ? (
                           <SelectItem value="none" className="text-muted-foreground" disabled>
                             No location available
                           </SelectItem>
                         ) : (
                           <>
-                            <SelectItem value="none" className="text-muted-foreground hidden" disabled>
-                              Select a location…
-                            </SelectItem>
+                            <SelectItem value="none" className="text-muted-foreground" disabled>No location selected</SelectItem>
                             {locationOptions.map((opt) => (
                               <SelectItem key={opt.listId} value={opt.listId}>
                                 {opt.label}
@@ -255,6 +288,17 @@ export function SpaceTasksViewer() {
                       </SelectContent>
                     </Select>
                     <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  </div>
+
+                  <div className="ml-auto">
+                    <Button
+                      onClick={() => setShowCreateListForm(true)}
+                      disabled={busy}
+                      className="gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      New click up location
+                    </Button>
                   </div>
                 </div>
               )}
@@ -319,7 +363,7 @@ export function SpaceTasksViewer() {
           )}
         </div>
       </div>
-
+      
       <Dialog
         open={assigneeDialog.open && assigneeDialog.type === 'mails'}
         onOpenChange={(open) => { if (!open) handleCancelIgnoreMails(); }}
@@ -354,6 +398,13 @@ export function SpaceTasksViewer() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CreateListForm
+        isOpen={showCreateListForm}
+        onClose={() => setShowCreateListForm(false)}
+        onSuccess={handleListCreated}
+        spaceId={spaceId!}
+      />
     </>
   );
 }
