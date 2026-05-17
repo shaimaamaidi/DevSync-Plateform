@@ -356,7 +356,8 @@ def get_clickup_structure_creation_use_case(
     """
     try:
         return request.app.state.workflow_container.create_clickup_structure_creation_use_case(
-            clickup_repo=container.clickup_repo
+            clickup_repo=container.clickup_repo,
+            member_repo=container.member_repo,
         )
     except ServiceUnavailableException:
         raise

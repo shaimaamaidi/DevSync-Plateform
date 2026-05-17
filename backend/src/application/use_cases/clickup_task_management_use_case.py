@@ -78,7 +78,7 @@ class ClickUpTaskManagementUseCase(IClickUpTaskManagementUseCase):
         email_to_id = {}
 
         if request.assignees:
-            members = self._clickup_reader.get_workspace_members(request.space_id)
+            members = self._clickup_reader.get_workspace_members()
 
             if members:
                 email_to_id = {m["email"].lower(): m["id"] for m in members}
@@ -133,7 +133,7 @@ class ClickUpTaskManagementUseCase(IClickUpTaskManagementUseCase):
         email_to_id = {}
 
         if request.assignees or request.old_assignees:
-            members = self._clickup_reader.get_workspace_members(request.space_id)
+            members = self._clickup_reader.get_workspace_members()
 
             if members:
                 email_to_id = {m["email"].lower(): m["id"] for m in members}

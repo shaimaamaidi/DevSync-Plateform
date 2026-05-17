@@ -14,7 +14,7 @@ from typing import List, Optional
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
 from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception import ClickUpResourceNotFoundException
@@ -193,31 +193,33 @@ class ClickUpReader(IClickUpReader):
 
         return folders
 
-    def get_workspace_members(self, space_id: str) -> List[dict]:
+    def get_workspace_members(self) -> List[dict]:
         """
         Retrieve ClickUp workspace members from the first available team.
 
         Only the first team is used — in most ClickUp configurations a single
         workspace maps to a single team.
 
-        Args:
-            space_id: ClickUp space identifier (used for logging context only).
-
         Returns:
             List of member dicts with keys: id, username, email.
-
-        Raises:
-            ClickUpWorkspaceMembersException: If no valid members are found.
         """
-        logger.info("Fetching workspace members. space_id=%s.", space_id)
+        logger.info("Fetching workspace members.")
+
+        ASSIGNABLE_ROLES = {20, 40, 60}
 
         teams = self._http.get("/team").get("teams", [])
 
         members = []
 
-        if teams:
-            first_team = teams[0]
-            for m in first_team.get("members", []):
+        for team in teams:
+            for m in team.get("members", []):
+                role_code = (m.get("user") or {}).get("role")
+                if role_code not in ASSIGNABLE_ROLES:
+                    logger.warning(
+                        "Skipping non-assignable member (role=%s). entry=%s.", role_code, m
+                    )
+                    continue
+
                 parsed = self._parse_member(m)
                 if parsed:
                     members.append(parsed)
@@ -227,18 +229,92 @@ class ClickUpReader(IClickUpReader):
                     )
 
         if not members:
-            logger.warning("No valid workspace members found. space_id=%s.", space_id)
-            raise ClickUpWorkspaceMembersException(
-                f"Workspace '{space_id}' not found or has no members."
-            )
+            logger.warning("No valid workspace members found.")
+            return []
 
         logger.info(
-            "%d member(s) retrieved. space_id=%s.",
+            "%d member(s) retrieved.",
             len(members),
-            space_id,
         )
 
         return members
+
+    def get_workspace_members_with_roles(self) -> List[dict]:
+        """
+        Retrieve ClickUp workspace members with their roles from the first available team.
+
+        Returns:
+            List of member dicts with keys: id, email, role.
+
+        Raises:
+            ClickUpWorkspaceMembersException: If no valid members are found.
+        """
+        logger.info("Fetching workspace members with roles.")
+
+        teams = self._http.get("/team").get("teams", [])
+
+        members = []
+
+        for team in teams:
+            for m in team.get("members", []):
+                parsed = self._parse_member_with_role(m)
+                if parsed:
+                    members.append(parsed)
+                else:
+                    logger.warning(
+                        "Skipping incomplete member entry. entry=%s.", m
+                    )
+
+        if not members:
+            logger.warning("No valid workspace members found.")
+            raise ClickUpWorkspaceMembersException(
+                f"Workspace not found or has no members."
+            )
+
+        logger.info(
+            "%d member(s) with roles retrieved.",
+            len(members),
+        )
+
+        return members
+
+    @staticmethod
+    def _parse_member_with_role(member: dict) -> Optional[dict]:
+        """
+        Extract and validate a member dict including their role from a raw API member entry.
+
+        ClickUp role values:
+            20 → owner
+            40 → admin
+            60 → member
+            80 → guest
+
+        Returns None if any required field (id, email, role) is missing.
+
+        Args:
+            member: Raw member dictionary from ClickUp API.
+
+        Returns:
+            Validated member dict with keys id, email, role — or None.
+        """
+        ROLE_MAP = {
+            20: "owner",
+            40: "admin",
+            60: "member",
+            80: "guest",
+        }
+
+        user = member.get("user") or {}
+        user_id = user.get("id")
+        email = user.get("email")
+        role_code = user.get("role")
+
+        if not (user_id and email and role_code is not None):
+            return None
+
+        role = ROLE_MAP.get(role_code, f"unknown({role_code})")
+
+        return {"id": user_id, "email": email, "role": role}
 
     def _build_folder_with_lists(self, folder_data: dict) -> FolderWithLists:
         """

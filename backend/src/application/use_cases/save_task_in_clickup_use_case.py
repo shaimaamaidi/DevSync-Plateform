@@ -75,7 +75,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
             ignore_mails (bool): Whether to ignore email-based assignment.
         """
         logger.info(
-            "Saving tasks to ClickUp: space_id=%s total_tasks=%d.",
+                "Saving tasks to ClickUp: space_id=%s total_tasks=%d.",
             space_id,
             len(tasks),
         )
@@ -98,7 +98,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
         members: List[dict] = []
 
         if name_to_email :
-            members = self._clickup_reader.get_workspace_members(space_id)
+            members = self._clickup_reader.get_workspace_members()
 
         self._clickup_writer.apply_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
 

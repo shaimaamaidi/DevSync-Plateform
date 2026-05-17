@@ -64,15 +64,25 @@ class IClickUpReader(ABC):
         """
 
     @abstractmethod
-    def get_workspace_members(self, space_id: str) -> List[dict]:
+    def get_workspace_members(self) -> List[dict]:
         """
         Fetch workspace members for the current space.
-
-        Args:
-            space_id: ClickUp space identifier.
 
         Returns:
             List[dict]: List of workspace members with their metadata
             (e.g., id, username, email).
+        """
+        pass
+
+    @abstractmethod
+    def get_workspace_members_with_roles(self) -> List[dict]:
+        """
+        Retrieve ClickUp workspace members with their roles from the first available team.
+
+        Returns:
+            List of member dicts with keys: id, email, role.
+
+        Raises:
+            ClickUpWorkspaceMembersException: If no valid members are found.
         """
         pass

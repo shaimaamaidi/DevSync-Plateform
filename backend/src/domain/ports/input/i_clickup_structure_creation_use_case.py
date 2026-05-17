@@ -20,6 +20,7 @@ from backend.src.domain.entities.clickup.create_list_request import CreateListRe
 from backend.src.domain.entities.clickup.create_space_request import CreateSpaceRequest
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
+from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberInvitation
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
 
 
@@ -63,6 +64,29 @@ class IClickUpStructureCreationUseCase(ABC):
         pass
 
     @abstractmethod
+    def delete_space(self, space_id: str) -> bool:
+        """
+        Delete a ClickUp space from both the database and ClickUp.
+
+        This method first removes the space from the application database,
+        then deletes it from ClickUp.
+
+        If ClickUp deletion fails after database deletion, a compensation
+        action is triggered to restore the space in the database.
+
+        Args:
+            space_id (str): ClickUp space identifier.
+
+        Returns:
+            bool: True if deletion succeeds.
+
+        Raises:
+            ClickUpSpaceNotFoundException:If the space does not exist in the database.
+            ClickUpWriteException: If ClickUp deletion fails.
+        """
+        pass
+
+    @abstractmethod
     def create_folder(self, folder: CreateFolderRequest) -> FolderWithListsMetadata:
         """
         Create a folder inside a ClickUp space.
@@ -98,5 +122,31 @@ class IClickUpStructureCreationUseCase(ABC):
 
         Returns:
             ClickUpListMetadata: Updated list metadata after adding status.
+        """
+        pass
+
+    @abstractmethod
+    def invite_member(self, member: ClickUpMemberInvitation) -> bool:
+        """
+        Invite a member to a ClickUp workspace.
+
+        Args:
+            member (ClickUpMemberInvitation): Invitation request containing workspace member data.
+
+        Returns:
+            bool: True if the invitation succeeds.
+        """
+        pass
+
+    @abstractmethod
+    def remove_member_from_workspace(self, member_id: int) -> bool:
+        """
+        Invite a member to a ClickUp workspace.
+
+        Args:
+            member_id (int): member identifier in BDD.
+
+        Returns:
+            bool: True if the invitation succeeds.
         """
         pass

@@ -57,7 +57,7 @@ class IClickUpRepository(ABC):
         Retrieve a ClickUp space by its identifier.
 
         Args:
-            space_id (int): ClickUp space identifier.
+            space_id (int): ClickUp space identifier in BDD.
 
         Returns:
             ClickUpSpaceDetailDTO: ClickUp space details.

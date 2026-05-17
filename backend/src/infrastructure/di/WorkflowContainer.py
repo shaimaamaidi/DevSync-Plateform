@@ -427,7 +427,7 @@ class WorkflowContainer:
             clickup_writer=self.clickup_writer,
         )
 
-    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository) -> ClickUpStructureCreationUseCase:
+    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository, member_repo: IMemberRepository) -> ClickUpStructureCreationUseCase:
         """
         Factory method for ClickUpStructureCreationUseCase.
 
@@ -440,6 +440,7 @@ class WorkflowContainer:
 
         Args:
             clickup_repo (IClickUpRepository): Request-scoped click up repository.
+            member_repo (IMemberRepository): Request-scoped member repository.
 
         Returns:
             ClickUpStructureCreationUseCase:
@@ -454,6 +455,7 @@ class WorkflowContainer:
 
         return ClickUpStructureCreationUseCase(
             clickup_repo=clickup_repo,
+            member_repo=member_repo,
             clickup_reader=self.clickup_reader,
             clickup_writer=self.clickup_workspace_writer
         )
