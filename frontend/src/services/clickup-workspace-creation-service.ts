@@ -2,6 +2,7 @@ import { clickUpStructureCreationApi } from '@/apiClient';
 import type {
   AddStatusRequest,
   ClickUpListMetadata,
+  ClickUpMemberInvitation,
   ClickUpSpaceDTO,
   ClickUpSpaceRegisterDTO,
   CreateFolderRequest,
@@ -23,6 +24,33 @@ export const clickUpStructureCreationService = {
 
     const response = await clickUpStructureCreationApi.createSpaceClickupStructureSpacesPost(payload);
     return response.data ?? null;
+  },
+
+  async deleteSpace(spaceId: string): Promise<boolean> {
+    if (!spaceId) {
+      throw new Error('Missing space id');
+    }
+
+    const response = await clickUpStructureCreationApi.deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId);
+    return response.data ?? false;
+  },
+
+  async inviteMember(request: ClickUpMemberInvitation): Promise<boolean> {
+    if (!request.email || !request.role) {
+      throw new Error('Missing email or role');
+    }
+
+    const response = await clickUpStructureCreationApi.inviteMemberClickupStructureMembersInvitePost(request);
+    return response.data ?? false;
+  },
+
+  async removeMemberFromWorkspace(memberId: number): Promise<boolean> {
+    if (!memberId) {
+      throw new Error('Missing member id');
+    }
+
+    const response = await clickUpStructureCreationApi.removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId);
+    return response.data ?? false;
   },
 
   async createFolder(request: CreateFolderRequest): Promise<FolderWithListsMetadata | null> {
