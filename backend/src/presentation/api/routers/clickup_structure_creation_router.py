@@ -101,7 +101,7 @@ def create_space(
     description="Delete a ClickUp space from both ClickUp and the application layer.",
 )
 def delete_space(
-    space_id: str,
+    space_id: int,
     use_case: ClickUpStructureCreationUseCase = Depends(get_clickup_structure_creation_use_case),
 ) -> bool:
     """

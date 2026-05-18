@@ -331,9 +331,9 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
               variant="destructive"
               onClick={async () => {
                 if (deleteConfirmRepoId !== null) {
+                  const repo = repos.find((r) => r.id === deleteConfirmRepoId);
                   await onDelete(deleteConfirmRepoId);
                   setDeleteConfirmRepoId(null);
-                  const repo = repos.find((r) => r.id === deleteConfirmRepoId);
                   if (repo && repo.clickup_space) {
                     refreshSpaces?.();
                   }

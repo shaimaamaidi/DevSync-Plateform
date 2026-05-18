@@ -1996,11 +1996,11 @@ export const ClickUpStructureCreationApiAxiosParamCreator = function (configurat
         /**
          * Delete a ClickUp space from both ClickUp and the application layer.
          * @summary Delete a ClickUp space
-         * @param {string} spaceId 
+         * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteSpaceClickupStructureSpacesSpaceIdDelete: async (spaceId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        deleteSpaceClickupStructureSpacesSpaceIdDelete: async (spaceId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'spaceId' is not null or undefined
             assertParamExists('deleteSpaceClickupStructureSpacesSpaceIdDelete', 'spaceId', spaceId)
             const localVarPath = `/clickup/structure/spaces/{space_id}`
@@ -2196,11 +2196,11 @@ export const ClickUpStructureCreationApiFp = function(configuration?: Configurat
         /**
          * Delete a ClickUp space from both ClickUp and the application layer.
          * @summary Delete a ClickUp space
-         * @param {string} spaceId 
+         * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+        async deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.deleteSpaceClickupStructureSpacesSpaceIdDelete']?.[localVarOperationServerIndex]?.url;
@@ -2298,11 +2298,11 @@ export const ClickUpStructureCreationApiFactory = function (configuration?: Conf
         /**
          * Delete a ClickUp space from both ClickUp and the application layer.
          * @summary Delete a ClickUp space
-         * @param {string} spaceId 
+         * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: string, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+        deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: number, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
             return localVarFp.deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2390,11 +2390,11 @@ export class ClickUpStructureCreationApi extends BaseAPI {
     /**
      * Delete a ClickUp space from both ClickUp and the application layer.
      * @summary Delete a ClickUp space
-     * @param {string} spaceId 
+     * @param {number} spaceId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: string, options?: RawAxiosRequestConfig) {
+    public deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: number, options?: RawAxiosRequestConfig) {
         return ClickUpStructureCreationApiFp(this.configuration).deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId, options).then((request) => request(this.axios, this.basePath));
     }
 

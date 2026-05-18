@@ -24,6 +24,7 @@ export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
   onUpdate: (space: ClickUpSpaceUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => Promise<boolean>;
+  onRemove: (spaceCode: number) => Promise<boolean>; 
   onCreate: (space: CreateSpaceRequest) => Promise<boolean>;
   onRegister: (space: ClickUpSpaceRegisterDTO) => Promise<boolean | undefined>;
   isLoading?: boolean;
@@ -40,6 +41,7 @@ export function ClickUpSpacesTable({
   spaces, 
   onUpdate, 
   onDelete, 
+  onRemove,
   onCreate, 
   onRegister, 
   isLoading ,
@@ -55,6 +57,7 @@ export function ClickUpSpacesTable({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
+  const [showDeleteModeDialog, setShowDeleteModeDialog] = useState(false);
 
   const handleAddClick = () => {
     setEditingSpace(null);
@@ -281,17 +284,59 @@ export function ClickUpSpacesTable({
             <Button variant="outline" onClick={() => setDeleteConfirmSpaceId(null)}>No</Button>
             <Button
               variant="destructive"
-              onClick={async () => {
-                if (deleteConfirmSpaceId !== null) {
-                  const result = await onDelete(deleteConfirmSpaceId);
-                  setDeleteConfirmSpaceId(null);
-                  if(result){
-                    refreshSpaces?.();
-                  }
-                }
+              onClick={() => {
+                setShowDeleteModeDialog(true);
               }}
             >
               Yes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={showDeleteModeDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteModeDialog(false);
+            setDeleteConfirmSpaceId(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Choose deletion mode</DialogTitle>
+            <DialogDescription>
+              How would you like to delete this space?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (deleteConfirmSpaceId !== null) {
+                  const result = await onDelete(deleteConfirmSpaceId);
+                  setShowDeleteModeDialog(false);
+                  setDeleteConfirmSpaceId(null);
+                  if (result) 
+                    refreshSpaces?.();
+                }
+              }}
+            >
+              Remove from DB only
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (deleteConfirmSpaceId !== null) {
+                  const result = await onRemove(deleteConfirmSpaceId);
+                  setShowDeleteModeDialog(false);
+                  setDeleteConfirmSpaceId(null);
+                  if (result) 
+                    refreshSpaces?.();
+                }
+              }}
+            >
+              Remove from DB + ClickUp
             </Button>
           </DialogFooter>
         </DialogContent>

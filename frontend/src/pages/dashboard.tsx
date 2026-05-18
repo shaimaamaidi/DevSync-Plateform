@@ -36,6 +36,7 @@ import { useRegisterClickUpSpace } from '@/hooks/clickup-structure-hooks/use-reg
 import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github-clickup';
 import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
 import { defaultOnError } from '@/utils/error-handler';
+import { useRemoveClickUpSpace } from '@/hooks/clickup-space-hooks/use-remove-clickup-sapce';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';
@@ -66,6 +67,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
   const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
+  const { mutateAsync: removeClickUpSpace } = useRemoveClickUpSpace();
   const { mutateAsync: createClickUpSpace } = useCreateClickUpSpace();
   const { mutateAsync: registerClickUpSpace } = useRegisterClickUpSpace();
 
@@ -146,6 +148,16 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     showSuccessToast('Click up space deleted successfully');
     return Promise.resolve(true);
   }, [deleteClickUpSpace]);
+
+  const handleRemoveClickUpSpace = useCallback(async (id: number) => {
+    const result = await removeClickUpSpace(id);
+    
+    if (!result) 
+      return Promise.resolve(false);
+
+    showSuccessToast('Click up space removed successfully');
+    return Promise.resolve(true);
+  }, [removeClickUpSpace]);
 
   const handleAddRepo = useCallback(async (newRepo: GitRepoCreateDTO) => {
     const result = await addRepo(newRepo);
@@ -270,6 +282,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             spaces={clickUpSpaces}
             onUpdate={handleUpdateClickUpSpace}
             onDelete={handleDeleteClickUpSpace}
+            onRemove={handleRemoveClickUpSpace}
             onCreate={handleCreateClickUpSpace}
             onRegister={handleRegisterClickUpSpace}
             isLoading={clickupLoading} 

@@ -31,7 +31,8 @@ from backend.src.domain.entities.clickup.folder_with_list_metadata import Folder
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberInvitation
 from backend.src.domain.entities.clickup.status import ClickUpStatus
-from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
+from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, ClickUpSpaceDTO, ClickUpSpaceRegisterDTO, \
+    ClickUpSpaceDetailDTO, ClickUpSpaceUpdateDTO, ClickUpRepoRefDTO
 from backend.src.domain.exceptions.clickup.clickup_persistence_exception import ClickUpPersistenceException
 from backend.src.domain.exceptions.clickup.clickup_space_name_mismatch_exception import \
     ClickUpSpaceNameMismatchException
@@ -104,19 +105,14 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         and persists the space in the application database.
 
         Args:
-            space (ClickUpSpaceRegisterDTO):
-                Request DTO containing space registration data.
+            space (ClickUpSpaceRegisterDTO): Request DTO containing space registration data.
 
         Returns:
-            ClickUpSpaceDTO:
-                Persisted ClickUp space DTO.
+            ClickUpSpaceDTO: Persisted ClickUp space DTO.
 
         Raises:
-            InvalidInputException:
-                If required fields are missing.
-
-            ClickUpSpaceNameMismatchException:
-                If the provided name does not match the ClickUp space name.
+            InvalidInputException: If required fields are missing.
+            ClickUpSpaceNameMismatchException: If the provided name does not match the ClickUp space name.
         """
         logger.info("Registering ClickUp space. space_code=%s.", space.space_code)
 
@@ -224,7 +220,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             self._compensate_creation_clickup_space(space_code)
             raise
 
-    def delete_space(self, space_id: str) -> bool:
+    def delete_space(self, space_id: int) -> bool:
         """
         Delete a ClickUp space from both the database and ClickUp.
 
@@ -244,9 +240,9 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             ClickUpSpaceNotFoundException:If the space does not exist in the database.
             ClickUpWriteException: If ClickUp deletion fails.
         """
-        logger.info("Deleting ClickUp space. space_code=%s.", space_id)
+        logger.info("Deleting ClickUp space. space_id=%s.", space_id)
 
-        clickup_space = self._clickup_repo.find_by_space_code(space_id)
+        clickup_space = self._clickup_repo.find_by_id(space_id)
 
         self._clickup_repo.delete(clickup_space.id)
         try:
@@ -457,7 +453,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
                 exc_info=True,
             )
 
-    def _compensate_space_reinsert(self, clickup_space: ClickUpSpaceDTO) -> None:
+    def _compensate_space_reinsert(self, clickup_space: ClickUpSpaceDetailDTO) -> None:
         """
         Compensation action for failed ClickUp deletion.
 
@@ -465,16 +461,22 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         when deletion from ClickUp fails after the database record was removed.
 
         Args:
-            clickup_space (ClickUpSpaceDTO):
-                Space DTO to restore in persistence storage.
+            clickup_space (ClickUpSpaceDetailDTO): Space DTO to restore in persistence storage.
         """
         try:
-            self._clickup_repo.save(
+            result = self._clickup_repo.save(
                 ClickUpSpaceCreateDTO(
                     name=clickup_space.name,
                     space_code=clickup_space.space_code,
                 )
             )
+            if clickup_space.repo:
+                self._clickup_repo.update(
+                    ClickUpSpaceUpdateDTO(
+                        id=result.id,
+                        repo=ClickUpRepoRefDTO(id=clickup_space.repo.id, url=clickup_space.repo.url),
+                    )
+                )
             logger.info(
                 "Compensation successful: space re-inserted in DB. space_code=%s.",
                 clickup_space.space_code,

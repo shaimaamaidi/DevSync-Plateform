@@ -26,7 +26,7 @@ export const clickUpStructureCreationService = {
     return response.data ?? null;
   },
 
-  async deleteSpace(spaceId: string): Promise<boolean> {
+  async deleteSpace(spaceId: number): Promise<boolean> {
     if (!spaceId) {
       throw new Error('Missing space id');
     }
