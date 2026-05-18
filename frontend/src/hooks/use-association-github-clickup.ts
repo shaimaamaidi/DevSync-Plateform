@@ -1,28 +1,31 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import type { AssociateClickUpSpaceRequest } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { gitHubClickUpAssociationService } from '@/services/github-clickup-association-service';
 
 export function useAssociateRepoWithClickUpSpace() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   return useMutation({
+    retry: false,
     mutationFn: async (association: AssociateClickUpSpaceRequest) => {
-      const result = await withErrorHandling(
-        () => gitHubClickUpAssociationService.associateRepoWithClickUp(association),
-        'Associate GitHub repository with ClickUp space',
-        onError,
-      );
-      return result;
+      try {
+        return await gitHubClickUpAssociationService.associateRepoWithClickUp(association);
+      } catch (err) {
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        throw err;
+      }
     },
-    onSuccess: (result) => {
-      if (!result) 
-        return;
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['repos'] });
       queryClient.invalidateQueries({ queryKey: ['clickup-spaces'] });
     },

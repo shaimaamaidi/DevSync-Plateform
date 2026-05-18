@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sparkles, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,11 +19,10 @@ import {
 } from '@/components/ui/dialog';
 import { 
   withErrorHandling, 
-  handleApiError, 
-  normalizeErrorMessage, 
-  extractErrorCode 
+  defaultOnError,
 } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { extractStatusCode, resolveErrorAction, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
+
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { GeneratedTask, VerifiedTask } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
@@ -48,7 +47,7 @@ export function MeetingTaskManager() {
   const [summary, setSummary] = useState('');
 
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const { spaces, loading: spacesLoading } = useClickUpSpacesList();
   const { structure, loading: structureLoading, isStructureEmpty, isFetching} = useClickUpStructure(selectedSpaceId);
@@ -177,7 +176,7 @@ export function MeetingTaskManager() {
     const result = await withErrorHandling(
       () => taskGenerationService.generateFromSummary(summary, spaceId),
       'Generate tasks from summary',
-      onError,
+      onError(),
     );
 
     if (result){
@@ -199,7 +198,7 @@ export function MeetingTaskManager() {
     const result = await withErrorHandling(
       () => taskVerificationService.verifyTasks(selectedSpaceId, generatedTasks),
       'Verify tasks generated from summary',
-      onError,
+      onError(),
     );
     if (result){
       setIsVerificationFinished(true);
@@ -212,8 +211,7 @@ export function MeetingTaskManager() {
   };
 
   const executeSave = async (ignoreNames: boolean, ignoreMails: boolean) => {
-    if (!verifiedTasks.length || !selectedSpaceId) 
-      return;
+    if (!verifiedTasks.length || !selectedSpaceId) return;
     if (!allTasksHaveLocation(verifiedTasks)) return;
     setIsSaving(true);
 
@@ -231,7 +229,8 @@ export function MeetingTaskManager() {
         showSuccessToast('Click up tasks saved successfully');
       }
     } catch (err: unknown) {
-      const code = extractErrorCode(err);
+      const code    = extractErrorCode(err);
+      const status  = extractStatusCode(err);
       const message = normalizeErrorMessage(err);
 
       if (code === 'ASSIGNEE_NAME_NOT_FOUND' && !ignoreNames) {
@@ -239,7 +238,8 @@ export function MeetingTaskManager() {
       } else if (code === 'ASSIGNEE_EMAIL_NOT_IN_CLICKUP') {
         setAssigneeDialog({ open: true, type: 'mails', items: extractAssigneeListFromError(message) });
       } else {
-        onError(handleApiError(err), message);
+        const action = resolveErrorAction(err);
+        await onError()(action, message, { code, status: status ?? undefined });
       }
     }
     setIsSaving(false);

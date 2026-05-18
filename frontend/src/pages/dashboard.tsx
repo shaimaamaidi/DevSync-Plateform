@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DashboardStats } from '@/components/dashboard-stats';
 import { DeploymentsTracker } from '@/components/deployments-tracker';
 import { ReposTable } from '@/components/repos-table';
@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { MembersTable } from '@/components/members-table';
 import { ClickUpSpacesTable } from '@/components/clickup-spaces-table';
 import { showSuccessToast } from '@/components/global-toaster';
-import { withErrorHandling } from '@/services/api-error';
+import { defaultOnError, withErrorHandling } from '@/services/api-error';
 import { useUpdateClickUpSpace } from '@/hooks/clickup-space-hooks/use-update-clickup-space';
 import { useDeleteClickUpSpace } from '@/hooks/clickup-space-hooks/use-delete-clickup-space';
 import { useMembers } from '@/hooks/member-hooks/use-members';
@@ -36,7 +36,6 @@ import { useCreateClickUpSpace } from '@/hooks/clickup-structure-hooks/use-creat
 import { useRegisterClickUpSpace } from '@/hooks/clickup-structure-hooks/use-register-space';
 import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github-clickup';
 import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
-import { defaultOnError } from '@/utils/error-handler';
 import { useRemoveClickUpSpace } from '@/hooks/clickup-space-hooks/use-remove-clickup-sapce';
 import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
 
@@ -50,6 +49,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
   const [isLoadingDeployments, setIsLoadingDeployments] = useState(false);
 
   const navigate = useNavigate();
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
@@ -65,8 +65,6 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
   const { mutateAsync: deleteMember } = useDeleteMember();
   const { mutateAsync: addMember } = useAddMember();
     
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
-
   const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
   const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
   const { mutateAsync: removeClickUpSpace } = useRemoveClickUpSpace();
@@ -81,7 +79,11 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     setClickupLoading(true);
 
     const [spacesData] = await Promise.all([
-      withErrorHandling(() => clickUpService.getAllSpacesLight(), 'Load click up spaces', onError),
+      withErrorHandling(() => 
+        clickUpService.getAllSpacesLight(), 
+        'Load click up spaces', 
+        onError(),
+    ),
     ]);
 
     if (spacesData) 
@@ -145,7 +147,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     const result = await withErrorHandling(
       () => clickUpStructureCreationService.removeMemberFromWorkspace(memberId),
       'Remove member from ClickUp',
-      onError
+      onError(),
     );
     if (!result)
       return Promise.resolve(false);
@@ -198,7 +200,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     const result = await withErrorHandling(
       () => clickUpStructureCreationService.inviteMember({ email, role }),
       'Invite member to ClickUp',
-      onError
+      onError(),
     );
     if (!result)
       return Promise.resolve(false);
@@ -250,7 +252,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     const deploymentData = await withErrorHandling(
       () => deploymentService.listByRepoUrl(repoUrl),
       'Load deployments',
-      onError,
+      onError(),
     );
     if (deploymentData) 
       setDeployments(deploymentData);

@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { extractErrorCode, handleApiError, normalizeErrorMessage, withErrorHandling } from '@/services/api-error';
+import { withErrorHandling, defaultOnError } from '@/services/api-error';
 import type {
   ClickUpTask,
   ClickUpList,
@@ -40,8 +40,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { defaultOnError } from '@/utils/error-handler';
 import { CreateListForm } from './ui/create-list-form'; 
+import { extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
 
 export type AssigneeDialogState =
   | { open: false }
@@ -58,7 +58,7 @@ export function SpaceTasksViewer() {
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const { members, loading: membersLoading } = useMembers();
   const { folders, loading: dataLoading, error: dataError } = useSpaceTasks(spaceId ?? '');
@@ -135,7 +135,7 @@ export function SpaceTasksViewer() {
     const result = await withErrorHandling(
       () => clickupTaskManagementService.deleteTask(taskId),
       'Delete click up task',
-      onError,
+      onError(),
     );
     if (result) {
       setTasksByList((prev) => ({
@@ -170,14 +170,16 @@ export function SpaceTasksViewer() {
           showSuccessToast('Click up task updated successfully');
         }
       } catch (err: unknown) {
-        const code = extractErrorCode(err);
+        const code    = extractErrorCode(err);
+        const status  = extractStatusCode(err);
         const message = normalizeErrorMessage(err);
 
         if (code === 'ASSIGNEE_EMAIL_NOT_IN_CLICKUP') {
           setPendingUpdate({ taskId, req });
           setAssigneeDialog({ open: true, type: 'mails', items: extractAssigneeListFromError(message) });
         } else {
-          onError(handleApiError(err), message);
+          const action = resolveErrorAction(err);
+          await onError()(action, message, { code, status: status ?? undefined });
         }
       } finally {
         setBusy(false);

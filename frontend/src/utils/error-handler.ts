@@ -1,0 +1,131 @@
+import {
+  LOGOUT_IMMEDIATELY,
+  RETRYABLE_CODES,
+  SILENT_CODES,
+  type ErrorCode,
+} from "@/api/error-codes";
+import type { ApiErrorMeta, ErrorAction } from "@/types/api-error-type";
+
+
+type ErrorLike = {
+  message?: string;
+  response?: {
+    data?: unknown;
+    status?: number;
+  };
+};
+
+type ErrorListener = (msg: string) => void;
+
+
+const listeners: ErrorListener[] = [];
+
+export function subscribeToApiError(listener: ErrorListener) {
+  listeners.push(listener);
+  return () => {
+    const idx = listeners.indexOf(listener);
+    if (idx !== -1) listeners.splice(idx, 1);
+  };
+}
+
+
+export function extractErrorCode(err: unknown): string | null {
+  try {
+    const data = (err as ErrorLike)?.response?.data;
+    if (!data || typeof data !== "object") return null;
+    return (
+      (data as any)?.error?.code ??
+      (data as any)?.code ??
+      null
+    );
+  } catch {
+    return null;
+  }
+}
+
+export function extractStatusCode(err: unknown): number | null {
+  try {
+    return (err as ErrorLike)?.response?.status ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function normalizeErrorMessage(error: unknown): string {
+  if (!error || typeof error !== "object") return "Unknown error";
+
+  const err = error as ErrorLike;
+  const data = err.response?.data;
+
+  if (typeof data === "string" && data.trim()) return data;
+
+  if (data && typeof data === "object") {
+    const d = data as Record<string, unknown>;
+
+    if ("detail" in d) {
+      const detail = d.detail;
+      if (Array.isArray(detail)) return detail.join(", ");
+      if (typeof detail === "string") return detail;
+    }
+
+    const errorObj = d.error;
+    if (errorObj && typeof errorObj === "object") {
+      const msg = (errorObj as Record<string, unknown>).message;
+      if (typeof msg === "string" && msg.trim()) return msg;
+    }
+
+    if (typeof d.message === "string" && d.message.trim()) return d.message;
+  }
+
+  if (typeof err.message === "string" && err.message.trim()) return err.message;
+
+  return "Unknown error";
+}
+
+
+export function resolveErrorAction(err: unknown): ErrorAction {
+  const status = extractStatusCode(err);
+  const code = extractErrorCode(err) as ErrorCode | null;
+
+  if (code && SILENT_CODES.has(code)) return "SILENT";
+
+  if (code && LOGOUT_IMMEDIATELY.has(code)) return "LOGOUT";
+
+  if (status === 401 || status === 403) return "LOGOUT";
+
+  if (code && RETRYABLE_CODES.has(code)) return "RETRY";
+
+  if (status === 500 || status === 502 || status === 503 || status === 429) return "RETRY";
+
+  return "NOTIFY";
+}
+
+
+export async function withErrorHandling<T>(
+  fn: () => Promise<T>,
+  context: string,
+  onError?: (
+    action: ErrorAction,
+    message: string,
+    meta?: ApiErrorMeta,
+  ) => void,
+): Promise<T | null> {
+  try {
+    return await fn();
+  } catch (err) {
+    const action = resolveErrorAction(err);
+    const message = normalizeErrorMessage(err);
+    const status = extractStatusCode(err);
+    const code = extractErrorCode(err);
+
+    if (action === "SILENT") return null;
+
+    if (onError) {
+      onError(action, message, { status: status ?? undefined, code });
+    } else {
+      listeners.forEach((cb) => cb(`[${context}] ${message}`));
+    }
+
+    return null;
+  }
+}

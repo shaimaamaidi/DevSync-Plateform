@@ -1,26 +1,32 @@
 import { useQuery } from '@tanstack/react-query';
 import { clickupSpaceTaskReaderService } from '@/services/clickup-space-task-reader';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import type { FolderWithLists } from '@/api/api';
 
 export function useSpaceTasks(spaceId: string) {
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery<FolderWithLists[] | null>({
+  const { data, isLoading, isError } = useQuery<FolderWithLists[]>({
     queryKey: ['space-tasks', spaceId],
-    queryFn: async () => {
-      const result = await withErrorHandling(
-        () => clickupSpaceTaskReaderService.getTasksBySpace(spaceId),
-        'Load click up space tasks',
-        onError,
-      );
-      return result;
-    },
+    retry: false,
     enabled: !!spaceId,
+    queryFn: async () => {
+      try {
+        const result = await clickupSpaceTaskReaderService.getTasksBySpace(spaceId);
+        return result;
+      } catch (err) {
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        throw err;
+      }
+    },
   });
 
   return {

@@ -1,24 +1,29 @@
 import { useQuery } from '@tanstack/react-query';
 import { repoService } from '@/services/repo-service';
 import type { GitRepoDetailDTO } from '@/api/api';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { extractStatusCode, resolveErrorAction, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
 export function useRepos() {
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const { data, isLoading, isError } = useQuery<GitRepoDetailDTO[] | null>({
     queryKey: ['repos'],
     queryFn: async () => {
-      const data = await withErrorHandling(
-        () => repoService.getAllReposWithDetails(),
-        'Load GitHub repositories',
-        onError,
-      );
-      return data;
+      try{
+        const data = await repoService.getAllReposWithDetails();
+        return data;
+      } catch (err) {
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        throw err;
+      }
     },
   });
 

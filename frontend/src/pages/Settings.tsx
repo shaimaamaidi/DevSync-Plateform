@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessToast } from '@/components/global-toaster';
 import { memberService } from '@/services/member-service';
 import type { MemberUpdateDTO } from '@/api/api';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError, withErrorHandling } from '@/services/api-error';
 import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 export default function SettingsPage() {
+  const navigate = useNavigate();
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
+
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -16,11 +18,9 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const { user, loading: userLoading, error: userError } = useCurrentUser();
   const userId = user?.id ?? null;
-  const onError = defaultOnError(navigate);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +60,7 @@ export default function SettingsPage() {
       const result = await withErrorHandling(
         () => memberService.updateMember(member),
         'Update password',
-        onError,
+        onError(),
       );
 
       if (result) {

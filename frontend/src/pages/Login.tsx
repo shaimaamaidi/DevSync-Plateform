@@ -1,22 +1,27 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { authService } from '@/services/auth-service';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { showSuccessToast } from '@/components/global-toaster';
-import { Eye, EyeOff } from 'lucide-react';
-import { withErrorHandling } from '@/services/api-error';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { defaultOnError, withErrorHandling } from '@/services/api-error';
 import type { MemberAuthDTO } from '@/api/api';
-import { defaultOnError } from '@/utils/error-handler';
+import { REASON_MESSAGES } from '@/types/api-error-type';
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams();
+  const reason = searchParams.get('reason');
+  const reasonMessage = reason ? REASON_MESSAGES[reason] : null;
+  
   const [mail, setMail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [invalidCredentials, setInvalidCredentials] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ mail?: string; password?: string }>({});
+  
   const navigate = useNavigate();
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const onError = defaultOnError(navigate);
 
   const validateFields = () => {
     const errors: { mail?: string; password?: string } = {};
@@ -44,7 +49,7 @@ export default function LoginPage() {
      const result = await withErrorHandling(
       () => authService.login({ mail, password } as MemberAuthDTO),
       'Login',
-      onError,
+      onError(),
     );
 
     setLoading(false);
@@ -164,6 +169,12 @@ export default function LoginPage() {
           >
             {loading ? 'Signing in…' : 'Sign in'}
           </button>
+          {reasonMessage && (
+            <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-700 text-[13px] rounded-lg px-3.5 py-2.5">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+              {reasonMessage}
+            </div>
+          )}
         </form>
       </div>
     </div>

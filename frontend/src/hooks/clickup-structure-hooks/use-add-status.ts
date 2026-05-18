@@ -1,30 +1,37 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import type { AddStatusRequest, ClickUpListMetadata } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
 export function useAddStatus(spaceId: string) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  return useMutation<ClickUpListMetadata | null, Error, AddStatusRequest>({
-    mutationFn: async (request) => {
-      const result = await withErrorHandling(
-        () => clickUpStructureCreationService.addStatus(request),
-        'Add click up status',
-        onError,
-      );
+  return useMutation<ClickUpListMetadata, Error, AddStatusRequest>({
+    retry: false,
+    mutationFn: async (request: AddStatusRequest) => {
+      try {
+        const result = await clickUpStructureCreationService.addStatus(request);
 
-      return result;
-    },
-    onSuccess: (result) => {
-      if (!result) {
-        return;
+        if (!result) {
+          throw new Error('Failed to add status');
+        }
+
+        return result;
+      } catch (err) {
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        throw err;
       }
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clickup-structure', spaceId] });
     },
   });

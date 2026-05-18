@@ -9,12 +9,14 @@ import { RootLayout } from './components/root-layout';
 import Dashboard from './pages/dashboard';
 import { BacklogGenerationChat } from './pages/backlog-generation-chat';
 import { MeetingTaskManager } from './pages/meeting-task-generation';
+import { AxiosErrorBoundary } from './components/axios-error-boundary';
 
 export default function App() {
   return (
     <>
-      <GlobalToaster />
       <BrowserRouter>
+        <GlobalToaster />
+        <AxiosErrorBoundary />
         <Routes>
            <Route element={<RequireAuth><RootLayout /></RequireAuth>}>
             <Route path="/" element={<Navigate to="/repositories" replace />} />

@@ -36,5 +36,5 @@ class ServiceUnavailableException(AppException):
         super().__init__(
             message=message,
             code="SERVICE_UNAVAILABLE",
-            http_status=500
+            http_status=503
         )

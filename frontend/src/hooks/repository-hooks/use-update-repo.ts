@@ -1,24 +1,29 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { repoService } from '@/services/repo-service';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { extractStatusCode, resolveErrorAction, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
 import type { GitRepoUpdateDTO } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
 export function useUpdateRepo() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   return useMutation({
     mutationFn: async (repo: GitRepoUpdateDTO) => {
-      const result = await withErrorHandling(
-        () => repoService.updateRepo(repo),
-        'Update GitHubrepository',
-        onError,
-      );
-      return result;
+      try{
+        const result = await repoService.updateRepo(repo);
+        return result;
+      } catch (err) {
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        throw err;
+      }
     },
     onSuccess: (result) => {
       if (!result) 

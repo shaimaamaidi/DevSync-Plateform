@@ -21,13 +21,13 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useNavigate } from 'react-router-dom';
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { defaultOnError } from '@/utils/error-handler';
+import { useEffect, useState, useCallback } from 'react';
 import { clickupTaskManagementService } from '@/services/clickup-task-management-sevice';
 import type { TaskDraft } from '@/types/clickup';
-import { extractErrorCode, handleApiError, normalizeErrorMessage } from '@/services/api-error';
 import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
 import { showSuccessToast } from '../global-toaster';
+import { defaultOnError } from '@/services/api-error';
+import { resolveErrorAction, extractStatusCode, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
 
 export type AssigneeDialogState =
   | { open: false }
@@ -67,7 +67,7 @@ export function AddTaskForm({
   onCancel,
 }: AddTaskFormProps) {
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const [draft, setDraft] = useState<TaskDraft>(EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);
@@ -116,14 +116,16 @@ export function AddTaskForm({
           setFieldErrors({});
         }
       } catch (err: unknown) {
-        const code = extractErrorCode(err);
+        const code    = extractErrorCode(err);
+        const status  = extractStatusCode(err);
         const message = normalizeErrorMessage(err);
 
         if (code === 'ASSIGNEE_EMAIL_NOT_IN_CLICKUP') {
           setPendingReq(req);
           setAssigneeDialog({ open: true, type: 'mails', items: extractAssigneeListFromError(message) });
         } else {
-          onError(handleApiError(err), message);
+          const action = resolveErrorAction(err);
+          await onError()(action, message, { code, status: status ?? undefined });
         }
       } finally {
         setSaving(false);

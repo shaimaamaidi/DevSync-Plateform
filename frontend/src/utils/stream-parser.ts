@@ -1,7 +1,17 @@
+import { emitAxiosError } from '@/api/axios-interceptor';
+import { resolveErrorAction } from './error-handler';
+
 export interface StreamResult {
   threadId: string | null;
   text: string;
   json: unknown;
+}
+
+class SseBusinessError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SseBusinessError';
+  }
 }
 
 export async function readSseStream(
@@ -24,25 +34,72 @@ export async function readSseStream(
     for (const line of lines) {
       try {
         const payload = JSON.parse(line);
+        if (payload?.error) {
+          const code: string | null = payload.error?.code ?? null;
+          const message: string =
+            payload.error?.message ?? 'Stream error occurred';
+          const status: number | undefined = payload.error?.status;
+
+          const errorLike = { response: { status, data: { error: { code, message } } } };
+          const action = resolveErrorAction(errorLike);
+
+          const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | null =
+            action === 'SILENT' ? null : action;
+
+          if (emitAction) {
+            const sseAction = emitAction === 'RETRY' ? 'NOTIFY' : emitAction;
+            emitAxiosError({ action: sseAction, message, code, status });
+          }
+
+          throw new SseBusinessError(message);
+        }
+
         if (payload?.thread_id) threadId = payload.thread_id;
-        if (typeof payload?.text === "string") {
+        if (typeof payload?.text === 'string') {
           textChunks.push(payload.text);
           onChunk?.(payload.text);
         }
-      } catch { /* ignore */ }
+      } catch (err) {
+        if (err instanceof SseBusinessError) {
+          throw err;
+        }
+        // Silently ignore malformed SSE lines.
+      }
     }
   };
 
-  while (true) {
-    const { done, value } = await reader.read();
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-    let boundary = buffer.indexOf("\n\n");
-    while (boundary !== -1) {
-      consumeFrame(buffer.slice(0, boundary));
-      buffer = buffer.slice(boundary + 2);
-      boundary = buffer.indexOf("\n\n");
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+      let boundary = buffer.indexOf("\n\n");
+      while (boundary !== -1) {
+        consumeFrame(buffer.slice(0, boundary));
+        buffer = buffer.slice(boundary + 2);
+        boundary = buffer.indexOf("\n\n");
+      }
+      if (done) break;
     }
-    if (done) break;
+  } catch (err) {
+    if (err instanceof SseBusinessError) {
+      throw err;
+    }
+
+    if (err instanceof Error) {
+      const isAlreadyEmitted =
+        err.message === 'Session expired. Redirecting to login.';
+
+      if (!isAlreadyEmitted) {
+        emitAxiosError({
+          action: 'NOTIFY',
+          message: err.message || 'Stream connection lost',
+          code: 'STREAM_EXECUTION_ERROR',
+        });
+      }
+    }
+    throw err;
+  } finally {
+    try { reader.releaseLock(); } catch { /* ignore */ }
   }
 
   if (buffer.trim()) consumeFrame(buffer);

@@ -23,7 +23,7 @@ class ClickUpApiException(AppException):
         http_status: HTTP status code associated with the error.
     """
 
-    def __init__(self, message: str = "Unexpected ClickUp API error.", http_status: int = 424):
+    def __init__(self, message: str = "Unexpected ClickUp API error.", http_status: int = 502):
         """
         Initialize a ClickUp API exception.
 

@@ -1,25 +1,30 @@
 import { useQuery } from '@tanstack/react-query';
 import { clickUpService } from '@/services/clickup-service';
 import type { RepoClickUpSpaceDTO } from '@/api/api';
-import { withErrorHandling } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
 export function useClickUpSpacesList() {
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]); 
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery<RepoClickUpSpaceDTO[] | null>({
+  const { data, isLoading, isError } = useQuery<RepoClickUpSpaceDTO[]>({
     queryKey: ['clickup-spaces'],
+    retry: false,
     queryFn: async () => {
-      const data = await withErrorHandling(
-        () => clickUpService.getAllSpaces(),
-        'Load click up spaces',
-        onError,
-      );
-
-      return data;
+      try {
+        const result = await clickUpService.getAllSpaces();
+        return result;
+      } catch (err) {
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        throw err;
+      }
     },
   });
 

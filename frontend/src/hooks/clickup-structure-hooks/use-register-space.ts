@@ -1,20 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
-import { extractErrorCode, handleApiError, normalizeErrorMessage } from '@/services/api-error';
-import { defaultOnError } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { extractStatusCode, resolveErrorAction, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
 import type { ClickUpSpaceDTO, ClickUpSpaceRegisterDTO } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 
-const ERROR_CODE_NOT_FOUND = 'CLICKUP_RESOURCE_NOT_FOUND';
+const ERROR_CODE_NOT_FOUND    = 'CLICKUP_RESOURCE_NOT_FOUND';
 const ERROR_CODE_NAME_MISMATCH = 'CLICKUP_SPACE_NAME_MISMATCH';
-
 
 export type RegisterSpaceResult =
   | { ok: true;  data: ClickUpSpaceDTO }
   | { ok: false; reason: 'not_found' }
   | { ok: false; reason: 'name_mismatch'; actualName: string | null }
-  | { ok: false; reason: 'handled' }; 
+  | { ok: false; reason: 'handled' };
 
 const extractActualName = (err: unknown): string | null => {
   try {
@@ -25,26 +24,24 @@ const extractActualName = (err: unknown): string | null => {
   }
 };
 
-
 export function useRegisterClickUpSpace() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const onError = useMemo(() => defaultOnError(navigate), [navigate]);
+
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   return useMutation<RegisterSpaceResult, never, ClickUpSpaceRegisterDTO>({
     mutationFn: async (request): Promise<RegisterSpaceResult> => {
       try {
         const data = await clickUpStructureCreationService.registerSpace(request);
 
-        if (!data) {
-          return { ok: false, reason: 'handled' };
-        }
+        if (!data) return { ok: false, reason: 'handled' };
 
         return { ok: true, data };
 
       } catch (err) {
         const code   = extractErrorCode(err);
-        const status = (err as any)?.response?.status as number | undefined;
+        const status = extractStatusCode(err);  
 
         if (code === ERROR_CODE_NOT_FOUND || status === 404) {
           return { ok: false, reason: 'not_found' };
@@ -54,9 +51,10 @@ export function useRegisterClickUpSpace() {
           return { ok: false, reason: 'name_mismatch', actualName: extractActualName(err) };
         }
 
-        const errorType = handleApiError(err);
-        const message   = normalizeErrorMessage(err);
-        onError(errorType, message);
+        const action  = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+
+        await onError()(action, message, { code, status: status ?? undefined });
 
         return { ok: false, reason: 'handled' };
       }
