@@ -92,6 +92,29 @@ export interface ClickUpListMetadata {
     'priorities'?: Array<string>;
 }
 /**
+ * Domain DTO representing a ClickUp workspace member invitation.  An invitation defines the information required to add a new member to a ClickUp workspace, including the target email address and the assigned workspace role.  Attributes:     email: Email address of the invited member.     role: Workspace role assigned to the invited member         (OWNER / ADMIN / MEMBER / GUEST).
+ */
+export interface ClickUpMemberInvitation {
+    'email': string;
+    'role'?: ClickUpMemberRole;
+}
+
+
+/**
+ * ClickUp workspace role enumeration.  Defines the permission level assigned to a member within a ClickUp workspace:  - OWNER : Full workspace control and management permissions. - ADMIN : Administrative access with advanced management capabilities. - MEMBER: Standard collaborative workspace access. - GUEST : Restricted or limited access to specific resources.  Notes:     - Role identifiers are defined by the ClickUp API.     - MEMBER is the default role used for invitations.     - OWNER permissions generally include billing and workspace ownership actions.
+ */
+
+export const ClickUpMemberRole = {
+    NUMBER_2: 2,
+    NUMBER_3: 3,
+    NUMBER_4: 4,
+    NUMBER_5: 5,
+} as const;
+
+export type ClickUpMemberRole = typeof ClickUpMemberRole[keyof typeof ClickUpMemberRole];
+
+
+/**
  * Repository details embedded in ClickUp space responses.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface ClickUpRepoDTO {
@@ -189,11 +212,11 @@ export interface CreateSpaceRequest {
     'space_name': string;
 }
 /**
- * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     list_id: Identifier of the ClickUp list where the task will be created.     space_id: Identifier of the ClickUp space containing the list.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.
+ * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     space_id: Identifier of the ClickUp space containing the list.     list_id: Identifier of the ClickUp list where the task will be created.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.
  */
 export interface CreateTaskRequest {
-    'list_id': string;
     'space_id': string;
+    'list_id': string;
     'name': string;
     'description': string;
     'status': string | null;
@@ -1971,6 +1994,75 @@ export const ClickUpStructureCreationApiAxiosParamCreator = function (configurat
             };
         },
         /**
+         * Delete a ClickUp space from both ClickUp and the application layer.
+         * @summary Delete a ClickUp space
+         * @param {string} spaceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteSpaceClickupStructureSpacesSpaceIdDelete: async (spaceId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'spaceId' is not null or undefined
+            assertParamExists('deleteSpaceClickupStructureSpacesSpaceIdDelete', 'spaceId', spaceId)
+            const localVarPath = `/clickup/structure/spaces/{space_id}`
+                .replace(`{${"space_id"}}`, encodeURIComponent(String(spaceId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Send an invitation to a member to join the ClickUp workspace.
+         * @summary Invite a member to the ClickUp workspace
+         * @param {ClickUpMemberInvitation} clickUpMemberInvitation 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        inviteMemberClickupStructureMembersInvitePost: async (clickUpMemberInvitation: ClickUpMemberInvitation, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'clickUpMemberInvitation' is not null or undefined
+            assertParamExists('inviteMemberClickupStructureMembersInvitePost', 'clickUpMemberInvitation', clickUpMemberInvitation)
+            const localVarPath = `/clickup/structure/members/invite`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(clickUpMemberInvitation, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Validate a ClickUp space existence and persist it in the application layer.
          * @summary Register a ClickUp space
          * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
@@ -1999,6 +2091,40 @@ export const ClickUpStructureCreationApiAxiosParamCreator = function (configurat
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(clickUpSpaceRegisterDTO, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Remove a member from the ClickUp workspace by their database ID.
+         * @summary Remove a member from the ClickUp workspace
+         * @param {number} memberId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete: async (memberId: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'memberId' is not null or undefined
+            assertParamExists('removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete', 'memberId', memberId)
+            const localVarPath = `/clickup/structure/members/{member_id}`
+                .replace(`{${"member_id"}}`, encodeURIComponent(String(memberId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2068,6 +2194,32 @@ export const ClickUpStructureCreationApiFp = function(configuration?: Configurat
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Delete a ClickUp space from both ClickUp and the application layer.
+         * @summary Delete a ClickUp space
+         * @param {string} spaceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.deleteSpaceClickupStructureSpacesSpaceIdDelete']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Send an invitation to a member to join the ClickUp workspace.
+         * @summary Invite a member to the ClickUp workspace
+         * @param {ClickUpMemberInvitation} clickUpMemberInvitation 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async inviteMemberClickupStructureMembersInvitePost(clickUpMemberInvitation: ClickUpMemberInvitation, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.inviteMemberClickupStructureMembersInvitePost(clickUpMemberInvitation, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.inviteMemberClickupStructureMembersInvitePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Validate a ClickUp space existence and persist it in the application layer.
          * @summary Register a ClickUp space
          * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
@@ -2078,6 +2230,19 @@ export const ClickUpStructureCreationApiFp = function(configuration?: Configurat
             const localVarAxiosArgs = await localVarAxiosParamCreator.registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.registerSpaceClickupStructureSpacesRegisterPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Remove a member from the ClickUp workspace by their database ID.
+         * @summary Remove a member from the ClickUp workspace
+         * @param {number} memberId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<boolean>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpStructureCreationApi.removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -2131,6 +2296,26 @@ export const ClickUpStructureCreationApiFactory = function (configuration?: Conf
             return localVarFp.createSpaceClickupStructureSpacesPost(createSpaceRequest, options).then((request) => request(axios, basePath));
         },
         /**
+         * Delete a ClickUp space from both ClickUp and the application layer.
+         * @summary Delete a ClickUp space
+         * @param {string} spaceId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: string, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Send an invitation to a member to join the ClickUp workspace.
+         * @summary Invite a member to the ClickUp workspace
+         * @param {ClickUpMemberInvitation} clickUpMemberInvitation 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        inviteMemberClickupStructureMembersInvitePost(clickUpMemberInvitation: ClickUpMemberInvitation, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.inviteMemberClickupStructureMembersInvitePost(clickUpMemberInvitation, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Validate a ClickUp space existence and persist it in the application layer.
          * @summary Register a ClickUp space
          * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
@@ -2139,6 +2324,16 @@ export const ClickUpStructureCreationApiFactory = function (configuration?: Conf
          */
         registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO: ClickUpSpaceRegisterDTO, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpSpaceDTO> {
             return localVarFp.registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Remove a member from the ClickUp workspace by their database ID.
+         * @summary Remove a member from the ClickUp workspace
+         * @param {number} memberId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId: number, options?: RawAxiosRequestConfig): AxiosPromise<boolean> {
+            return localVarFp.removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2193,6 +2388,28 @@ export class ClickUpStructureCreationApi extends BaseAPI {
     }
 
     /**
+     * Delete a ClickUp space from both ClickUp and the application layer.
+     * @summary Delete a ClickUp space
+     * @param {string} spaceId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId: string, options?: RawAxiosRequestConfig) {
+        return ClickUpStructureCreationApiFp(this.configuration).deleteSpaceClickupStructureSpacesSpaceIdDelete(spaceId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Send an invitation to a member to join the ClickUp workspace.
+     * @summary Invite a member to the ClickUp workspace
+     * @param {ClickUpMemberInvitation} clickUpMemberInvitation 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public inviteMemberClickupStructureMembersInvitePost(clickUpMemberInvitation: ClickUpMemberInvitation, options?: RawAxiosRequestConfig) {
+        return ClickUpStructureCreationApiFp(this.configuration).inviteMemberClickupStructureMembersInvitePost(clickUpMemberInvitation, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Validate a ClickUp space existence and persist it in the application layer.
      * @summary Register a ClickUp space
      * @param {ClickUpSpaceRegisterDTO} clickUpSpaceRegisterDTO 
@@ -2201,6 +2418,17 @@ export class ClickUpStructureCreationApi extends BaseAPI {
      */
     public registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO: ClickUpSpaceRegisterDTO, options?: RawAxiosRequestConfig) {
         return ClickUpStructureCreationApiFp(this.configuration).registerSpaceClickupStructureSpacesRegisterPost(clickUpSpaceRegisterDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Remove a member from the ClickUp workspace by their database ID.
+     * @summary Remove a member from the ClickUp workspace
+     * @param {number} memberId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId: number, options?: RawAxiosRequestConfig) {
+        return ClickUpStructureCreationApiFp(this.configuration).removeMemberFromWorkspaceClickupStructureMembersMemberIdDelete(memberId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
