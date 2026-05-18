@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO } from '@/api/api';
+import { ClickUpMemberRole, type MemberCreateDTO, type MemberDTO, type MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/button';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { MemberEditModal } from './ui/member-edit-model-new';
@@ -18,15 +18,24 @@ export interface MembersTableProps {
   onUpdate: (member: MemberUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => void;
   onAdd: (member: MemberCreateDTO) => Promise<boolean>;
+  onInviteToClickUp: (email: string, role: ClickUpMemberRole) => Promise<boolean>;
+  onRemoveFromClickUp: (memberId: number) => Promise<boolean>;
   isLoading?: boolean;
 }
 
-export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: MembersTableProps) {
+export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToClickUp, onRemoveFromClickUp, isLoading }: MembersTableProps) {
   const { user: currentUser } = useCurrentUser();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<MemberDTO | null>(null);
   const [deleteConfirmMemberId, setDeleteConfirmMemberId] = useState<number | null>(null);
+
+  const [inviteToClickUpMemberDialog, setInviteToClickUpMemberDialog] = useState(false);
+  const [memeberMail, setMemberMail] = useState<string | null>(null);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<ClickUpMemberRole>(ClickUpMemberRole.NUMBER_4);
+  const [deleteFromDBConfirmId, setDeleteFromDBConfirmId] = useState<number | null>(null);
+  
 
   const handleAddClick = () => {
     setEditingMember(null);
@@ -41,6 +50,21 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
   const handleModalClose = () => {
     setIsModalOpen(false);
     setEditingMember(null);
+  };
+
+  const handleAddSuccess = async (member: MemberCreateDTO): Promise<void> => {
+    setMemberMail(member?.mail ?? null);
+    setInviteToClickUpMemberDialog(true);
+  };
+
+  const handleDeleteClickUp = async () => {
+    if (deleteConfirmMemberId === null) 
+      return;
+    const success = await onRemoveFromClickUp(deleteConfirmMemberId);
+    if (success) {
+      setDeleteConfirmMemberId(null);
+      setDeleteFromDBConfirmId(deleteConfirmMemberId); 
+    }
   };
 
   return (
@@ -204,6 +228,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
         editingMember={editingMember}
         onClose={handleModalClose}
         onAdd={onAdd}
+        handleAddSuccess={handleAddSuccess}
         onUpdate={onUpdate}
       />
 
@@ -213,27 +238,83 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, isLoading }: 
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure you want to delete this member?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. The member will be permanently deleted.
-            </DialogDescription>
+            <DialogTitle>Remove from ClickUp?</DialogTitle>
+            <DialogDescription>This will remove the member from ClickUp. You'll be asked about database deletion next.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirmMemberId(null)}>No</Button>
             <Button
               variant="destructive"
-              onClick={async () => {
-                if (deleteConfirmMemberId !== null) {
-                  await onDelete(deleteConfirmMemberId);
-                  setDeleteConfirmMemberId(null);
-                }
-              }}
+              onClick={handleDeleteClickUp}
             >
               Yes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={inviteToClickUpMemberDialog} onOpenChange={setInviteToClickUpMemberDialog}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite to ClickUp?</DialogTitle>
+          <DialogDescription>Member added successfully. Do you want to also invite them to ClickUp?</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setInviteToClickUpMemberDialog(false)}>No</Button>
+          <Button onClick={() => { setInviteToClickUpMemberDialog(false); setRoleDialogOpen(true); }}>Yes</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select ClickUp Role</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-2 py-2">
+          {[
+            { label: 'Member', value: ClickUpMemberRole.NUMBER_4 },
+            { label: 'Admin', value: ClickUpMemberRole.NUMBER_3 },
+            { label: 'Owner', value: ClickUpMemberRole.NUMBER_2 },
+            { label: 'Guest', value: ClickUpMemberRole.NUMBER_5 },
+          ].map(r => (
+            <Button
+              key={r.value}
+              variant={selectedRole === r.value ? 'default' : 'outline'}
+              className="w-full"
+              onClick={() => setSelectedRole(r.value)}
+            >
+              {r.label}
+            </Button>
+          ))}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>Cancel</Button>
+          <Button onClick={async () => {
+            if (memeberMail) {
+              await onInviteToClickUp(memeberMail, selectedRole);
+            }
+            setRoleDialogOpen(false);
+            setMemberMail(null);
+          }}>Invite</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    <Dialog open={deleteFromDBConfirmId !== null} onOpenChange={(open) => { if (!open) setDeleteFromDBConfirmId(null); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Remove from database too?</DialogTitle>
+          <DialogDescription>Member removed from ClickUp. Do you also want to delete them from the database?</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDeleteFromDBConfirmId(null)}>No</Button>
+          <Button variant="destructive" onClick={async () => {
+            if (deleteFromDBConfirmId !== null) {
+              await onDelete(deleteFromDBConfirmId);
+              setDeleteFromDBConfirmId(null);
+            }
+          }}>Yes, delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { DeploymentsTracker } from '@/components/deployments-tracker';
 import { ReposTable } from '@/components/repos-table';
 import type {
   AssociateClickUpSpaceRequest,
+  ClickUpMemberRole,
   ClickUpSpaceLightDTO,
   ClickUpSpaceRegisterDTO,
   ClickUpSpaceUpdateDTO,
@@ -37,6 +38,7 @@ import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github
 import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
 import { defaultOnError } from '@/utils/error-handler';
 import { useRemoveClickUpSpace } from '@/hooks/clickup-space-hooks/use-remove-clickup-sapce';
+import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';
@@ -139,6 +141,19 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     showSuccessToast('Member deleted successfully');    
   }, [deleteMember]);
 
+  const handleRemoveMemberFromClickUp = useCallback(async (memberId: number) => {
+    const result = await withErrorHandling(
+      () => clickUpStructureCreationService.removeMemberFromWorkspace(memberId),
+      'Remove member from ClickUp',
+      onError
+    );
+    if (!result)
+      return Promise.resolve(false);
+
+    showSuccessToast('Member removed from ClickUp successfully');
+    return Promise.resolve(true);
+  }, []);
+
   const handleDeleteClickUpSpace = useCallback(async (id: number) => {
     const result = await deleteClickUpSpace(id);
     
@@ -178,6 +193,18 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     showSuccessToast('Member created successfully');
     return Promise.resolve(true);
   }, [addMember]);
+
+  const handleInviteMmeberToClickUp = useCallback(async (email: string, role: ClickUpMemberRole) => {
+    const result = await withErrorHandling(
+      () => clickUpStructureCreationService.inviteMember({ email, role }),
+      'Invite member to ClickUp',
+      onError
+    );
+    if (!result)
+      return Promise.resolve(false);
+    showSuccessToast('Member invited to ClickUp successfully');
+    return Promise.resolve(true);
+  }, [clickUpStructureCreationService]);
 
   const handleCreateClickUpSpace = useCallback(async (newSpace: CreateSpaceRequest) => {
     const result = await createClickUpSpace(newSpace);
@@ -271,6 +298,8 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onUpdate={handleUpdateMember}
             onDelete={handleDeleteMember}
             onAdd={handleAddMember}
+            onInviteToClickUp={handleInviteMmeberToClickUp}
+            onRemoveFromClickUp={handleRemoveMemberFromClickUp}
             isLoading={membersLoading} 
           />
         </div>

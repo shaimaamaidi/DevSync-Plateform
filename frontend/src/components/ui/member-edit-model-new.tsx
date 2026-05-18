@@ -10,6 +10,7 @@ export interface MemberEditModalProps {
   editingMember: MemberDTO | null;
   onClose: () => void;
   onAdd: (member: MemberCreateDTO) => Promise<boolean>;
+  handleAddSuccess: (member: MemberCreateDTO) => void;
   onUpdate: (member: MemberUpdateDTO) => Promise<boolean>;
 }
 
@@ -18,6 +19,7 @@ export function MemberEditModal({
   editingMember,
   onClose,
   onAdd,
+  handleAddSuccess,
   onUpdate,
 }: MemberEditModalProps) {
   const [formData, setFormData] = useState<Partial<MemberUpdateDTO & { password?: string }>>({});
@@ -89,6 +91,7 @@ export function MemberEditModal({
 
     try {
       let success = false;
+      let member: MemberDTO | null = null;
       if (editingMember) {
         success = await onUpdate({
           id: editingMember.id,
@@ -98,15 +101,20 @@ export function MemberEditModal({
           password: formData.password,
         } as MemberUpdateDTO);
       } else {
-        success = await onAdd({
+        member ={
           username: formData.username,
           mail: formData.mail,
           arabic_name: formData.arabic_name,
           password: formData.password,
-        } as MemberCreateDTO);
+        } as MemberCreateDTO;
+        success = await onAdd(member);
       }
-      if (success) 
+      if (success) {
         onClose();
+        if (!editingMember && member) {
+          handleAddSuccess(member);
+        }
+      }
     } finally {
       setIsSaving(false);
     }
