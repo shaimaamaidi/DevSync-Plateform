@@ -78,6 +78,20 @@ class IClickUpRepository(ABC):
         pass
 
     @abstractmethod
+    def find_by_name(self, name: str) -> ClickUpSpaceDTO | None:
+        """
+        Fetch a ClickUp space by name, returns None if not found.
+        Used for existence checks before creation.
+
+        Args:
+            name (str): ClickUp space name.
+
+        Returns:
+            ClickUpSpaceDTO | None: ClickUp space DTO or None if not found.
+        """
+        pass
+
+    @abstractmethod
     def find_all(self) -> List[ClickUpSpaceDTO]:
         """
         Retrieve all ClickUp spaces.

@@ -176,6 +176,12 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
                 "ClickUp space must have a valid 'name' for create."
             )
 
+        existing = self._clickup_repo.find_by_name(space.space_name)
+        if existing:
+            raise InvalidInputException(
+                f"A click up space with name '{space.space_name}' already exists."
+            )
+
         space_code, space_name = self._clickup_writer.create_space(space.space_name)
 
         logger.info(
@@ -240,7 +246,13 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             )
 
             return result
-        except ClickUpWriteException:
+        except ClickUpWriteException as e:
+            if "not found" in str(e).lower() or "404" in str(e):
+                logger.warning(
+                    "Space already absent from ClickUp, DB deletion kept. space_code=%s.",
+                    clickup_space.space_code,
+                )
+                return True
             logger.error(
                 "ClickUp API deletion failed after DB deletion. "
                 "Attempting compensation (re-insert in DB). space_code=%s.",

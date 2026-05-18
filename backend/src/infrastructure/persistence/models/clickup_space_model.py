@@ -27,7 +27,7 @@ class ClickUpSpaceModel(BaseModel):
     __tablename__ = "clickup_spaces"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=False, unique=True)
     space_code = Column(String(100), nullable=False, unique=True)
     repo_id = Column(Integer, ForeignKey("git_repos.id"))
     repo = relationship("GitRepoModel", back_populates="clickup_space")
