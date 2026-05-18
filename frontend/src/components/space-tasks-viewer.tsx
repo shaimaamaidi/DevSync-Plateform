@@ -31,7 +31,7 @@ import { AddTaskForm } from './ui/add-task-form';
 import { TaskCard } from './ui/task-card';
 import { buildLocationWithTasksOptions } from '@/lib/location';
 import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
-import { useSpaceTasks } from '@/hooks/clickup-space-hooks/clickup-space-tasks';
+import { useSpaceTasks } from '@/hooks/clickup-space-hooks/use-clickup-space-tasks';
 import { showSuccessToast } from './global-toaster';
 import { 
   Select, 
