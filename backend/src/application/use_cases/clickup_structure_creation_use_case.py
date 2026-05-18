@@ -129,6 +129,22 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             raise InvalidInputException(
                 "ClickUp space must have a valid 'name' and 'space_code' for register."
             )
+
+        existing_by_name = self._clickup_repo.find_by_name(space.name)
+        if existing_by_name:
+            raise InvalidInputException(
+                f"A ClickUp space with name '{space.name}' already exists."
+            )
+
+        try:
+            existing_by_code = self._clickup_repo.find_by_space_code(space.space_code)
+            if existing_by_code:
+                raise InvalidInputException(
+                    f"A ClickUp space with space_code '{space.space_code}' already exists."
+                )
+        except ClickUpSpaceNotFoundException:
+            pass
+
         space_name = self._clickup_reader.space_exists(space.space_code)
 
         if space.name and (space_name.strip().lower() != space.name.strip().lower()) and  (not space.ignore_name):
@@ -231,10 +247,6 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         logger.info("Deleting ClickUp space. space_code=%s.", space_id)
 
         clickup_space = self._clickup_repo.find_by_space_code(space_id)
-
-        if not clickup_space:
-            logger.warning("ClickUp space not found in DB. space_code=%s.", space_id)
-            raise ClickUpSpaceNotFoundException(f"Space not found: {space_id}")
 
         self._clickup_repo.delete(clickup_space.id)
         try:
@@ -374,7 +386,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
 
     def remove_member_from_workspace(self, member_id: int) -> bool:
         """
-        Invite a member to a ClickUp workspace.
+        Remove a member from the ClickUp workspace.
 
         Args:
             member_id (int): member identifier in BDD.
