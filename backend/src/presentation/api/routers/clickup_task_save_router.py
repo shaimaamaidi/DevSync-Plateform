@@ -30,8 +30,8 @@ router = APIRouter()
 
 @router.post(
     "/save",
+    response_class=Response,
     status_code=status.HTTP_201_CREATED,
-    response_model=Response,
     summary="Save verified tasks into ClickUp",
     description=(
         "Receives a list of verified tasks and applies them (create or update) "
