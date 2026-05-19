@@ -50,4 +50,4 @@ class VerifiedTaskList(BaseModel):
     Attributes:
         results: List of verification results.
     """
-    results: List[VerifiedTask]
+    results: List[VerifiedTask] = []

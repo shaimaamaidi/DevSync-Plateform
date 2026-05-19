@@ -38,4 +38,4 @@ class UserStoryList(BaseModel):
         user_stories: List of user stories belonging to the epic.
     """
     epic_title: str
-    user_stories: List[UserStory]
+    user_stories: List[UserStory] = []

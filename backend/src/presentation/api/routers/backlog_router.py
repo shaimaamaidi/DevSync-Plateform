@@ -18,6 +18,7 @@ Routes:
 import logging
 
 from fastapi import APIRouter, Depends
+from starlette import status
 from starlette.responses import StreamingResponse
 
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
@@ -28,10 +29,20 @@ from backend.src.presentation.api.deps import get_backlog_use_case
 
 logger = logging.getLogger(__name__)
 
+
 router = APIRouter()
 
 
-@router.post("/start")
+@router.post(
+    "/start",
+    status_code=status.HTTP_200_OK,
+    summary="Start backlog generation workflow",
+    description=(
+        "Initiates a new backlog generation process from a raw project description. "
+        "Returns a streaming response (SSE) containing incremental AI-generated outputs "
+        "and workflow metadata."
+    )
+)
 async def start(
     request: StartBacklogRequest,
     use_case: GenerateBacklogUseCase = Depends(get_backlog_use_case),
@@ -65,7 +76,16 @@ async def start(
     )
 
 
-@router.post("/reply")
+@router.post(
+    "/reply",
+    status_code=status.HTTP_200_OK,
+    summary="Reply to market intelligence verification",
+    description=(
+        "Handles user feedback during the market intelligence validation phase. "
+        "Allows confirmation or modification of generated results and continues the workflow "
+        "via streaming responses."
+    )
+)
 async def reply(
     request: ReplyStreamRequest,
     use_case: GenerateBacklogUseCase = Depends(get_backlog_use_case),
@@ -105,7 +125,16 @@ async def reply(
     )
 
 
-@router.post("/reply/backlog")
+@router.post(
+    "/reply/backlog",
+    status_code=status.HTTP_200_OK,
+    summary="Reply to backlog validation",
+    description=(
+        "Handles user feedback during backlog verification. "
+        "Validates or adjusts the generated backlog and continues the workflow "
+        "until approval and transition to delivery planning."
+    )
+)
 async def reply_backlog(
     request: ReplyBacklogStreamRequest,
     use_case: GenerateBacklogUseCase = Depends(get_backlog_use_case),

@@ -25,4 +25,4 @@ class SprintPlanning(BaseModel):
     Attributes:
         sprints: List of planned sprints.
     """
-    sprints: List[Sprint]
+    sprints: List[Sprint] = []

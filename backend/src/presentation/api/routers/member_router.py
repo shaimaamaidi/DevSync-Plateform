@@ -15,6 +15,7 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends
+from starlette import status
 
 from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
 from backend.src.domain.entities.git_repo import GitRepoIdDTO
@@ -28,7 +29,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/", response_model=MemberDTO)
+@router.post(
+    "/",
+    response_model=MemberDTO,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new member",
+    description="Creates a new member in the system using the provided data. The member is persisted and returned after successful creation."
+)
 def add_member(member: MemberCreateDTO, container: Container = Depends(get_container)) -> MemberDTO:
     """
     Create a new member.
@@ -59,7 +66,15 @@ def add_member(member: MemberCreateDTO, container: Container = Depends(get_conta
 
     return result
 
-@router.get("/by-repo/{repo_id}", response_model=List[MemberDTO])
+@router.get(
+    "/by-repo/{repo_id}",
+    response_model=List[MemberDTO],
+    status_code=status.HTTP_200_OK,
+    summary="Get members by repository",
+    description=(
+        "Retrieves all members associated with a specific repository ID."
+    )
+)
 def get_members_by_repo(repo_id: int, container: Container = Depends(get_container)) -> List[MemberDTO]:
     """
     Return members for a repository.
@@ -86,7 +101,15 @@ def get_members_by_repo(repo_id: int, container: Container = Depends(get_contain
 
     return results
 
-@router.get("/all-with-repos", response_model=List[MemberWithReposDTO])
+@router.get(
+    "/all-with-repos",
+    response_model=List[MemberWithReposDTO],
+    status_code=status.HTTP_200_OK,
+    summary="Get all members with repositories",
+    description=(
+        "Retrieves all members in the system along with their associated repositories."
+    )
+)
 def get_all_with_repos(container: Container = Depends(get_container)) -> List[MemberWithReposDTO]:
     """
     Return all members with repositories.
@@ -104,14 +127,17 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
 
     results = container.member_service.get_all_with_repos()
 
-    logger.info(
-        "Retrieved %d members with repositories.",
-        len(results),
-    )
+    logger.info("Retrieved %d members with repositories.", len(results))
 
     return results
 
-@router.put("/{member_id}", response_model=MemberWithReposDTO)
+@router.put(
+    "/{member_id}",
+    response_model=MemberWithReposDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Update a member",
+    description="Updates an existing member identified by its ID with the provided data. Returns the updated member along with its repositories."
+)
 def update_member(member_id: int, member: MemberUpdateDTO, container: Container = Depends(get_container)) -> MemberWithReposDTO:
     """
     Update a member by id.
@@ -129,17 +155,21 @@ def update_member(member_id: int, member: MemberUpdateDTO, container: Container 
     """
     logger.info("Updating member: id=%s.", member_id)
 
-    member.id = member_id
-    result = container.member_service.update_member(member)
+    member_with_id: MemberUpdateDTO = member.model_copy(update={"id": member_id})
 
-    logger.info(
-        "Member updated successfully: id=%s.",
-        member_id,
-    )
+    result = container.member_service.update_member(member_with_id)
+
+    logger.info("Member updated successfully: id=%s.", member_id)
 
     return result
 
-@router.delete("/{member_id}", response_model=bool)
+@router.delete(
+    "/{member_id}",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Delete a member",
+    description="Deletes a member by its ID. Returns a boolean indicating whether the operation was successful."
+)
 def delete_member(member_id: int, container: Container = Depends(get_container)) -> bool:
     """
     Delete a member by id.
@@ -158,9 +188,6 @@ def delete_member(member_id: int, container: Container = Depends(get_container))
     
     result = container.member_service.delete(member_id)
 
-    logger.info(
-        "Member deleted successfully: id=%s.",
-        member_id,
-    )
+    logger.info("Member deleted successfully: id=%s.",member_id,)
 
     return result

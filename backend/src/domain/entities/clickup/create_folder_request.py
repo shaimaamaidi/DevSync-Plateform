@@ -9,10 +9,10 @@ Main classes:
     CreateFolderRequest
 """
 
-from dataclasses import dataclass
+from pydantic import BaseModel
 
-@dataclass
-class CreateFolderRequest:
+
+class CreateFolderRequest(BaseModel):
     """
     Request model for creating a ClickUp folder.
 

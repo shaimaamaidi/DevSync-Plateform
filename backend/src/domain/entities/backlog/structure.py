@@ -49,4 +49,4 @@ class BacklogStructure(BaseModel):
     Attributes:
         epics: List of epics composing the backlog.
     """
-    epics: List[EpicBacklog]
+    epics: List[EpicBacklog] =[]

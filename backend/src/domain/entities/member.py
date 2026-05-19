@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 
 class MemberAuthDTO(BaseModel):
+    #
     """
     Payload for a member authentication request.
 
@@ -39,6 +40,7 @@ class MemberCredentialsDTO(BaseModel):
     hashed_password: str
 
 class MemberTokensDTO(BaseModel):
+    #
     """
     Authentication response containing access and refresh tokens.
 
@@ -76,6 +78,7 @@ class RepoRefDTO(BaseModel):
     url: Optional[str] = None
 
 class MemberDTO(BaseModel):
+    #
     """
     Main DTO for representing a member.
 
@@ -91,6 +94,7 @@ class MemberDTO(BaseModel):
     mail: Optional[str] = None
 
 class MemberCreateDTO(BaseModel):
+    #
     """
     Payload for member creation.
 
@@ -106,6 +110,7 @@ class MemberCreateDTO(BaseModel):
     password: Optional[str] =None
 
 class MemberUpdateDTO(BaseModel):
+    #
     """
     Payload for member update.
 
@@ -124,6 +129,7 @@ class MemberUpdateDTO(BaseModel):
     repos: Optional[List[RepoRefDTO]] = None
 
 class MemberWithReposDTO(BaseModel):
+    #
     """
     Member DTO enriched with the list of associated repositories.
 

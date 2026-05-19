@@ -8,6 +8,7 @@ the structure of update operations across application layers.
 Main classes:
     UpdateTaskRequest
 """
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -35,7 +36,7 @@ class UpdateTaskRequest(BaseModel):
     name: str
     description: str
     status: str
-    priority: str | None
-    assignees: str | None      # new assignees (comma-separated emails)
-    old_assignees: str | None  # previous assignees (comma-separated emails)
+    priority: Optional[str] = None
+    assignees: Optional[str] = None      # new assignees (comma-separated emails)
+    old_assignees: Optional[str] = None  # previous assignees (comma-separated emails)
     ignore_mails: bool = False

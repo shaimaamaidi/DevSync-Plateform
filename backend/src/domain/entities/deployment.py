@@ -7,12 +7,12 @@ Main classes:
     DeploymentDTO
 """
 
-from dataclasses import dataclass
 from datetime import datetime
 
+from pydantic import BaseModel
 
-@dataclass
-class DeploymentDTO:
+
+class DeploymentDTO(BaseModel):
     """
     Deployment information returned by GitHub.
 

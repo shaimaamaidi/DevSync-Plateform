@@ -17,13 +17,12 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends
+from starlette import status
 
 from backend.src.domain.entities.git_repo import (
     GitRepoCreateDTO,
     GitRepoDTO,
     GitRepoDetailDTO,
-    GitRepoIdDTO,
-    GitRepoNameDTO,
     GitRepoUpdateDTO,
 )
 from backend.src.infrastructure.di.container import Container
@@ -36,7 +35,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/all", response_model=List[GitRepoDTO])
+@router.get(
+    "/all",
+    response_model=List[GitRepoDTO],
+    status_code=status.HTTP_200_OK,
+    summary="Get all repositories",
+    description="Retrieves all repositories stored in the system."
+)
 def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepoDTO]:
     """
     Return all repositories.
@@ -56,7 +61,13 @@ def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepo
     return results
 
 
-@router.get("/details", response_model=List[GitRepoDetailDTO])
+@router.get(
+    "/details",
+    response_model=List[GitRepoDetailDTO],
+    status_code=status.HTTP_200_OK,
+    summary="Get all repositories with details",
+    description="Retrieves all repositories along with extended metadata and detailed information."
+)
 def get_all_with_details(container: Container = Depends(get_container)) -> List[GitRepoDetailDTO]:
     """
     Return repositories with details.
@@ -75,7 +86,13 @@ def get_all_with_details(container: Container = Depends(get_container)) -> List[
 
     return results
 
-@router.post("/", response_model=GitRepoDTO)
+@router.post(
+    "/",
+    response_model=GitRepoDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Get all repositories with details",
+    description="Retrieves all repositories along with extended metadata and detailed information."
+)
 def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_container)) -> GitRepoDTO:
     """
     Create a new repository.
@@ -104,7 +121,13 @@ def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_containe
 
     return result
 
-@router.get("/{repo_id}", response_model=GitRepoDetailDTO)
+@router.get(
+    "/{repo_id}",
+    response_model=GitRepoDetailDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Get repository by ID",
+    description="Retrieves a repository using its unique identifier, including full details."
+)
 def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     """
     Fetch a repository by id.
@@ -124,7 +147,13 @@ def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) 
 
     return result
 
-@router.get("/by-name/{name}", response_model=GitRepoDetailDTO)
+@router.get(
+    "/by-name/{name}",
+    response_model=GitRepoDetailDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Get repository by name",
+    description="Retrieves a repository by its name with full detailed information."
+)
 def get_repo_by_name(name: str, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     """
     Fetch a repository by name.
@@ -146,7 +175,13 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
 
 
 
-@router.put("/{repo_id}", response_model=GitRepoDetailDTO)
+@router.put(
+    "/{repo_id}",
+    response_model=GitRepoDetailDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Update a repository",
+    description="Updates an existing repository identified by its ID with new values such as name or URL."
+)
 def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
     """
     Update a repository by id.
@@ -167,14 +202,20 @@ def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Dep
         repo.url,
     )
 
-    repo.id = repo_id
-    result = container.repo_service.update_repo(repo)
+    repo_with_id: GitRepoUpdateDTO = repo.model_copy(update={"id": repo_id})
+    result = container.repo_service.update_repo(repo_with_id)
 
     logger.info("Repository updated successfully: repo_id=%s.", repo_id)
 
     return result
 
-@router.delete("/{repo_id}", response_model=bool)
+@router.delete(
+    "/{repo_id}",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Delete a repository",
+    description="Deletes a repository by its ID and returns whether the operation was successful."
+)
 def delete_repo(repo_id: int, container: Container = Depends(get_container)) -> bool:
     """
     Delete a repository by id.

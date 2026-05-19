@@ -31,6 +31,7 @@ router = APIRouter()
 @router.post(
     "/save",
     status_code=status.HTTP_201_CREATED,
+    response_model=Response,
     summary="Save verified tasks into ClickUp",
     description=(
         "Receives a list of verified tasks and applies them (create or update) "
@@ -68,7 +69,7 @@ def save_tasks_to_clickup(
             It only confirms successful execution via HTTP 201 Created status.
     """
     logger.info(
-        "POST /clickup/save called. space_id=%s total_tasks=%d.",
+        "Saving verified tasks into ClickUp: space_id=%s, total_tasks=%d.",
         request.space_id,
         len(request.tasks),
     )
@@ -81,7 +82,7 @@ def save_tasks_to_clickup(
     )
 
     logger.info(
-        "POST /clickup/save completed. space_id=%s total_tasks=%d.",
+        "ClickUp tasks saved successfully: space_id=%s, total_tasks=%d.",
         request.space_id,
         len(request.tasks),
     )

@@ -13,6 +13,7 @@ Routes:
 import logging
 
 from fastapi import APIRouter, Depends, Response, Request
+from starlette import status
 
 from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO, MemberDTO
 from backend.src.infrastructure.di.container import Container
@@ -25,7 +26,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/login", response_model=MemberTokensDTO)
+@router.post(
+    "/login",
+    response_model=MemberTokensDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Authenticate a member and return access tokens",
+    description=(
+        "Authenticates a member using email and password credentials. "
+        "Returns JWT access and refresh tokens and sets the access token in an HTTP-only cookie."
+    )
+)
 def login(credentials: MemberAuthDTO, response: Response, container: Container = Depends(get_container)) -> MemberTokensDTO:
     """
     Authenticate a member and return tokens.
@@ -57,7 +67,16 @@ def login(credentials: MemberAuthDTO, response: Response, container: Container =
     return result
 
 
-@router.post("/refresh", response_model=MemberTokensDTO)
+@router.post(
+    "/refresh",
+    response_model=MemberTokensDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Refresh authentication tokens",
+    description=(
+        "Generates new access and refresh tokens using a valid refresh token. "
+        "Also updates the HTTP-only access token cookie."
+    )
+)
 def refresh(refresh_token: str, response: Response, container: Container = Depends(get_container)) -> MemberTokensDTO:
     """
     Issue new tokens from a valid refresh token.
@@ -89,7 +108,16 @@ def refresh(refresh_token: str, response: Response, container: Container = Depen
     return result
 
 
-@router.post("/logout", response_model=bool)
+@router.post(
+    "/logout",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Logout a member by revoking refresh token",
+    description=(
+        "Revokes the provided refresh token and invalidates the user session. "
+        "Effectively logs the member out from the system."
+    )
+)
 def logout(refresh_token: str, container: Container = Depends(get_container)) -> bool:
     """
     Revoke a refresh token.
@@ -109,7 +137,16 @@ def logout(refresh_token: str, container: Container = Depends(get_container)) ->
 
     return True
 
-@router.get("/me", response_model=MemberDTO)
+@router.get(
+    "/me",
+    response_model=MemberDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Get current authenticated member",
+    description=(
+        "Retrieves the profile information of the currently authenticated member "
+        "based on the access token stored in the request context."
+    )
+)
 def get_me(request: Request, container: Container = Depends(get_container)) -> MemberDTO:
     """
     Get the currently authenticated member.

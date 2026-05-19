@@ -47,4 +47,4 @@ class GeneratedTaskList(BaseModel):
     Attributes:
         tasks: List of generated tasks.
     """
-    tasks: List[GeneratedTask]
+    tasks: List[GeneratedTask] = []

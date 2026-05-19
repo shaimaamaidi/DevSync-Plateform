@@ -29,13 +29,5 @@ class VerifyTasksRequest(BaseModel):
         space_id: Identifier of the ClickUp workspace where tasks will be verified.
         tasks: List of generated tasks to be validated against existing ClickUp tasks.
     """
-
-    space_id: str = Field(
-        ...,
-        description="Identifier of the ClickUp workspace."
-    )
-
-    tasks: List[GeneratedTask] = Field(
-        ...,
-        description="List of generated tasks to verify against ClickUp."
-    )
+    space_id: str = Field(..., description="Identifier of the ClickUp workspace.")
+    tasks: List[GeneratedTask] = Field(..., description="List of generated tasks to verify against ClickUp.")

@@ -9,14 +9,14 @@ Main classes:
     FolderWithListsMetadata
 """
 
-from dataclasses import dataclass, field
 from typing import List
+
+from pydantic import BaseModel
 
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 
 
-@dataclass
-class FolderWithListsMetadata:
+class FolderWithListsMetadata(BaseModel):
     """
     ClickUp folder containing multiple lists metadata.
 
@@ -30,4 +30,4 @@ class FolderWithListsMetadata:
     """
     id: str
     name: str
-    lists: List[ClickUpListMetadata] = field(default_factory=list)
+    lists: List[ClickUpListMetadata] = []

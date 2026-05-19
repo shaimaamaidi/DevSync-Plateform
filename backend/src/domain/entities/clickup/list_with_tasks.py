@@ -9,12 +9,12 @@ Main classes:
     ClickUpTask, ClickUpList
 """
 
-from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
-@dataclass
-class ClickUpTask:
+class ClickUpTask(BaseModel):
     """
     Task representation within a ClickUp list.
 
@@ -23,19 +23,18 @@ class ClickUpTask:
         name: Task name or title.
         description: Task description.
         status: Current task status.
-        assignee: mails' list of the assignee, if any.
+        assignee: email of the assignee, if any.
         priority: Priority level of the task, if any.
     """
-    id: str | None
+    id: Optional[str] = None
     name: str
     description: str
     status: str
-    assignee: str | None
-    priority: str | None
+    assignee: Optional[str] = None
+    priority: Optional[str] = None
 
 
-@dataclass
-class ClickUpList:
+class ClickUpList(BaseModel):
     """
     ClickUp list containing tasks and configuration metadata.
 
@@ -51,6 +50,6 @@ class ClickUpList:
     """
     id: str
     name: str
-    tasks: List[ClickUpTask] = field(default_factory=list)
-    statuses: List[str] = field(default_factory=list)
-    priorities: List[str] = field(default_factory=list)
+    tasks: List[ClickUpTask] = []
+    statuses: List[str] = []
+    priorities: List[str] = []

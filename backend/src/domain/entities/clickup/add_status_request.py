@@ -9,11 +9,12 @@ Main classes:
     AddStatusRequest
 """
 
-from dataclasses import dataclass
+from pydantic import BaseModel
+
 from backend.src.domain.entities.clickup.status import StatusType
 
-@dataclass
-class AddStatusRequest:
+
+class AddStatusRequest(BaseModel):
     """
     Request model for adding a status to a ClickUp list.
 

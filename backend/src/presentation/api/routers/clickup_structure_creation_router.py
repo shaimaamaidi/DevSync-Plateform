@@ -42,10 +42,7 @@ router = APIRouter()
     response_model=ClickUpSpaceDTO,
     status_code=status.HTTP_201_CREATED,
     summary="Register a ClickUp space",
-    description=(
-        "Validate a ClickUp space existence and persist it "
-        "in the application layer."
-    ),
+    description="Validate a ClickUp space existence and persist it in the application layer."
 )
 def register_space(
     body: ClickUpSpaceRegisterDTO,
@@ -61,9 +58,13 @@ def register_space(
     Returns:
         ClickUpSpaceDTO: Persisted space DTO.
     """
-    logger.info("POST /clickup/structure/spaces/register. space_code=%s.", body.space_code)
+    logger.info("Registering ClickUp space: space_code=%s.", body.space_code)
 
-    return use_case.register_space(body)
+    result =  use_case.register_space(body)
+
+    logger.info("ClickUp space registered successfully: space_code=%s.", body.space_code)
+
+    return result
 
 @router.post(
     "/spaces",
@@ -89,10 +90,13 @@ def create_space(
     Returns:
         ClickUpSpaceDTO: Created space DTO.
     """
-    logger.info("POST /clickup/structure/spaces. space_name=%s.", body.space_name)
+    logger.info("Creating ClickUp space: space_name=%s.", body.space_name)
 
-    return use_case.create_space(body)
+    result = use_case.create_space(body)
 
+    logger.info("ClickUp space created successfully: space_name=%s.", body.space_name)
+
+    return result
 @router.delete(
     "/spaces/{space_id}",
     response_model=bool,
@@ -114,10 +118,16 @@ def delete_space(
     Returns:
         bool: True if deletion succeeds.
     """
-    logger.info("DELETE /clickup/structure/spaces/%s.", space_id)
+    logger.info("Deleting ClickUp space: space_id=%s.", space_id)
 
-    return use_case.delete_space(space_id)
+    result = use_case.delete_space(space_id)
 
+    logger.info(
+        "Deleted ClickUp space successfully: space_id=%s.",
+        space_id,
+    )
+
+    return result
 
 @router.post(
     "/members/invite",
@@ -141,13 +151,19 @@ def invite_member(
         bool: True if the invitation succeeds.
     """
     logger.info(
-        "POST /clickup/structure/members/invite. email=%s role=%s.",
+        "Inviting member to ClickUp workspace: email=%s, role=%s.",
         body.email,
         body.role,
     )
 
-    return use_case.invite_member(body)
+    result = use_case.invite_member(body)
 
+    logger.info(
+        "Member invitation sent successfully: email=%s.",
+        body.email,
+    )
+
+    return result
 
 @router.delete(
     "/members/{member_id}",
@@ -170,9 +186,13 @@ def remove_member_from_workspace(
     Returns:
         bool: True if removal succeeds.
     """
-    logger.info("DELETE /clickup/structure/members/%s.", member_id)
+    logger.info("Removing member from ClickUp workspace: member_id=%s.", member_id)
 
-    return use_case.remove_member_from_workspace(member_id)
+    result = use_case.remove_member_from_workspace(member_id)
+
+    logger.info("Member removed successfully from ClickUp workspace: member_id=%s.", member_id)
+
+    return result
 
 @router.post(
     "/folders",
@@ -196,12 +216,20 @@ def create_folder(
         FolderWithListsMetadata: Created folder metadata.
     """
     logger.info(
-        "POST /clickup/structure/folders. space_id=%s folder_name=%s.",
+        "Creating ClickUp folder: space_id=%s, folder_name=%s.",
         body.space_id,
         body.name,
     )
 
-    return use_case.create_folder(body)
+    result = use_case.create_folder(body)
+
+    logger.info(
+        "Created ClickUp folder successfully: space_id=%s, folder_name=%s.",
+        body.space_id,
+        body.name,
+    )
+
+    return result
 
 
 @router.post(
@@ -226,13 +254,20 @@ def create_list(
         ClickUpListMetadata: Created list metadata.
     """
     logger.info(
-        "POST /clickup/structure/lists. space_id=%s folder_id=%s list_name=%s.",
+        "Creating ClickUp list: space_id=%s, folder_id=%s, list_name=%s.",
         body.space_id,
         body.folder_id,
         body.name,
     )
 
-    return use_case.create_list(body)
+    result = use_case.create_list(body)
+
+    logger.info(
+        "Created ClickUp list successfully: list_name=%s.",
+        body.name,
+    )
+
+    return result
 
 
 @router.post(
@@ -259,12 +294,18 @@ def add_status(
         ClickUpListMetadata: Updated list metadata.
     """
     logger.info(
-        "POST /clickup/structure/lists/%s/statuses. status=%s.",
+        "Adding status to ClickUp list: list_id=%s, status=%s.",
         list_id,
         body.status,
     )
 
-    # list_id vient du path — on s'assure de la cohérence avec le body
-    body.list_id = list_id
+    body_with_list_id: AddStatusRequest = body.model_copy(update={"list_id": list_id})
+    result = use_case.add_status(body_with_list_id)
 
-    return use_case.add_status(body)
+    logger.info(
+        "Status added successfully to ClickUp list: list_id=%s, status=%s.",
+        list_id,
+        body.status,
+    )
+
+    return result

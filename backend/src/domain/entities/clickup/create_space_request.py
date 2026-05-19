@@ -9,11 +9,10 @@ Main classes:
     CreateSpaceRequest
 """
 
-from dataclasses import dataclass
+from pydantic import BaseModel
 
 
-@dataclass
-class CreateSpaceRequest:
+class CreateSpaceRequest(BaseModel):
     """
     Request model for creating or referencing a ClickUp space.
 

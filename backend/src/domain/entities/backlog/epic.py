@@ -37,4 +37,4 @@ class EpicList(BaseModel):
     Attributes:
         epics: List of epic entities.
     """
-    epics: List[Epic]
+    epics: List[Epic] = []

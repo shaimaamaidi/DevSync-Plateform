@@ -10,7 +10,7 @@ Main classes:
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 
@@ -36,6 +36,7 @@ class AssociateClickUpSpaceRequest(BaseModel):
     space_code: Optional[str] = None
 
 class RepoMembersRequest(BaseModel):
+    #
     """
     Request payload for associating repository members.
 
@@ -44,7 +45,7 @@ class RepoMembersRequest(BaseModel):
         members: List of member mail DTOs.
     """
     repo_url: Optional[str] = None
-    members: List[MemberMailDTO] = Field(default_factory=list)
+    members: List[MemberMailDTO] = []
 
 class AssociatorRepoDTO(BaseModel):
     """
@@ -95,6 +96,6 @@ class AssociateMembersResponse(BaseModel):
         members: List of associated member DTOs.
     """
     repo: AssociatorRepoDTO
-    members: List[AssociatorMemberDTO] = Field(default_factory=list)
+    members: List[AssociatorMemberDTO] = []
     
     

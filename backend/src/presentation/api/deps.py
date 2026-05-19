@@ -11,6 +11,7 @@ Functions:
     get_verify_task_use_case: Provides the task verification use case instance.
     get_generate_task_from_summary_use_case: Provides the task generation from summary use case instance.
     get_save_task_use_case: Builds and provides the save task use case per request.
+    get_clickup_structure_metadata_use_case: Provide the clickup structure metadata use case instance.
     get_clickup_structure_creation_use_case:
         Builds and provides the ClickUp workspace structure creation use case per request.
         This use case is responsible for creating ClickUp spaces, folders, lists, and statuses
@@ -24,6 +25,7 @@ from fastapi import Depends, Request
 
 from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
 from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
@@ -232,6 +234,38 @@ def get_clickup_space_task_reader_use_case(request: Request) -> ClickUpSpaceTask
     except Exception as e:
         logger.exception("Failed to retrieve ClickUp space task reader use case: %s", str(e))
         raise ServiceUnavailableException("ClickUp space task reader service is unavailable.") from e
+
+def get_clickup_structure_metadata_use_case(request: Request) -> ClickUpStructureMetadataUseCase:
+    """
+    Retrieve the ClickUp structure metadata use case instance.
+
+    Singleton initialized at application startup. Provides read-only access
+    to ClickUp workspace structural data (folders, lists).
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        ClickUpStructureMetadataUseCase: The initialized metadata use case.
+
+    Raises:
+        ServiceUnavailableException:
+            If the use case is not initialized in the application state.
+    """
+    try:
+        use_case = request.app.state.workflow_container.clickup_structure_metadata_use_case
+
+        if use_case is None:
+            raise ServiceUnavailableException("ClickUp structure metadata use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+
+    except Exception as e:
+        logger.exception("Failed to retrieve ClickUp structure metadata use case: %s", str(e))
+        raise ServiceUnavailableException("ClickUp structure metadata service is unavailable.") from e
 
 # Request-scoped use case (requires member_repo)
 def get_save_task_use_case(

@@ -28,23 +28,7 @@ class SaveTasksRequest(BaseModel):
         ignore_names: If True, ignores assignee names that do not exist in the database.
         ignore_mails: If True, ignores unresolved or invalid email-based assignments.
     """
-
-    space_id: str = Field(
-        ...,
-        description="Identifier of the ClickUp workspace."
-    )
-
-    tasks: List[VerifiedTask] = Field(
-        ...,
-        description="List of verified tasks to be saved into ClickUp."
-    )
-
-    ignore_names: bool = Field(
-        False,
-        description="If True, ignores assignee names that do not exist in the database."
-    )
-
-    ignore_mails: bool = Field(
-        False,
-        description="If True, ignores unresolved email assignments."
-    )
+    space_id: str = Field(..., description="Identifier of the ClickUp workspace.")
+    tasks: List[VerifiedTask] = Field(..., description="List of verified tasks to be saved into ClickUp.")
+    ignore_names: bool = Field(default=False, description="If True, ignores assignee names that do not exist in the database.")
+    ignore_mails: bool = Field(default=False, description="If True, ignores unresolved email assignments.")

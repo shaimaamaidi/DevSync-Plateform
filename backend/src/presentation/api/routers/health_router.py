@@ -9,7 +9,7 @@ Routes:
 import logging
 
 from fastapi import APIRouter
-
+from starlette import status
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("", summary="Health check")
+@router.get(
+    "",
+    status_code=status.HTTP_200_OK,
+    summary="Health check",
+    description="Returns the current health status of the service. Used for monitoring, uptime checks, and load balancer probes."
+)
 def health_check():
     """
     Retrieve the service health status.
@@ -26,7 +31,6 @@ def health_check():
         dict: A JSON payload indicating the service status.
     """
     logger.info("Health check endpoint called.")
-
 
     response = {"status": "ok"}
 

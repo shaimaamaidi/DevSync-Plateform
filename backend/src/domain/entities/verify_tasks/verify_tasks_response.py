@@ -27,13 +27,5 @@ class VerifyTasksResponse(BaseModel):
         total: Total number of verified tasks after processing.
         tasks: List of verified tasks with their computed actions (create/update).
     """
-
-    total: int = Field(
-        ...,
-        description="Total number of tasks processed during verification."
-    )
-
-    tasks: List[VerifiedTask] = Field(
-        ...,
-        description="List of verified tasks with their corresponding actions (create or update)."
-    )
+    total: int = Field(..., description="Total number of tasks processed during verification.")
+    tasks: List[VerifiedTask] = Field(..., description="List of verified tasks with their corresponding actions (create or update).")

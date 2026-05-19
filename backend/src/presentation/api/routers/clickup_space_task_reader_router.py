@@ -20,6 +20,7 @@ from backend.src.presentation.api.deps import get_clickup_space_task_reader_use_
 
 logger = logging.getLogger(__name__)
 
+
 router = APIRouter()
 
 
@@ -44,6 +45,14 @@ def get_tasks_by_space(
     Returns:
         List[FolderWithLists]: Folders with their lists and tasks.
     """
-    logger.info("GET /clickup/tasks/spaces/%s.", space_id)
+    logger.info("Fetching ClickUp space tasks: space_id=%s.", space_id)
 
-    return use_case.get_tasks_by_space(space_id)
+    results = use_case.get_tasks_by_space(space_id)
+
+    logger.info(
+        "Fetched ClickUp space tasks successfully: space_id=%s, folders_count=%s.",
+        space_id,
+        len(results),
+    )
+
+    return results

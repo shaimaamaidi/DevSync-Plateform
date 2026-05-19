@@ -11,7 +11,7 @@ Main classes:
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class RepoMemberDTO(BaseModel):
@@ -120,7 +120,7 @@ class GitRepoDetailDTO(BaseModel):
     id: Optional[int] = None
     name: Optional[str] = None
     url: Optional[str] = None
-    members: List[RepoMemberDTO] = Field(default_factory=list)
+    members: List[RepoMemberDTO] = []
     clickup_space: Optional[RepoClickUpSpaceDTO] = None
 
 

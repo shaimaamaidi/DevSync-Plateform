@@ -9,14 +9,14 @@ Main classes:
     FolderWithLists
 """
 
-from dataclasses import dataclass, field
 from typing import List
+
+from pydantic import BaseModel
 
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList
 
 
-@dataclass
-class FolderWithLists:
+class FolderWithLists(BaseModel):
     """
     ClickUp folder containing multiple lists with tasks.
 
@@ -30,4 +30,4 @@ class FolderWithLists:
     """
     id: str
     name: str
-    lists: List[ClickUpList] = field(default_factory=list)
+    lists: List[ClickUpList] = []

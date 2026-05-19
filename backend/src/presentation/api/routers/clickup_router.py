@@ -15,6 +15,8 @@ Routes:
 import logging
 
 from fastapi import APIRouter, Depends
+from starlette import status
+
 from backend.src.domain.entities.clickup_space import (
     ClickUpSpaceCreateDTO,
     ClickUpSpaceDTO,
@@ -32,7 +34,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/", response_model=list[ClickUpSpaceDTO])
+@router.get(
+    "/",
+    response_model=list[ClickUpSpaceDTO],
+    status_code=status.HTTP_200_OK,
+    summary="Get all ClickUp spaces",
+    description=(
+        "Retrieves the full list of ClickUp spaces stored in the system."
+    )
+)
 def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickUpSpaceDTO]:
     """
     Return all ClickUp spaces.
@@ -51,7 +61,16 @@ def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickU
 
     return results
 
-@router.get("/light", response_model=list[ClickUpSpaceLightDTO])
+@router.get(
+    "/light",
+    response_model=list[ClickUpSpaceLightDTO],
+    status_code=status.HTTP_200_OK,
+    summary="Get all ClickUp spaces (light version)",
+    description=(
+        "Retrieves a simplified version of ClickUp spaces with reduced fields "
+        "for lightweight usage (e.g., dropdowns or listings)."
+    )
+)
 def get_all_light(container: Container = Depends(get_container)) -> list[ClickUpSpaceLightDTO]:
     """
     Return all ClickUp spaces in light form.
@@ -70,7 +89,15 @@ def get_all_light(container: Container = Depends(get_container)) -> list[ClickUp
 
     return results
 
-@router.get("/{space_id}", response_model=ClickUpSpaceDetailDTO)
+@router.get(
+    "/{space_id}",
+    response_model=ClickUpSpaceDetailDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Get ClickUp space by ID",
+    description=(
+        "Fetches detailed information about a specific ClickUp space using its unique identifier."
+    )
+)
 def get_space_by_id(space_id: int, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
     """
     Fetch a ClickUp space by id.
@@ -90,7 +117,15 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
 
     return result
 
-@router.post("/", response_model=ClickUpSpaceDTO)
+@router.post(
+    "/",
+    response_model=ClickUpSpaceDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Get ClickUp space by ID",
+    description=(
+        "Fetches detailed information about a specific ClickUp space using its unique identifier."
+    )
+)
 def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDTO:
     """
     Create a ClickUp space.
@@ -117,7 +152,15 @@ def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(ge
 
     return result
 
-@router.put("/{space_id}", response_model=ClickUpSpaceDetailDTO)
+@router.put(
+    "/{space_id}",
+    response_model=ClickUpSpaceDetailDTO,
+    status_code=status.HTTP_200_OK,
+    summary="Update a ClickUp space",
+    description=(
+        "Updates an existing ClickUp space identified by its ID with new provided values."
+    )
+)
 def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
     """
     Update a ClickUp space by id.
@@ -130,23 +173,24 @@ def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Contain
     Returns:
         ClickUpSpaceDetailDTO: The updated ClickUp space details.
     """
-    logger.info(
-        "Updating ClickUp space: id=%s.",
-    
-        space_id,
-    )
+    logger.info("Updating ClickUp space: id=%s.", space_id)
 
-    space.id = space_id
-    result = container.clickup_service.update_space(space)
+    space_with_id: ClickUpSpaceUpdateDTO = space.model_copy(update={"id": space_id})
+    result = container.clickup_service.update_space(space_with_id)
 
-    logger.info(
-        "ClickUp space updated successfully: id=%s.",
-        space_id,
-    )
+    logger.info("ClickUp space updated successfully: id=%s.", space_id)
 
     return result
 
-@router.delete("/{space_id}", response_model=bool)
+@router.delete(
+    "/{space_id}",
+    response_model=bool,
+    status_code=status.HTTP_200_OK,
+    summary="Update a ClickUp space",
+    description=(
+        "Updates an existing ClickUp space identified by its ID with new provided values."
+    )
+)
 def delete_space(space_id: int, container: Container = Depends(get_container)) -> bool:
     """
     Delete a ClickUp space by id.

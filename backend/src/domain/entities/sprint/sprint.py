@@ -28,7 +28,7 @@ class UserStorySprint(BaseModel):
         tasks: List of task estimations associated with the user story.
     """
     user_story: UserStory
-    tasks: List[TaskEstimate]
+    tasks: List[TaskEstimate] = []
 
 class Sprint(BaseModel):
     """
@@ -46,4 +46,4 @@ class Sprint(BaseModel):
     name: str
     goal: str
     total_estimated_hours: float
-    user_stories: List[UserStorySprint]
+    user_stories: List[UserStorySprint] = []

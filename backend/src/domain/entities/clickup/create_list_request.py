@@ -10,11 +10,12 @@ Main classes:
     CreateListRequest
 """
 
-from dataclasses import dataclass
 from typing import Optional
 
-@dataclass
-class CreateListRequest:
+from pydantic import BaseModel
+
+
+class CreateListRequest(BaseModel):
     """
     Request model for creating a ClickUp list.
 

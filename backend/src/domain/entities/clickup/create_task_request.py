@@ -8,6 +8,7 @@ the structure of task creation operations across application layers.
 Main classes:
     CreateTaskRequest
 """
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -34,7 +35,7 @@ class CreateTaskRequest(BaseModel):
     list_id: str
     name: str
     description: str
-    status: str | None
-    priority: str | None
-    assignees: str | None  # comma-separated emails
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    assignees: Optional[str] = None  # comma-separated emails
     ignore_mails: bool = False

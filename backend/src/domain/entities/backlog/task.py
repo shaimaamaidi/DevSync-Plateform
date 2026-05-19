@@ -38,4 +38,4 @@ class TaskList(BaseModel):
         tasks: List of tasks belonging to the user story.
     """
     user_story_title: str
-    tasks: List[Task]
+    tasks: List[Task] = []

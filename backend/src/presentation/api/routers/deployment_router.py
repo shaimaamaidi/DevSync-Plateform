@@ -11,6 +11,7 @@ import logging
 from typing import List
 
 from fastapi import APIRouter, Depends
+from starlette import status
 
 from backend.src.domain.entities.deployment import DeploymentDTO
 from backend.src.infrastructure.di.container import Container
@@ -23,7 +24,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.get("/list")
+@router.get(
+    "/list",
+    response_model=List[DeploymentDTO],
+    status_code=status.HTTP_200_OK,
+    summary="List deployments for a repository",
+    description=(
+        "Retrieves all deployments associated with a given repository URL. "
+        "Used to track deployment history and environments."
+    )
+)
 async def list_deployments(
     repo_url: str,
     container: Container = Depends(get_container),

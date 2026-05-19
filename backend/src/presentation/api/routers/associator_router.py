@@ -12,6 +12,7 @@ Routes:
 
 import logging
 from fastapi import APIRouter, Depends
+from starlette import status
 
 from backend.src.domain.entities.associator import (
     AssociateClickUpSpaceRequest,
@@ -29,7 +30,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/space", response_model=AssociateClickUpSpaceResponse)
+@router.post(
+    "/space",
+    response_model=AssociateClickUpSpaceResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Associate a ClickUp space with a repository",
+    description=(
+        "Validate and link an existing ClickUp space to a repository. "
+        "Ensures that the provided space code exists and persists the association."
+    )
+)
 def associate_space(
     request: AssociateClickUpSpaceRequest,
     container: Container = Depends(get_container),
@@ -62,7 +72,16 @@ def associate_space(
     return result
 
 
-@router.post("/members", response_model=AssociateMembersResponse)
+@router.post(
+    "/members",
+    response_model=AssociateMembersResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Replace repository members",
+    description=(
+        "Replaces all existing members of a repository with the provided member list. "
+        "This operation overwrites previous members."
+    )
+)
 def associate_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
@@ -95,7 +114,16 @@ def associate_members(
     return results
 
 
-@router.post("/members/add", response_model=AssociateMembersResponse)
+@router.post(
+    "/members/add",
+    response_model=AssociateMembersResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Add members to a repository",
+    description=(
+        "Adds new members to a repository without removing existing ones. "
+        "Only new members are appended."
+    )
+)
 def add_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),
@@ -128,7 +156,16 @@ def add_members(
     return result
 
 
-@router.post("/members/remove", response_model=AssociateMembersResponse)
+@router.post(
+    "/members/remove",
+    response_model=AssociateMembersResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Remove members from a repository",
+    description=(
+        "Removes specified members from a repository if they exist. "
+        "Only the provided members are affected."
+    )
+)
 def remove_members(
     request: RepoMembersRequest,
     container: Container = Depends(get_container),

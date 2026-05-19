@@ -30,6 +30,7 @@ router = APIRouter()
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
+    response_model=ClickUpTask,
     summary="Create a ClickUp task",
     description="Create a new task inside a ClickUp list.",
 )
@@ -48,17 +49,25 @@ def create_task(
         ClickUpTask: The created ClickUp task entity containing task metadata returned by the ClickUp API.
     """
     logger.info(
-        "POST /clickup/tasks/manage. list_id=%s name=%s.",
+        "Creating ClickUp task: list_id=%s, name=%s.",
         body.list_id,
         body.name,
     )
 
-    return use_case.create_task(body)
+    result = use_case.create_task(body)
 
+    logger.info(
+        "ClickUp task created successfully: list_id=%s, name=%s.",
+        body.list_id,
+        body.name,
+    )
+
+    return result
 
 @router.put(
     "/{space_id}",
     status_code=status.HTTP_200_OK,
+    response_model=ClickUpTask,
     summary="Update a ClickUp task",
     description="Update an existing ClickUp task by its identifier.",
 )
@@ -79,16 +88,28 @@ def update_task(
         ClickUpTask: The updated ClickUp task entity reflecting the latest state returned by
             the ClickUp API.
     """
-    logger.info("PUT /clickup/tasks/manage/%s/%s.", space_id, body.task_id)
+    logger.info(
+        "Updating ClickUp task: space_id=%s, task_id=%s.",
+        space_id,
+        body.task_id,
+    )
 
-    body.space_id = space_id
+    body_with_space_id: UpdateTaskRequest = body.model_copy(update={"space_id": space_id})
+    result = use_case.update_task(body_with_space_id)
 
-    return use_case.update_task(body)
+    logger.info(
+        "ClickUp task updated successfully: space_id=%s, task_id=%s.",
+        space_id,
+        body_with_space_id.task_id,
+    )
+
+    return result
 
 
 @router.delete(
     "/{task_id}",
     status_code=status.HTTP_200_OK,
+    response_model=bool,
     summary="Delete a ClickUp task",
     description="Delete an existing ClickUp task by its identifier.",
 )
@@ -106,6 +127,10 @@ def delete_task(
     Returns:
         bool: True if the task was successfully deleted.
     """
-    logger.info("DELETE /clickup/tasks/manage/%s.", task_id)
+    logger.info("Deleting ClickUp task: task_id=%s.", task_id)
 
-    return use_case.delete_task(task_id)
+    result = use_case.delete_task(task_id)
+
+    logger.info("ClickUp task deleted successfully: task_id=%s.", task_id)
+
+    return result

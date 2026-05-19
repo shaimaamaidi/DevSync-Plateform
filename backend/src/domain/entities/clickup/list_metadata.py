@@ -9,12 +9,12 @@ Main classes:
     ClickUpListMetadata
 """
 
-from dataclasses import dataclass, field
 from typing import List
 
+from pydantic import BaseModel
 
-@dataclass
-class ClickUpListMetadata:
+
+class ClickUpListMetadata(BaseModel):
     """
     ClickUp list containing configuration metadata.
 
@@ -29,5 +29,5 @@ class ClickUpListMetadata:
     """
     id: str
     name: str
-    statuses: List[str] = field(default_factory=list)
-    priorities: List[str] = field(default_factory=list)
+    statuses: List[str] = []
+    priorities: List[str] = []

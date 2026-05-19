@@ -69,7 +69,7 @@ def verify_tasks(
             - tasks: list of tasks with their computed actions
     """
     logger.info(
-        "POST /clickup/verify called. space_id=%s total_tasks=%d.",
+        "Verifying generated ClickUp tasks: space_id=%s, total_tasks=%d.",
         request.space_id,
         len(request.tasks),
     )
@@ -80,7 +80,7 @@ def verify_tasks(
     )
 
     logger.info(
-        "POST /clickup/verify completed. space_id=%s verified=%d create=%d update=%d.",
+        "ClickUp tasks verification completed: space_id=%s total_verified=%d create=%d update=%d.",
         request.space_id,
         len(results),
         sum(1 for r in results if r.action == "create"),

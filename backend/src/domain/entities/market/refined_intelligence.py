@@ -50,7 +50,7 @@ class RefinedMarketIntelligenceSummary(BaseModel):
         description="The refined or unchanged synthesis (1-2 sentences) highlighting key insights to guide backlog generation",
     )
     cause: str = Field(
-        "",
+        default="",
         description="Reason for any changes made if inconsistencies were found",
     )
     is_valid: bool = Field(

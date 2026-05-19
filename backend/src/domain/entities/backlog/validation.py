@@ -29,5 +29,5 @@ class BacklogValidation(BaseModel):
         is_valid: Indicates whether the backlog is valid (True) or requires fixes (False).
     """
     corrected_backlog: BacklogStructure
-    corrections: List[str]
+    corrections: List[str] =  []
     is_valid: bool
