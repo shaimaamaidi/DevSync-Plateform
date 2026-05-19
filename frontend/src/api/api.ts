@@ -180,15 +180,15 @@ export interface ClickUpSpaceUpdateDTO {
     'repo'?: ClickUpRepoRefDTO | null;
 }
 /**
- * Task representation within a ClickUp list.  Attributes:     id: Task identifier.     name: Task name or title.     description: Task description.     status: Current task status.     assignee: mails\' list of the assignee, if any.     priority: Priority level of the task, if any.
+ * Task representation within a ClickUp list.  Attributes:     id: Task identifier.     name: Task name or title.     description: Task description.     status: Current task status.     assignee: email of the assignee, if any.     priority: Priority level of the task, if any.
  */
 export interface ClickUpTask {
-    'id': string | null;
+    'id'?: string | null;
     'name': string;
     'description': string;
     'status': string;
-    'assignee': string | null;
-    'priority': string | null;
+    'assignee'?: string | null;
+    'priority'?: string | null;
 }
 /**
  * Request model for creating a ClickUp folder.  This DTO represents the payload required to create a new folder in a specific ClickUp space. It contains the target space identifier and the folder name.  Attributes:     space_id: ClickUp space identifier where the folder will be created.     name: Name of the folder to create.
@@ -219,9 +219,9 @@ export interface CreateTaskRequest {
     'list_id': string;
     'name': string;
     'description': string;
-    'status': string | null;
-    'priority': string | null;
-    'assignees': string | null;
+    'status'?: string | null;
+    'priority'?: string | null;
+    'assignees'?: string | null;
     'ignore_mails'?: boolean;
 }
 /**
@@ -496,9 +496,9 @@ export interface UpdateTaskRequest {
     'name': string;
     'description': string;
     'status': string;
-    'priority': string | null;
-    'assignees': string | null;
-    'old_assignees': string | null;
+    'priority'?: string | null;
+    'assignees'?: string | null;
+    'old_assignees'?: string | null;
     'ignore_mails'?: boolean;
 }
 export interface ValidationError {
@@ -560,8 +560,8 @@ export interface VerifyTasksResponse {
 export const AssociatorApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
-         * @summary Add Members
+         * Adds new members to a repository without removing existing ones. Only new members are appended.
+         * @summary Add members to a repository
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -595,8 +595,8 @@ export const AssociatorApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
-         * @summary Associate Members
+         * Replaces all existing members of a repository with the provided member list. This operation overwrites previous members.
+         * @summary Replace repository members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -630,8 +630,8 @@ export const AssociatorApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
-         * @summary Associate Space
+         * Validate and link an existing ClickUp space to a repository. Ensures that the provided space code exists and persists the association.
+         * @summary Associate a ClickUp space with a repository
          * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -665,8 +665,8 @@ export const AssociatorApiAxiosParamCreator = function (configuration?: Configur
             };
         },
         /**
-         * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
-         * @summary Remove Members
+         * Removes specified members from a repository if they exist. Only the provided members are affected.
+         * @summary Remove members from a repository
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -709,8 +709,8 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AssociatorApiAxiosParamCreator(configuration)
     return {
         /**
-         * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
-         * @summary Add Members
+         * Adds new members to a repository without removing existing ones. Only new members are appended.
+         * @summary Add members to a repository
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -722,8 +722,8 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
-         * @summary Associate Members
+         * Replaces all existing members of a repository with the provided member list. This operation overwrites previous members.
+         * @summary Replace repository members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -735,8 +735,8 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
-         * @summary Associate Space
+         * Validate and link an existing ClickUp space to a repository. Ensures that the provided space code exists and persists the association.
+         * @summary Associate a ClickUp space with a repository
          * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -748,8 +748,8 @@ export const AssociatorApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
-         * @summary Remove Members
+         * Removes specified members from a repository if they exist. Only the provided members are affected.
+         * @summary Remove members from a repository
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -770,8 +770,8 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
     const localVarFp = AssociatorApiFp(configuration)
     return {
         /**
-         * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
-         * @summary Add Members
+         * Adds new members to a repository without removing existing ones. Only new members are appended.
+         * @summary Add members to a repository
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -780,8 +780,8 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
             return localVarFp.addMembersAssociateMembersAddPost(repoMembersRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
-         * @summary Associate Members
+         * Replaces all existing members of a repository with the provided member list. This operation overwrites previous members.
+         * @summary Replace repository members
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -790,8 +790,8 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
             return localVarFp.associateMembersAssociateMembersPost(repoMembersRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
-         * @summary Associate Space
+         * Validate and link an existing ClickUp space to a repository. Ensures that the provided space code exists and persists the association.
+         * @summary Associate a ClickUp space with a repository
          * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -800,8 +800,8 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
             return localVarFp.associateSpaceAssociateSpacePost(associateClickUpSpaceRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
-         * @summary Remove Members
+         * Removes specified members from a repository if they exist. Only the provided members are affected.
+         * @summary Remove members from a repository
          * @param {RepoMembersRequest} repoMembersRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -817,8 +817,8 @@ export const AssociatorApiFactory = function (configuration?: Configuration, bas
  */
 export class AssociatorApi extends BaseAPI {
     /**
-     * Add members to a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of adding members.
-     * @summary Add Members
+     * Adds new members to a repository without removing existing ones. Only new members are appended.
+     * @summary Add members to a repository
      * @param {RepoMembersRequest} repoMembersRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -828,8 +828,8 @@ export class AssociatorApi extends BaseAPI {
     }
 
     /**
-     * Replace repository members with the provided list.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The association result.
-     * @summary Associate Members
+     * Replaces all existing members of a repository with the provided member list. This operation overwrites previous members.
+     * @summary Replace repository members
      * @param {RepoMembersRequest} repoMembersRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -839,8 +839,8 @@ export class AssociatorApi extends BaseAPI {
     }
 
     /**
-     * Associate a ClickUp space with a repository.  Args:     request (AssociateClickUpSpaceRequest): The association request payload.     container (Container): Dependency injection container.  Returns:     AssociateClickUpSpaceResponse: The association result.
-     * @summary Associate Space
+     * Validate and link an existing ClickUp space to a repository. Ensures that the provided space code exists and persists the association.
+     * @summary Associate a ClickUp space with a repository
      * @param {AssociateClickUpSpaceRequest} associateClickUpSpaceRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -850,8 +850,8 @@ export class AssociatorApi extends BaseAPI {
     }
 
     /**
-     * Remove members from a repository.  Args:     request (RepoMembersRequest): The request containing repository and member list.     container (Container): Dependency injection container.  Returns:     AssociateMembersResponse: The result of removing members.
-     * @summary Remove Members
+     * Removes specified members from a repository if they exist. Only the provided members are affected.
+     * @summary Remove members from a repository
      * @param {RepoMembersRequest} repoMembersRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -869,8 +869,8 @@ export class AssociatorApi extends BaseAPI {
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
-         * @summary Get Me
+         * Retrieves the profile information of the currently authenticated member based on the access token stored in the request context.
+         * @summary Get current authenticated member
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -899,8 +899,8 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
-         * @summary Login
+         * Authenticates a member using email and password credentials. Returns JWT access and refresh tokens and sets the access token in an HTTP-only cookie.
+         * @summary Authenticate a member and return access tokens
          * @param {MemberAuthDTO} memberAuthDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -934,8 +934,8 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
-         * @summary Logout
+         * Revokes the provided refresh token and invalidates the user session. Effectively logs the member out from the system.
+         * @summary Logout a member by revoking refresh token
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -971,8 +971,8 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
-         * @summary Refresh
+         * Generates new access and refresh tokens using a valid refresh token. Also updates the HTTP-only access token cookie.
+         * @summary Refresh authentication tokens
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1017,8 +1017,8 @@ export const AuthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = AuthApiAxiosParamCreator(configuration)
     return {
         /**
-         * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
-         * @summary Get Me
+         * Retrieves the profile information of the currently authenticated member based on the access token stored in the request context.
+         * @summary Get current authenticated member
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1029,8 +1029,8 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
-         * @summary Login
+         * Authenticates a member using email and password credentials. Returns JWT access and refresh tokens and sets the access token in an HTTP-only cookie.
+         * @summary Authenticate a member and return access tokens
          * @param {MemberAuthDTO} memberAuthDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1042,8 +1042,8 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
-         * @summary Logout
+         * Revokes the provided refresh token and invalidates the user session. Effectively logs the member out from the system.
+         * @summary Logout a member by revoking refresh token
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1055,8 +1055,8 @@ export const AuthApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
-         * @summary Refresh
+         * Generates new access and refresh tokens using a valid refresh token. Also updates the HTTP-only access token cookie.
+         * @summary Refresh authentication tokens
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1077,8 +1077,8 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = AuthApiFp(configuration)
     return {
         /**
-         * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
-         * @summary Get Me
+         * Retrieves the profile information of the currently authenticated member based on the access token stored in the request context.
+         * @summary Get current authenticated member
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1086,8 +1086,8 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getMeAuthMeGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
-         * @summary Login
+         * Authenticates a member using email and password credentials. Returns JWT access and refresh tokens and sets the access token in an HTTP-only cookie.
+         * @summary Authenticate a member and return access tokens
          * @param {MemberAuthDTO} memberAuthDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1096,8 +1096,8 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.loginAuthLoginPost(memberAuthDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
-         * @summary Logout
+         * Revokes the provided refresh token and invalidates the user session. Effectively logs the member out from the system.
+         * @summary Logout a member by revoking refresh token
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1106,8 +1106,8 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.logoutAuthLogoutPost(refreshToken, options).then((request) => request(axios, basePath));
         },
         /**
-         * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
-         * @summary Refresh
+         * Generates new access and refresh tokens using a valid refresh token. Also updates the HTTP-only access token cookie.
+         * @summary Refresh authentication tokens
          * @param {string} refreshToken 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1123,8 +1123,8 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  */
 export class AuthApi extends BaseAPI {
     /**
-     * Get the currently authenticated member.  Args:     request (Request): The incoming FastAPI request containing the current member payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The authenticated member\'s data.
-     * @summary Get Me
+     * Retrieves the profile information of the currently authenticated member based on the access token stored in the request context.
+     * @summary Get current authenticated member
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1133,8 +1133,8 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Authenticate a member and return tokens.  Args:     credentials (MemberAuthDTO): Member login credentials.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The authentication tokens.
-     * @summary Login
+     * Authenticates a member using email and password credentials. Returns JWT access and refresh tokens and sets the access token in an HTTP-only cookie.
+     * @summary Authenticate a member and return access tokens
      * @param {MemberAuthDTO} memberAuthDTO 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1144,8 +1144,8 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Revoke a refresh token.  Args:     refresh_token (str): The refresh token string.     container (Container): Dependency injection container.  Returns:     bool: True if logout was successful.
-     * @summary Logout
+     * Revokes the provided refresh token and invalidates the user session. Effectively logs the member out from the system.
+     * @summary Logout a member by revoking refresh token
      * @param {string} refreshToken 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1155,8 +1155,8 @@ export class AuthApi extends BaseAPI {
     }
 
     /**
-     * Issue new tokens from a valid refresh token.  Args:     refresh_token (str): The refresh token string.     response (Response): FastAPI response object (used to set cookies).     container (Container): Dependency injection container.  Returns:     MemberTokensDTO: The new authentication tokens.
-     * @summary Refresh
+     * Generates new access and refresh tokens using a valid refresh token. Also updates the HTTP-only access token cookie.
+     * @summary Refresh authentication tokens
      * @param {string} refreshToken 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1174,8 +1174,8 @@ export class AuthApi extends BaseAPI {
 export const BacklogApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
-         * @summary Reply Backlog
+         * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
+         * @summary Reply to backlog validation
          * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1209,8 +1209,8 @@ export const BacklogApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
-         * @summary Reply
+         * Handles user feedback during the market intelligence validation phase. Allows confirmation or modification of generated results and continues the workflow via streaming responses.
+         * @summary Reply to market intelligence verification
          * @param {ReplyStreamRequest} replyStreamRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1244,8 +1244,8 @@ export const BacklogApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
-         * @summary Start
+         * Initiates a new backlog generation process from a raw project description. Returns a streaming response (SSE) containing incremental AI-generated outputs and workflow metadata.
+         * @summary Start backlog generation workflow
          * @param {StartBacklogRequest} startBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1288,8 +1288,8 @@ export const BacklogApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = BacklogApiAxiosParamCreator(configuration)
     return {
         /**
-         * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
-         * @summary Reply Backlog
+         * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
+         * @summary Reply to backlog validation
          * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1301,8 +1301,8 @@ export const BacklogApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
-         * @summary Reply
+         * Handles user feedback during the market intelligence validation phase. Allows confirmation or modification of generated results and continues the workflow via streaming responses.
+         * @summary Reply to market intelligence verification
          * @param {ReplyStreamRequest} replyStreamRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1314,8 +1314,8 @@ export const BacklogApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
-         * @summary Start
+         * Initiates a new backlog generation process from a raw project description. Returns a streaming response (SSE) containing incremental AI-generated outputs and workflow metadata.
+         * @summary Start backlog generation workflow
          * @param {StartBacklogRequest} startBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1336,8 +1336,8 @@ export const BacklogApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = BacklogApiFp(configuration)
     return {
         /**
-         * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
-         * @summary Reply Backlog
+         * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
+         * @summary Reply to backlog validation
          * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1346,8 +1346,8 @@ export const BacklogApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.replyBacklogBacklogReplyBacklogPost(replyBacklogStreamRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
-         * @summary Reply
+         * Handles user feedback during the market intelligence validation phase. Allows confirmation or modification of generated results and continues the workflow via streaming responses.
+         * @summary Reply to market intelligence verification
          * @param {ReplyStreamRequest} replyStreamRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1356,8 +1356,8 @@ export const BacklogApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.replyBacklogReplyPost(replyStreamRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
-         * @summary Start
+         * Initiates a new backlog generation process from a raw project description. Returns a streaming response (SSE) containing incremental AI-generated outputs and workflow metadata.
+         * @summary Start backlog generation workflow
          * @param {StartBacklogRequest} startBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1373,8 +1373,8 @@ export const BacklogApiFactory = function (configuration?: Configuration, basePa
  */
 export class BacklogApi extends BaseAPI {
     /**
-     * Handle user response during backlog verification.  This endpoint manages the backlog validation loop where the user: - Confirms the generated backlog - Or submits modifications  The orchestrator will: - Validate and fix the backlog if needed - Ensure structural and logical consistency - Proceed to delivery planning once approved  Args:     request (ReplyBacklogStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Original generated backlog         - user_result: User-modified or confirmed backlog      use_case (GenerateBacklogUseCase):         Application use case handling backlog validation workflow.  Returns:     StreamingResponse:         SSE stream containing:         - Corrected backlog (if invalid)         - Or transition to delivery planning
-     * @summary Reply Backlog
+     * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
+     * @summary Reply to backlog validation
      * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1384,8 +1384,8 @@ export class BacklogApi extends BaseAPI {
     }
 
     /**
-     * Handle user response during market intelligence verification.  This endpoint is used in the verification loop after the system generates market intelligence. It allows the user to: - Confirm the generated result - Submit a modified version  The response is processed by the orchestrator to either: - Validate the result - Refine it further - Proceed to backlog generation if validated  Args:     request (ReplyStreamRequest):         Contains:         - thread_id: Active workflow thread identifier         - tool_result: Previous tool-generated result         - user_result: User-confirmed or modified result      use_case (GenerateBacklogUseCase):         Application use case handling the workflow continuation.  Returns:     StreamingResponse:         SSE stream containing updated validation results or next workflow step.
-     * @summary Reply
+     * Handles user feedback during the market intelligence validation phase. Allows confirmation or modification of generated results and continues the workflow via streaming responses.
+     * @summary Reply to market intelligence verification
      * @param {ReplyStreamRequest} replyStreamRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1395,8 +1395,8 @@ export class BacklogApi extends BaseAPI {
     }
 
     /**
-     * Start a new backlog generation workflow.  This endpoint initializes the backlog generation process by: - Receiving a raw project description - Triggering the orchestrator workflow - Returning a streaming response (Server-Sent Events)  Args:     request (StartBacklogRequest):         Request containing the raw project description.      use_case (GenerateBacklogUseCase):         Application use case responsible for orchestrating the workflow.  Returns:     StreamingResponse:         A server-sent events (SSE) stream containing:         - Thread initialization metadata         - Incremental AI-generated outputs
-     * @summary Start
+     * Initiates a new backlog generation process from a raw project description. Returns a streaming response (SSE) containing incremental AI-generated outputs and workflow metadata.
+     * @summary Start backlog generation workflow
      * @param {StartBacklogRequest} startBacklogRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1414,8 +1414,8 @@ export class BacklogApi extends BaseAPI {
 export const ClickUpApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
-         * @summary Create Space
+         * Fetches detailed information about a specific ClickUp space using its unique identifier.
+         * @summary Get ClickUp space by ID
          * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1449,8 +1449,8 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-         * @summary Delete Space
+         * Updates an existing ClickUp space identified by its ID with new provided values.
+         * @summary Update a ClickUp space
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1483,8 +1483,8 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
-         * @summary Get All Light
+         * Retrieves a simplified version of ClickUp spaces with reduced fields for lightweight usage (e.g., dropdowns or listings).
+         * @summary Get all ClickUp spaces (light version)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1513,8 +1513,8 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
-         * @summary Get All Spaces
+         * Retrieves the full list of ClickUp spaces stored in the system.
+         * @summary Get all ClickUp spaces
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1543,8 +1543,8 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
-         * @summary Get Space By Id
+         * Fetches detailed information about a specific ClickUp space using its unique identifier.
+         * @summary Get ClickUp space by ID
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1577,8 +1577,8 @@ export const ClickUpApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
-         * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
-         * @summary Update Space
+         * Updates an existing ClickUp space identified by its ID with new provided values.
+         * @summary Update a ClickUp space
          * @param {number} spaceId 
          * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -1625,8 +1625,8 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ClickUpApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
-         * @summary Create Space
+         * Fetches detailed information about a specific ClickUp space using its unique identifier.
+         * @summary Get ClickUp space by ID
          * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1638,8 +1638,8 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-         * @summary Delete Space
+         * Updates an existing ClickUp space identified by its ID with new provided values.
+         * @summary Update a ClickUp space
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1651,8 +1651,8 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
-         * @summary Get All Light
+         * Retrieves a simplified version of ClickUp spaces with reduced fields for lightweight usage (e.g., dropdowns or listings).
+         * @summary Get all ClickUp spaces (light version)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1663,8 +1663,8 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
-         * @summary Get All Spaces
+         * Retrieves the full list of ClickUp spaces stored in the system.
+         * @summary Get all ClickUp spaces
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1675,8 +1675,8 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
-         * @summary Get Space By Id
+         * Fetches detailed information about a specific ClickUp space using its unique identifier.
+         * @summary Get ClickUp space by ID
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1688,8 +1688,8 @@ export const ClickUpApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
-         * @summary Update Space
+         * Updates an existing ClickUp space identified by its ID with new provided values.
+         * @summary Update a ClickUp space
          * @param {number} spaceId 
          * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -1711,8 +1711,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = ClickUpApiFp(configuration)
     return {
         /**
-         * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
-         * @summary Create Space
+         * Fetches detailed information about a specific ClickUp space using its unique identifier.
+         * @summary Get ClickUp space by ID
          * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1721,8 +1721,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.createSpaceClickupPost(clickUpSpaceCreateDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-         * @summary Delete Space
+         * Updates an existing ClickUp space identified by its ID with new provided values.
+         * @summary Update a ClickUp space
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1731,8 +1731,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.deleteSpaceClickupSpaceIdDelete(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
-         * @summary Get All Light
+         * Retrieves a simplified version of ClickUp spaces with reduced fields for lightweight usage (e.g., dropdowns or listings).
+         * @summary Get all ClickUp spaces (light version)
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1740,8 +1740,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getAllLightClickupLightGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
-         * @summary Get All Spaces
+         * Retrieves the full list of ClickUp spaces stored in the system.
+         * @summary Get all ClickUp spaces
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1749,8 +1749,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getAllSpacesClickupGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
-         * @summary Get Space By Id
+         * Fetches detailed information about a specific ClickUp space using its unique identifier.
+         * @summary Get ClickUp space by ID
          * @param {number} spaceId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1759,8 +1759,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getSpaceByIdClickupSpaceIdGet(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
-         * @summary Update Space
+         * Updates an existing ClickUp space identified by its ID with new provided values.
+         * @summary Update a ClickUp space
          * @param {number} spaceId 
          * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -1777,8 +1777,8 @@ export const ClickUpApiFactory = function (configuration?: Configuration, basePa
  */
 export class ClickUpApi extends BaseAPI {
     /**
-     * Create a ClickUp space.  Args:     space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDTO: The created ClickUp space.
-     * @summary Create Space
+     * Fetches detailed information about a specific ClickUp space using its unique identifier.
+     * @summary Get ClickUp space by ID
      * @param {ClickUpSpaceCreateDTO} clickUpSpaceCreateDTO 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1788,8 +1788,8 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Delete a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-     * @summary Delete Space
+     * Updates an existing ClickUp space identified by its ID with new provided values.
+     * @summary Update a ClickUp space
      * @param {number} spaceId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1799,8 +1799,8 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Return all ClickUp spaces in light form.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
-     * @summary Get All Light
+     * Retrieves a simplified version of ClickUp spaces with reduced fields for lightweight usage (e.g., dropdowns or listings).
+     * @summary Get all ClickUp spaces (light version)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1809,8 +1809,8 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Return all ClickUp spaces.  Args:     container (Container): Dependency injection container.  Returns:     list[ClickUpSpaceDTO]: List of all ClickUp spaces.
-     * @summary Get All Spaces
+     * Retrieves the full list of ClickUp spaces stored in the system.
+     * @summary Get all ClickUp spaces
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1819,8 +1819,8 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Fetch a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The ClickUp space details.
-     * @summary Get Space By Id
+     * Fetches detailed information about a specific ClickUp space using its unique identifier.
+     * @summary Get ClickUp space by ID
      * @param {number} spaceId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1830,8 +1830,8 @@ export class ClickUpApi extends BaseAPI {
     }
 
     /**
-     * Update a ClickUp space by id.  Args:     space_id (int): The ClickUp space ID.     space (ClickUpSpaceUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     ClickUpSpaceDetailDTO: The updated ClickUp space details.
-     * @summary Update Space
+     * Updates an existing ClickUp space identified by its ID with new provided values.
+     * @summary Update a ClickUp space
      * @param {number} spaceId 
      * @param {ClickUpSpaceUpdateDTO} clickUpSpaceUpdateDTO 
      * @param {*} [options] Override http request option.
@@ -2610,8 +2610,8 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
-         * @summary Generate Tasks From Summary
+         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from meeting summary
          * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2823,8 +2823,8 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
-         * @summary Generate Tasks From Summary
+         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from meeting summary
          * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2855,7 +2855,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+        async saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveTasksToClickupClickupTasksSavePost']?.[localVarOperationServerIndex]?.url;
@@ -2918,8 +2918,8 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
             return localVarFp.deleteTaskClickupTasksManageTaskIdDelete(taskId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
-         * @summary Generate Tasks From Summary
+         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from meeting summary
          * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -2944,7 +2944,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+        saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options).then((request) => request(axios, basePath));
         },
         /**
@@ -2998,8 +2998,8 @@ export class ClickUpTasksApi extends BaseAPI {
     }
 
     /**
-     * Generate ClickUp tasks from a meeting summary.  This endpoint transforms unstructured meeting notes into structured tasks suitable for ClickUp. It delegates the generation logic to the application use case responsible for LLM-based task extraction.  Args:     request (GenerateTasksFromSummaryRequest):         Request payload containing:         - meeting_summary: raw meeting notes         - space_id: ClickUp workspace identifier      use_case (IGenerateTaskFromSummaryUseCase):         Application use case responsible for generating tasks.  Returns:     list[GeneratedTask]:         List of structured ClickUp tasks generated from the summary.
-     * @summary Generate Tasks From Summary
+     * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+     * @summary Generate ClickUp tasks from meeting summary
      * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3062,8 +3062,8 @@ export class ClickUpTasksApi extends BaseAPI {
 export const DeploymentApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
-         * @summary List Deployments
+         * Retrieves all deployments associated with a given repository URL. Used to track deployment history and environments.
+         * @summary List deployments for a repository
          * @param {string} repoUrl 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3108,8 +3108,8 @@ export const DeploymentApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = DeploymentApiAxiosParamCreator(configuration)
     return {
         /**
-         * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
-         * @summary List Deployments
+         * Retrieves all deployments associated with a given repository URL. Used to track deployment history and environments.
+         * @summary List deployments for a repository
          * @param {string} repoUrl 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3130,8 +3130,8 @@ export const DeploymentApiFactory = function (configuration?: Configuration, bas
     const localVarFp = DeploymentApiFp(configuration)
     return {
         /**
-         * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
-         * @summary List Deployments
+         * Retrieves all deployments associated with a given repository URL. Used to track deployment history and environments.
+         * @summary List deployments for a repository
          * @param {string} repoUrl 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3147,8 +3147,8 @@ export const DeploymentApiFactory = function (configuration?: Configuration, bas
  */
 export class DeploymentApi extends BaseAPI {
     /**
-     * List deployments for a repository URL.  Args:     repo_url (str): The repository URL to fetch deployments for.     container (Container): Dependency injection container.  Returns:     List[DeploymentDTO]: List of deployments for the repository.
-     * @summary List Deployments
+     * Retrieves all deployments associated with a given repository URL. Used to track deployment history and environments.
+     * @summary List deployments for a repository
      * @param {string} repoUrl 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3166,7 +3166,7 @@ export class DeploymentApi extends BaseAPI {
 export const HealthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Retrieve the service health status.  Returns:     dict: A JSON payload indicating the service status.
+         * Returns the current health status of the service. Used for monitoring, uptime checks, and load balancer probes.
          * @summary Health check
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3205,7 +3205,7 @@ export const HealthApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = HealthApiAxiosParamCreator(configuration)
     return {
         /**
-         * Retrieve the service health status.  Returns:     dict: A JSON payload indicating the service status.
+         * Returns the current health status of the service. Used for monitoring, uptime checks, and load balancer probes.
          * @summary Health check
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3226,7 +3226,7 @@ export const HealthApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = HealthApiFp(configuration)
     return {
         /**
-         * Retrieve the service health status.  Returns:     dict: A JSON payload indicating the service status.
+         * Returns the current health status of the service. Used for monitoring, uptime checks, and load balancer probes.
          * @summary Health check
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3242,7 +3242,7 @@ export const HealthApiFactory = function (configuration?: Configuration, basePat
  */
 export class HealthApi extends BaseAPI {
     /**
-     * Retrieve the service health status.  Returns:     dict: A JSON payload indicating the service status.
+     * Returns the current health status of the service. Used for monitoring, uptime checks, and load balancer probes.
      * @summary Health check
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3260,8 +3260,8 @@ export class HealthApi extends BaseAPI {
 export const MemberApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
-         * @summary Add Member
+         * Creates a new member in the system using the provided data. The member is persisted and returned after successful creation.
+         * @summary Create a new member
          * @param {MemberCreateDTO} memberCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3295,8 +3295,8 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
-         * @summary Delete Member
+         * Deletes a member by its ID. Returns a boolean indicating whether the operation was successful.
+         * @summary Delete a member
          * @param {number} memberId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3329,8 +3329,8 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-         * @summary Get All With Repos
+         * Retrieves all members in the system along with their associated repositories.
+         * @summary Get all members with repositories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3359,8 +3359,8 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-         * @summary Get Members By Repo
+         * Retrieves all members associated with a specific repository ID.
+         * @summary Get members by repository
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3393,8 +3393,8 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             };
         },
         /**
-         * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
-         * @summary Update Member
+         * Updates an existing member identified by its ID with the provided data. Returns the updated member along with its repositories.
+         * @summary Update a member
          * @param {number} memberId 
          * @param {MemberUpdateDTO} memberUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -3441,8 +3441,8 @@ export const MemberApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = MemberApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
-         * @summary Add Member
+         * Creates a new member in the system using the provided data. The member is persisted and returned after successful creation.
+         * @summary Create a new member
          * @param {MemberCreateDTO} memberCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3454,8 +3454,8 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
-         * @summary Delete Member
+         * Deletes a member by its ID. Returns a boolean indicating whether the operation was successful.
+         * @summary Delete a member
          * @param {number} memberId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3467,8 +3467,8 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-         * @summary Get All With Repos
+         * Retrieves all members in the system along with their associated repositories.
+         * @summary Get all members with repositories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3479,8 +3479,8 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-         * @summary Get Members By Repo
+         * Retrieves all members associated with a specific repository ID.
+         * @summary Get members by repository
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3492,8 +3492,8 @@ export const MemberApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
-         * @summary Update Member
+         * Updates an existing member identified by its ID with the provided data. Returns the updated member along with its repositories.
+         * @summary Update a member
          * @param {number} memberId 
          * @param {MemberUpdateDTO} memberUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -3515,8 +3515,8 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
     const localVarFp = MemberApiFp(configuration)
     return {
         /**
-         * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
-         * @summary Add Member
+         * Creates a new member in the system using the provided data. The member is persisted and returned after successful creation.
+         * @summary Create a new member
          * @param {MemberCreateDTO} memberCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3525,8 +3525,8 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.addMemberMemberPost(memberCreateDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
-         * @summary Delete Member
+         * Deletes a member by its ID. Returns a boolean indicating whether the operation was successful.
+         * @summary Delete a member
          * @param {number} memberId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3535,8 +3535,8 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.deleteMemberMemberMemberIdDelete(memberId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-         * @summary Get All With Repos
+         * Retrieves all members in the system along with their associated repositories.
+         * @summary Get all members with repositories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3544,8 +3544,8 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.getAllWithReposMemberAllWithReposGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-         * @summary Get Members By Repo
+         * Retrieves all members associated with a specific repository ID.
+         * @summary Get members by repository
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3554,8 +3554,8 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
             return localVarFp.getMembersByRepoMemberByRepoRepoIdGet(repoId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
-         * @summary Update Member
+         * Updates an existing member identified by its ID with the provided data. Returns the updated member along with its repositories.
+         * @summary Update a member
          * @param {number} memberId 
          * @param {MemberUpdateDTO} memberUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -3572,8 +3572,8 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
  */
 export class MemberApi extends BaseAPI {
     /**
-     * Create a new member.  Args:     member (MemberCreateDTO): The member creation payload.     container (Container): Dependency injection container.  Returns:     MemberDTO: The created member.  Raises:     Exception: If creation fails (handled by global exception handler).
-     * @summary Add Member
+     * Creates a new member in the system using the provided data. The member is persisted and returned after successful creation.
+     * @summary Create a new member
      * @param {MemberCreateDTO} memberCreateDTO 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3583,8 +3583,8 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Delete a member by id.  Args:     member_id (int): The member ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.  Raises:     Exception: If deletion fails (handled by global exception handler).
-     * @summary Delete Member
+     * Deletes a member by its ID. Returns a boolean indicating whether the operation was successful.
+     * @summary Delete a member
      * @param {number} memberId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3594,8 +3594,8 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Return all members with repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[MemberWithReposDTO]: List of all members with their repositories.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-     * @summary Get All With Repos
+     * Retrieves all members in the system along with their associated repositories.
+     * @summary Get all members with repositories
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3604,8 +3604,8 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Return members for a repository.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     List[MemberDTO]: List of members for the repository.  Raises:     Exception: If retrieval fails (handled by global exception handler).
-     * @summary Get Members By Repo
+     * Retrieves all members associated with a specific repository ID.
+     * @summary Get members by repository
      * @param {number} repoId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3615,8 +3615,8 @@ export class MemberApi extends BaseAPI {
     }
 
     /**
-     * Update a member by id.  Args:     member_id (int): The member ID.     member (MemberUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     MemberWithReposDTO: The updated member with repositories.  Raises:     Exception: If update fails (handled by global exception handler).
-     * @summary Update Member
+     * Updates an existing member identified by its ID with the provided data. Returns the updated member along with its repositories.
+     * @summary Update a member
      * @param {number} memberId 
      * @param {MemberUpdateDTO} memberUpdateDTO 
      * @param {*} [options] Override http request option.
@@ -3635,8 +3635,8 @@ export class MemberApi extends BaseAPI {
 export const RepoApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
-         * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
-         * @summary Add Repo
+         * Retrieves all repositories along with extended metadata and detailed information.
+         * @summary Get all repositories with details
          * @param {GitRepoCreateDTO} gitRepoCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3670,8 +3670,8 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-         * @summary Delete Repo
+         * Deletes a repository by its ID and returns whether the operation was successful.
+         * @summary Delete a repository
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3704,8 +3704,8 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
-         * @summary Get All Repos
+         * Retrieves all repositories stored in the system.
+         * @summary Get all repositories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3734,8 +3734,8 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
-         * @summary Get All With Details
+         * Retrieves all repositories along with extended metadata and detailed information.
+         * @summary Get all repositories with details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3764,8 +3764,8 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-         * @summary Get Repo By Id
+         * Retrieves a repository using its unique identifier, including full details.
+         * @summary Get repository by ID
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3798,8 +3798,8 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-         * @summary Get Repo By Name
+         * Retrieves a repository by its name with full detailed information.
+         * @summary Get repository by name
          * @param {string} name 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3832,8 +3832,8 @@ export const RepoApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
-         * @summary Update Repo
+         * Updates an existing repository identified by its ID with new values such as name or URL.
+         * @summary Update a repository
          * @param {number} repoId 
          * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -3880,8 +3880,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = RepoApiAxiosParamCreator(configuration)
     return {
         /**
-         * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
-         * @summary Add Repo
+         * Retrieves all repositories along with extended metadata and detailed information.
+         * @summary Get all repositories with details
          * @param {GitRepoCreateDTO} gitRepoCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3893,8 +3893,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-         * @summary Delete Repo
+         * Deletes a repository by its ID and returns whether the operation was successful.
+         * @summary Delete a repository
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3906,8 +3906,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
-         * @summary Get All Repos
+         * Retrieves all repositories stored in the system.
+         * @summary Get all repositories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3918,8 +3918,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
-         * @summary Get All With Details
+         * Retrieves all repositories along with extended metadata and detailed information.
+         * @summary Get all repositories with details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -3930,8 +3930,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-         * @summary Get Repo By Id
+         * Retrieves a repository using its unique identifier, including full details.
+         * @summary Get repository by ID
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3943,8 +3943,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-         * @summary Get Repo By Name
+         * Retrieves a repository by its name with full detailed information.
+         * @summary Get repository by name
          * @param {string} name 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3956,8 +3956,8 @@ export const RepoApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
-         * @summary Update Repo
+         * Updates an existing repository identified by its ID with new values such as name or URL.
+         * @summary Update a repository
          * @param {number} repoId 
          * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -3979,8 +3979,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
     const localVarFp = RepoApiFp(configuration)
     return {
         /**
-         * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
-         * @summary Add Repo
+         * Retrieves all repositories along with extended metadata and detailed information.
+         * @summary Get all repositories with details
          * @param {GitRepoCreateDTO} gitRepoCreateDTO 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3989,8 +3989,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.addRepoRepoPost(gitRepoCreateDTO, options).then((request) => request(axios, basePath));
         },
         /**
-         * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-         * @summary Delete Repo
+         * Deletes a repository by its ID and returns whether the operation was successful.
+         * @summary Delete a repository
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -3999,8 +3999,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.deleteRepoRepoRepoIdDelete(repoId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
-         * @summary Get All Repos
+         * Retrieves all repositories stored in the system.
+         * @summary Get all repositories
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -4008,8 +4008,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getAllReposRepoAllGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
-         * @summary Get All With Details
+         * Retrieves all repositories along with extended metadata and detailed information.
+         * @summary Get all repositories with details
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -4017,8 +4017,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getAllWithDetailsRepoDetailsGet(options).then((request) => request(axios, basePath));
         },
         /**
-         * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-         * @summary Get Repo By Id
+         * Retrieves a repository using its unique identifier, including full details.
+         * @summary Get repository by ID
          * @param {number} repoId 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4027,8 +4027,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getRepoByIdRepoRepoIdGet(repoId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-         * @summary Get Repo By Name
+         * Retrieves a repository by its name with full detailed information.
+         * @summary Get repository by name
          * @param {string} name 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -4037,8 +4037,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.getRepoByNameRepoByNameNameGet(name, options).then((request) => request(axios, basePath));
         },
         /**
-         * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
-         * @summary Update Repo
+         * Updates an existing repository identified by its ID with new values such as name or URL.
+         * @summary Update a repository
          * @param {number} repoId 
          * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
          * @param {*} [options] Override http request option.
@@ -4055,8 +4055,8 @@ export const RepoApiFactory = function (configuration?: Configuration, basePath?
  */
 export class RepoApi extends BaseAPI {
     /**
-     * Create a new repository.  Args:     repo (GitRepoCreateDTO): The repository creation payload.     container (Container): Dependency injection container.  Returns:     GitRepoDTO: The created repository.
-     * @summary Add Repo
+     * Retrieves all repositories along with extended metadata and detailed information.
+     * @summary Get all repositories with details
      * @param {GitRepoCreateDTO} gitRepoCreateDTO 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4066,8 +4066,8 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Delete a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     bool: True if deletion was successful.
-     * @summary Delete Repo
+     * Deletes a repository by its ID and returns whether the operation was successful.
+     * @summary Delete a repository
      * @param {number} repoId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4077,8 +4077,8 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Return all repositories.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDTO]: List of all repositories.
-     * @summary Get All Repos
+     * Retrieves all repositories stored in the system.
+     * @summary Get all repositories
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -4087,8 +4087,8 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Return repositories with details.  Args:     container (Container): Dependency injection container.  Returns:     List[GitRepoDetailDTO]: List of repositories with details.
-     * @summary Get All With Details
+     * Retrieves all repositories along with extended metadata and detailed information.
+     * @summary Get all repositories with details
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -4097,8 +4097,8 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Fetch a repository by id.  Args:     repo_id (int): The repository ID.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-     * @summary Get Repo By Id
+     * Retrieves a repository using its unique identifier, including full details.
+     * @summary Get repository by ID
      * @param {number} repoId 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4108,8 +4108,8 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Fetch a repository by name.  Args:     name (str): The repository name.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The repository details.
-     * @summary Get Repo By Name
+     * Retrieves a repository by its name with full detailed information.
+     * @summary Get repository by name
      * @param {string} name 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -4119,8 +4119,8 @@ export class RepoApi extends BaseAPI {
     }
 
     /**
-     * Update a repository by id.  Args:     repo_id (int): The repository ID.     repo (GitRepoUpdateDTO): The update payload.     container (Container): Dependency injection container.  Returns:     GitRepoDetailDTO: The updated repository details.
-     * @summary Update Repo
+     * Updates an existing repository identified by its ID with new values such as name or URL.
+     * @summary Update a repository
      * @param {number} repoId 
      * @param {GitRepoUpdateDTO} gitRepoUpdateDTO 
      * @param {*} [options] Override http request option.
