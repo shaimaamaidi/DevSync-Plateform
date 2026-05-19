@@ -25,7 +25,7 @@ class ClickUpWriteException(AppException):
 
     def __init__(
         self,
-        message: str = "ClickUp write operation failed.",
+        message: str = "Something went wrong while communicating with ClickUp. Please try again.",
         http_status: int = 502,
     ):
         """

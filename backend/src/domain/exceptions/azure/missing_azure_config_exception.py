@@ -24,7 +24,7 @@ class MissingAzureConfigException(MissingEnvVariableException):
         http_status (int): HTTP status code returned to the client (inherited from parent).
     """
 
-    def __init__(self, message: str = "Missing Azure configuration."):
+    def __init__(self, message: str = "Azure configuration error occurred. Please contact support."):
         """
         Initialize a MissingAzureConfigException.
 

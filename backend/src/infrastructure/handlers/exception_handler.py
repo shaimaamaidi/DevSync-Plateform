@@ -126,6 +126,7 @@ class FastAPIExceptionHandler:
         Raises:
             AppException: If a domain-specific error occurs.
         """
+        message = exc.message
 
         if exc.code in _NOT_FOUND_CODES:
             logger.warning(
@@ -170,6 +171,7 @@ class FastAPIExceptionHandler:
                 exc_info=exc,
             )
         elif exc.code in _PROMPT_CODES:
+            message = "A server error occurred. Please try again later."
             logger.error(
                 "Prompt Error [%s]: %s",
                 exc.code,
@@ -210,7 +212,7 @@ class FastAPIExceptionHandler:
             content={
                 "error": {
                     "code": exc.code,
-                    "message": exc.message,
+                    "message": message,
                 }
             },
         )

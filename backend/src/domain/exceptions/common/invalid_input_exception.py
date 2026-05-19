@@ -22,7 +22,7 @@ class InvalidInputException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Invalid input."):
+    def __init__(self, message: str = "Please check your input and try again."):
         """
         Initialize an InvalidInputException.
 

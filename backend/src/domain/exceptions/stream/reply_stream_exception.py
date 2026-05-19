@@ -26,7 +26,7 @@ class ReplyStreamException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Reply streaming failed."):
+    def __init__(self, message: str = "Failed to process your reply. Please try again."):
         """
         Initialize a ReplyStreamException.
 

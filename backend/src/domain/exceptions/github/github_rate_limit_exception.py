@@ -22,20 +22,12 @@ class GitHubRateLimitException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, reset_time: str = None):
+    def __init__(self):
         """
         Initialize a GitHubRateLimitException.
-
-        Args:
-            reset_time (str, optional): UTC reset time from GitHub response headers indicating
-                when the rate limit will reset.
         """
-        msg = "GitHub API rate limit exceeded."
-        if reset_time:
-            msg += f" Please retry after {reset_time} UTC."
-
         super().__init__(
-            message=msg,
+            message="GitHub service is temporarily unavailable. Please try again later.",
             code="GITHUB_RATE_LIMIT",
             http_status=429,
         )

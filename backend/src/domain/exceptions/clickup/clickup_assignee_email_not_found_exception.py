@@ -32,7 +32,7 @@ class AssigneeEmailNotInClickUpException(AppException):
         """
         self.unresolved_emails = unresolved_emails
         super().__init__(
-            message=f"Assignee email(s) not found in ClickUp workspace: {unresolved_emails}",
+            message=f"The following email(s) could not be matched to any team member: {', '.join(unresolved_emails)}. Please verify the email addresses and try again.",
             code="ASSIGNEE_EMAIL_NOT_IN_CLICKUP",
             http_status=422,
         )

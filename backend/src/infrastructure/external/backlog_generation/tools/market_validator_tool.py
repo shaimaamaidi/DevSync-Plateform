@@ -103,7 +103,7 @@ class MarketValidatorTool(IMarketValidatorTool):
                 extra={"input_preview": context[:200]}
             )
             raise InvalidToolArgumentException(
-                "context must be the exact JSON string returned by summarize_market_intelligence ."
+                "Something went wrong while validating the market. Please try again."
             ) from e
 
         try:
@@ -117,11 +117,11 @@ class MarketValidatorTool(IMarketValidatorTool):
         except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
             logger.error("LLM error in MarketValidatorTool: %s", e)
             raise ToolExecutionException(
-                f"Validate market failed: {str(e)}."
+                "The market validation could not be generated due to an AI service error. Please try again."
             ) from e
 
         except Exception as e:
             logger.exception("MarketValidatorTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"Market validation failed: {str(e)}."
+                "An unexpected error occurred while validating the market. Please try again or contact support."
             ) from e

@@ -21,7 +21,7 @@ class MissingEnvVariableException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Missing required environment variable."):
+    def __init__(self, message: str = "A server configuration error occurred. Please contact support."):
         """
         Initialize a MissingEnvVariableException.
 

@@ -194,10 +194,12 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
             raise
         except AzureError as e:
-            raise AzureAgentRuntimeException(message=f"Unexpected Azure error: {str(e)}.") from e
+            raise AzureAgentRuntimeException(
+                message="The AI service encountered an unexpected error. Please try again."
+            ) from e
         except Exception as e:
             logger.exception("start_stream failed unexpectedly.")
-            raise StreamExecutionException(message=f"start_stream failed: {str(e)}.") from e
+            raise StreamExecutionException(message="The generation could not be started. Please try again.") from e
 
         yield f"data: {json.dumps({'thread_id': thread.id})}\n\n"
 
@@ -270,10 +272,12 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
             raise
         except AzureError as e:
-            raise AzureAgentRuntimeException(message=f"Unexpected Azure error: {str(e)}.") from e
+            raise AzureAgentRuntimeException(
+                message="The AI service encountered an unexpected error. Please try again."
+            ) from e
         except Exception as e:
             logger.exception("reply_stream failed unexpectedly.")
-            raise StreamExecutionException(message=f"reply_stream failed: {str(e)}.") from e
+            raise StreamExecutionException(message="Your response could not be processed. Please try again.") from e
 
         async for chunk in self._run_stream(thread_id):
             yield f"data: {json.dumps({'text': chunk})}\n\n"
@@ -346,10 +350,14 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
             raise
         except AzureError as e:
-            raise AzureAgentRuntimeException(message=f"Unexpected Azure error: {str(e)}.") from e
+            raise AzureAgentRuntimeException(
+                message="The AI service encountered an unexpected error. Please try again."
+            ) from e
         except Exception as e:
             logger.exception("reply_backlog_stream failed unexpectedly.")
-            raise StreamExecutionException(message=f"reply_backlog_stream failed: {str(e)}.") from e
+            raise StreamExecutionException(
+                message="Your backlog response could not be processed. Please try again."
+            ) from e
 
         async for chunk in self._run_stream(thread_id):
             yield f"data: {json.dumps({'text': chunk})}\n\n"
@@ -416,9 +424,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         try:
             stream_coro = await self.project_client.agents.runs.stream(**run_kwargs)
         except AzureError as e:
-            raise AzureAgentRuntimeException(
-                message=f"Failed to start stream: {str(e)}."
-            ) from e
+            raise AzureAgentRuntimeException(message="The AI service could not be reached. Please try again.") from e
 
         async with stream_coro as stream:
             try:
@@ -482,7 +488,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                                 except ToolExecutionException as e:
                                     logger.error("Tool execution failed: %s.", function_name)
                                     raise StreamExecutionException(
-                                        message=f"Tool '{function_name}' failed critically: {str(e)}."
+                                        message="Something went wrong while generating your project. Please try again."
                                     ) from e
                                 except Exception as e:
                                     logger.exception("Unexpected tool error: %s.", function_name)
@@ -533,10 +539,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                                 self.agent_id,
                             )
                             raise AzureAgentRuntimeException(
-                                message=(
-                                    f"Azure error while submitting tool outputs "
-                                    f"(thread_id={thread_id}, run_id={run_data.id}, agent_id={self.agent_id}): {str(e)}."
-                                )
+                                message="The AI service encountered an error while processing your request. Please try again."
                             ) from e
 
                         except Exception as e:
@@ -547,10 +550,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                                 self.agent_id,
                             )
                             raise StreamExecutionException(
-                                message=(
-                                    f"Unexpected error during tool output submission "
-                                    f"(thread_id={thread_id}, run_id={run_data.id}, agent_id={self.agent_id}): {str(e)}."
-                                )
+                                message="An unexpected error occurred while processing your request. Please try again."
                             ) from e
 
                     elif event_type == "thread.run.failed":
@@ -559,7 +559,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                             "Agent run failed: thread_id=%s, error=%s.", thread_id, last_error
                         )
                         raise StreamExecutionException(
-                            message=f"Agent run failed: thread_id={thread_id}, error={last_error}."
+                            message="The generation process failed unexpectedly. Please try again."
                         )
 
                     elif event_type == "thread.run.step.failed":
@@ -570,11 +570,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                             getattr(step_error, 'message', None),
                         )
                         raise StreamExecutionException(
-                            message=(
-                                f"Agent step failed (thread_id={thread_id}): "
-                                f"code={getattr(step_error, 'code', None)}, "
-                                f"message={getattr(step_error, 'message', None)}."
-                            )
+                            message="The generation process failed unexpectedly. Please try again."
                         )
 
                 for chunk in event_handler.get_stream_chunks():
@@ -590,16 +586,11 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             except (AzureAgentRuntimeException, StreamExecutionException, AzureStreamException, StreamCancelledException):
                 raise
             except AzureError as e:
-                raise AzureStreamException(
-                    message=f"Azure streaming SDK error: {str(e)}."
-                ) from e
+                raise AzureStreamException(message="The AI service stream was interrupted. Please try again.") from e
             except Exception as e:
                 logger.exception("Stream execution failed.")
                 raise StreamExecutionException(
-                    message=(
-                        f"Azure agent stream execution failed "
-                        f"(thread_id={thread_id}, agent_id={self.agent_id}): {str(e)}."
-                    )
+                    message="An unexpected error occurred during generation. Please try again."
                 ) from e
 
     async def update_agent_tools(self, instructions: str) -> None:

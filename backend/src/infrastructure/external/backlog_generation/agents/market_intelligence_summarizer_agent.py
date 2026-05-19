@@ -93,23 +93,13 @@ class MarketIntelligenceSummarizerAgent(BaseAgent, IMarketIntelligenceSummarizer
             return completion.choices[0].message.parsed
 
         except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in MarketIntelligenceSummarizerAgent.")
-            raise LLMNetworkException(
-                agent_name="MarketIntelligenceSummarizerAgent",
-                reason=str(e)
-            ) from e
+            logger.exception("Network error contacting LLM in MarketIntelligenceSummarizerAgent: reason=%s.", str(e))
+            raise LLMNetworkException() from e
 
         except APIStatusError as e:
             logger.exception("LLM API error in MarketIntelligenceSummarizerAgent: status=%d.", e.status_code)
-            raise LLMApiException(
-                agent_name="MarketIntelligenceSummarizerAgent",
-                status_code=e.status_code,
-                reason=e.message
-            ) from e
+            raise LLMApiException() from e
 
         except Exception as e:
-            logger.exception("Market intelligence summarizing failed.")
-            raise LLMParsingException(
-                agent_name="MarketIntelligenceSummarizerAgent",
-                reason=str(e)
-            ) from e
+            logger.exception("Market intelligence summarizing failed: reason=%s.", str(e))
+            raise LLMParsingException() from e

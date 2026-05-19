@@ -92,7 +92,7 @@ class BacklogGeneratorTool(IBacklogGeneratorTool):
                 extra={"input_preview": detailed_description[:200]}
             )
             raise InvalidToolArgumentException(
-                "detailed_description must be valid JSON from build_product_context."
+                "Something went wrong while generating the backlog. Please try again."
             ) from e
 
         try:
@@ -103,7 +103,7 @@ class BacklogGeneratorTool(IBacklogGeneratorTool):
                 extra={"input_preview": context[:200]}
             )
             raise InvalidToolArgumentException(
-                "context must be the exact JSON string returned by validate_market_intelligence."
+                "Something went wrong while generating the backlog. Please try again."
             ) from e
 
         try:
@@ -116,5 +116,5 @@ class BacklogGeneratorTool(IBacklogGeneratorTool):
         except Exception as e:
             logger.exception("BacklogGeneratorTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"Backlog generation failed: {str(e)}."
+                "An unexpected error occurred while generating the backlog. Please try again or contact support."
             ) from e

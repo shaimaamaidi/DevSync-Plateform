@@ -70,19 +70,19 @@ class AuthUseCase(IAuthUseCase):
             InvalidInputException: If mail or password is missing/invalid.
         """
         logger.info(
-            "Login attempt started for member: mail=%s.",
+            "Login attempt started for member: email=%s.",
             member.mail
         )
 
         if not member.mail or not member.password:
-            logger.warning("Mail and password are required.")
-            raise InvalidInputException("Mail and password are required.")
+            logger.warning("Email and password are required.")
+            raise InvalidInputException("Please enter your email and password.")
 
         credentials = self._repo.find_credentials_by_mail(member.mail)
 
         if not verify_password(member.password, credentials.hashed_password):
             logger.warning("Invalid password attempt (mail=%s).", member.mail)
-            raise InvalidInputException("Invalid mail or password.")
+            raise InvalidInputException("Invalid email or password.")
 
         data = {"sub": str(credentials.id), "mail": credentials.mail}
         access_token = self._jwt_handler.create_access_token(data=data)
@@ -115,40 +115,40 @@ class AuthUseCase(IAuthUseCase):
 
         if not refresh_token:
             logger.warning("Refresh token is required.")
-            raise InvalidInputException("Refresh token is required.")
+            raise InvalidInputException("Session is invalid. Please log in again.")
 
         payload = self._jwt_handler.verify_token(refresh_token)
 
         if payload.get("type") != "refresh":
             logger.warning("Wrong token type used for refresh.")
-            raise InvalidTokenException("Invalid token type.")
+            raise InvalidTokenException("Session is invalid. Please log in again.")
 
         if not payload.get("sub") or not payload.get("mail"):
             logger.warning("Token missing required claims.")
-            raise InvalidTokenException("Token missing required claims.")
+            raise InvalidTokenException("Session expired. Please log in again.")
 
         try:
             member = self._repo.find_by_id(payload.get("sub") )
         except MemberNotFoundException:
             logger.warning("Token invalid: member not found (id=%s).", payload.get("sub") )
-            raise InvalidTokenException("Token invalid: member does not exist.")
+            raise InvalidTokenException("Session is invalid. Please log in again.")
 
         record = self._refresh_token_repo.get_refresh_token(refresh_token)
 
         if not record:
             logger.warning("Refresh token not found or already revoked.")
-            raise InvalidTokenException("Refresh token not found or already revoked.")
+            raise InvalidTokenException("Session expired. Please log in again.")
 
         if record.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
             logger.warning("Refresh token expired (member_id=%s).", record.member_id)
             self._refresh_token_repo.revoke_refresh_token(refresh_token)
-            raise InvalidTokenException("Refresh token has expired.")
+            raise InvalidTokenException("Your session has expired. Please log in again.")
 
         member = self._repo.find_by_id(record.member_id)
         if not member:
             logger.warning("Member not found during token refresh (id=%s).", record.member_id)
             self._refresh_token_repo.revoke_refresh_token(refresh_token)
-            raise InvalidTokenException("Member does not exist.")
+            raise InvalidTokenException("Session is invalid. Please log in again.")
 
         self._refresh_token_repo.revoke_refresh_token(refresh_token)
 
@@ -182,7 +182,7 @@ class AuthUseCase(IAuthUseCase):
 
         if not refresh_token:
             logger.warning("Refresh token is required.")
-            raise InvalidInputException("Refresh token is required.")
+            raise InvalidInputException("Session is invalid. Please log in again.")
 
         self._refresh_token_repo.revoke_refresh_token(refresh_token)
 

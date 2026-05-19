@@ -85,7 +85,7 @@ class Container:
 
         except Exception as e:
             logger.exception("Failed to initialize request container.")
-            raise AppException( "Failed to initialize container.", "CONTAINER_INIT_ERROR") from e
+            raise AppException("A server error occurred. Please try again later.", "CONTAINER_INIT_ERROR", http_status=500)
 
     # Repositories
     def _init_repositories(self):

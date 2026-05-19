@@ -83,8 +83,7 @@ class GitHubDeploymentAdapter(IGitHubService):
                 os.getenv("TOKEN_CLEANUP_INTERVAL_HOURS"),
                 e
             )
-            raise MissingEnvVariableException(
-                message="TOKEN_CLEANUP_INTERVAL_HOURS must be integers.") from e
+            raise MissingEnvVariableException() from e
 
         self.GITHUB_TIMEOUT = httpx.Timeout(connect=CONNECT_TIMEOUT, read=READ_TIMEOUT, write=READ_TIMEOUT, pool=CONNECT_TIMEOUT)
 
@@ -92,7 +91,7 @@ class GitHubDeploymentAdapter(IGitHubService):
 
         if not self.GITHUB_TOKEN:
             logger.error("Missing required environment variable: GITHUB_TOKEN")
-            raise MissingEnvVariableException("Missing required environment variable: GITHUB_TOKEN")
+            raise MissingEnvVariableException()
 
     @staticmethod
     def _parse_repo(url: str) -> tuple[str, str]:
@@ -115,7 +114,7 @@ class GitHubDeploymentAdapter(IGitHubService):
 
         if not match:
             logger.warning("Invalid GitHub repository URL: %s.", url)
-            raise InvalidGitHubUrlException(url)
+            raise InvalidGitHubUrlException()
 
         owner, repo = match.group(1), match.group(2)
 
@@ -165,7 +164,7 @@ class GitHubDeploymentAdapter(IGitHubService):
                     except httpx.HTTPStatusError as e:
                         if e.response.status_code == 404:
                             logger.warning("GitHub resource not found at %s.", url)
-                            raise GitHubRepoNotFoundException(url)
+                            raise GitHubRepoNotFoundException()
                         if e.response.status_code == 403:
                             reset = e.response.headers.get("X-RateLimit-Reset")
                             if reset:
@@ -176,23 +175,21 @@ class GitHubDeploymentAdapter(IGitHubService):
                                 await asyncio.sleep(reset_time)
                                 retries += 1
                                 if retries > MAX_RETRIES:
-                                    raise GitHubRateLimitException(
-                                        f"Rate limit exceeded after {MAX_RETRIES} retries"
-                                    )
+                                    raise GitHubRateLimitException() from e
                                 continue
                         logger.exception("GitHub API HTTP error: %s", str(e))
-                        raise GitHubApiException(str(e)) from e
+                        raise GitHubApiException() from e
 
                     except httpx.RequestError as e:
                         logger.exception("GitHub API request failed: %s", str(e))
-                        raise GitHubApiException(str(e)) from e
+                        raise GitHubApiException() from e
 
                 try:
                     data = resp.json()
 
                 except Exception as e:
                     logger.exception("Failed to decode JSON from %s: %s", url, e)
-                    raise GitHubApiException(f"Invalid JSON from GitHub: {url}") from e
+                    raise GitHubApiException("Failed to process the response. Please try again.") from e
 
                 if isinstance(data, list):
                     results.extend(data)

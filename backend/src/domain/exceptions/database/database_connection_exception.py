@@ -28,7 +28,7 @@ class DatabaseConnectionException(AppException):
         This exception uses a default message indicating that the database connection failed.
         """
         super().__init__(
-            message="Failed to connect to the database",
+            message="Unable to reach the service. Please try again later.",
             code="DB_CONNECTION_ERROR",
             http_status=500,
         )

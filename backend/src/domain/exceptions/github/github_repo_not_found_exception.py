@@ -21,15 +21,12 @@ class GitHubRepoNotFoundException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, repo_url: str):
+    def __init__(self):
         """
         Initialize a GitHubRepoNotFoundException.
-
-        Args:
-            repo_url (str): URL of the GitHub repository that could not be found.
         """
         super().__init__(
-            message=f"GitHub repository not found: {repo_url}",
+            message="The requested repository could not be found. Please check the URL and try again.",
             code="GITHUB_REPO_NOT_FOUND",
             http_status=404,
         )

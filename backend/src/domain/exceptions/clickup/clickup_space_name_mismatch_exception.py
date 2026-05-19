@@ -33,7 +33,7 @@ class ClickUpSpaceNameMismatchException(AppException):
             actual (str): The actual space name retrieved.
         """
         super().__init__(
-            message=f"Space name mismatch: expected '{expected}', got '{actual}'.",
+            message=f"The space name '{expected}' does not match the actual ClickUp space name '{actual}'. Please verify and try again.",
             code="CLICKUP_SPACE_NAME_MISMATCH",
             http_status=409,
         )

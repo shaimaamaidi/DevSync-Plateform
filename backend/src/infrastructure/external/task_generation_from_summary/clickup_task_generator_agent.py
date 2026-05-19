@@ -91,26 +91,16 @@ class ClickUpTaskGeneratorAgent(BaseAgent, ITaskGenerator):
             )
 
         except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in ClickUpTaskGeneratorAgent.")
-            raise LLMNetworkException(
-                agent_name="ClickUpTaskGeneratorAgent",
-                reason=str(e)
-            ) from e
+            logger.exception("Network error contacting LLM in ClickUpTaskGeneratorAgent: reason=%s.", str(e))
+            raise LLMNetworkException() from e
 
         except APIStatusError as e:
             logger.exception("LLM API error in ClickUpTaskGeneratorAgent: status=%d.", e.status_code)
-            raise LLMApiException(
-                agent_name="ClickUpTaskGeneratorAgent",
-                status_code=e.status_code,
-                reason=e.message
-            ) from e
+            raise LLMApiException() from e
 
         except Exception as e:
-            logger.exception("Click up tasks generating from meeting summary failed.")
-            raise LLMParsingException(
-                agent_name="ClickUpTaskGeneratorAgent",
-                reason=str(e)
-            ) from e
+            logger.exception("Click up tasks generating from meeting summary failed: reason=%s.", str(e))
+            raise LLMParsingException() from e
 
         parsed: GeneratedTaskList = response.choices[0].message.parsed
         if not parsed or not parsed.tasks:

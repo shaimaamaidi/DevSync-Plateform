@@ -24,7 +24,7 @@ class MissingClickUpConfigException(MissingEnvVariableException):
         http_status (int): HTTP status code returned to the client (inherited from parent).
     """
 
-    def __init__(self, message: str = "Missing ClickUp configuration."):
+    def __init__(self, message: str = "A click up configuration error occurred. Please contact support."):
         """
         Initialize a MissingClickUpConfigException.
 

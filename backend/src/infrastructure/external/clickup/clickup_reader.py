@@ -71,7 +71,7 @@ class ClickUpReader(IClickUpReader):
             space_name = response.get("name", "")
         except ClickUpClientException as e:
             raise ClickUpResourceNotFoundException(
-                f"Space not found: {space_code}"
+                "The requested ClickUp space could not be found. It may have been deleted or you may not have access to it."
             ) from e
 
         logger.info("Space found. space_code=%s, name=%s.", space_code, space_name)
@@ -268,7 +268,7 @@ class ClickUpReader(IClickUpReader):
         if not members:
             logger.warning("No valid workspace members found.")
             raise ClickUpWorkspaceMembersException(
-                f"Workspace not found or has no members."
+                "No team members could be found in your ClickUp workspace. Please check your configuration or contact your administrator."
             )
 
         logger.info(
@@ -476,7 +476,7 @@ class ClickUpReader(IClickUpReader):
             results = self._http.get(f"/space/{space_id}/folder").get("folders", [])
         except ClickUpClientException as e:
             raise ClickUpResourceNotFoundException(
-                f"Space not found: {space_id}"
+                "The requested ClickUp space could not be found. It may have been deleted or you may not have access to it."
             ) from e
 
         return results
@@ -540,7 +540,7 @@ class ClickUpReader(IClickUpReader):
             results = self._http.get(f"/space/{space_id}/list").get("lists", [])
         except ClickUpClientException as e:
             raise ClickUpResourceNotFoundException(
-                f"Space not found: {space_id}"
+                "The requested ClickUp space could not be found. It may have been deleted or you may not have access to it."
             ) from e
 
         return results

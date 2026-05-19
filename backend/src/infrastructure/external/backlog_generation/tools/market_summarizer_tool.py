@@ -92,7 +92,7 @@ class MarketSummarizerTool(IMarketSummarizerTool):
                 extra={"input_preview": detailed_description[:200]}
             )
             raise InvalidToolArgumentException(
-                "detailed_description must be the exact JSON string returned by build_product_context."
+                "Something went wrong while summarizing the market. Please try again."
             ) from e
 
         try:
@@ -118,11 +118,11 @@ class MarketSummarizerTool(IMarketSummarizerTool):
         except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
             logger.error("LLM error in MarketSummarizerTool: %s", e)
             raise ToolExecutionException(
-                f"Summarize market failed: {str(e)}."
+                "The market summary could not be generated due to an AI service error. Please try again."
             ) from e
 
         except Exception as e:
             logger.exception("MarketSummarizerTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"Market summarization failed: {str(e)}."
+                "An unexpected error occurred while summarizing the market. Please try again or contact support."
             ) from e

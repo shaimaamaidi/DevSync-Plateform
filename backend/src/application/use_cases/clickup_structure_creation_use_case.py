@@ -123,7 +123,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
                 space.space_code
             )
             raise InvalidInputException(
-                "ClickUp space must have a valid 'name' and 'space_code' for register."
+                "Please provide a valid space name and space code."
             )
 
         existing_by_name = self._clickup_repo.find_by_name(space.name)
@@ -136,7 +136,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             existing_by_code = self._clickup_repo.find_by_space_code(space.space_code)
             if existing_by_code:
                 raise InvalidInputException(
-                    f"A ClickUp space with space_code '{space.space_code}' already exists."
+                    f"A ClickUp space with code '{space.space_code}' is already registered."
                 )
         except ClickUpSpaceNotFoundException:
             pass
@@ -185,13 +185,13 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
                 space.space_name,
             )
             raise InvalidInputException(
-                "ClickUp space must have a valid 'name' for create."
+                "Please provide a valid name for the ClickUp space."
             )
 
         existing = self._clickup_repo.find_by_name(space.space_name)
         if existing:
             raise InvalidInputException(
-                f"A click up space with name '{space.space_name}' already exists."
+                f"A ClickUp space named '{space.space_name}' already exists."
             )
 
         space_code, space_name = self._clickup_writer.create_space(space.space_name)
@@ -399,7 +399,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
         db_member = self._member_repo.find_by_id(member_id)
 
         if not db_member:
-            raise MemberNotFoundException(f"Member not found with ID: {member_id}")
+            raise MemberNotFoundException("Member not found. Please verify the provided information.")
 
         members = self._clickup_reader.get_workspace_members_with_roles()
 
@@ -415,7 +415,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
                 db_member.member_id,
                 db_member.mail,
             )
-            raise MemberNotFoundException(f"Member not found in ClickUp: {db_member.mail}")
+            raise MemberNotFoundException("This member is not part of the ClickUp workspace.")
 
         result = self._clickup_writer.remove_workspace_member(coord_member["id"])
 

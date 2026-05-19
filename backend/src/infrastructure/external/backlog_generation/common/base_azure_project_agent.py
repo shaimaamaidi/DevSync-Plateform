@@ -73,7 +73,7 @@ class BaseAzureProjectAgent:
                 agent_id_env_key
             )
             raise MissingAzureConfigException(
-                f"Missing one or more Azure Agent environment variables (AZURE_TENANT_ID, AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_PROJECT_ENDPOINT, {agent_id_env_key})."
+                "The AI service is not properly configured. Please contact your administrator."
             )
 
         try:
@@ -96,10 +96,7 @@ class BaseAzureProjectAgent:
                 agent_id_env_key
             )
             raise AzureAgentRuntimeException(
-                message=(
-                    f"Failed to initialize Azure BaseAgent "
-                    f"(agent_env_key={agent_id_env_key}): {str(e)}."
-                )
+                message="The AI service could not be initialized. Please contact your administrator."
             ) from e
 
     async def load_agent(self) -> None:
@@ -121,13 +118,13 @@ class BaseAzureProjectAgent:
         except AzureError as e:
             logger.exception("Azure SDK error during agent init.")
             raise AzureAgentRuntimeException(
-                message=f"Azure error while loading agent '{self.agent_id}': {str(e)}."
+                message="The AI service is currently unavailable. Please try again or contact support."
             ) from e
 
         except Exception as e:
             logger.exception("Unexpected error during agent init")
             raise AzureAgentRuntimeException(
-                message=f"Unexpected error while loading agent '{self.agent_id}': {str(e)}."
+                message="The AI service is currently unavailable. Please try again or contact support."
             ) from e
 
     async def cleanup(self) -> None:

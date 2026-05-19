@@ -66,7 +66,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
                 bool(refresh_token),
                 bool(expires_at),
             )
-            raise InvalidInputException("member_id, refresh_token and expires_at are required.")
+            raise InvalidInputException("Unable to save your session. Please log in again.")
 
         try:
             self._session.query(RefreshTokenModel).filter_by(
@@ -91,15 +91,15 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         except IntegrityError as e:
             self._session.rollback()
             logger.exception("Integrity error: token already exists (member_id=%s).", member_id)
-            raise InvalidInputException("Refresh token already exists.") from e
+            raise InvalidInputException("Unable to create your session. Please log in again.") from e
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to save refresh token (member_id=%s).", member_id)
-            raise RefreshTokenPersistenceException(str(e)) from e
+            raise RefreshTokenPersistenceException() from e
         except Exception as e:
             self._session.rollback()
             logger.exception("Unexpected error while saving refresh token (member_id=%s).", member_id)
-            raise RefreshTokenPersistenceException(str(e)) from e
+            raise RefreshTokenPersistenceException() from e
 
     def get_refresh_token(self, refresh_token: str) -> RefreshTokenDTO | None:
         """
@@ -118,7 +118,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         logger.info("Fetching refresh token.")
 
         if not refresh_token:
-            raise InvalidInputException("refresh_token is required.")
+            raise InvalidInputException("Session is invalid. Please log in again.")
 
         try:
             record = self._session.query(RefreshTokenModel).filter_by(
@@ -129,7 +129,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to fetch refresh token.")
-            raise RefreshTokenPersistenceException(str(e)) from e
+            raise RefreshTokenPersistenceException() from e
 
         if not record:
             logger.warning("Refresh token not found or already revoked.")
@@ -161,7 +161,7 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         logger.info("Revoking refresh token.")
 
         if not refresh_token:
-            raise InvalidInputException("refresh_token is required.")
+            raise InvalidInputException("Session is invalid. Please log in again.")
 
         try:
             updated = self._session.query(RefreshTokenModel).filter_by(
@@ -171,18 +171,18 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to revoke refresh token.")
-            raise RefreshTokenPersistenceException(str(e)) from e
+            raise RefreshTokenPersistenceException() from e
 
         if not updated:
             logger.warning("Refresh token not found for revocation.")
-            raise InvalidInputException("Refresh token not found.")
+            raise InvalidInputException("Your session has already expired or been revoked.")
 
         try:
             self._session.commit()
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to commit revocation.")
-            raise RefreshTokenPersistenceException(str(e)) from e
+            raise RefreshTokenPersistenceException() from e
 
         logger.info("Refresh token revoked successfully.")
 
@@ -212,4 +212,4 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to delete expired refresh tokens.")
-            raise RefreshTokenPersistenceException(str(e)) from e
+            raise RefreshTokenPersistenceException() from e

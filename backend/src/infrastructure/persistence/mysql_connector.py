@@ -79,7 +79,7 @@ class MySQLConnector:
                 missing
             )
             raise DatabaseInitializationException(
-                f"Missing required environment variables: {', '.join(missing)}"
+                "The service is not properly configured. Please contact support."
             )
 
         logger.info(

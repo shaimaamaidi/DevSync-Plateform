@@ -104,7 +104,7 @@ class DeliveryPlannerTool(IDeliveryPlannerTool):
                 extra={"input_preview": backlog[:200]}
             )
             raise InvalidToolArgumentException(
-                "backlog must be the exact JSON string returned by backlog_fixer_tool."
+                "Something went wrong while generating your delivery plan. Please try again."
             ) from e
 
         try:
@@ -123,11 +123,11 @@ class DeliveryPlannerTool(IDeliveryPlannerTool):
         except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
             logger.error("LLM error in DeliveryPlannerTool: %s", e)
             raise ToolExecutionException(
-                f"Delivery plan failed: {str(e)}."
+                "The delivery plan could not be generated due to an AI service error. Please try again."
             ) from e
 
         except Exception as e:
             logger.exception("DeliveryPlannerTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"Delivery plan failed: {str(e)}."
+                "An unexpected error occurred while generating the delivery plan. Please try again or contact support."
             ) from e

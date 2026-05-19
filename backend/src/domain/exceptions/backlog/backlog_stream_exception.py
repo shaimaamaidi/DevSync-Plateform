@@ -25,7 +25,7 @@ class BacklogStreamException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Backlog streaming operation failed."):
+    def __init__(self, message: str = "Backlog generation failed. Please try again."):
         """
         Initialize a backlog stream exception.
 

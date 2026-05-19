@@ -15,7 +15,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from dotenv import load_dotenv
 
-from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
@@ -64,8 +63,7 @@ class TokenCleanupScheduler:
                 os.getenv("TOKEN_CLEANUP_INTERVAL_HOURS"),
                 e
             )
-            raise MissingEnvVariableException(
-                "TOKEN_CLEANUP_INTERVAL_HOURS must be integers.") from e
+            raise MissingEnvVariableException() from e
 
         self._scheduler = BackgroundScheduler()
 
@@ -74,9 +72,6 @@ class TokenCleanupScheduler:
         Delete expired refresh tokens from the database.
 
         This method is called by the scheduler to remove expired refresh tokens.
-
-        Raises:
-            AppException: If cleanup fails for any reason (logged, not propagated).
         """
         logger.info("Starting expired refresh token cleanup.")
 
@@ -89,7 +84,6 @@ class TokenCleanupScheduler:
 
         except Exception as e:
             logger.exception("Cleaning up failed: %s.", str(e))
-            raise AppException("Failed to clean expired tokens") from e
 
         finally:
             session.close()

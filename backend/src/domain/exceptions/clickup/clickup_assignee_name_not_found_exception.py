@@ -32,7 +32,7 @@ class AssigneeNameNotFoundException(AppException):
         """
         self.unresolved_names = unresolved_names
         super().__init__(
-            message=f"Assignee name(s) not found in name mapping: {unresolved_names}",
+            f"The following assignee(s) could not be found: {', '.join(unresolved_names)}. Please check the names and try again.",
             code="ASSIGNEE_NAME_NOT_FOUND",
             http_status=422,
         )

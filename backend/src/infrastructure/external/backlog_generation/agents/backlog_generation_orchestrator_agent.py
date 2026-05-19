@@ -144,7 +144,7 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
         except Exception as e:
             logger.exception("Backlog generation failed.")
             raise BacklogGenerationException(
-                "Failed to generate backlog."
+                "We couldn't complete the backlog generation. Please try again."
             ) from e
 
     def _process_epic_sync(

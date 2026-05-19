@@ -21,13 +21,12 @@ class ClickUpPersistenceException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Error occurred while accessing ClickUp space data."):
+    def __init__(self, message: str = "Something went wrong. Please try again."):
         """
         Initialize a ClickUp persistence exception.
 
         Args:
-            message (str): Error message describing the persistence failure
-                (default: "Error occurred while accessing ClickUp space data.").
+            message (str): Error message describing the persistence failure.
         """
         super().__init__(
             message=message,

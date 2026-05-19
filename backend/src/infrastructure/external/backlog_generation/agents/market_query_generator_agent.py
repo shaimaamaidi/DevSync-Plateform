@@ -87,23 +87,13 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
             return completion.choices[0].message.parsed
 
         except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in MarketQueryGeneratorAgent.")
-            raise LLMNetworkException(
-                agent_name="MarketQueryGeneratorAgent",
-                reason=str(e)
-            ) from e
+            logger.exception("Network error contacting LLM in MarketQueryGeneratorAgent: reason=%s.", str(e))
+            raise LLMNetworkException() from e
 
         except APIStatusError as e:
             logger.exception("LLM API error in MarketQueryGeneratorAgent: status=%d.", e.status_code)
-            raise LLMApiException(
-                agent_name="MarketQueryGeneratorAgent",
-                status_code=e.status_code,
-                reason=e.message
-            ) from e
+            raise LLMApiException() from e
 
         except Exception as e:
-            logger.exception("Market query generating failed.")
-            raise LLMParsingException(
-                agent_name="MarketQueryGeneratorAgent",
-                reason=str(e)
-            ) from e
+            logger.exception("Market query generating failed: reason=%s.", str(e))
+            raise LLMParsingException() from e

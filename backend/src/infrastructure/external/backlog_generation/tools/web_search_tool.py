@@ -78,5 +78,5 @@ class WebSearchTool(IWebSearchTool):
         except Exception as e:
             logger.exception("WebSearchTool failed.")
             raise ToolExecutionException(
-                message=f"Web search execution failed: {str(e)}."
+                "Something went wrong while performing the web search. Please try again."
             ) from e

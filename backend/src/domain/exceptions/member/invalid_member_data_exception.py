@@ -21,19 +21,17 @@ class InvalidMemberDataException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, missing_fields: list[str], data: dict = None):
+    def __init__(self, missing_fields: list[str]):
         """
         Initialize an InvalidMemberDataException.
 
         Args:
             missing_fields (list[str]): List of required fields that are missing.
-            data (dict, optional): Optional payload to include for debugging context.
         """
         fields = ", ".join(missing_fields)
-        detail = f" — received: {data}" if data else ""
 
         super().__init__(
-            message=f"Invalid member data, missing required fields: {fields}{detail}",
+            message=f"Cannot process members: missing required field(s): {fields}",
             code="INVALID_MEMBER_DATA",
             http_status=400,
         )

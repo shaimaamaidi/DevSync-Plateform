@@ -69,7 +69,7 @@ class ClickUpHttpClient:
 
         if not api_token or not self.team_id:
             raise MissingClickUpConfigException(
-                "CLICKUP_API_TOKEN or CLICKUP_TEAM_ID is missing from environment variables."
+                "ClickUp integration is not properly configured. Please contact your administrator."
             )
 
         self._headers = {
@@ -108,7 +108,9 @@ class ClickUpHttpClient:
             raise
         except (requests.exceptions.RequestException, ValueError) as e:
             logger.error("Network error on GET %s.", endpoint, exc_info=True)
-            raise ClickUpApiException(f"Network error on GET {endpoint}: {e}") from e
+            raise ClickUpApiException(
+                "Unable to reach ClickUp. Please check your internet connection and try again."
+            ) from e
 
     def post(self, endpoint: str, payload: dict) -> Any:
         """
@@ -145,7 +147,9 @@ class ClickUpHttpClient:
             raise
         except (requests.exceptions.RequestException, ValueError) as e:
             logger.error("Network error on POST %s.", endpoint, exc_info=True)
-            raise ClickUpApiException(f"Network error on POST {endpoint}: {e}") from e
+            raise ClickUpApiException(
+                "Unable to reach ClickUp. Please check your internet connection and try again."
+            ) from e
 
     def post_raw(self, endpoint: str, payload: dict) -> requests.Response:
         """
@@ -201,7 +205,9 @@ class ClickUpHttpClient:
             raise
         except (requests.exceptions.RequestException, ValueError) as e:
             logger.error("Network error on PUT %s.", endpoint, exc_info=True)
-            raise ClickUpApiException(f"Network error on PUT {endpoint}: {e}") from e
+            raise ClickUpApiException(
+                "Unable to reach ClickUp. Please check your internet connection and try again."
+            ) from e
 
     def put_raw(self, endpoint: str, payload: dict) -> requests.Response:
         """
@@ -249,28 +255,28 @@ class ClickUpHttpClient:
 
         if status in (401, 403):
             raise ClickUpAuthenticationException(
-                f"Authentication/authorization failed — {response.text}"
+                "ClickUp integration is not properly configured. Please contact your administrator."
             )
 
         if status == 404:
             raise ClickUpResourceNotFoundException(
-                f"Resource not found: {response.url} — {response.text}"
+                "The requested ClickUp resource could not be found. It may have been deleted or moved."
             )
 
         if status == 429:
             retry_after = response.headers.get("Retry-After")
             raise ClickUpRateLimitException(
-                message=f"Rate limit exceeded — {response.text}",
+                message="Too many requests sent to ClickUp. Please wait a moment before trying again.",
                 retry_after=int(retry_after) if retry_after else None
             )
 
         if 400 <= status < 500:
             raise ClickUpClientException(
-                f"Client error ({status}) — {response.text}",
+                "The request to ClickUp was invalid. Please verify your input and try again."
             )
 
         if status >= 500:
             raise ClickUpApiException(
-                f"Server error ({status}) — {response.text}",
+                "ClickUp is currently experiencing issues. Please try again later."
             )
 

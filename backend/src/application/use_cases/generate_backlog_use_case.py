@@ -86,7 +86,7 @@ class GenerateBacklogUseCase(IGenerateBacklogUseCase):
             raise
         except Exception as e:
             logger.exception("Backlog generation stream failed: %s.", str(e))
-            raise BacklogStreamException( f"Backlog generation failed: {str(e)}.") from e
+            raise BacklogStreamException("Backlog generation failed. Please try again.")
 
     async def reply(self, request: ReplyStreamRequest) -> AsyncGenerator[str, None]:
         """
@@ -131,7 +131,7 @@ class GenerateBacklogUseCase(IGenerateBacklogUseCase):
                 request.thread_id,
                 str(e)
             )
-            raise ReplyStreamException( f"Market intelligence reply failed: {str(e)}.") from e
+            raise ReplyStreamException("Failed to process your reply. Please try again.")
 
     async def reply_backlog(self, request: ReplyBacklogStreamRequest) -> AsyncGenerator[str, None]:
         """
@@ -176,4 +176,4 @@ class GenerateBacklogUseCase(IGenerateBacklogUseCase):
                 request.thread_id,
                 str(e)
             )
-            raise BacklogReplyException( f"Backlog reply failed: {str(e)}.") from e
+            raise BacklogReplyException("Failed to process your backlog update. Please try again.")

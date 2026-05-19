@@ -17,7 +17,7 @@ class BacklogGenerationException(AppException):
         http_status (int): HTTP status to return.
     """
 
-    def __init__(self, message: str = "Backlog generation failed."):
+    def __init__(self, message: str = "We couldn't generate your backlog. Please try again or contact support if the issue persists."):
         """
         Initialize a backlog generation exception.
 

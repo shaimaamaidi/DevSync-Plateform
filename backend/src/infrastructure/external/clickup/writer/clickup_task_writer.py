@@ -132,8 +132,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 response.text,
             )
             raise ClickUpTaskCreateException(
-                f"Failed to create '{task.name}' "
-                f"(status {response.status_code}) — {response.text}"
+                f"The task \"{task.name}\" could not be created in ClickUp. Please try again or contact support."
             )
 
     def update_task(
@@ -226,8 +225,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 response.text,
             )
             raise ClickUpTaskUpdateException(
-                f"Failed to update '{task_content.name}' id='{task_id}' "
-                f"(status {response.status_code}) — {response.text}"
+                f"The task \"{task_content.name}\" could not be updated in ClickUp. Please try again or contact support."
             )
 
     def delete_task(self, task_id: str) -> bool:
@@ -263,8 +261,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             response.text,
         )
         raise ClickUpTaskDeleteException(
-            f"Failed to delete task '{task_id}' "
-            f"(status {response.status_code}) — {response.text}"
+            "The task could not be deleted from ClickUp. Please try again or contact support."
         )
 
     def apply_results(
@@ -456,8 +453,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 response.text,
             )
             raise ClickUpTaskCreateException(
-                f"Failed to create '{result.task_name}' "
-                f"(status {response.status_code}) — {response.text}"
+                f"The task \"{result.task_name}\" could not be created in ClickUp. Please try again or contact support."
             )
 
     def _update_task(
@@ -536,8 +532,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 response.text,
             )
             raise ClickUpTaskUpdateException(
-                f"Failed to update '{result.task_name}' id='{result.task_id}' "
-                f"(status {response.status_code}) — {response.text}"
+                f"The task \"{result.task_name}\" could not be updated in ClickUp. Please try again or contact support."
             )
 
     @staticmethod

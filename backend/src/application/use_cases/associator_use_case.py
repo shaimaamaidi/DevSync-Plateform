@@ -132,10 +132,10 @@ class AssociatorUseCase(IAssociatorUseCase):
         for member in request.members:
             if not member.mail:
                 logger.warning(
-                    "Invalid member data: missing mail in repo_url=%s.",
+                    "Member validation failed: email is missing (repo_url=%s).",
                     request.repo_url,
                 )
-                raise InvalidMemberDataException(missing_fields=["mail"], data=member.model_dump())
+                raise InvalidMemberDataException(missing_fields=["email"])
 
             existing_member = self._member.find_by_mail(member.mail)
             incoming_mails.append(existing_member.mail)
@@ -184,10 +184,10 @@ class AssociatorUseCase(IAssociatorUseCase):
         for member in request.members:
             if not member.mail:
                 logger.warning(
-                    "Invalid member data: missing mail in repo_url=%s.",
+                    "Member validation failed: email is missing (repo_url=%s).",
                     request.repo_url,
                 )
-                raise InvalidMemberDataException(missing_fields=["mail"], data=member.model_dump())
+                raise InvalidMemberDataException(missing_fields=["email"])
 
             existing_member = self._member.find_by_mail(member.mail)
             remove_mails.add(existing_member.mail)
@@ -233,10 +233,10 @@ class AssociatorUseCase(IAssociatorUseCase):
         for member in request.members:
             if not member.mail:
                 logger.warning(
-                    "Invalid member data: missing mail in repo_url=%s.",
+                    "Member validation failed: email is missing (repo_url=%s).",
                     request.repo_url,
                 )
-                raise InvalidMemberDataException(missing_fields=["mail"], data=member.model_dump())
+                raise InvalidMemberDataException(missing_fields=["email"])
 
             existing_member = self._member.find_by_mail(member.mail)
             update_mails.append(existing_member.mail)

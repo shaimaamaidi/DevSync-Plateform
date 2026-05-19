@@ -29,7 +29,7 @@ class DatabaseSessionException(AppException):
         or retrieved successfully.
         """
         super().__init__(
-            message="Failed to create or retrieve database session.",
+            message="A temporary error occurred. Please try again later.",
             code="DB_SESSION_ERROR",
             http_status=500,
         )

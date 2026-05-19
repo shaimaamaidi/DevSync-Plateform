@@ -89,9 +89,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             response.status_code,
             error_message,
         )
-        raise ClickUpWriteException(
-            f"Failed to create space '{name}': {error_message}"
-        )
+        raise ClickUpWriteException("The ClickUp space could not be created. Please try again or contact support.")
 
     def delete_space(self, space_id: str) -> bool:
         """
@@ -127,9 +125,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             response.status_code,
             error_message,
         )
-        raise ClickUpWriteException(
-            f"Failed to delete space '{space_id}': {error_message}"
-        )
+        raise ClickUpWriteException("The ClickUp space could not be deleted. Please try again or contact support.")
 
     def create_folder(self, space_id: str, name: str) -> tuple[str, str]:
         """
@@ -169,9 +165,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             response.status_code,
             error_message,
         )
-        raise ClickUpWriteException(
-            f"Failed to create folder '{name}': {error_message}"
-        )
+        raise ClickUpWriteException("The ClickUp folder could not be created. Please try again or contact support.")
 
     def create_list(
         self,
@@ -236,9 +230,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             response.status_code,
             error_message,
         )
-        raise ClickUpWriteException(
-            f"Failed to create list '{name}': {error_message}"
-        )
+        raise ClickUpWriteException("The ClickUp list could not be created. Please try again or contact support.")
 
     def add_status_to_list(
         self,
@@ -307,9 +299,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             response.status_code,
             error_message,
         )
-        raise ClickUpWriteException(
-            f"Failed to add status '{status.status}' to list '{list_id}': {error_message}"
-        )
+        raise ClickUpWriteException("The status could not be added to the ClickUp list. Please try again or contact support.")
 
     def add_workspace_member(self, member: ClickUpMemberInvitation) -> bool:
         """
@@ -351,8 +341,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             error_message,
         )
         raise ClickUpWriteException(
-            f"Failed to invite member '{member.email}' to workspace: {error_message}"
-        )
+            "The member could not be invited to the ClickUp workspace. Please verify the email address and try again.")
 
     def remove_workspace_member(self, user_id: int) -> bool:
         """
@@ -390,9 +379,7 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             response.status_code,
             error_message,
         )
-        raise ClickUpWriteException(
-            f"Failed to remove member '{user_id}' from workspace: {error_message}"
-        )
+        raise ClickUpWriteException("The member could not be removed from the ClickUp workspace. Please try again or contact support.")
 
     @staticmethod
     def _get_error_message(response: Response):

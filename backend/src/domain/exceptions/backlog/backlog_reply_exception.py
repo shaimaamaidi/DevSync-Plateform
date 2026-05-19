@@ -25,7 +25,7 @@ class BacklogReplyException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Backlog reply processing failed."):
+    def __init__(self,message: str = "Failed to process your backlog update. Please try again."):
         """
         Initialize a backlog reply exception.
 

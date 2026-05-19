@@ -83,7 +83,7 @@ class BaseAgent:
         if missing:
             logger.error("Missing Azure OpenAI environment variables: %s", missing)
             raise MissingEnvVariableException(
-                f"Missing Azure OpenAI environment variables: {', '.join(missing)}"
+                "The AI service is not properly configured. Please contact your administrator."
             )
 
         try:
@@ -95,7 +95,7 @@ class BaseAgent:
         except Exception as e:
             logger.exception("Failed to initialize AzureOpenAI client.")
             raise AgentInitializationException(
-                f"Failed to initialize AzureOpenAI client: {str(e)}."
+                "The AI service could not be started. Please try again or contact support."
             ) from e
 
         self.prompt_loader = prompt_loader

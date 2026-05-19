@@ -21,15 +21,12 @@ class InvalidGitHubUrlException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, url: str):
+    def __init__(self):
         """
         Initialize an InvalidGitHubUrlException.
-
-        Args:
-            url (str): GitHub URL that failed validation.
         """
         super().__init__(
-            message=f"Invalid GitHub URL: {url}",
+            message="The provided GitHub URL is invalid. Please check the format and try again.",
             code="INVALID_GITHUB_URL",
             http_status=400,
         )

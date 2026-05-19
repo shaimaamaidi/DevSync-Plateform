@@ -86,7 +86,7 @@ class MarketQueryGeneratorTool(IMarketQueryGeneratorTool):
                 extra={"input_preview": detailed_description[:200]}
             )
             raise InvalidToolArgumentException(
-                "detailed_description must be the exact JSON string returned by build_product_context."
+                "Something went wrong while generating the market queries. Please try again."
             ) from e
 
         try:
@@ -99,11 +99,11 @@ class MarketQueryGeneratorTool(IMarketQueryGeneratorTool):
         except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
             logger.error("LLM error in MarketQueryGeneratorTool: %s", e)
             raise ToolExecutionException(
-                f"Generate market queries failed: {str(e)}."
+                "The generation of market queries could not be generated due to an AI service error. Please try again."
             ) from e
 
         except Exception as e:
             logger.exception("MarketQueryGeneratorTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"Market query generation failed: {str(e)}."
+                "An unexpected error occurred while generating the market queries. Please try again or contact support."
             ) from e

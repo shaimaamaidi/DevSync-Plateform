@@ -27,16 +27,12 @@ class LLMParsingException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, agent_name: str, reason: str):
+    def __init__(self):
         """
         Initialize an LLM parsing exception.
-
-        Args:
-            agent_name (str): Name of the agent that triggered the failure.
-            reason (str): Detailed reason explaining why parsing failed.
         """
         super().__init__(
-            message=f"LLM call failed in {agent_name}: {reason}",
+            message="The backlog generation encountered an unexpected error. Please try again.",
             code="LLM_PARSING_ERROR",
             http_status=502
         )

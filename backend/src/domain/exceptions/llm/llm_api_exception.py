@@ -25,17 +25,12 @@ class LLMApiException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, agent_name: str, status_code: int, reason: str):
+    def __init__(self):
         """
         Initialize an LLMApiException.
-
-        Args:
-            agent_name (str): Name of the agent that triggered the LLM API request.
-            status_code (int): HTTP status code returned by the external API.
-            reason (str): Detailed reason describing the API failure.
         """
         super().__init__(
-            message=f"LLM API error in agent '{agent_name}' (HTTP {status_code}): {reason}",
+            message="The AI service is currently unavailable. Please try again in a few moments.",
             code="LLM_API_ERROR",
             http_status=502,
         )

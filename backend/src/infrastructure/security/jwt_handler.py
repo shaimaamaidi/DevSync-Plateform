@@ -53,15 +53,14 @@ class JWTHandler(IJWTHandler):
 
         if not self.secret_key:
             logger.error("JWTHandler initialization failed: JWT_SECRET_KEY is missing!")
-            raise MissingEnvVariableException("Missing required environment variable: JWT_SECRET_KEY")
+            raise MissingEnvVariableException()
 
         try:
             self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
             self.refresh_token_expire_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
         except ValueError as e:
             logger.exception("Invalid JWT config values.")
-            raise MissingEnvVariableException(
-                "ACCESS_TOKEN_EXPIRE_MINUTES or REFRESH_TOKEN_EXPIRE_DAYS must be integers.") from e
+            raise MissingEnvVariableException()
 
         logger.info("JWTHandler initialized successfully.")
 
@@ -76,7 +75,7 @@ class JWTHandler(IJWTHandler):
             str: Encoded JWT access token.
 
         Raises:
-            InvalidTokenException: If token data is empty or encoding fails.
+            InvalidTokenException: If session is invalid.
             AppException: For unexpected errors during token creation (e.g., runtime issues).
         """
         logger.info("Starting creating access token.")
@@ -84,7 +83,7 @@ class JWTHandler(IJWTHandler):
         try:
             if not data:
                 logger.error("Token data cannot be empty for access token creation.")
-                raise InvalidTokenException("Token data cannot be empty.")
+                raise InvalidTokenException("Session is invalid. Please log in again.")
 
             to_encode = data.copy()
             expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
@@ -97,10 +96,10 @@ class JWTHandler(IJWTHandler):
 
         except JWTError as e:
             logger.exception("Failed to create access token." )
-            raise InvalidTokenException("Failed to create access token.") from e
+            raise InvalidTokenException("Unable to start your session. Please try again.")
         except Exception as e:
             logger.exception("Unexpected error during create_access_token.")
-            raise AppException("Unexpected error during create_access_token.") from e
+            raise AppException("Something went wrong. Please try again later.")
 
     def create_refresh_token(self, data: dict) -> tuple[str, datetime]:
         """
@@ -113,7 +112,7 @@ class JWTHandler(IJWTHandler):
             tuple[str, datetime]: Encoded JWT refresh token and its expiration datetime.
 
         Raises:
-            InvalidTokenException: If token data is empty or encoding fails.
+            InvalidTokenException: If session is invalid.
             AppException: For unexpected errors during token creation (e.g., runtime issues).
         """
         logger.info("Starting creating refresh token.")
@@ -121,7 +120,7 @@ class JWTHandler(IJWTHandler):
         try:
             if not data:
                 logger.error("Token data cannot be empty for refresh token creation.")
-                raise InvalidTokenException("Token data cannot be empty.")
+                raise InvalidTokenException("Session is invalid. Please log in again.")
 
             to_encode = data.copy()
             expire_at = datetime.now(timezone.utc) + timedelta(days=self.refresh_token_expire_days)
@@ -134,10 +133,10 @@ class JWTHandler(IJWTHandler):
 
         except JWTError as e:
             logger.exception("Failed to create refresh token.")
-            raise InvalidTokenException("Failed to create refresh token.") from e
+            raise InvalidTokenException("Unable to start your session. Please try again.")
         except Exception as e:
             logger.exception("Unexpected error during create_refresh_token.")
-            raise AppException("Unexpected error during create_refresh_token.") from e
+            raise AppException("Something went wrong. Please try again later.")
 
     def verify_token(self, token: str) -> dict:
         """
@@ -150,7 +149,7 @@ class JWTHandler(IJWTHandler):
             dict: Decoded payload if verification is successful.
 
         Raises:
-            InvalidTokenException: If the token is empty, expired, has invalid claims, or verification fails.
+            InvalidTokenException: If session is invalid or expired.
             AppException: For unexpected errors during token verification (e.g., runtime issues).
         """
         logger.info("Starting verifying token.")
@@ -158,7 +157,7 @@ class JWTHandler(IJWTHandler):
         try:
             if not token:
                 logger.error("Token cannot be empty for verification.")
-                raise InvalidTokenException("Token cannot be empty.")
+                raise InvalidTokenException("Session is invalid. Please log in again.")
 
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
@@ -167,7 +166,7 @@ class JWTHandler(IJWTHandler):
 
             if not member_id or not email:
                 logger.error("Token missing required claims.")
-                raise InvalidTokenException("Token missing required claims.")
+                raise InvalidTokenException("Session is invalid. Please log in again.")
 
             logger.info("Token verified successfully (member_id=%s).", payload.get("sub"))
 
@@ -175,13 +174,13 @@ class JWTHandler(IJWTHandler):
 
         except ExpiredSignatureError as e:
             logger.warning("Token has expired.")
-            raise InvalidTokenException("Token has expired.") from e
+            raise InvalidTokenException("Session is expired. Please log in again.") from e
         except JWTClaimsError as e:
             logger.warning("Invalid token claims.")
-            raise InvalidTokenException("Invalid token claims.") from e
+            raise InvalidTokenException("Session is invalid. Please log in again.") from e
         except JWTError as e:
             logger.warning("Token verification failed.")
-            raise InvalidTokenException("Invalid token.") from e
+            raise InvalidTokenException("Session is invalid. Please log in again.") from e
         except Exception as e:
             logger.exception("Unexpected error during verify_token.")
-            raise AppException("Unexpected error during verify_token.") from e
+            raise AppException("Something went wrong. Please try again later.")

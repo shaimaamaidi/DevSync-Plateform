@@ -91,8 +91,8 @@ class UserBacklogFixerTool(IUserBacklogFixerTool):
                 extra={"input_preview": backlog_reference[:200]}
             )
             raise InvalidToolArgumentException(
-                "backlog_reference must be the exact JSON string returned by backlog_fixer_tool."
-            ) from e
+                "The reference backlog format is invalid or could not be processed. Please ensure the backlog was generated correctly and try again."
+            )
 
         try:
             backlog_to_validate_obj = BacklogStructure.model_validate_json(backlog_to_validate)
@@ -102,7 +102,7 @@ class UserBacklogFixerTool(IUserBacklogFixerTool):
                 extra={"input_preview": backlog_to_validate[:200]}
             )
             raise InvalidToolArgumentException(
-                "backlog_to_validate must be the exact JSON string returned by backlog_fixer_tool."
+                "Something went wrong while fixing your backlog. Please try again."
             ) from e
 
         try:
@@ -118,11 +118,11 @@ class UserBacklogFixerTool(IUserBacklogFixerTool):
         except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
             logger.error("LLM error in UserBacklogFixerTool: %s", e)
             raise ToolExecutionException(
-                f"Fix user backlog failed: {str(e)}."
+                "The backlog validation could not be generated due to an AI service error. Please try again."
             ) from e
 
         except Exception as e:
             logger.exception("UserBacklogFixerTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"User backlog fixation failed: {str(e)}."
+                "An unexpected error occurred while fixing your backlog. Please try again or contact support."
             ) from e

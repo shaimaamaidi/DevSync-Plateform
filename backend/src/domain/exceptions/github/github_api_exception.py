@@ -21,7 +21,7 @@ class GitHubApiException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "GitHub API request failed."):
+    def __init__(self, message: str = "Unable to reach GitHub. Please try again later."):
         """
         Initialize a GitHubApiException.
 

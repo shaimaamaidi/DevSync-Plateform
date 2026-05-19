@@ -21,7 +21,7 @@ class DatabaseInitializationException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Failed to initialize or create the database."):
+    def __init__(self, message: str = "The service is temporarily unavailable. Please try again later."):
         """
         Initialize a DatabaseInitializationException.
 

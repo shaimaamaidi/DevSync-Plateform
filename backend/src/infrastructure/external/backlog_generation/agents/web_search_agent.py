@@ -56,7 +56,9 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
 
         if not self.bing_connection_name:
             logger.error("Missing BING_CONNECTION_NAME environment variable.")
-            raise MissingAzureConfigException("Missing Azure Agent environment variable: BING_CONNECTION_NAME.")
+            raise MissingAzureConfigException(
+                "The web search service is not properly configured. Please contact your administrator."
+            )
 
         self._retry = AzureRetry()
 
@@ -102,7 +104,7 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
 
         if len(errors) == len(questions):
             raise AzureAgentRuntimeException(
-                message=f"All {len(questions)} web search queries failed. Last error: {errors[-1]}."
+                message="The web search service is currently unavailable. Please try again or contact support."
             )
 
         if errors:
@@ -165,10 +167,7 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
 
                 if run.status != "completed":
                     raise AzureAgentRuntimeException(
-                        message=(
-                            f"Web search run failed: status={run.status}, "
-                            f"error={getattr(run, 'last_error', None)}."
-                        )
+                        message="The web search could not be completed. Please try again."
                     )
 
                 messages = await self.project_client.agents.messages.list(
@@ -192,7 +191,7 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
             except Exception as e:
                 logger.exception("Unexpected error in _ask_one.")
                 raise AzureAgentRuntimeException(
-                    message=f"Web search execution failed: {str(e)}."
+                    message="An unexpected error occurred during the web search. Please try again."
                 ) from e
 
             finally:

@@ -180,7 +180,7 @@ class WorkflowContainer:
 
         except Exception as e:
             logger.exception("Failed to initialize workflow container.")
-            raise AppException("Failed to initialize workflow container.", "CONTAINER_INIT_ERROR") from e
+            raise AppException("A server error occurred. Please try again later.", "CONTAINER_INIT_ERROR", http_status=500)
 
     # Agents
     def _init_backlog_agents(self):
@@ -416,10 +416,10 @@ class WorkflowContainer:
             ServiceUnavailableException: If ClickUp infrastructure is not initialized.
         """
         if self.clickup_reader is None:
-            raise ServiceUnavailableException("ClickUp task service is not initialized.")
+            raise ServiceUnavailableException("ClickUp task service is currently unavailable. Please try again later.")
 
         if self.clickup_writer is None:
-            raise ServiceUnavailableException("ClickUp writer is not initialized.")
+            raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
         return SaveTaskInClickUpUseCase(
             clickup_reader=self.clickup_reader,
@@ -451,7 +451,7 @@ class WorkflowContainer:
                 If required ClickUp writer infrastructure is not initialized.
         """
         if self.clickup_writer is None:
-            raise ServiceUnavailableException("ClickUp writer is not initialized.")
+            raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
         return ClickUpStructureCreationUseCase(
             clickup_repo=clickup_repo,
@@ -483,10 +483,11 @@ class WorkflowContainer:
                 If required ClickUp writer infrastructure is not initialized.
         """
         if self.clickup_reader is None:
-            raise ServiceUnavailableException("ClickUp writer is not initialized.")
+            raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
         if self.clickup_task_verifier_agent is None:
-            raise ServiceUnavailableException("Verifier agent is not initialized.")
+            raise ServiceUnavailableException(
+                "Task verification service is currently unavailable. Please try again later.")
 
         return VerifyTaskUseCase(
             clickup_reader=self.clickup_reader,

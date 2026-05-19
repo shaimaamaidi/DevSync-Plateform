@@ -25,16 +25,12 @@ class LLMNetworkException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, agent_name: str, reason: str):
+    def __init__(self):
         """
         Initialize an LLMNetworkException.
-
-        Args:
-            agent_name (str): Name of the agent attempting to contact the LLM service.
-            reason (str): Detailed reason describing the network failure.
         """
         super().__init__(
-            message=f"Network error while contacting LLM in agent '{agent_name}': {reason}",
+            message="Unable to reach the AI service due to a network issue. Please check your connection and try again.",
             code="LLM_NETWORK_ERROR",
             http_status=502,
         )

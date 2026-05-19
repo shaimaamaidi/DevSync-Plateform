@@ -102,11 +102,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to fetch credentials (mail=%s).", mail)
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if not m:
             logger.warning("Member not found for auth (mail=%s).", mail)
-            raise MemberNotFoundException(message=f"Member not found with mail: {mail}")
+            raise MemberNotFoundException(message="No account found with this email address.")
 
         logger.info("Credentials fetched successfully (mail=%s).", mail)
 
@@ -167,7 +167,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 "Failed to create member (mail=%s).",
                 member.mail
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
     def update(self, member: MemberUpdateDTO) -> MemberWithReposDTO:
         """
@@ -198,7 +198,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         if not any([member.username, member.arabic_name, member.mail, member.password, member.repos]):
             logger.warning("Update failed: no fields provided (id=%s).", member.id)
             raise InvalidInputException(
-                "Member must have a valid 'username' or 'arabic_name' or 'mail' or 'password' or repo's list for update."
+                "Please provide at least one field to update."
             )
 
         try:
@@ -210,11 +210,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 "Failed to update member (id=%s).",
                 member.id
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if not m:
             logger.warning("Member not found for update (id=%s).", member.id)
-            raise MemberNotFoundException(message=f"Member not found with ID: {member.id}")
+            raise MemberNotFoundException(message="Member not found.")
 
         if member.username:
             m.username = member.username
@@ -283,7 +283,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                         missing_info.append(f"urls={missing_urls}")
 
                     raise InvalidInputException(
-                        "Repositories not found for update (%s)." % ", ".join(missing_info)
+                        "Some of the selected repositories could not be found. Please verify and try again."
                     )
 
                 m.repos = list({r.id: r for r in repos}.values())
@@ -314,7 +314,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 "Failed to update member (id=%s).",
                 member.id
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
     def find_by_id(self, member_id: int) -> MemberDTO:
         """
@@ -351,11 +351,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 "Error fetching member (id=%s).",
                 member_id
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if not m:
             logger.warning("Member not found (id=%s).", member_id)
-            raise MemberNotFoundException(message=f"Member not found with ID: {member_id}")
+            raise MemberNotFoundException(message="Member not found.")
 
         logger.info(
             "Member fetched successfully (id=%s, username=%s, arabic_name=%s, mail=%s).",
@@ -395,9 +395,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.warning(
                 "Invalid input for member fetching by arabic names (List provided is empty)."
             )
-            raise InvalidInputException(
-                "Invalid input for member fetching by arabic names (List provided is empty)."
-            )
+            raise InvalidInputException("Please provide at least one name to search.")
 
         resolved: Dict[str, str] = {}
         unresolved = []
@@ -417,7 +415,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.exception(
                 "Error fetching members by arabic names."
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if unresolved and not ignore_names:
             raise AssigneeNameNotFoundException(unresolved)
@@ -469,7 +467,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.exception(
                 "Error fetching members by arabic names."
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         logger.info(
             "Members fetched successfully by arabic names.",
@@ -500,7 +498,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 mail
             )
             raise InvalidInputException(
-                "Member must have a valid 'mail' for fetch by mail."
+                "Please provide a valid email address."
             )
 
         try:
@@ -512,11 +510,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
                 "Error fetching member by mail (mail=%s).",
                 mail
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if not m:
             logger.warning("Member not found (mail=%s).", mail)
-            raise MemberNotFoundException(message=f"Member not found with mail: {mail}")
+            raise MemberNotFoundException(message="No account found with this email address.")
 
         logger.info(
             "Member fetched successfully (id=%s, username=%s, arabic_name=%s, mail=%s).",
@@ -562,11 +560,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             logger.exception(
                 "Failed to fetch members by repository ID (repo_id=%s).", repo_id
             )
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if not repo:
             logger.warning("Repository not found when fetching members (repo_id=%s).", repo_id)
-            raise RepoNotFoundException(message=f"Repository not found with ID: {repo_id}")
+            raise RepoNotFoundException(message="Repository not found.")
 
         members = [_model_to_dto(m) for m in repo.members]
 
@@ -596,7 +594,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to fetch members with repositories.")
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         results = [_model_to_with_repos_dto(m) for m in rows]
 
@@ -640,11 +638,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to delete member (id=%s).", member_id)
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         if not m:
             logger.warning("Member not found (id=%s).", member_id)
-            raise MemberNotFoundException(message=f"Member not found with ID: {member_id}")
+            raise MemberNotFoundException(message="Member not found.")
 
         try:
             self._session.delete(m)
@@ -653,7 +651,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         except SQLAlchemyError as e:
             self._session.rollback()
             logger.exception("Failed to delete member (id=%s).", member_id)
-            raise MemberPersistenceException(str(e)) from e
+            raise MemberPersistenceException() from e 
 
         logger.info("Member deleted successfully (id=%s).", m.id)
 

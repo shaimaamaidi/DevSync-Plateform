@@ -81,11 +81,11 @@ class ProductContextBuilderTool(IProductContextTool):
         except (LLMNetworkException, LLMApiException, LLMParsingException) as e:
             logger.error("LLM error in ProductContextBuilderTool: %s", e)
             raise ToolExecutionException(
-                f"Build product context failed: {str(e)}."
+                "The building of product context could not be generated due to an AI service error. Please try again."
             ) from e
 
         except Exception as e:
             logger.exception("ProductContextBuilderTool failed unexpectedly.")
             raise ToolExecutionException(
-                f"Product context build failed: {str(e)}."
+                "An unexpected error occurred while building the product context. Please try again or contact support."
             ) from e

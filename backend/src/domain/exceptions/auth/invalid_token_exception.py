@@ -21,7 +21,7 @@ class InvalidTokenException(AppException):
         http_status (int): HTTP status code returned to the client.
     """
 
-    def __init__(self, message: str = "Invalid or expired token."):
+    def __init__(self, message: str = "Session is invalid. Please log in again."):
         """
         Initialize an InvalidTokenException.
 

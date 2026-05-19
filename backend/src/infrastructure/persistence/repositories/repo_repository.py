@@ -148,7 +148,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Failed to create repository (url=%s).",
                 repo.url
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
     def update(self, repo: GitRepoUpdateDTO) -> GitRepoDetailDTO:
         """
@@ -187,7 +187,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         ):
             logger.warning("Update failed: no fields provided (id=%s).", repo.id)
             raise InvalidInputException(
-                "GitHub Repo must have at least one field to update: 'name', 'url', 'members' or 'clickup_space'."
+                "Please provide at least one field to update."
             )
 
         try:
@@ -199,11 +199,11 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Failed to update repository (id=%s).",
                 repo.id
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
     
         if not m:
             logger.warning("Repository not found for update (id=%s).", repo.id)
-            raise RepoNotFoundException(message=f"Repository not found with ID : {repo.id}")
+            raise RepoNotFoundException(message="Repository not found.")
 
         if repo.name:
             m.name = repo.name
@@ -241,7 +241,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                         except SQLAlchemyError as e:
                             self._session.rollback()
                             logger.exception("Failed during association resolution (id=%s).", repo.id)
-                            raise RepoPersistenceException(str(e)) from e
+                            raise RepoPersistenceException() from e
 
                         if mem:
                             existing_members.append(mem)
@@ -256,7 +256,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                             except SQLAlchemyError as e:
                                 self._session.rollback()
                                 logger.exception("Failed during association resolution (id=%s).", repo.id)
-                                raise RepoPersistenceException(str(e)) from e
+                                raise RepoPersistenceException() from e
 
                             if mem:
                                 existing_members.append(mem)
@@ -275,7 +275,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                         except SQLAlchemyError as e:
                             self._session.rollback()
                             logger.exception("Failed during association resolution (id=%s).", repo.id)
-                            raise RepoPersistenceException(str(e)) from e
+                            raise RepoPersistenceException() from e
 
                         if mem:
                             existing_members.append(mem)
@@ -291,7 +291,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                     if missing_mails:
                         missing_info.append(f"mails={missing_mails}")
                     raise InvalidInputException(
-                        "Members not found for update (%s)." % ", ".join(missing_info)
+                        "Some of the selected members could not be found. Please verify and try again."
                     )
 
             m.members = deduped_members
@@ -319,7 +319,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 except SQLAlchemyError as e:
                     self._session.rollback()
                     logger.exception("Failed during association resolution (id=%s).", repo.id)
-                    raise RepoPersistenceException(str(e)) from e
+                    raise RepoPersistenceException() from e
 
             if not clickup_space_model and repo.clickup_space.space_code:
                 try:
@@ -334,7 +334,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 except SQLAlchemyError as e:
                     self._session.rollback()
                     logger.exception("Failed during association resolution (id=%s).", repo.id)
-                    raise RepoPersistenceException(str(e)) from e
+                    raise RepoPersistenceException() from e
 
             if clickup_space_model:
                 if clickup_space_model.repo_id and clickup_space_model.repo_id != m.id:
@@ -347,10 +347,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                     repo.id,
                 )
             else:
-                raise InvalidInputException(
-                    "ClickUp space not found for association (id=%s, space_code=%s)."
-                    % (repo.clickup_space.id, repo.clickup_space.space_code)
-                )
+                raise InvalidInputException("The specified ClickUp space could not be found. Please check and try again.")
 
         try:
             self._session.flush()
@@ -380,7 +377,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Failed to update repository (id=%s).",
                 repo.id
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
     def find_by_id(self, repo_id: int) -> GitRepoDetailDTO:
         """
@@ -425,11 +422,11 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Error fetching repository (id=%s).",
                 repo_id,
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
         if not m:
             logger.warning("Repository not found (id=%s).", repo_id)
-            raise RepoNotFoundException(message=f"Repository not found with ID: {repo_id}")
+            raise RepoNotFoundException(message="Repository not found.")
 
         logger.info(
             "Repository fetched successfully (id=%s, name=%s, url=%s).",
@@ -475,7 +472,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Error fetching repository by url (url=%s).",
                 url
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
         if not m:
             logger.warning("Repository not found (url=%s).", url)
@@ -532,11 +529,11 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Error Fetching repository by name (name=%s).",
                 name,
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
         if not m:
             logger.warning("Repository not found (name=%s).", name)
-            raise RepoNotFoundException(message=f"Repository not found with NAME: {name}")
+            raise RepoNotFoundException(message=f"Repository named {name} not found.")
 
         logger.info(
             "Repository fetched successfully (id=%s, name=%s, url=%s).",
@@ -567,7 +564,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.exception(
                 "Error fetching all repositories."
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
         logger.info(
             "Fetched all repositories successfully (count=%s).",
@@ -605,7 +602,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             logger.exception(
                 "Error fetching all repositories with details."
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
         logger.info(
             "Fetched all repositories successfully (count=%s).",
@@ -649,11 +646,11 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Error deleting repository (id=%s).",
                 repo_id
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
 
         if not m:
             logger.warning("Repository not found (id=%s).", repo_id)
-            raise RepoNotFoundException(message=f"Repository not found with ID: {repo_id}")
+            raise RepoNotFoundException(message="Repository not found.")
 
         try:
             self._session.delete(m)
@@ -669,4 +666,4 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 "Failed to delete repository (id=%s).",
                 repo_id
             )
-            raise RepoPersistenceException(str(e)) from e
+            raise RepoPersistenceException() from e
