@@ -64,7 +64,14 @@ export function normalizeErrorMessage(error: unknown): string {
 
     if ("detail" in d) {
       const detail = d.detail;
-      if (Array.isArray(detail)) return detail.join(", ");
+      if (Array.isArray(detail)) {
+        return detail
+          .map((item: any) => {
+            const field = item.loc?.slice(1).join(" → ") ?? "field";
+            return `${field}: ${item.msg}`;
+          })
+          .join(", ");
+      }
       if (typeof detail === "string") return detail;
     }
 
@@ -82,7 +89,6 @@ export function normalizeErrorMessage(error: unknown): string {
   return "Unknown error";
 }
 
-
 export function resolveErrorAction(err: unknown): ErrorAction {
   const status = extractStatusCode(err);
   const code = extractErrorCode(err) as ErrorCode | null;
@@ -92,6 +98,8 @@ export function resolveErrorAction(err: unknown): ErrorAction {
   if (code && LOGOUT_IMMEDIATELY.has(code)) return "LOGOUT";
 
   if (status === 401 || status === 403) return "LOGOUT";
+
+  if (status === 422) return "NOTIFY";
 
   if (code && RETRYABLE_CODES.has(code)) return "RETRY";
 
