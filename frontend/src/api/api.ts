@@ -27,9 +27,21 @@ import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerM
  * Request model for adding a status to a ClickUp list.  This DTO represents the payload required to create a new status in a specific ClickUp list. It includes the target list identifier, the status label, its color, and its type (custom or predefined).  Attributes:     list_id: ClickUp list identifier where the status will be added.     status: Name of the status to be created.     color: Color associated with the status (typically hex or ClickUp color code).     type: Type of the status (e.g., custom, open, closed).
  */
 export interface AddStatusRequest {
+    /**
+     * ClickUp list identifier where the status will be added.
+     */
     'list_id': string;
+    /**
+     * Name of the status to be created.
+     */
     'status': string;
+    /**
+     * Color associated with the status (typically hex or ClickUp color code).
+     */
     'color': string;
+    /**
+     * Type of the status (e.g., custom, open, closed).
+     */
     'type': StatusType;
 }
 
@@ -38,8 +50,14 @@ export interface AddStatusRequest {
  * Request payload for associating a ClickUp space.  Attributes:     repo_url: Repository URL.     space_code: ClickUp space code.
  */
 export interface AssociateClickUpSpaceRequest {
-    'repo_url'?: string | null;
-    'space_code'?: string | null;
+    /**
+     * Repository URL
+     */
+    'repo_url': string;
+    /**
+     * ClickUp space code
+     */
+    'space_code': string;
 }
 /**
  * Response payload for ClickUp space association.  Attributes:     repo: Repository summary.     clickup_space: Associated ClickUp space DTO.
@@ -59,18 +77,18 @@ export interface AssociateMembersResponse {
  * Member summary returned in association responses.  Attributes:     id: Member identifier.     username: Member name.     arabic_name: Arabic name.     mail: Member email address.
  */
 export interface AssociatorMemberDTO {
-    'id'?: number | null;
-    'username'?: string | null;
-    'arabic_name'?: string | null;
-    'mail'?: string | null;
+    'id': number;
+    'username': string;
+    'arabic_name': string;
+    'mail': string;
 }
 /**
  * Repository summary returned in association responses.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface AssociatorRepoDTO {
-    'id'?: number | null;
-    'name'?: string | null;
-    'url'?: string | null;
+    'id': number;
+    'name': string;
+    'url': string;
 }
 /**
  * ClickUp list containing tasks and configuration metadata.  This object represents a complete ClickUp list, including its tasks and configuration data such as available statuses and priority options.  Attributes:     id: ClickUp list identifier.     name: List name.     tasks: List of tasks contained in the list.     statuses: List of available task statuses in the list.     priorities: List of available task priority levels.
@@ -95,6 +113,9 @@ export interface ClickUpListMetadata {
  * Domain DTO representing a ClickUp workspace member invitation.  An invitation defines the information required to add a new member to a ClickUp workspace, including the target email address and the assigned workspace role.  Attributes:     email: Email address of the invited member.     role: Workspace role assigned to the invited member         (OWNER / ADMIN / MEMBER / GUEST).
  */
 export interface ClickUpMemberInvitation {
+    /**
+     * Email address of the invited member.
+     */
     'email': string;
     'role'?: ClickUpMemberRole;
 }
@@ -118,9 +139,9 @@ export type ClickUpMemberRole = typeof ClickUpMemberRole[keyof typeof ClickUpMem
  * Repository details embedded in ClickUp space responses.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface ClickUpRepoDTO {
-    'id'?: number | null;
-    'name'?: string | null;
-    'url'?: string | null;
+    'id': number;
+    'name': string;
+    'url': string;
 }
 /**
  * Reference to a repository linked to a ClickUp space.  Attributes:     id: Repository identifier.     url: Repository URL.
@@ -133,48 +154,63 @@ export interface ClickUpRepoRefDTO {
  * Payload for ClickUp space creation.  Attributes:     name: ClickUp space name.     space_code: ClickUp space code.
  */
 export interface ClickUpSpaceCreateDTO {
-    'name'?: string | null;
-    'space_code'?: string | null;
+    /**
+     * ClickUp space name.
+     */
+    'name': string;
+    /**
+     * ClickUp space code.
+     */
+    'space_code': string;
 }
 /**
  * ClickUp space DTO with minimal fields.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.
  */
 export interface ClickUpSpaceDTO {
-    'id'?: number | null;
-    'name'?: string | null;
-    'space_code'?: string | null;
+    'id': number;
+    'name': string;
+    'space_code': string;
 }
 /**
  * Detailed ClickUp space DTO with repository data.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.     repo: Associated repository details.
  */
 export interface ClickUpSpaceDetailDTO {
-    'id'?: number | null;
-    'name'?: string | null;
-    'space_code'?: string | null;
+    'id': number;
+    'name': string;
+    'space_code': string;
     'repo'?: ClickUpRepoDTO | null;
 }
 /**
  * ClickUp space DTO with repository summary.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.     name: ClickUp space name.     repo: Associated repository details.
  */
 export interface ClickUpSpaceLightDTO {
-    'id'?: number | null;
-    'space_code'?: string | null;
-    'name'?: string | null;
+    'id': number;
+    'space_code': string;
+    'name': string;
     'repo'?: ClickUpRepoDTO | null;
 }
 /**
  * Payload for ClickUp space registration.  Attributes:     name: ClickUp space name.     space_code: ClickUp space code.     ignore_name: If True, skips space name validation against ClickUp.
  */
 export interface ClickUpSpaceRegisterDTO {
-    'name'?: string | null;
-    'space_code'?: string | null;
+    /**
+     * ClickUp space name.
+     */
+    'name': string;
+    /**
+     * ClickUp space code.
+     */
+    'space_code': string;
+    /**
+     * If True, skips space name validation against ClickUp.
+     */
     'ignore_name'?: boolean;
 }
 /**
  * Payload for ClickUp space updates.  Attributes:     id: ClickUp space identifier.     name: ClickUp space name.     space_code: ClickUp space code.     repo: Reference to associated repository.
  */
 export interface ClickUpSpaceUpdateDTO {
-    'id'?: number | null;
+    'id': number;
     'name'?: string | null;
     'space_code'?: string | null;
     'repo'?: ClickUpRepoRefDTO | null;
@@ -184,8 +220,17 @@ export interface ClickUpSpaceUpdateDTO {
  */
 export interface ClickUpTask {
     'id'?: string | null;
+    /**
+     * Task name or title.
+     */
     'name': string;
+    /**
+     * Task description.
+     */
     'description': string;
+    /**
+     * Current task status.
+     */
     'status': string;
     'assignee'?: string | null;
     'priority'?: string | null;
@@ -194,14 +239,26 @@ export interface ClickUpTask {
  * Request model for creating a ClickUp folder.  This DTO represents the payload required to create a new folder in a specific ClickUp space. It contains the target space identifier and the folder name.  Attributes:     space_id: ClickUp space identifier where the folder will be created.     name: Name of the folder to create.
  */
 export interface CreateFolderRequest {
+    /**
+     * ClickUp space identifier where the folder will be created.
+     */
     'space_id': string;
+    /**
+     * Name of the folder to create.
+     */
     'name': string;
 }
 /**
  * Request model for creating a ClickUp list.  This DTO represents the payload required to create a new list in a ClickUp space. The list can optionally be created inside a specific folder. If no folder is provided, the list is created directly under the space.  Attributes:     space_id: ClickUp space identifier where the list will be created.     name: Name of the list to create (default is \"List\").     folder_id: Optional folder identifier if the list is created inside a folder.
  */
 export interface CreateListRequest {
+    /**
+     * ClickUp space identifier where the list will be created.
+     */
     'space_id': string;
+    /**
+     * Name of the list to create.
+     */
     'name'?: string;
     'folder_id'?: string | null;
 }
@@ -209,19 +266,37 @@ export interface CreateListRequest {
  * Request model for creating or referencing a ClickUp space.  This DTO represents the payload required to identify a ClickUp space for further operations such as folder or list creation. It mainly carries the space identifier.  Attributes:     space_name: ClickUp space name.
  */
 export interface CreateSpaceRequest {
+    /**
+     * ClickUp space name.
+     */
     'space_name': string;
 }
 /**
  * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     space_id: Identifier of the ClickUp space containing the list.     list_id: Identifier of the ClickUp list where the task will be created.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.
  */
 export interface CreateTaskRequest {
+    /**
+     * Identifier of the ClickUp space containing the list.
+     */
     'space_id': string;
+    /**
+     * Identifier of the ClickUp list where the task will be created.
+     */
     'list_id': string;
+    /**
+     * Task name.
+     */
     'name': string;
+    /**
+     * Task description.
+     */
     'description': string;
     'status'?: string | null;
     'priority'?: string | null;
     'assignees'?: string | null;
+    /**
+     * If True, email notifications will be ignored during creation.
+     */
     'ignore_mails'?: boolean;
 }
 /**
@@ -282,24 +357,30 @@ export interface GeneratedTask {
  * Payload for repository creation.  Attributes:     name: Repository name.     url: Repository URL.
  */
 export interface GitRepoCreateDTO {
-    'name'?: string | null;
-    'url'?: string | null;
+    /**
+     * Repository name.
+     */
+    'name': string;
+    /**
+     * Repository URL.
+     */
+    'url': string;
 }
 /**
  * Repository DTO with minimal fields.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface GitRepoDTO {
-    'id'?: number | null;
-    'name'?: string | null;
-    'url'?: string | null;
+    'id': number;
+    'name': string;
+    'url': string;
 }
 /**
  * Detailed repository DTO with members and ClickUp space.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.     members: List of member details.     clickup_space: Associated ClickUp space details.
  */
 export interface GitRepoDetailDTO {
-    'id'?: number | null;
-    'name'?: string | null;
-    'url'?: string | null;
+    'id': number;
+    'name': string;
+    'url': string;
     'members'?: Array<RepoMemberDTO>;
     'clickup_space'?: RepoClickUpSpaceDTO | null;
 }
@@ -307,7 +388,7 @@ export interface GitRepoDetailDTO {
  * Payload for repository updates.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.     members: List of member references.     clickup_space: Reference to associated ClickUp space.
  */
 export interface GitRepoUpdateDTO {
-    'id'?: number | null;
+    'id': number;
     'name'?: string | null;
     'url'?: string | null;
     'members'?: Array<RepoMemberRefDTO> | null;
@@ -322,26 +403,44 @@ export interface LocationInner {
  * Payload for a member authentication request.  Attributes:     mail: Member email address.     password: Member password.
  */
 export interface MemberAuthDTO {
+    /**
+     * Member email address used for authentication.
+     */
     'mail': string;
+    /**
+     * Member account password.
+     */
     'password': string;
 }
 /**
- * Payload for member creation.  Attributes:     username: Username.     arabic_name: Arabic name.     mail: Email address.     password: Password.
+ * Payload for member creation.  Attributes:     username: Member username.     arabic_name: Member Arabic name.     mail: Member email address.     password: Member account password.
  */
 export interface MemberCreateDTO {
-    'username'?: string | null;
-    'arabic_name'?: string | null;
-    'mail'?: string | null;
-    'password'?: string | null;
+    /**
+     * Member username.
+     */
+    'username': string;
+    /**
+     * Member Arabic name.
+     */
+    'arabic_name': string;
+    /**
+     * Member email address.
+     */
+    'mail': string;
+    /**
+     * Member account password.
+     */
+    'password': string;
 }
 /**
  * Main DTO for representing a member.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.
  */
 export interface MemberDTO {
-    'id'?: number | null;
-    'username'?: string | null;
-    'arabic_name'?: string | null;
-    'mail'?: string | null;
+    'id': number;
+    'username': string;
+    'arabic_name': string;
+    'mail': string;
 }
 /**
  * Minimal member payload containing email address.  Attributes:     mail: Member email address.
@@ -353,54 +452,81 @@ export interface MemberMailDTO {
  * Authentication response containing access and refresh tokens.  Attributes:     access_token: JWT access token.     refresh_token: JWT refresh token.     token_type: Token type (default \'bearer\').
  */
 export interface MemberTokensDTO {
+    /**
+     * JWT access token.
+     */
     'access_token': string;
+    /**
+     * JWT refresh token.
+     */
     'refresh_token': string;
+    /**
+     * Token type (default \'bearer\').
+     */
     'token_type'?: string;
 }
 /**
  * Payload for member update.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.     repos: List of associated repositories.
  */
 export interface MemberUpdateDTO {
-    'id'?: number | null;
+    'id': number;
     'username'?: string | null;
     'arabic_name'?: string | null;
     'password'?: string | null;
     'mail'?: string | null;
-    'repos'?: Array<RepoRefDTO> | null;
+    'repos'?: Array<RepoRefDTO>;
 }
 /**
  * Member DTO enriched with the list of associated repositories.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.     repos: List of repositories (RepoSummary).
  */
 export interface MemberWithReposDTO {
-    'id'?: number | null;
-    'username'?: string | null;
-    'arabic_name'?: string | null;
-    'mail'?: string | null;
+    'id': number;
+    'username': string;
+    'arabic_name': string;
+    'mail': string;
     'repos'?: Array<RepoSummary>;
 }
 /**
  * Request payload for backlog refinement streaming.  This DTO is used when a user provides feedback on a generated backlog. It allows the system to continue the backlog refinement workflow in a streaming manner using the existing conversation thread.  Attributes:     thread_id: Identifier of the conversation thread.     user_result: User feedback or modifications on the backlog.     tool_result: Previous system/tool generated backlog output.
  */
 export interface ReplyBacklogStreamRequest {
+    /**
+     * Conversation thread identifier.
+     */
     'thread_id': string;
+    /**
+     * User feedback or modifications on the backlog.
+     */
     'user_result': string;
+    /**
+     * Previous system/tool generated backlog output.
+     */
     'tool_result': string;
 }
 /**
  * Request payload for streaming workflow reply.  This DTO is used when the user responds to a generated output (such as market intelligence) in order to validate, refine, or correct it within an ongoing conversation thread.  Attributes:     thread_id: Identifier of the conversation thread.     tool_result: Output produced by the system or tool that is being reviewed.     user_result: User feedback, corrections, or validation input.
  */
 export interface ReplyStreamRequest {
+    /**
+     * Conversation thread identifier.
+     */
     'thread_id': string;
+    /**
+     * System or tool-generated output being reviewed.
+     */
     'tool_result': string;
+    /**
+     * User feedback, corrections, or validation input.
+     */
     'user_result': string;
 }
 /**
  * ClickUp space details associated with a repository.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.     name: ClickUp space name.
  */
 export interface RepoClickUpSpaceDTO {
-    'id'?: number | null;
-    'space_code'?: string | null;
-    'name'?: string | null;
+    'id': number;
+    'space_code': string;
+    'name': string;
 }
 /**
  * Reference to a ClickUp space by id or space code.  Attributes:     id: ClickUp space identifier.     space_code: ClickUp space code.
@@ -413,10 +539,10 @@ export interface RepoClickUpSpaceRefDTO {
  * Member details included in repository responses.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.
  */
 export interface RepoMemberDTO {
-    'id'?: number | null;
-    'username'?: string | null;
-    'arabic_name'?: string | null;
-    'mail'?: string | null;
+    'id': number;
+    'username': string;
+    'arabic_name': string;
+    'mail': string;
 }
 /**
  * Reference to a member by id or email.  Attributes:     id: Member identifier.     mail: Email address.
@@ -429,7 +555,10 @@ export interface RepoMemberRefDTO {
  * Request payload for associating repository members.  Attributes:     repo_url: Repository URL.     members: List of member mail DTOs.
  */
 export interface RepoMembersRequest {
-    'repo_url'?: string | null;
+    /**
+     * Repository URL
+     */
+    'repo_url': string;
     'members'?: Array<MemberMailDTO>;
 }
 /**
@@ -443,9 +572,9 @@ export interface RepoRefDTO {
  * Summary view of a repository linked to a member.  Attributes:     id: Repository identifier.     name: Repository name.     url: Repository URL.
  */
 export interface RepoSummary {
-    'id'?: number | null;
-    'name'?: string | null;
-    'url'?: string | null;
+    'id': number;
+    'name': string;
+    'url': string;
 }
 /**
  * Representation of a request to save verified tasks into ClickUp.  This DTO is used to apply verified tasks into a ClickUp workspace. It includes options to control assignee resolution behavior during persistence.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be saved.     tasks: List of verified tasks to be persisted in ClickUp.     ignore_names: If True, ignores assignee names that do not exist in the database.     ignore_mails: If True, ignores unresolved or invalid email-based assignments.
@@ -472,6 +601,9 @@ export interface SaveTasksRequest {
  * Request payload to start backlog generation.  This DTO represents the initial input provided by the user to start the backlog creation process. The description is used as the source input for generating epics, user stories, and tasks.  Attributes:     description: Raw functional or product description used to generate the backlog.
  */
 export interface StartBacklogRequest {
+    /**
+     * Functional or product description used for backlog generation.
+     */
     'description': string;
 }
 /**
@@ -491,14 +623,32 @@ export type StatusType = typeof StatusType[keyof typeof StatusType];
  * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     space_id: Identifier of the task\'s space.     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.
  */
 export interface UpdateTaskRequest {
+    /**
+     * Identifier of the task\'s space.
+     */
     'space_id': string;
+    /**
+     * Identifier of the task to update.
+     */
     'task_id': string;
+    /**
+     * Updated task name.
+     */
     'name': string;
+    /**
+     * Updated task description.
+     */
     'description': string;
+    /**
+     * New task status.
+     */
     'status': string;
     'priority'?: string | null;
     'assignees'?: string | null;
     'old_assignees'?: string | null;
+    /**
+     * If True, email notifications will be ignored during update.
+     */
     'ignore_mails'?: boolean;
 }
 export interface ValidationError {
