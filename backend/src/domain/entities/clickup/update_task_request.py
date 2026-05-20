@@ -10,7 +10,7 @@ Main classes:
 """
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UpdateTaskRequest(BaseModel):
@@ -31,12 +31,12 @@ class UpdateTaskRequest(BaseModel):
         old_assignees: Previous assignees (emails separated by commas).
         ignore_mails: If True, email notifications will be ignored during update.
     """
-    space_id: str
-    task_id: str
-    name: str
-    description: str
-    status: str
-    priority: Optional[str] = None
-    assignees: Optional[str] = None      # new assignees (comma-separated emails)
-    old_assignees: Optional[str] = None  # previous assignees (comma-separated emails)
-    ignore_mails: bool = False
+    space_id: str = Field(..., min_length=1, description="Identifier of the task's space.")
+    task_id: str = Field(..., min_length=1, description="Identifier of the task to update.")
+    name: str = Field(..., min_length=1, description="Updated task name.")
+    description: str = Field(..., min_length=1, description="Updated task description.")
+    status: str = Field(..., min_length=1, description="New task status.")
+    priority: Optional[str] = Field(None, description="Task priority level (optional).")
+    assignees: Optional[str] = Field(None, description="New assignees (emails separated by commas).")
+    old_assignees: Optional[str] = Field(None, description="Previous assignees (emails separated by commas).")
+    ignore_mails: bool = Field(False, description="If True, email notifications will be ignored during update.")

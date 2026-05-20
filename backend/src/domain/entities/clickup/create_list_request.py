@@ -12,7 +12,7 @@ Main classes:
 
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreateListRequest(BaseModel):
@@ -28,6 +28,6 @@ class CreateListRequest(BaseModel):
         name: Name of the list to create (default is "List").
         folder_id: Optional folder identifier if the list is created inside a folder.
     """
-    space_id: str
-    name: str = "List"
-    folder_id: Optional[str] = None
+    space_id: str = Field(..., min_length=1, description="ClickUp space identifier where the list will be created.")
+    name: str = Field("List", min_length=1, description="Name of the list to create.")
+    folder_id: Optional[str] = Field(None, description="Optional folder identifier if the list is created inside a folder.")

@@ -111,22 +111,12 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             ClickUpSpaceDTO: Persisted ClickUp space DTO.
 
         Raises:
-            InvalidInputException: If required fields are missing.
             ClickUpSpaceNameMismatchException: If the provided name does not match the ClickUp space name.
         """
         logger.info("Registering ClickUp space. space_code=%s.", space.space_code)
 
-        if not space.space_code or not space.name:
-            logger.warning(
-                "Invalid input for clickup space creation (name=%s, space_code=%s).",
-                space.name,
-                space.space_code
-            )
-            raise InvalidInputException(
-                "Please provide a valid space name and space code."
-            )
-
         existing_by_name = self._clickup_repo.find_by_name(space.name)
+
         if existing_by_name:
             raise InvalidInputException(
                 f"A ClickUp space with name '{space.name}' already exists."
@@ -136,7 +126,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             existing_by_code = self._clickup_repo.find_by_space_code(space.space_code)
             if existing_by_code:
                 raise InvalidInputException(
-                    f"A ClickUp space with code '{space.space_code}' is already registered."
+                    f"A ClickUp space with ID '{space.space_code}' is already registered."
                 )
         except ClickUpSpaceNotFoundException:
             pass
@@ -174,19 +164,9 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             ClickUpSpaceDTO: Created space DTO.
 
         Raises:
-            InvalidInputException: If the provided space name is invalid.
             ClickUpPersistenceException: If persistence fails after successful ClickUp creation.
         """
         logger.info("Creating ClickUp space. space_name=%s.", space.space_name)
-
-        if not space.space_name:
-            logger.warning(
-                "Invalid input for clickup space creation (name=%s).",
-                space.space_name,
-            )
-            raise InvalidInputException(
-                "Please provide a valid name for the ClickUp space."
-            )
 
         existing = self._clickup_repo.find_by_name(space.space_name)
         if existing:
@@ -285,6 +265,7 @@ class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
             folder.space_id,
             folder.name,
         )
+
         folder_id, folder_name = self._clickup_writer.create_folder(folder.space_id, folder.name)
 
         logger.info(

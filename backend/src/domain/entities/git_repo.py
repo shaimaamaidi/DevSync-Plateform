@@ -11,7 +11,7 @@ Main classes:
 
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class RepoMemberDTO(BaseModel):
@@ -24,10 +24,10 @@ class RepoMemberDTO(BaseModel):
         arabic_name: Arabic name.
         mail: Email address.
     """
-    id: Optional[int] = None
-    username: Optional[str] = None
-    arabic_name: Optional[str] = None
-    mail: Optional[str] = None
+    id: int
+    username: str
+    arabic_name: str
+    mail: str
 
 class RepoMemberRefDTO(BaseModel):
     """
@@ -49,9 +49,9 @@ class RepoClickUpSpaceDTO(BaseModel):
         space_code: ClickUp space code.
         name: ClickUp space name.
     """
-    id: Optional[int] = None
-    space_code: Optional[str] = None
-    name: Optional[str] = None
+    id: int
+    space_code: str
+    name: str
 
 class RepoClickUpSpaceRefDTO(BaseModel):
     """
@@ -73,9 +73,9 @@ class GitRepoDTO(BaseModel):
         name: Repository name.
         url: Repository URL.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    url: Optional[str] = None
+    id: int
+    name: str
+    url: str
 
 class GitRepoCreateDTO(BaseModel):
     """
@@ -85,8 +85,8 @@ class GitRepoCreateDTO(BaseModel):
         name: Repository name.
         url: Repository URL.
     """
-    name: Optional[str] = None
-    url: Optional[str] = None
+    name: str = Field(..., min_length=1, description="Repository name.")
+    url: str = Field(..., min_length=1, description="Repository URL.")
 
 class GitRepoUpdateDTO(BaseModel):
     """
@@ -99,7 +99,7 @@ class GitRepoUpdateDTO(BaseModel):
         members: List of member references.
         clickup_space: Reference to associated ClickUp space.
     """
-    id: Optional[int] = None
+    id: int
     name: Optional[str] = None
     url: Optional[str] = None
     members: Optional[List[RepoMemberRefDTO]] = None
@@ -117,9 +117,9 @@ class GitRepoDetailDTO(BaseModel):
         members: List of member details.
         clickup_space: Associated ClickUp space details.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    url: Optional[str] = None
+    id: int
+    name: str
+    url: str
     members: List[RepoMemberDTO] = []
     clickup_space: Optional[RepoClickUpSpaceDTO] = None
 

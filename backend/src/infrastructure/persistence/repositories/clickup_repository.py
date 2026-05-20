@@ -113,7 +113,6 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDTO: Created ClickUp space DTO.
 
         Raises:
-            InvalidInputException: If required arguments are missing or space already exists.
             ClickUpPersistenceException: For database errors during persistence.
         """
         logger.info(
@@ -122,16 +121,6 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             space.name,
             space.space_code,
         )
-
-        if not space.space_code or not space.name:
-            logger.warning(
-                "Invalid input for click up space creation (name=%s, space_code=%s).",
-                space.name,
-                space.space_code
-            )
-            raise InvalidInputException(
-                "Click up space must have a valid 'name' and 'space_code' for create."
-            )
 
         try:
             m = ClickUpSpaceModel(name=space.name, space_code=space.space_code)
@@ -166,22 +155,11 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDetailDTO: Updated ClickUp space detail DTO.
 
         Raises:
-            InvalidInputException:
-                - If required arguments are missing.
-                - If no fields are provided for update.
-                - If repository reference is invalid (missing id/url, not found, or already linked).
+            InvalidInputException: If repository reference is invalid (missing id/url, not found, or already linked).
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during update.
         """
         logger.info("Updating click up space (id=%s).", space.id)
-
-        if not space.id:
-            logger.warning("Update failed: missing click up space ID.")
-            raise InvalidInputException("ClickUp space must have a valid database ID for update.")
-
-        if not space.space_code and not space.name and not space.repo:
-            logger.warning("Update failed: no fields provided (id=%s).", space.id)
-            raise InvalidInputException("Please provide at least one field to update.")
 
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space.id).first()
@@ -282,20 +260,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDetailDTO: ClickUp space detail DTO.
 
         Raises:
-            InvalidInputException: If space_id is not provided.
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching click up space by id=%s.", space_id)
-
-        if not space_id:
-            logger.warning(
-                "Invalid input for click up space fetch by id (id=%s).",
-                space_id
-            )
-            raise InvalidInputException(
-                "ClickUp space must have a valid 'id' for fetch by id."
-            )
 
         try:
             m = (
@@ -337,20 +305,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDTO: ClickUp space DTO.
 
         Raises:
-            InvalidInputException: If space_code is not provided.
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching click up space by space ID (space_code=%s).", space_code)
-
-        if not space_code:
-            logger.warning(
-                "Invalid input for click up space fetch by space code (space_code=%s).",
-                space_code
-            )
-            raise InvalidInputException(
-                "Click up space must have a valid 'space_code' for fetch."
-            )
 
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(space_code=space_code).first()
@@ -388,13 +346,9 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             ClickUpSpaceDTO | None: ClickUp space DTO or None if not found.
 
         Raises:
-            InvalidInputException: If name is not provided.
             ClickUpPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching click up space by name=%s.", name)
-
-        if not name:
-            raise InvalidInputException("Click up space must have a valid 'name' for fetch by name.")
 
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(name=name).first()
@@ -478,20 +432,10 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
             bool: True when deletion succeeds.
 
         Raises:
-            InvalidInputException: If space_id is not provided.
             ClickUpSpaceNotFoundException: If the ClickUp space is not found.
             ClickUpPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting click up space (id=%s).", space_id)
-
-        if not space_id:
-            logger.warning(
-                "Invalid input for click up space delete (id=%s).",
-                space_id
-            )
-            raise InvalidInputException(
-                "ClickUp space must have a valid 'id' for delete."
-            )
 
         try:
             m = self._session.query(ClickUpSpaceModel).filter_by(id=space_id).first()

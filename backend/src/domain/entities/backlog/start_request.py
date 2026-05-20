@@ -9,7 +9,7 @@ Main classes:
     StartBacklogRequest
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class StartBacklogRequest(BaseModel):
@@ -22,4 +22,4 @@ class StartBacklogRequest(BaseModel):
     Attributes:
         description: Raw functional or product description used to generate the backlog.
     """
-    description: str
+    description: str = Field(..., min_length=1, description="Functional or product description used for backlog generation.")

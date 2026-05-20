@@ -19,6 +19,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_clickup_space_task_reader_use_case import IClickUpSpaceTaskReaderUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 
@@ -64,11 +65,23 @@ class ClickUpSpaceTaskReaderUseCase(IClickUpSpaceTaskReaderUseCase):
 
         Returns:
             List[FolderWithLists]: List of folders containing their associated lists and tasks.
+
+        Raises:
+            InvalidInputException: If space_id is empty.
         """
         logger.info(
             "Fetching ClickUp tasks by space. space_id=%s.",
             space_id,
         )
+
+        if not space_id:
+            logger.warning(
+                "Invalid input for click up space's tasks fetch by space code (space_code=%s).",
+                space_id
+            )
+            raise InvalidInputException(
+                "Click up space must have a valid SPACE ID for fetch tasks."
+            )
 
         results = self._clickup_reader.get_space_full_structure(space_id)
 

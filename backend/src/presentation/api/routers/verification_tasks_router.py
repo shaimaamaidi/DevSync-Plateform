@@ -41,8 +41,8 @@ router = APIRouter()
     ),
 )
 def verify_tasks(
-        request: VerifyTasksRequest,
-        use_case: IVerifyTaskUseCase = Depends(get_verify_tasks_use_case),
+    request: VerifyTasksRequest,
+    use_case: IVerifyTaskUseCase = Depends(get_verify_tasks_use_case),
 ) -> VerifyTasksResponse:
     """
     Verify generated tasks against existing ClickUp tasks.

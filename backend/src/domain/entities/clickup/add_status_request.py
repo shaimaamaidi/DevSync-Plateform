@@ -9,7 +9,7 @@ Main classes:
     AddStatusRequest
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.src.domain.entities.clickup.status import StatusType
 
@@ -28,7 +28,7 @@ class AddStatusRequest(BaseModel):
         color: Color associated with the status (typically hex or ClickUp color code).
         type: Type of the status (e.g., custom, open, closed).
     """
-    list_id: str
-    status: str
-    color: str
-    type: StatusType
+    list_id: str = Field(..., min_length=1, description="ClickUp list identifier where the status will be added.")
+    status: str = Field(..., min_length=1, description="Name of the status to be created.")
+    color: str = Field(..., min_length=1, description="Color associated with the status (typically hex or ClickUp color code).")
+    type: StatusType = Field(..., description="Type of the status (e.g., custom, open, closed).")

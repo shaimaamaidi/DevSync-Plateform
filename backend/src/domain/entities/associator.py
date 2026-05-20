@@ -10,7 +10,7 @@ Main classes:
 
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 
@@ -32,11 +32,10 @@ class AssociateClickUpSpaceRequest(BaseModel):
         repo_url: Repository URL.
         space_code: ClickUp space code.
     """
-    repo_url: Optional[str] = None
-    space_code: Optional[str] = None
+    repo_url: str = Field(..., min_length=1, description="Repository URL")
+    space_code: str = Field(..., min_length=1, description="ClickUp space code")
 
 class RepoMembersRequest(BaseModel):
-    #
     """
     Request payload for associating repository members.
 
@@ -44,7 +43,7 @@ class RepoMembersRequest(BaseModel):
         repo_url: Repository URL.
         members: List of member mail DTOs.
     """
-    repo_url: Optional[str] = None
+    repo_url: str = Field(..., min_length=1, description="Repository URL")
     members: List[MemberMailDTO] = []
 
 class AssociatorRepoDTO(BaseModel):
@@ -56,9 +55,9 @@ class AssociatorRepoDTO(BaseModel):
         name: Repository name.
         url: Repository URL.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    url: Optional[str] = None
+    id: int
+    name: str
+    url: str
 
 class AssociatorMemberDTO(BaseModel):
     """
@@ -70,10 +69,10 @@ class AssociatorMemberDTO(BaseModel):
         arabic_name: Arabic name.
         mail: Member email address.
     """
-    id: Optional[int] = None
-    username: Optional[str] = None
-    arabic_name: Optional[str] = None
-    mail: Optional[str] = None
+    id: int
+    username: str
+    arabic_name: str
+    mail: str
 
 
 class AssociateClickUpSpaceResponse(BaseModel):

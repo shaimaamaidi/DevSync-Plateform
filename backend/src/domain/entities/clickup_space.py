@@ -10,7 +10,7 @@ Main classes:
 """
 
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ClickUpRepoDTO(BaseModel):
@@ -22,9 +22,9 @@ class ClickUpRepoDTO(BaseModel):
         name: Repository name.
         url: Repository URL.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    url: Optional[str] = None
+    id: int
+    name: str
+    url: str
 
 class ClickUpRepoRefDTO(BaseModel):
     """
@@ -46,10 +46,9 @@ class ClickUpSpaceDTO(BaseModel):
         name: ClickUp space name.
         space_code: ClickUp space code.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    space_code: Optional[str] = None
-
+    id: int
+    name: str
+    space_code: str
 
 class ClickUpSpaceCreateDTO(BaseModel):
     """
@@ -59,8 +58,8 @@ class ClickUpSpaceCreateDTO(BaseModel):
         name: ClickUp space name.
         space_code: ClickUp space code.
     """
-    name: Optional[str] = None
-    space_code: Optional[str] = None
+    name: str = Field(..., min_length=1, description="ClickUp space name.")
+    space_code: str = Field(..., min_length=1, description="ClickUp space code.")
 
 class ClickUpSpaceRegisterDTO(BaseModel):
     """
@@ -71,9 +70,9 @@ class ClickUpSpaceRegisterDTO(BaseModel):
         space_code: ClickUp space code.
         ignore_name: If True, skips space name validation against ClickUp.
     """
-    name: Optional[str] = None
-    space_code: Optional[str] = None
-    ignore_name: bool = False
+    name: str = Field(..., min_length=1, description="ClickUp space name.")
+    space_code: str = Field(..., min_length=1, description="ClickUp space code.")
+    ignore_name: bool = Field(False, description="If True, skips space name validation against ClickUp.")
 
 class ClickUpSpaceUpdateDTO(BaseModel):
     """
@@ -85,7 +84,7 @@ class ClickUpSpaceUpdateDTO(BaseModel):
         space_code: ClickUp space code.
         repo: Reference to associated repository.
     """
-    id: Optional[int] = None
+    id: int
     name: Optional[str] = None
     space_code: Optional[str] = None
     repo: Optional[ClickUpRepoRefDTO] = None
@@ -100,9 +99,9 @@ class ClickUpSpaceLightDTO(BaseModel):
         name: ClickUp space name.
         repo: Associated repository details.
     """
-    id: Optional[int] = None
-    space_code: Optional[str] = None
-    name: Optional[str] = None
+    id: int
+    space_code: str
+    name: str
     repo: Optional[ClickUpRepoDTO] = None
 
 class ClickUpSpaceDetailDTO(BaseModel):
@@ -115,7 +114,7 @@ class ClickUpSpaceDetailDTO(BaseModel):
         space_code: ClickUp space code.
         repo: Associated repository details.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    space_code: Optional[str] = None
+    id: int
+    name: str
+    space_code: str
     repo: Optional[ClickUpRepoDTO] = None

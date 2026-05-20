@@ -15,7 +15,7 @@ Main components:
 
 from enum import IntEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ClickUpMemberRole(IntEnum):
@@ -55,5 +55,5 @@ class ClickUpMemberInvitation(BaseModel):
         role: Workspace role assigned to the invited member
             (OWNER / ADMIN / MEMBER / GUEST).
     """
-    email: str
+    email: str = Field(..., min_length=1, description="Email address of the invited member.")
     role: ClickUpMemberRole = ClickUpMemberRole.MEMBER

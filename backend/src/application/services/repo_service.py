@@ -18,6 +18,7 @@ from backend.src.domain.entities.git_repo import (
     GitRepoDetailDTO,
     GitRepoUpdateDTO,
 )
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_repo_service import IRepoService
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 
@@ -71,8 +72,21 @@ class RepoService(IRepoService):
 
         Returns:
             GitRepoDetailDTO: Updated repository detail DTO.
+        Raises:
+            InvalidInputException: If no fields are provided for update.
         """
         logger.info("Updating repository: id=%s, name=%s.", repo.id, repo.name)
+
+        if (
+            not repo.name
+            and not repo.url
+            and (repo.members is None or not repo.members)
+            and repo.clickup_space is None
+        ):
+            logger.warning("Update failed: no fields provided (id=%s).", repo.id)
+            raise InvalidInputException(
+                "Please provide at least one field to update."
+            )
 
         result = self._repo.update(repo)
 
@@ -107,8 +121,20 @@ class RepoService(IRepoService):
 
         Returns:
             GitRepoDetailDTO: Repository detail DTO.
+
+        Raises:
+            InvalidInputException: If repo_name is not provided.
         """
         logger.info("Fetching repository by name: %s.", repo_name)
+
+        if not repo_name:
+            logger.warning(
+                "Invalid input for repository fetch by name (name=%s).",
+                repo_name
+            )
+            raise InvalidInputException(
+                "GitHub Repo must have a valid 'name' for fetch by name."
+            )
 
         result = self._repo.find_by_name(repo_name)
 
@@ -125,8 +151,19 @@ class RepoService(IRepoService):
 
         Returns:
             GitRepoDTO: Repository DTO.
+        Raises:
+            InvalidInputException: If url is not provided.
         """
         logger.info("Fetching repository by URL: %s.", url)
+
+        if not url:
+            logger.warning(
+                "Invalid input for repository fetch by url (url=%s).",
+                url
+            )
+            raise InvalidInputException(
+                "GitHub Repo must have a valid 'url' for fetch by url."
+            )
 
         result = self._repo.find_by_url(url)
 

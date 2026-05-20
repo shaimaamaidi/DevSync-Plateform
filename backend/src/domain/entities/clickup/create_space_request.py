@@ -9,7 +9,7 @@ Main classes:
     CreateSpaceRequest
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreateSpaceRequest(BaseModel):
@@ -22,4 +22,4 @@ class CreateSpaceRequest(BaseModel):
     Attributes:
         space_name: ClickUp space name.
     """
-    space_name: str
+    space_name: str = Field(..., min_length=1, description="ClickUp space name.")

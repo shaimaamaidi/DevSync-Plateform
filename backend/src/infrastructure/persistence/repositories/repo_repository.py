@@ -52,15 +52,20 @@ def _model_to_detail_dto(m: GitRepoModel) -> GitRepoDetailDTO:
     Returns:
         GitRepoDetailDTO: Repository detail DTO.
     """
-    members = [
-        RepoMemberDTO(
-            id=mb.id,
-            username=mb.username,
-            arabic_name=mb.arabic_name,
-            mail=mb.mail,
-        )
-        for mb in m.members
-    ]
+    members = []
+
+    if m.members:
+        members = [
+            RepoMemberDTO(
+                id=mb.id,
+                username=mb.username,
+                arabic_name=mb.arabic_name,
+                mail=mb.mail,
+            )
+            for mb in m.members
+            if mb is not None
+        ]
+
     space = (
         RepoClickUpSpaceDTO(
             id=m.clickup_space.id,
@@ -104,7 +109,6 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             GitRepoDTO: Created repository DTO.
 
         Raises:
-            InvalidInputException: If required arguments are missing or repository already exists.
             RepoPersistenceException: For database errors during persistence.
         """
         logger.info(
@@ -113,16 +117,6 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             repo.name,
             repo.url
         )
-
-        if not repo.name or not repo.url:
-            logger.warning(
-                "Invalid input for repository creation (name=%s, url=%s).",
-                repo.name,
-                repo.url
-            )
-            raise InvalidInputException(
-                "GitHub Repo must have a valid 'name' and 'url' for create."
-            )
 
         try:
             m = GitRepoModel(name=repo.name, url=repo.url)
@@ -162,8 +156,6 @@ class SqlAlchemyRepoRepository(IRepoRepository):
 
         Raises:
             InvalidInputException:
-                - If required arguments are missing.
-                - If no fields are provided for update.
                 - If member list is invalid (missing id/mail).
                 - If one or more members do not exist.
                 - If ClickUp space reference is invalid (missing id/space_code).
@@ -174,21 +166,6 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             RepoPersistenceException: For database errors during update.
         """
         logger.info("Updating repository (id=%s).", repo.id)
-
-        if not repo.id:
-            logger.warning("Update failed: missing repository ID.")
-            raise InvalidInputException("GitHub Repo must have a valid database ID for update.")
-
-        if (
-            not repo.name
-            and not repo.url
-            and (repo.members is None or not repo.members)
-            and repo.clickup_space is None
-        ):
-            logger.warning("Update failed: no fields provided (id=%s).", repo.id)
-            raise InvalidInputException(
-                "Please provide at least one field to update."
-            )
 
         try:
             m = self._session.query(GitRepoModel).filter_by(id=repo.id).first()
@@ -223,7 +200,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
                 ]
                 if invalid_members:
                     raise InvalidInputException(
-                        "Each member must include at least one 'id' or 'mail'."
+                        "A member is missing identification information. Please provide either an 'id' or an 'email'."
                     )
 
                 existing_members = []
@@ -304,7 +281,7 @@ class SqlAlchemyRepoRepository(IRepoRepository):
         if repo.clickup_space is not None:
             if not repo.clickup_space.id and not repo.clickup_space.space_code:
                 raise InvalidInputException(
-                    "ClickUp space must include 'id' or 'space_code' for association."
+                    "ClickUp space identification is missing. Please provide either 'id' or 'space_code'."
                 )
 
             clickup_space_model = None
@@ -390,20 +367,10 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             GitRepoDetailDTO: Repository detail DTO.
 
         Raises:
-            InvalidInputException: If repo_id is not provided.
             RepoNotFoundException: If the repository is not found.
             RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching repository (id=%s).", repo_id)
-
-        if not repo_id:
-            logger.warning(
-                "Invalid input for repository fetch by id (id=%s).",
-                repo_id
-            )
-            raise InvalidInputException(
-                "GitHub Repo must have a valid 'id' for fetch by id."
-            )
 
         try:
             m = (
@@ -448,20 +415,10 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             GitRepoDTO: Repository DTO.
 
         Raises:
-            InvalidInputException: If repo_url is not provided.
             RepoNotFoundException: If the repository is not found.
             RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching repository by url (url=%s).", url)
-
-        if not url:
-            logger.warning(
-                "Invalid input for repository fetch by url (url=%s).",
-                url
-            )
-            raise InvalidInputException(
-                "GitHub Repo must have a valid 'url' for fetch by url."
-            )
 
         try:
             m = self._session.query(GitRepoModel).filter_by(url=url).first()
@@ -498,20 +455,11 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             GitRepoDetailDTO: Repository detail DTO.
 
         Raises:
-            InvalidInputException: If repo_name is not provided.
             RepoNotFoundException: If the repository is not found.
             RepoPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching repository by name (name=%s).", name)
 
-        if not name:
-            logger.warning(
-                "Invalid input for repository fetch by name (name=%s).",
-                name
-            )
-            raise InvalidInputException(
-                "GitHub Repo must have a valid 'name' for fetch by name."
-            )
         try:
             m = (
                 self._session.query(GitRepoModel)
@@ -622,20 +570,10 @@ class SqlAlchemyRepoRepository(IRepoRepository):
             bool: True when deletion succeeds.
 
         Raises:
-            InvalidInputException: If repo_id is not provided.
             RepoNotFoundException: If the repository is not found.
             RepoPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting repository (id=%s).", repo_id)
-
-        if not repo_id:
-            logger.warning(
-                "Invalid input for repository delete (id=%s).",
-                repo_id,
-            )
-            raise InvalidInputException(
-                "GitHub Repo must have a valid 'id' for delete."
-            )
 
         try:
             m = self._session.query(GitRepoModel).filter_by(id=repo_id).first()

@@ -10,7 +10,7 @@ Main classes:
     ReplyBacklogStreamRequest
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ReplyBacklogStreamRequest(BaseModel):
@@ -26,6 +26,6 @@ class ReplyBacklogStreamRequest(BaseModel):
         user_result: User feedback or modifications on the backlog.
         tool_result: Previous system/tool generated backlog output.
     """
-    thread_id: str
-    user_result: str
-    tool_result: str
+    thread_id: str = Field(..., min_length=1, description="Conversation thread identifier.")
+    user_result: str = Field(..., description="User feedback or modifications on the backlog.")
+    tool_result: str = Field(..., description="Previous system/tool generated backlog output.")

@@ -10,7 +10,7 @@ Main classes:
     ReplyStreamRequest
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ReplyStreamRequest(BaseModel):
@@ -25,6 +25,6 @@ class ReplyStreamRequest(BaseModel):
         tool_result: Output produced by the system or tool that is being reviewed.
         user_result: User feedback, corrections, or validation input.
     """
-    thread_id: str
-    tool_result: str
-    user_result: str
+    thread_id: str = Field(...,min_length=1,description="Conversation thread identifier.")
+    tool_result: str = Field(...,description="System or tool-generated output being reviewed.")
+    user_result: str = Field(...,description="User feedback, corrections, or validation input.")

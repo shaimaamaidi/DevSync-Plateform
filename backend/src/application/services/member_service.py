@@ -13,6 +13,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_member_service import IMemberService
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 
@@ -72,8 +73,17 @@ class MemberService(IMemberService):
 
         Returns:
             MemberWithReposDTO: Updated member with repositories DTO.
+
+        Raises:
+            InvalidInputException: If no fields are provided for update.
         """
         logger.info("Updating member: id=%s.", member.id)
+
+        if not any([member.username, member.arabic_name, member.mail, member.password, member.repos]):
+            logger.warning("Update failed: no fields provided (id=%s).", member.id)
+            raise InvalidInputException(
+                "Please provide at least one field to update."
+            )
 
         result = self._repo.update(member)
 
@@ -131,8 +141,20 @@ class MemberService(IMemberService):
 
         Returns:
             MemberWithReposDTO: Member DTO with repositories.
+
+        Raise:
+            InvalidInputException: If the MAIL is missing or invalid.
         """
         logger.info("Fetching member by mail: %s.", mail)
+
+        if not mail:
+            logger.warning(
+                "Invalid input for member fetching by mail (mail=%s).",
+                mail
+            )
+            raise InvalidInputException(
+                "Please provide a valid email address."
+            )
 
         result = self._repo.find_by_mail(mail)
 

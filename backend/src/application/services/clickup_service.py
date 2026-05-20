@@ -19,6 +19,7 @@ from backend.src.domain.entities.clickup_space import (
     ClickUpSpaceLightDTO,
     ClickUpSpaceUpdateDTO,
 )
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_clickup_service import IClickUpService
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 
@@ -80,8 +81,15 @@ class ClickUpService(IClickUpService):
 
         Returns:
             ClickUpSpaceDetailDTO: Updated space detail DTO.
+
+        Raises:
+            InvalidInputException: If no fields are provided for update.
         """
         logger.info("Updating ClickUp space: id=%s, space_code=%s.", space.id, space.space_code)
+
+        if not space.space_code and not space.name and not space.repo:
+            logger.warning("Update failed: no fields provided (id=%s).", space.id)
+            raise InvalidInputException("Please provide at least one field to update.")
 
         result = self._repo.update(space)
 
@@ -125,8 +133,20 @@ class ClickUpService(IClickUpService):
 
         Returns:
             ClickUpSpaceDTO: ClickUp space DTO.
+
+        Raises:
+            InvalidInputException: If space_code is not provided.
         """
         logger.info("Fetching ClickUp space by space_code: %s.", space_code)
+
+        if not space_code:
+            logger.warning(
+                "Invalid input for click up space fetch by space code (space_code=%s).",
+                space_code
+            )
+            raise InvalidInputException(
+                "Click up space must have a valid SPACE ID for fetch."
+            )
 
         result = self._repo.find_by_space_code(space_code)
 

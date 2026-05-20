@@ -53,7 +53,11 @@ def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
     Returns:
         MemberWithReposDTO: Member DTO with repositories.
     """
-    repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos]
+    repos = []
+
+    if m.repos:
+        repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos if r is not None]
+
     return MemberWithReposDTO(id=m.id, username=m.username, arabic_name=m.arabic_name, mail=m.mail, repos=repos)
 
 
@@ -86,15 +90,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberCredentialsDTO: Credentials (id, mail, hashed_password) for authentication.
 
         Raises:
-            InvalidInputException: If mail is not provided.
             MemberNotFoundException: If no member is found with the given mail.
             MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching credentials for authentication (mail=%s).", mail)
-
-        if not mail or not mail.strip():
-            logger.warning("Credential fetch failed: missing mail.")
-            raise InvalidInputException("Mail is required.")
 
         try:
             m = self._session.query(MemberModel).filter_by(mail=mail).first()
@@ -123,7 +122,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberDTO: Created member DTO.
 
         Raises:
-            InvalidInputException: If required arguments are missing or member already exists.
             MemberPersistenceException: For database errors during persistence.
         """
         logger.info(
@@ -132,17 +130,6 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             member.arabic_name,
             member.mail,
         )
-
-        if not member.username or not member.arabic_name or not member.mail or not member.password:
-            logger.warning(
-                "Invalid input for member creation (username=%s, arabic_name=%s, mail=%s).",
-                member.username,
-                member.arabic_name,
-                member.mail,
-            )
-            raise InvalidInputException(
-                "Member must have a valid 'username', 'arabic_name', 'mail' and 'password' for create."
-            )
 
         try:
             hashed_password = hash_password(member.password)
@@ -183,23 +170,11 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberNotFoundException: If the member is not found.
             MemberPersistenceException: For database errors during update.
             InvalidInputException:
-                - If required arguments are missing.
-                - If no fields are provided for update.
                 - If repository list is invalid (missing id/url).
                 - If one or more repositories do not exist.
                 - If member mail already exists.
         """
         logger.info("Updating member (id=%s).", member.id)
-
-        if not member.id:
-            logger.warning("Update failed: missing member ID.")
-            raise InvalidInputException("Member must have a valid database ID for update.")
-
-        if not any([member.username, member.arabic_name, member.mail, member.password, member.repos]):
-            logger.warning("Update failed: no fields provided (id=%s).", member.id)
-            raise InvalidInputException(
-                "Please provide at least one field to update."
-            )
 
         try:
             m = self._session.query(MemberModel).filter_by(id=member.id).first()
@@ -228,6 +203,7 @@ class SqlAlchemyMemberRepository(IMemberRepository):
         if member.password:
             hashed_password = hash_password(member.password)
             m.password = hashed_password
+
         if member.repos is not None:
             if not member.repos:
                 logger.info(
@@ -327,20 +303,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberDTO: Member DTO.
 
         Raises:
-            InvalidInputException: If the ID is missing or invalid.
             MemberNotFoundException: If the member is not found.
             MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching member by id=%s.", member_id)
-
-        if not member_id:
-            logger.warning(
-                "Invalid input for member fetching by id (id=%s).",
-                member_id
-            )
-            raise InvalidInputException(
-                "Member must have a valid 'id' for fetch by id."
-            )
 
         try:
             m = self._session.query(MemberModel).filter_by(id=member_id).first()
@@ -385,17 +351,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             Dict[str, str]: Mapping of normalized Arabic name to member email.
 
         Raises:
-            InvalidInputException: If the input is missing or invalid.
             AssigneeNameNotFoundException: If one or more Arabic names are not found and ignore_names=False.
             MemberPersistenceException: If a database error occurs during the query.
         """
         logger.info("Fetching members by arabic names.")
-
-        if not arabic_names:
-            logger.warning(
-                "Invalid input for member fetching by arabic names (List provided is empty)."
-            )
-            raise InvalidInputException("Please provide at least one name to search.")
 
         resolved: Dict[str, str] = {}
         unresolved = []
@@ -486,20 +445,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberWithReposDTO: Member with repositories DTO.
 
         Raises:
-            InvalidInputException: If the MAIL is missing or invalid.
             MemberNotFoundException: If the member is not found.
             MemberPersistenceException: For database errors during fetch.
         """
         logger.info("Fetching member by mail (mail=%s).", mail)
-
-        if not mail:
-            logger.warning(
-                "Invalid input for member fetching by mail (mail=%s).",
-                mail
-            )
-            raise InvalidInputException(
-                "Please provide a valid email address."
-            )
 
         try:
             m = self._session.query(MemberModel).filter_by(mail=mail).first()
@@ -537,20 +486,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             List[MemberDTO]: List of member DTOs.
 
         Raises:
-            InvalidInputException: If the Repo ID is missing or invalid.
             MemberPersistenceException: For database errors during fetch.
             RepoNotFoundException: If the repository is not found.
         """
         logger.info("Fetching members by repository ID (repo_id=%s).", repo_id)
-
-        if not repo_id:
-            logger.warning(
-                "Invalid input for member fetching by repo_id (repo_id=%s).",
-                repo_id
-            )
-            raise InvalidInputException(
-                "Member must have a valid 'repo_id' for fetch by repo_id."
-            )
 
         try:
             repo = self._session.query(GitRepoModel).filter_by(id=repo_id).first()
@@ -617,20 +556,10 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             bool: True when deletion succeeds.
 
         Raises:
-             InvalidInputException: If the ID is missing or invalid.
             MemberNotFoundException: If the member is not found.
             MemberPersistenceException: For database errors during deletion.
         """
         logger.info("Deleting member (id=%s).", member_id)
-
-        if not member_id:
-            logger.warning(
-                "Invalid input for member deleting (member_id=%s).",
-                member_id
-            )
-            raise InvalidInputException(
-                "Member must have a valid 'member_id' for delete."
-            )
 
         try:
             m = self._session.query(MemberModel).filter_by(id=member_id).first()

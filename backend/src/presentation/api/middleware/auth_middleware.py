@@ -71,6 +71,11 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         try:
             with request.app.state.db.get_session() as session:
                 container = Container(session)
+
+                if not token:
+                    logger.error("Token cannot be empty for verification.")
+                    raise InvalidTokenException("Session is invalid. Please log in again.")
+
                 payload = container.jwt_handler.verify_token(token)
                 request.state.current_member = payload
 

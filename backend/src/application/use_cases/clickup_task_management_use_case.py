@@ -17,6 +17,7 @@ import logging
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_clickup_task_management_use_case import IClickUpTaskManagementUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
@@ -169,8 +170,20 @@ class ClickUpTaskManagementUseCase(IClickUpTaskManagementUseCase):
 
         Returns:
             bool: True if the task was successfully deleted.
+
+        Raises:
+            InvalidInputException: If task_id is empty.
         """
         logger.info("Deleting ClickUp task. tas_id=%s", task_id)
+
+        if not task_id:
+            logger.warning(
+                "Invalid input for task deletion (task_id=%s).",
+                task_id
+            )
+            raise InvalidInputException(
+                "Task must have a valid ID for deleting."
+            )
 
         result = self._click_writer.delete_task(task_id)
 

@@ -13,6 +13,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 
 from backend.src.domain.ports.input.i_deployment_use_case import IDeploymentUseCase
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
@@ -57,8 +58,19 @@ class DeploymentUseCase(IDeploymentUseCase):
 
         Returns:
             List[DeploymentDTO]: List of deployment DTOs for the repository.
+
+        Raises:
+            InvalidInputException: If repo_url is empty.
         """
         logger.info("Fetching deployments for repository: repo_url=%s.", repo_url)
+
+        if not repo_url:
+            logger.warning(
+                "Fetching deployments failed: repo_url is empty."
+            )
+            raise InvalidInputException(
+                "Repository URL is required to fetch deployments."
+            )
 
         result = self._repo.find_by_url(repo_url)
 

@@ -11,7 +11,7 @@ Main classes:
 
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ClickUpTask(BaseModel):
@@ -26,12 +26,12 @@ class ClickUpTask(BaseModel):
         assignee: email of the assignee, if any.
         priority: Priority level of the task, if any.
     """
-    id: Optional[str] = None
-    name: str
-    description: str
-    status: str
-    assignee: Optional[str] = None
-    priority: Optional[str] = None
+    id: Optional[str] = Field(None, description="Task identifier.")
+    name: str = Field(..., min_length=1, description="Task name or title.")
+    description: str = Field(..., min_length=1, description="Task description.")
+    status: str = Field(..., min_length=1, description="Current task status.")
+    assignee: Optional[str] = Field(None, description="Email of the assignee, if any.")
+    priority: Optional[str] = Field(None, description="Priority level of the task, if any.")
 
 
 class ClickUpList(BaseModel):

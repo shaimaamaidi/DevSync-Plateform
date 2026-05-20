@@ -60,7 +60,7 @@ class JWTHandler(IJWTHandler):
             self.refresh_token_expire_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
         except ValueError as e:
             logger.exception("Invalid JWT config values.")
-            raise MissingEnvVariableException()
+            raise MissingEnvVariableException() from e
 
         logger.info("JWTHandler initialized successfully.")
 
@@ -75,16 +75,11 @@ class JWTHandler(IJWTHandler):
             str: Encoded JWT access token.
 
         Raises:
-            InvalidTokenException: If session is invalid.
             AppException: For unexpected errors during token creation (e.g., runtime issues).
         """
         logger.info("Starting creating access token.")
 
         try:
-            if not data:
-                logger.error("Token data cannot be empty for access token creation.")
-                raise InvalidTokenException("Session is invalid. Please log in again.")
-
             to_encode = data.copy()
             expire = datetime.now(timezone.utc) + timedelta(minutes=self.access_token_expire_minutes)
             to_encode.update({"exp": expire})
@@ -96,10 +91,10 @@ class JWTHandler(IJWTHandler):
 
         except JWTError as e:
             logger.exception("Failed to create access token." )
-            raise InvalidTokenException("Unable to start your session. Please try again.")
+            raise InvalidTokenException("Unable to start your session. Please try again.") from e
         except Exception as e:
             logger.exception("Unexpected error during create_access_token.")
-            raise AppException("Something went wrong. Please try again later.")
+            raise AppException("Something went wrong. Please try again later.") from e
 
     def create_refresh_token(self, data: dict) -> tuple[str, datetime]:
         """
@@ -112,16 +107,11 @@ class JWTHandler(IJWTHandler):
             tuple[str, datetime]: Encoded JWT refresh token and its expiration datetime.
 
         Raises:
-            InvalidTokenException: If session is invalid.
             AppException: For unexpected errors during token creation (e.g., runtime issues).
         """
         logger.info("Starting creating refresh token.")
 
         try:
-            if not data:
-                logger.error("Token data cannot be empty for refresh token creation.")
-                raise InvalidTokenException("Session is invalid. Please log in again.")
-
             to_encode = data.copy()
             expire_at = datetime.now(timezone.utc) + timedelta(days=self.refresh_token_expire_days)
             to_encode.update({"exp": expire_at, "type": "refresh"})
@@ -133,10 +123,10 @@ class JWTHandler(IJWTHandler):
 
         except JWTError as e:
             logger.exception("Failed to create refresh token.")
-            raise InvalidTokenException("Unable to start your session. Please try again.")
+            raise InvalidTokenException("Unable to start your session. Please try again.") from e
         except Exception as e:
             logger.exception("Unexpected error during create_refresh_token.")
-            raise AppException("Something went wrong. Please try again later.")
+            raise AppException("Something went wrong. Please try again later.") from e
 
     def verify_token(self, token: str) -> dict:
         """
@@ -155,10 +145,6 @@ class JWTHandler(IJWTHandler):
         logger.info("Starting verifying token.")
 
         try:
-            if not token:
-                logger.error("Token cannot be empty for verification.")
-                raise InvalidTokenException("Session is invalid. Please log in again.")
-
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
 
             member_id = payload.get("sub")
@@ -183,4 +169,4 @@ class JWTHandler(IJWTHandler):
             raise InvalidTokenException("Session is invalid. Please log in again.") from e
         except Exception as e:
             logger.exception("Unexpected error during verify_token.")
-            raise AppException("Something went wrong. Please try again later.")
+            raise AppException("Something went wrong. Please try again later.") from e

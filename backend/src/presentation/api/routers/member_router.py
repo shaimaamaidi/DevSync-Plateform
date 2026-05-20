@@ -18,7 +18,6 @@ from fastapi import APIRouter, Depends
 from starlette import status
 
 from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
-from backend.src.domain.entities.git_repo import GitRepoIdDTO
 from backend.src.infrastructure.di.container import Container
 from backend.src.presentation.api.deps import get_container
 

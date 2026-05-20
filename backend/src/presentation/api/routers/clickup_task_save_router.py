@@ -40,8 +40,8 @@ router = APIRouter()
     ),
 )
 def save_tasks_to_clickup(
-        request: SaveTasksRequest,
-        use_case: ISaveTaskInClickUpUseCase = Depends(get_save_task_use_case),
+    request: SaveTasksRequest,
+    use_case: ISaveTaskInClickUpUseCase = Depends(get_save_task_use_case),
 ) -> Response:
     """
     Save verified tasks into ClickUp.

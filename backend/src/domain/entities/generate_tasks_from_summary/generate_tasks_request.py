@@ -26,5 +26,5 @@ class GenerateTasksFromSummaryRequest(BaseModel):
         meeting_summary: Raw meeting notes used to generate tasks (Arabic or French).
         space_id: Identifier of the ClickUp workspace where tasks will be created.
     """
-    meeting_summary: str = Field(..., description="Raw meeting summary text used for task generation (Arabic).")
-    space_id: str = Field(..., description="Identifier of the ClickUp workspace.")
+    meeting_summary: str = Field(..., min_length=1, description="Raw meeting summary text used for task generation (Arabic).")
+    space_id: str = Field(..., min_length=1, description="Identifier of the ClickUp workspace.")

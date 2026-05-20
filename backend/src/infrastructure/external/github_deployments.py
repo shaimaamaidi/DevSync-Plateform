@@ -475,8 +475,8 @@ class GitHubDeploymentAdapter(IGitHubService):
         Retrieve deployments for a repository URL.
 
         Merges results from:
-        1. GitHub Deployments API   — explicit deployment events
-        2. GitHub Actions runs      — workflow runs with deploy-related names
+        1. GitHub Deployments API — explicit deployment events
+        2. GitHub Actions runs — workflow runs with deploy-related names
 
         Results are deduplicated by dep_id and sorted newest-first by
         created_at string (ISO-sortable).

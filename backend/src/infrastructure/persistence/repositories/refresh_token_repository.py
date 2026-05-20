@@ -51,22 +51,11 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
             None: This method does not return a value; it saves the token in the persistence layer.
 
         Raises:
-            InvalidInputException:
-                - If required arguments are missing.
-                - If token already exists.
+            InvalidInputException: If token already exists.
             RefreshTokenPersistenceException: For other database errors or unexpected failures during
                 persistence.
         """
         logger.info("Starting saving refresh token (member_id=%s).", member_id)
-
-        if not member_id or not refresh_token or not expires_at:
-            logger.error(
-                "Save failed: Missing arguments (member_id=%s, has_token=%s, has_expiry=%s)",
-                member_id,
-                bool(refresh_token),
-                bool(expires_at),
-            )
-            raise InvalidInputException("Unable to save your session. Please log in again.")
 
         try:
             self._session.query(RefreshTokenModel).filter_by(
@@ -153,15 +142,10 @@ class SqlAlchemyRefreshTokenRepository(IRefreshTokenRepository):
         Returns:
             None: This method does not return a value; it revokes the token in the persistence layer.
         Raises:
-            InvalidInputException:
-                - If refresh_token is missing.
-                - If the refresh token is not found or already revoked.
+            InvalidInputException: If the refresh token is not found or already revoked.
             RefreshTokenPersistenceException: For database errors during revocation.
         """
         logger.info("Revoking refresh token.")
-
-        if not refresh_token:
-            raise InvalidInputException("Session is invalid. Please log in again.")
 
         try:
             updated = self._session.query(RefreshTokenModel).filter_by(

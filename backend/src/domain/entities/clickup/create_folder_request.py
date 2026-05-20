@@ -9,7 +9,7 @@ Main classes:
     CreateFolderRequest
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CreateFolderRequest(BaseModel):
@@ -23,5 +23,5 @@ class CreateFolderRequest(BaseModel):
         space_id: ClickUp space identifier where the folder will be created.
         name: Name of the folder to create.
     """
-    space_id: str
-    name: str
+    space_id: str = Field(..., min_length=1, description="ClickUp space identifier where the folder will be created.")
+    name: str = Field(..., min_length=1, description="Name of the folder to create.")

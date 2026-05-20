@@ -16,6 +16,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
+from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_clickup_structure_metadata_use_case import IClickUpStructureMetadataUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 
@@ -56,8 +57,20 @@ class ClickUpStructureMetadataUseCase(IClickUpStructureMetadataUseCase):
 
         Returns:
             List[FolderWithListsMetadata]: List of folders with their associated metadata.
+
+        Raises:
+            InvalidInputException: If space_id is empty.
         """
         logger.info("Fetching space metadata. space_id=%s.", space_id)
+
+        if not space_id:
+            logger.warning(
+                "Invalid input for click up space's structure fetch by space code (space_code=%s).",
+                space_id
+            )
+            raise InvalidInputException(
+                "Click up space must have a valid SPACE ID for fetch the structure."
+            )
 
         results = self._clickup_reader.get_space_structure_metadata(space_id)
 

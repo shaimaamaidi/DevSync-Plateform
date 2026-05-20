@@ -74,14 +74,14 @@ class AssociatorUseCase(IAssociatorUseCase):
             request.space_code,
         )
 
-        clickup_space = self._clickup.find_by_space_code(request.space_code)
+        existing_clickup_space = self._clickup.find_by_space_code(request.space_code)
         existing_repo = self._repo.find_by_url(request.repo_url)
 
         logger.info("Repository fetched successfully: repo_id=%s.", existing_repo.id)
 
         update_payload = GitRepoUpdateDTO(
             id=existing_repo.id,
-            clickup_space=RepoClickUpSpaceRefDTO(space_code=clickup_space.space_code),
+            clickup_space=RepoClickUpSpaceRefDTO(id= existing_clickup_space.id, space_code=existing_clickup_space.space_code),
         )
 
         updated_repo = self._repo.update(update_payload)
@@ -89,7 +89,7 @@ class AssociatorUseCase(IAssociatorUseCase):
         logger.info(
             "Association completed successfully: repo_id=%s, space_code=%s.",
             updated_repo.id,
-            clickup_space.space_code,
+            existing_clickup_space.space_code,
         )
 
         repo_dto = AssociatorRepoDTO(
@@ -100,7 +100,7 @@ class AssociatorUseCase(IAssociatorUseCase):
 
         return AssociateClickUpSpaceResponse(
             repo=repo_dto,
-            clickup_space=clickup_space,
+            clickup_space=existing_clickup_space,
         )
 
     def add_members(self, request: RepoMembersRequest) -> AssociateMembersResponse:
@@ -273,14 +273,17 @@ class AssociatorUseCase(IAssociatorUseCase):
             url=updated_repo.url,
         )
 
-        members = [
-            AssociatorMemberDTO(
-                id=member.id,
-                username=member.username,
-                arabic_name=member.arabic_name,
-                mail=member.mail,
-            )
-            for member in updated_repo.members
-        ]
+        members = []
+        if updated_repo.members:
+            members = [
+                AssociatorMemberDTO(
+                    id=member.id,
+                    username=member.username,
+                    arabic_name=member.arabic_name,
+                    mail=member.mail,
+                )
+                for member in updated_repo.members
+                if member is not None
+            ]
 
         return AssociateMembersResponse(repo=repo_dto, members=members)

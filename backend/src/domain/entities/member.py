@@ -15,7 +15,6 @@ from pydantic import BaseModel, Field
 
 
 class MemberAuthDTO(BaseModel):
-    #
     """
     Payload for a member authentication request.
 
@@ -23,8 +22,8 @@ class MemberAuthDTO(BaseModel):
         mail: Member email address.
         password: Member password.
     """
-    mail: str
-    password: str
+    mail: str = Field(..., min_length=1, description="Member email address used for authentication.")
+    password: str = Field(..., min_length=1, description="Member account password.")
 
 class MemberCredentialsDTO(BaseModel):
     """
@@ -40,7 +39,6 @@ class MemberCredentialsDTO(BaseModel):
     hashed_password: str
 
 class MemberTokensDTO(BaseModel):
-    #
     """
     Authentication response containing access and refresh tokens.
 
@@ -49,9 +47,9 @@ class MemberTokensDTO(BaseModel):
         refresh_token: JWT refresh token.
         token_type: Token type (default 'bearer').
     """
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
+    access_token: str = Field(..., description="JWT access token.")
+    refresh_token: str = Field(..., description="JWT refresh token.")
+    token_type: str = Field(default="bearer", description="Token type (default 'bearer').")
 
 class RepoSummary(BaseModel):
     """
@@ -62,9 +60,9 @@ class RepoSummary(BaseModel):
         name: Repository name.
         url: Repository URL.
     """
-    id: Optional[int] = None
-    name: Optional[str] = None
-    url: Optional[str] = None
+    id: int
+    name: str
+    url: str
 
 class RepoRefDTO(BaseModel):
     """
@@ -78,7 +76,6 @@ class RepoRefDTO(BaseModel):
     url: Optional[str] = None
 
 class MemberDTO(BaseModel):
-    #
     """
     Main DTO for representing a member.
 
@@ -88,29 +85,27 @@ class MemberDTO(BaseModel):
         arabic_name: Arabic name.
         mail: Email address.
     """
-    id: Optional[int] = None
-    username: Optional[str] = None
-    arabic_name: Optional[str] = None
-    mail: Optional[str] = None
+    id: int
+    username: str
+    arabic_name: str
+    mail: str
 
 class MemberCreateDTO(BaseModel):
-    #
     """
     Payload for member creation.
 
     Attributes:
-        username: Username.
-        arabic_name: Arabic name.
-        mail: Email address.
-        password: Password.
+        username: Member username.
+        arabic_name: Member Arabic name.
+        mail: Member email address.
+        password: Member account password.
     """
-    username: Optional[str] = None
-    arabic_name: Optional[str] = None
-    mail: Optional[str] = None
-    password: Optional[str] =None
+    username: str = Field(..., min_length=1, description="Member username.")
+    arabic_name: str = Field(..., min_length=1, description="Member Arabic name.")
+    mail: str = Field(..., min_length=1, description="Member email address.")
+    password: str = Field(..., min_length=1, description="Member account password.")
 
 class MemberUpdateDTO(BaseModel):
-    #
     """
     Payload for member update.
 
@@ -121,15 +116,14 @@ class MemberUpdateDTO(BaseModel):
         mail: Email address.
         repos: List of associated repositories.
     """
-    id: Optional[int] = None
+    id: int
     username: Optional[str] = None
     arabic_name: Optional[str] = None
     password: Optional[str] = None
     mail: Optional[str] = None
-    repos: Optional[List[RepoRefDTO]] = None
+    repos: List[RepoRefDTO] = []
 
 class MemberWithReposDTO(BaseModel):
-    #
     """
     Member DTO enriched with the list of associated repositories.
 
@@ -140,8 +134,8 @@ class MemberWithReposDTO(BaseModel):
         mail: Email address.
         repos: List of repositories (RepoSummary).
     """
-    id: Optional[int] = None
-    username: Optional[str] = None
-    arabic_name: Optional[str] = None
-    mail: Optional[str] = None
-    repos: List[RepoSummary] = Field(default_factory=list)
+    id: int
+    username: str
+    arabic_name: str
+    mail: str
+    repos: List[RepoSummary] = []

@@ -67,16 +67,15 @@ class AuthUseCase(IAuthUseCase):
             MemberTokensDTO: DTO containing access and refresh tokens.
 
         Raises:
-            InvalidInputException: If mail or password is missing/invalid.
+            InvalidInputException:
+                - If mail or password is missing/invalid.
+                - If session is invalid.
+                - If required arguments creating a token for  are missing.
         """
         logger.info(
             "Login attempt started for member: email=%s.",
             member.mail
         )
-
-        if not member.mail or not member.password:
-            logger.warning("Email and password are required.")
-            raise InvalidInputException("Please enter your email and password.")
 
         credentials = self._repo.find_credentials_by_mail(member.mail)
 
@@ -84,9 +83,21 @@ class AuthUseCase(IAuthUseCase):
             logger.warning("Invalid password attempt (mail=%s).", member.mail)
             raise InvalidInputException("Invalid email or password.")
 
+
         data = {"sub": str(credentials.id), "mail": credentials.mail}
+
         access_token = self._jwt_handler.create_access_token(data=data)
+
         refresh_token, expires_at = self._jwt_handler.create_refresh_token(data=data)
+
+        if not refresh_token or not expires_at:
+            logger.error(
+                "Save failed: Missing arguments (member_id=%s, has_token=%s, has_expiry=%s)",
+                credentials.id,
+                bool(refresh_token),
+                bool(expires_at),
+            )
+            raise InvalidInputException("Unable to save your session. Please log in again.")
 
         self._refresh_token_repo.save_refresh_token(credentials.id, refresh_token, expires_at)
 
@@ -105,8 +116,12 @@ class AuthUseCase(IAuthUseCase):
             MemberTokensDTO: DTO containing new access and refresh tokens.
 
         Raises:
-            InvalidTokenException: If the token is missing, invalid, expired, or revoked, or
-                member associated with the token does not exist.
+            InvalidInputException:
+                - If the token is missing, invalid, expired, or revoked, or
+                    member associated with the token does not exist.
+                - If mail or password is missing/invalid.
+                - If session is invalid.
+                - If required arguments creating a token for  are missing.
         """
         logger.info(
             "Token refresh attempt started: refresh_token=%s.",
@@ -145,6 +160,7 @@ class AuthUseCase(IAuthUseCase):
             raise InvalidTokenException("Your session has expired. Please log in again.")
 
         member = self._repo.find_by_id(record.member_id)
+
         if not member:
             logger.warning("Member not found during token refresh (id=%s).", record.member_id)
             self._refresh_token_repo.revoke_refresh_token(refresh_token)
@@ -153,8 +169,18 @@ class AuthUseCase(IAuthUseCase):
         self._refresh_token_repo.revoke_refresh_token(refresh_token)
 
         data = {"sub": payload["sub"], "mail": payload["mail"]}
+
         new_access_token = self._jwt_handler.create_access_token(data=data)
         new_refresh_token, expires_at = self._jwt_handler.create_refresh_token(data=data)
+
+        if not new_refresh_token or not expires_at:
+            logger.error(
+                "Save failed: Missing arguments (member_id=%s, has_token=%s, has_expiry=%s)",
+                record.member_id,
+                bool(refresh_token),
+                bool(expires_at),
+            )
+            raise InvalidInputException("Unable to save your session. Please log in again.")
 
         self._refresh_token_repo.save_refresh_token(record.member_id, new_refresh_token, expires_at)
 
