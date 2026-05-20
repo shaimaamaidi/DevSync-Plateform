@@ -77,20 +77,7 @@ export function ClickUpEditModal({
     : true;
 
   const isCancelDisabled = isSaving;
-
-  const isSaveDisabled = (() => {
-    if (isSaving) 
-      return true;
-    if (editingSpace) 
-      return !hasChanges;
-    if (!creationMode) 
-      return true;
-    if (creationMode === 'create' && !formData.name?.trim()) 
-      return true;
-    if (creationMode === 'register' && !formData.name?.trim() && !formData.space_code?.trim()) 
-       return true;
-    return false;
-  })();
+  const isSaveDisabled = isSaving || (!editingSpace && !creationMode);
 
   const inputClass = (hasError: boolean) =>
     `w-full h-11 rounded-lg border bg-muted/50 px-3.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none transition focus:ring-2 ${
@@ -130,7 +117,14 @@ export function ClickUpEditModal({
 
   const validate = (): boolean => {
     setErrors({});
+
     const newErrors: Record<string, string> = {};
+
+    if (editingSpace && !hasChanges) {
+      setErrors({ form: 'No changes to update' });
+      return false;
+    }
+
     if (!formData.name?.trim()) 
         newErrors.name = 'Space name is required';
 
@@ -491,6 +485,10 @@ export function ClickUpEditModal({
                     </div>
                   )}
                 </div>
+              )}
+
+              {errors.form && (
+                <div className="text-destructive text-sm text-center pb-2">{errors.form}</div>
               )}
 
               <div className="flex gap-2 pt-4 border-t border-border">

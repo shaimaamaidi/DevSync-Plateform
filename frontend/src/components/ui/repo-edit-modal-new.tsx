@@ -49,7 +49,7 @@ export function RepoEditModalNew({
 }: RepoEditModalNewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const initialFormData: GitRepoDetailDTO = {
-    id: undefined,
+    id: 0,
     name: '',
     url: '',
     members: [],
@@ -99,23 +99,25 @@ export function RepoEditModalNew({
     }
   }, [formData, membersToRemove, newMembers, repo]);
 
-  const isFormEmpty = !formData.name?.trim() || !formData.url?.trim();
-
   const isCancelDisabled = isSaving;
-  const isSaveDisabled = repo
-    ? !hasChanges || isSaving   
-    : isFormEmpty || isSaving;  
+  const isSaveDisabled = isSaving;
 
 
   const validateForm = () => {
     setErrors({});
+
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name?.trim()) {
+    if (repo && !hasChanges) {
+      setErrors({ form: 'No changes to update' });
+      return false;
+    }
+
+    if (!formData.name && !formData.name?.trim()) {
       newErrors.name = 'Repository name is required';
     }
 
-    if (!formData.url?.trim()) {
+    if (!formData.url && !formData.url?.trim()) {
       newErrors.url = 'Repository URL is required';
     } else if (!formData.url.includes('github.com')) {
       newErrors.url = 'Must be a valid GitHub URL';
@@ -158,9 +160,10 @@ export function RepoEditModalNew({
     member.id ?? member.mail ?? member.username ?? '';
 
   const toRepoMember = (member: MemberDTO): RepoMemberDTO => ({
-    id: member.id ?? null,
-    username: member.username ?? null,
-    mail: member.mail ?? null,
+    id: member.id,
+    username: member.username,
+    arabic_name: member.arabic_name,
+    mail: member.mail,
   });
 
   const handleAddMemberToRemove = (member: RepoMemberDTO) => {
@@ -554,6 +557,9 @@ export function RepoEditModalNew({
           </div>
 
           <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-end z-10">
+            {errors.form && (
+              <div className="text-destructive text-sm text-center pb-2">{errors.form}</div>
+            )}
             <div className="flex gap-3">
               <Button
                 variant="outline"

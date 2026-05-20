@@ -40,12 +40,8 @@ export function MemberEditModal({
       (!!formData.password && formData.password.length > 0)
     : true;
 
-  const isFormEmpty = !formData.username?.trim() || !formData.mail?.trim();
-
   const isCancelDisabled = isSaving;
-  const isSaveDisabled = editingMember
-    ? !hasChanges || isSaving
-    : isFormEmpty || isSaving;
+  const isSaveDisabled = isSaving;
 
   useEffect(() => {
     if (isOpen) {
@@ -69,8 +65,14 @@ export function MemberEditModal({
     setErrors({});
 
     const newErrors: Record<string, string> = {};
-    if (!formData.username) newErrors.username = 'Username is required';
-    if (!formData.mail) {
+
+    if (editingMember && !hasChanges) {
+      setErrors({ form: 'No changes to update' });
+      return;
+    }
+    if (!formData.username && !formData.username?.trim()) 
+      newErrors.username = 'Username is required';
+    if (!formData.mail && !formData.mail?.trim()) {
       newErrors.mail = 'Email is required';
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,8 +80,12 @@ export function MemberEditModal({
         newErrors.mail = 'Invalid email format';
       }
     }
-    if (!editingMember && (!formData.password || formData.password.length < 6)) {
+    if (!editingMember && (!formData.password || formData.password.trim().length < 6)) {
       newErrors.password = 'Password (min 6 caractères) requis';
+    }
+
+    if (!editingMember && !formData.arabic_name?.trim()) {
+      newErrors.arabic_name = 'Arabic name is required';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -91,28 +97,28 @@ export function MemberEditModal({
 
     try {
       let success = false;
-      let member: MemberDTO | null = null;
+      let newMember: MemberCreateDTO | null = null;
       if (editingMember) {
         success = await onUpdate({
           id: editingMember.id,
-          username: formData.username,
-          mail: formData.mail,
-          arabic_name: formData.arabic_name,
-          password: formData.password,
+          username: formData.username === editingMember.username ? null : formData.username,
+          mail: formData.mail === editingMember.mail ? null : formData.mail,
+          arabic_name: formData.arabic_name === editingMember.arabic_name ? null : formData.arabic_name,
+          password: (formData.password === '') ? null : formData.password,
         } as MemberUpdateDTO);
       } else {
-        member ={
+        newMember = {
           username: formData.username,
           mail: formData.mail,
           arabic_name: formData.arabic_name,
           password: formData.password,
         } as MemberCreateDTO;
-        success = await onAdd(member);
+        success = await onAdd(newMember);
       }
       if (success) {
         onClose();
-        if (!editingMember && member) {
-          handleAddSuccess(member);
+        if (!editingMember && newMember) {
+          handleAddSuccess(newMember);
         }
       }
     } finally {
@@ -148,6 +154,11 @@ export function MemberEditModal({
                   placeholder="john.dev"
                   value={formData.username || ''}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  onBlur={(e) => {
+                    if (!e.target.value.trim() && editingMember) {
+                      setFormData({ ...formData, username: editingMember.username });
+                    }
+                  }}
                   className={inputClass(!!errors.username) + ' mt-2'}
                   disabled={isSaving}
                 />
@@ -163,6 +174,11 @@ export function MemberEditModal({
                   placeholder="john.dev@company.com"
                   value={formData.mail || ''}
                   onChange={(e) => setFormData({ ...formData, mail: e.target.value })}
+                  onBlur={(e) => {
+                    if (!e.target.value.trim() && editingMember) {
+                      setFormData({ ...formData, mail: editingMember.mail });
+                    }
+                  }}
                   className={inputClass(!!errors.mail) + ' mt-2'}
                   disabled={isSaving}
                 />
@@ -179,6 +195,11 @@ export function MemberEditModal({
                   dir="rtl"
                   value={formData.arabic_name || ''}
                   onChange={(e) => setFormData({ ...formData, arabic_name: e.target.value })}
+                  onBlur={(e) => {
+                    if (!e.target.value.trim() && editingMember) {
+                      setFormData({ ...formData, arabic_name: editingMember.arabic_name });
+                    }
+                  }}
                   className={inputClass(!!errors.arabic_name) + ' mt-2'}
                   disabled={isSaving}
                 />
@@ -207,6 +228,10 @@ export function MemberEditModal({
                 )}
               </div>
             </div>
+
+            {errors.form && (
+              <div className="w-full text-center text-destructive text-sm mb-2">{errors.form}</div>
+            )}
 
             <div className="flex gap-2 pt-4 border-t border-border">
               <Button
