@@ -19,25 +19,30 @@ export const clickUpService = {
   },
   
   async createSpace(space: ClickUpSpaceCreateDTO): Promise<ClickUpSpaceLightDTO | null> {
+    if (!space.name?.trim()) throw new Error('Click up space name is required');
+    if (!space.space_code?.trim()) throw new Error('Click up space code is required');
+
     const response = await clickUpApi.createSpaceClickupPost(space);
-    return {
-      id: response.data?.id ?? null,
-      name: response.data?.name ?? null,
-      space_code: response.data?.space_code ?? null,
-      repo: null,
-    } as ClickUpSpaceLightDTO;
+    return mapDetailToLight(response.data ?? null);
   },
 
   async updateSpace(space: ClickUpSpaceUpdateDTO): Promise<ClickUpSpaceLightDTO | null> {
-    if (typeof space.id !== 'number') {
-      throw new Error('Missing ClickUp space id');
-    }
+    if (typeof space.id !== 'number') throw new Error('Cannot update space: space not found');
+
+    const hasUpdate =
+    space.name?.trim() ||
+    space.space_code?.trim() ||
+    space.repo != null;
+
+    if (!hasUpdate) throw new Error('At least one field must be provided to update a space');
 
     const response = await clickUpApi.updateSpaceClickupSpaceIdPut(space.id, space);
     return mapDetailToLight(response.data ?? null);
   },
 
   async deleteSpace(spaceId: number): Promise<boolean> {
+    if (typeof spaceId !== 'number') throw new Error('Cannot delete space: space not found');
+
     const response = await clickUpApi.deleteSpaceClickupSpaceIdDelete(spaceId);
     return response.data ?? false;
   },
@@ -47,9 +52,9 @@ const mapDetailToLight = (detail: ClickUpSpaceDetailDTO | null): ClickUpSpaceLig
   if (!detail) 
     return null;
   return {
-    id: detail.id ?? null,
-    name: detail.name ?? null,
-    space_code: detail.space_code ?? null,
+    id: detail.id,
+    name: detail.name,
+    space_code: detail.space_code,
     repo: detail.repo ?? null,
   };
 };

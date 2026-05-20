@@ -6,6 +6,7 @@ export const taskVerificationService = {
     spaceId: string,
     tasks: GeneratedTask[]
   ): Promise<VerifyTasksResponse> {
+    if (!spaceId?.trim()) throw new Error('Click up space code is required');
     const payload: VerifyTasksRequest = {
       space_id: spaceId,
       tasks,

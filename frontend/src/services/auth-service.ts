@@ -26,6 +26,9 @@ class AuthService {
 
   async login(credentials: MemberAuthDTO): Promise<boolean> {
     try{
+      if (!credentials.mail?.trim()) throw new Error('Email is required');
+      if (!credentials.password?.trim()) throw new Error('Password is required');
+      
       const api = new AuthApi();
       const { data } = await api.loginAuthLoginPost(credentials);
       setRefreshTokenCookie(data.refresh_token);
