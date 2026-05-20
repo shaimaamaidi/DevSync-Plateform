@@ -40,7 +40,7 @@ from backend.src.domain.exceptions.clickup.clickup_space_not_found_exception imp
 from backend.src.domain.exceptions.clickup.clickup_write_exception import ClickUpWriteException
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
-from backend.src.domain.ports.input.i_clickup_structure_creation_use_case import IClickUpStructureCreationUseCase
+from backend.src.domain.ports.input.i_clickup_structure_management_use_case import IClickUpStructureManagementUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
@@ -50,7 +50,7 @@ from backend.src.domain.ports.repositories.i_member_repository import IMemberRep
 logger = logging.getLogger(__name__)
 
 
-class ClickUpStructureCreationUseCase(IClickUpStructureCreationUseCase):
+class ClickUpStructureManagementUseCase(IClickUpStructureManagementUseCase):
     """
     Application use case for managing ClickUp workspace structures.
 

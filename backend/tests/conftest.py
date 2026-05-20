@@ -30,7 +30,7 @@ from backend.src.presentation.api.routers import (
     auth_router,
     associator_router,
     clickup_router,
-    clickup_structure_creation_router,
+    clickup_structure_management_router,
     clickup_structure_metadata_router,
     deployment_router,
     generate_tasks_from_summary_router,

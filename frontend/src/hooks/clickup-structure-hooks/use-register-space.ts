@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
+import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
 import { defaultOnError } from '@/services/api-error';
 import { extractStatusCode, resolveErrorAction, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
 import type { ClickUpSpaceDTO, ClickUpSpaceRegisterDTO } from '@/api/api';
@@ -33,7 +33,7 @@ export function useRegisterClickUpSpace() {
   return useMutation<RegisterSpaceResult, never, ClickUpSpaceRegisterDTO>({
     mutationFn: async (request): Promise<RegisterSpaceResult> => {
       try {
-        const data = await clickUpStructureCreationService.registerSpace(request);
+        const data = await clickUpStructureManagementService.registerSpace(request);
 
         if (!data) return { ok: false, reason: 'handled' };
 

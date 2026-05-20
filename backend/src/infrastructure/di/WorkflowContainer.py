@@ -19,7 +19,7 @@ Classes:
 import logging
 
 from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
-from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.clickup_structure_management_use_case import ClickUpStructureManagementUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
@@ -427,9 +427,9 @@ class WorkflowContainer:
             clickup_writer=self.clickup_writer,
         )
 
-    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository, member_repo: IMemberRepository) -> ClickUpStructureCreationUseCase:
+    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository, member_repo: IMemberRepository) -> ClickUpStructureManagementUseCase:
         """
-        Factory method for ClickUpStructureCreationUseCase.
+        Factory method for ClickUpStructureManagementUseCase.
 
         This method creates a use case responsible for building ClickUp workspace
         structure, including spaces, folders, lists, and statuses.
@@ -443,7 +443,7 @@ class WorkflowContainer:
             member_repo (IMemberRepository): Request-scoped member repository.
 
         Returns:
-            ClickUpStructureCreationUseCase:
+            ClickUpStructureManagementUseCase:
                 Fully initialized use case ready to create ClickUp workspace structure.
 
         Raises:
@@ -453,7 +453,7 @@ class WorkflowContainer:
         if self.clickup_writer is None:
             raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
-        return ClickUpStructureCreationUseCase(
+        return ClickUpStructureManagementUseCase(
             clickup_repo=clickup_repo,
             member_repo=member_repo,
             clickup_reader=self.clickup_reader,

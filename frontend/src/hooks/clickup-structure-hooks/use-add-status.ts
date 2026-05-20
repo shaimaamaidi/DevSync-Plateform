@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
+import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
 import { defaultOnError } from '@/services/api-error';
 import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import type { AddStatusRequest, ClickUpListMetadata } from '@/api/api';
@@ -15,7 +15,7 @@ export function useAddStatus(spaceId: string) {
     retry: false,
     mutationFn: async (request: AddStatusRequest) => {
       try {
-        const result = await clickUpStructureCreationService.addStatus(request);
+        const result = await clickUpStructureManagementService.addStatus(request);
 
         if (!result) {
           throw new Error('Failed to add status');

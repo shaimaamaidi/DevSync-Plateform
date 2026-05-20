@@ -11,7 +11,7 @@ import type {
   FolderWithListsMetadata,
 } from '@/api/api';
 
-export const clickUpStructureCreationService = {
+export const clickUpStructureManagementService = {
   async registerSpace(request: ClickUpSpaceRegisterDTO): Promise<ClickUpSpaceDTO | null> {
     if (!request.name?.trim()) throw new Error('Click up space name is required');
     if (!request.space_code?.trim()) throw new Error('Click up space code is required');

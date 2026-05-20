@@ -24,7 +24,7 @@ from typing import Generator
 from fastapi import Depends, Request
 
 from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
-from backend.src.application.use_cases.clickup_structure_creation_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.clickup_structure_management_use_case import ClickUpStructureManagementUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
@@ -349,7 +349,7 @@ def get_verify_tasks_use_case(
 def get_clickup_structure_creation_use_case(
     request: Request,
     container: Container = Depends(get_container),
-) -> ClickUpStructureCreationUseCase:
+) -> ClickUpStructureManagementUseCase:
     """
     Build and provide the ClickUp structure creation use case for the current request.
 
@@ -375,7 +375,7 @@ def get_clickup_structure_creation_use_case(
             The request-scoped dependency injection container providing repositories.
 
     Returns:
-        ClickUpStructureCreationUseCase:
+        ClickUpStructureManagementUseCase:
             A fully initialized use case responsible for creating ClickUp workspace structure.
 
     Raises:

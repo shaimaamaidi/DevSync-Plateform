@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
+import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
 import { extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
 import type { CreateFolderRequest, FolderWithListsMetadata } from '@/api/api';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,7 @@ export function useCreateFolder(spaceId: string) {
   return useMutation<FolderWithListsMetadata | null, Error, CreateFolderRequest>({
     mutationFn: async (request) => {
       try {
-        const result = await clickUpStructureCreationService.createFolder(request);
+        const result = await clickUpStructureManagementService.createFolder(request);
         return result;
       } catch (err) {
         const action = resolveErrorAction(err);

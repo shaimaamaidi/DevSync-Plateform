@@ -24,7 +24,7 @@ from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberI
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO, ClickUpSpaceRegisterDTO
 
 
-class IClickUpStructureCreationUseCase(ABC):
+class IClickUpStructureManagementUseCase(ABC):
     """
     Define ClickUp workspace structure creation behavior required by the application.
 

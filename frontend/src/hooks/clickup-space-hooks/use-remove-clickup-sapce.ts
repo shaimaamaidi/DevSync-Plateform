@@ -3,7 +3,7 @@ import { defaultOnError } from '@/services/api-error';
 import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
+import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
 
 export function useRemoveClickUpSpace() {
   const queryClient = useQueryClient();
@@ -14,7 +14,7 @@ export function useRemoveClickUpSpace() {
     retry: false,
     mutationFn: async (spaceId: number) => {
       try {
-        const result = await clickUpStructureCreationService.deleteSpace(spaceId);
+        const result = await clickUpStructureManagementService.deleteSpace(spaceId);
         return result;
       } catch (err) {
         const action = resolveErrorAction(err);

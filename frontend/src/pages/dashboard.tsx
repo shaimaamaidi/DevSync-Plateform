@@ -37,7 +37,7 @@ import { useRegisterClickUpSpace } from '@/hooks/clickup-structure-hooks/use-reg
 import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github-clickup';
 import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
 import { useRemoveClickUpSpace } from '@/hooks/clickup-space-hooks/use-remove-clickup-sapce';
-import { clickUpStructureCreationService } from '@/services/clickup-workspace-creation-service';
+import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';
@@ -145,7 +145,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   const handleRemoveMemberFromClickUp = useCallback(async (memberId: number) => {
     const result = await withErrorHandling(
-      () => clickUpStructureCreationService.removeMemberFromWorkspace(memberId),
+      () => clickUpStructureManagementService.removeMemberFromWorkspace(memberId),
       'Remove member from ClickUp',
       onError(),
     );
@@ -198,7 +198,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   const handleInviteMmeberToClickUp = useCallback(async (email: string, role: ClickUpMemberRole) => {
     const result = await withErrorHandling(
-      () => clickUpStructureCreationService.inviteMember({ email, role }),
+      () => clickUpStructureManagementService.inviteMember({ email, role }),
       'Invite member to ClickUp',
       onError(),
     );
@@ -206,7 +206,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
       return Promise.resolve(false);
     showSuccessToast('Member invited to ClickUp successfully');
     return Promise.resolve(true);
-  }, [clickUpStructureCreationService]);
+  }, [clickUpStructureManagementService]);
 
   const handleCreateClickUpSpace = useCallback(async (newSpace: CreateSpaceRequest) => {
     const result = await createClickUpSpace(newSpace);
