@@ -86,8 +86,15 @@ async function buildErrorMessage(response: Response): Promise<string> {
         if (typeof msg === 'string' && msg.trim()) return msg;
       }
       if ('detail' in payload) {
-        const detail = (payload as { detail?: string | string[] }).detail;
-        if (Array.isArray(detail)) return detail.join(', ');
+        const detail = (payload as { detail?: any }).detail;
+        if (Array.isArray(detail)) {
+          return detail
+            .map((item: any) => {
+              const field = item.loc?.slice(1).join(' → ') ?? 'field';
+              return `${field}: ${item.msg}`;
+            })
+            .join(', ');
+        }
         if (typeof detail === 'string' && detail.trim()) return detail;
       }
       if ('message' in payload && typeof (payload as any).message === 'string') {
