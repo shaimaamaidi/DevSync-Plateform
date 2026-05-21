@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CheckCircle2, Database, Loader2, Plus, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Database, Loader2, Plus, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -63,7 +63,7 @@ export function ClickUpEditModal({
   const [formData, setFormData] = useState<Partial<ClickUpSpaceLightDTO>>({});
   const [errors, setErrors]     = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
-  const [creationMode, setCreationMode] = useState<CreationMode | null>(null);
+  const [creationMode, setCreationMode] = useState<CreationMode>('create');
 
   const repoOptions = repositories.filter(
     (repo): repo is GitRepoDetailDTO & { id: number } =>
@@ -104,7 +104,7 @@ export function ClickUpEditModal({
     if (isOpen) {
       setErrors({});
       setIsSaving(false);
-      setCreationMode(null);
+      setCreationMode('create');
       setFormData(editingSpace ? { ...editingSpace } : { name: '', space_code: '', repo: null });
     }
   }, [isOpen, editingSpace]);
@@ -117,7 +117,6 @@ export function ClickUpEditModal({
 
   const validate = (): boolean => {
     setErrors({});
-
     const newErrors: Record<string, string> = {};
 
     if (editingSpace && !hasChanges) {
@@ -230,305 +229,330 @@ export function ClickUpEditModal({
     onNameMismatchDialogChange?.(false);
   };
 
+  if(!isOpen)
+  return null;
+
   return (
     <>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="w-full max-w-[420px] border-border shadow-2xl">
-            <div className="p-6 space-y-6">
+      <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <Card className="w-full max-w-[420px] border-border shadow-2xl flex flex-col max-h-[90vh]">
 
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">
-                  {editingSpace ? 'Edit ClickUp Space' : 'Add New ClickUp Space'}
-                </h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onClose}
-                  disabled={isCancelDisabled}
-                  className="h-8 w-8"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+          <div className="flex items-center justify-between px-6 pt-6 pb-4 shrink-0">
+            <h2 className="text-xl font-bold text-foreground">
+              {editingSpace ? 'Edit Click Up Space' : 'Add New Click Up Space'}
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              disabled={isCancelDisabled}
+              className="h-8 w-8"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
 
-              {editingSpace && (
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-foreground font-medium">Space Name</Label>
-                    <input
-                      type="text"
-                      placeholder="My ClickUp Space"
-                      value={formData.name || ''}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={inputClass(!!errors.name) + ' mt-2'}
-                      disabled={isSaving}
-                    />
-                    {errors.name && (
-                      <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
-                    )}
-                  </div>
+          <div className="overflow-y-auto flex-1 px-6 space-y-4">
 
-                  <div>
-                    <Label className="text-foreground font-medium">Space ID</Label>
-                    <input
-                      type="text"
-                      placeholder="cus_prod_001"
-                      value={formData.space_code || ''}
-                      onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
-                      className={inputClass(!!errors.space_code) + ' mt-2'}
-                      disabled={isSaving}
-                    />
-                    {errors.space_code && (
-                      <p className="text-destructive text-xs mt-1 px-1">{errors.space_code}</p>
-                    )}
-                  </div>
+            {editingSpace && (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-foreground font-medium">Space Name</Label>
+                  <input
+                    type="text"
+                    placeholder="My ClickUp Space"
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={inputClass(!!errors.name) + ' mt-2'}
+                    disabled={isSaving}
+                  />
+                  {errors.name && (
+                    <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                        {errors.name}
+                    </div>
+                  )}
+                </div>
 
-                  <div>
-                    <Label className="text-foreground font-medium">Linked Repository</Label>
-                    <Select
-                      value={formData.repo?.id?.toString() || 'none'}
-                      onValueChange={handleRepoChange}
-                      disabled={isSaving}
-                    >
-                      <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                        <SelectValue placeholder="Select a repository..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-card border-border w-full">
-                        {repositories.length === 0 ? (
-                          <SelectItem value="none" disabled>No repository available</SelectItem>
-                        ) :  repoOptions.length === 0 ? (
-                          <SelectItem value="none" disabled>No repository available for association (all are already linked)</SelectItem>
-                        ) : (
-                          <>
-                            <SelectItem value="none" className="text-muted-foreground hidden" disabled>
-                              No repository selected
+                <div>
+                  <Label className="text-foreground font-medium">Space ID</Label>
+                  <input
+                    type="text"
+                    placeholder="cus_prod_001"
+                    value={formData.space_code || ''}
+                    onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
+                    className={inputClass(!!errors.space_code) + ' mt-2'}
+                    disabled={isSaving}
+                  />
+                  {errors.space_code && (
+                    <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                        {errors.space_code}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <Label className="text-foreground font-medium">Linked Repository</Label>
+                  <Select
+                    value={formData.repo?.id?.toString() || 'none'}
+                    onValueChange={handleRepoChange}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
+                      <SelectValue placeholder="Select a repository..." />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border w-full">
+                      {repositories.length === 0 ? (
+                        <SelectItem value="none" disabled>No repository available</SelectItem>
+                      ) :  repoOptions.length === 0 ? (
+                        <SelectItem value="none" disabled>No repository available for association (all are already linked)</SelectItem>
+                      ) : (
+                        <>
+                          <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                            No repository selected
+                          </SelectItem>
+                          {repoOptions.map((repo, i) => (
+                            <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
+                              {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
                             </SelectItem>
-                            {repoOptions.map((repo, i) => (
-                              <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                                {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
-                              </SelectItem>
-                            ))}
-                          </>
-                        )}
-                      </SelectContent>
-                    </Select>
-                    {formData.repo?.name && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Selected: <span className="font-semibold">{formData.repo.name}</span>
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {!editingSpace && (
-                <div className="space-y-4">
-
-                  <div className="space-y-2">
-                    <Label className="text-foreground font-medium">Mode</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      <button
-                        type="button"
-                        disabled={isSaving}
-                        onClick={() => handleModeChange('create')}
-                        className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer
-                          ${creationMode === 'create'
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted/80'
-                          }`}
-                      >
-                        <Plus className="w-5 h-5" />
-                        <span className="font-medium">Create &amp; Save</span>
-                        <span className="text-xs text-center leading-snug opacity-70">
-                          Create in ClickUp then persist in DB
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        disabled={isSaving}
-                        onClick={() => handleModeChange('register')}
-                        className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer
-                          ${creationMode === 'register'
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted/80'
-                          }`}
-                      >
-                        <Database className="w-5 h-5" />
-                        <span className="font-medium">Register Only</span>
-                        <span className="text-xs text-center leading-snug opacity-70">
-                          Verify &amp; save existing ClickUp space
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {creationMode === 'create' && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div>
-                        <Label className="text-foreground font-medium">Space Name</Label>
-                        <input
-                          type="text"
-                          placeholder="My ClickUp Space"
-                          value={formData.name || ''}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className={inputClass(!!errors.name) + ' mt-2'}
-                          disabled={isSaving}
-                        />
-                        {errors.name && (
-                          <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="text-foreground font-medium">Linked Repository</Label>
-                        <Select
-                          value={formData.repo?.id?.toString() || 'none'}
-                          onValueChange={handleRepoChange}
-                          disabled={isSaving}
-                        >
-                          <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                            <SelectValue placeholder="Select a repository..." />
-                          </SelectTrigger>
-                          <SelectContent className="bg-card border-border w-full">
-                            {repoOptions.length === 0 ? (
-                              <SelectItem value="none" disabled>No repository available</SelectItem>
-                            ) : (
-                              <>
-                                <SelectItem value="none" className="text-muted-foreground hidden" disabled>
-                                  No repository selected
-                                </SelectItem>
-                                {repoOptions.map((repo, i) => (
-                                  <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                                    {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        {formData.repo?.name && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Selected: <span className="font-semibold">{formData.repo.name}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {creationMode === 'register' && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div>
-                        <Label className="text-foreground font-medium">Space ID</Label>
-                        <input
-                          type="text"
-                          placeholder="cus_prod_001"
-                          value={formData.space_code || ''}
-                          onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
-                          className={inputClass(!!errors.space_code) + ' mt-2'}
-                          disabled={isSaving}
-                        />
-                        {errors.space_code && (
-                          <p className="text-destructive text-xs mt-1 px-1">{errors.space_code}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="text-foreground font-medium">Space Name</Label>
-                        <input
-                          type="text"
-                          placeholder="My ClickUp Space"
-                          value={formData.name || ''}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className={inputClass(!!errors.name) + ' mt-2'}
-                          disabled={isSaving}
-                        />
-                        {errors.name && (
-                          <p className="text-destructive text-xs mt-1 px-1">{errors.name}</p>
-                        )}
-                      </div>
-
-                      <div>
-                        <Label className="text-foreground font-medium">Linked Repository</Label>
-                        <Select
-                          value={formData.repo?.id?.toString() || 'none'}
-                          onValueChange={handleRepoChange}
-                          disabled={isSaving}
-                        >
-                          <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                            <SelectValue placeholder="Select a repository..." />
-                          </SelectTrigger>
-                          <SelectContent className="bg-card border-border w-full">
-                            {repoOptions.length === 0 ? (
-                              <SelectItem value="none" disabled>No repository available</SelectItem>
-                            ) : (
-                              <>
-                                <SelectItem value="none" className="text-muted-foreground hidden" disabled>
-                                  No repository selected
-                                </SelectItem>
-                                {repoOptions.map((repo, i) => (
-                                  <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                                    {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
-                                  </SelectItem>
-                                ))}
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
-                        {formData.repo?.name && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Selected: <span className="font-semibold">{formData.repo.name}</span>
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {formData.repo?.name && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Selected: <span className="font-semibold">{formData.repo.name}</span>
+                    </p>
                   )}
                 </div>
-              )}
-
-              {errors.form && (
-                <div className="text-destructive text-sm text-center pb-2">{errors.form}</div>
-              )}
-
-              <div className="flex gap-2 pt-4 border-t border-border">
-                <Button
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={isCancelDisabled}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSaveOrUpdate}
-                  className="flex-1 gap-2"
-                  disabled={isSaveDisabled}
-                >
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4" />
-                      {editingSpace ? 'Update' : 'Save'} Space
-                    </>
-                  )}
-                </Button>
               </div>
+            )}
 
+            {!editingSpace && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-foreground font-medium">Mode</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => handleModeChange('create')}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer
+                        ${creationMode === 'create'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted/80'
+                        }`}
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span className="font-medium">Create &amp; Save</span>
+                      <span className="text-xs text-center leading-snug opacity-70">
+                        Create in ClickUp then persist in DB
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSaving}
+                      onClick={() => handleModeChange('register')}
+                      className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer
+                        ${creationMode === 'register'
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-muted/40 text-muted-foreground hover:bg-muted/80'
+                        }`}
+                    >
+                      <Database className="w-5 h-5" />
+                      <span className="font-medium">Register Only</span>
+                      <span className="text-xs text-center leading-snug opacity-70">
+                        Verify &amp; save existing ClickUp space
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {creationMode === 'create' && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div>
+                      <Label className="text-foreground font-medium">Space Name</Label>
+                      <input
+                        type="text"
+                        placeholder="My ClickUp Space"
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className={inputClass(!!errors.name) + ' mt-2'}
+                        disabled={isSaving}
+                      />
+                      {errors.name && (
+                        <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                            {errors.name}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-foreground font-medium">Linked Repository</Label>
+                      <Select
+                        value={formData.repo?.id?.toString() || 'none'}
+                        onValueChange={handleRepoChange}
+                        disabled={isSaving}
+                      >
+                        <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
+                          <SelectValue placeholder="Select a repository..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-border w-full">
+                          {repoOptions.length === 0 ? (
+                            <SelectItem value="none" disabled>No repository available</SelectItem>
+                          ) : (
+                            <>
+                              <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                                No repository selected
+                              </SelectItem>
+                              {repoOptions.map((repo, i) => (
+                                <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
+                                  {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {formData.repo?.name && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Selected: <span className="font-semibold">{formData.repo.name}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {creationMode === 'register' && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div>
+                      <Label className="text-foreground font-medium">Space ID</Label>
+                      <input
+                        type="text"
+                        placeholder="cus_prod_001"
+                        value={formData.space_code || ''}
+                        onChange={(e) => setFormData({ ...formData, space_code: e.target.value })}
+                        className={inputClass(!!errors.space_code) + ' mt-2'}
+                        disabled={isSaving}
+                      />
+                      {errors.space_code && (
+                        <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                            {errors.space_code}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-foreground font-medium">Space Name</Label>
+                      <input
+                        type="text"
+                        placeholder="My ClickUp Space"
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className={inputClass(!!errors.name) + ' mt-2'}
+                        disabled={isSaving}
+                      />
+                      {errors.name && (
+                        <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.name}
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-foreground font-medium">Linked Repository</Label>
+                      <Select
+                        value={formData.repo?.id?.toString() || 'none'}
+                        onValueChange={handleRepoChange}
+                        disabled={isSaving}
+                      >
+                        <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
+                          <SelectValue placeholder="Select a repository..." />
+                        </SelectTrigger>
+                        <SelectContent className="bg-card border-border w-full">
+                          {repoOptions.length === 0 ? (
+                            <SelectItem value="none" disabled>No repository available</SelectItem>
+                          ) : (
+                            <>
+                              <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                                No repository selected
+                              </SelectItem>
+                              {repoOptions.map((repo, i) => (
+                                <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
+                                  {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                                </SelectItem>
+                              ))}
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {formData.repo?.name && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Selected: <span className="font-semibold">{formData.repo.name}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="sticky bottom-0 bg-card border-t border-border px-8 py-4 flex items-center justify-between z-10">
+            {errors.form ? (
+              <div className="text-destructive text-sm">{errors.form}</div>
+            ) : <div />}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={isCancelDisabled}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveOrUpdate}
+                className="flex-1 gap-2"
+                disabled={isSaveDisabled}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    {editingSpace
+                      ? 'Update Space'
+                      : creationMode === 'create'
+                        ? 'Create Space'
+                        : 'Register Space'}
+                  </>
+                )}
+              </Button>
             </div>
-          </Card>
-        </div>
-      )}
+          </div>
+
+        </Card>
+      </div>
+
 
       <Dialog
         open={!!showNotFoundDialog}
         onOpenChange={(open) => { if (!open) handleNotFoundCancel(); }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Space not found in ClickUp</DialogTitle>
             <DialogDescription>

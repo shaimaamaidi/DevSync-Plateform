@@ -10,7 +10,7 @@ export function useSpaceTasks(spaceId: string) {
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery<FolderWithLists[]>({
+  const { data, isLoading, isError, refetch } = useQuery<FolderWithLists[]>({
     queryKey: ['space-tasks', spaceId],
     retry: false,
     enabled: !!spaceId,
@@ -33,5 +33,6 @@ export function useSpaceTasks(spaceId: string) {
     folders: data ?? [],
     loading: isLoading,
     error: isError ? 'Unable to load tasks for this space.' : null,
+    refetch
   };
 }

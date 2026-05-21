@@ -35,7 +35,7 @@ export function GeneratedTaskList({
 }: Props) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
         <p className="text-xs text-muted-foreground">
           {!isLoading &&
             `${tasks.length} task${tasks.length !== 1 ? 's' : ''} generated${isVerificationFinished ? ' · drag any task into Step 3 to add it manually' : ''}`}
@@ -65,9 +65,9 @@ export function GeneratedTaskList({
       </div>
 
       {!isLoading && tasks.length > 0 && (
-        <div className="flex items-center justify-end gap-3 pt-1">
+        <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
           {!canVerify && (
-            <p className="text-xs text-amber-600">
+            <p className="text-xs text-amber-600 text-right">
               All tasks need a location before verifying.
             </p>
           )}

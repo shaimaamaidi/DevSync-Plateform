@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CheckCircle2, Loader2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
 import { useAddStatus } from '@/hooks/clickup-structure-hooks/use-add-status';
 import { showSuccessToast } from '../global-toaster';
@@ -39,21 +39,20 @@ const STATUS_TYPE_LABELS: Record<StatusType, string> = {
 export function AddStatusForm({ isOpen, spaceId, listId, onClose, onSuccess }: AddStatusFormProps) {
   const { structure } = useClickUpStructure(spaceId);
   const { mutateAsync: addStatus, isPending } = useAddStatus(spaceId);
-  
+
   const [statusName, setStatusName] = useState('');
   const [color, setColor] = useState('#4f46e5');
   const [statusType, setStatusType] = useState<StatusType>(StatusType.Custom);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const isSaveDisabled = isPending || !listId;
 
   const listOptions: ListOption[] = structure.flatMap((folder) => {
-    const isFolderless = folder.name === '__folderless__'; 
+    const isFolderless = folder.name === '__folderless__';
     return (folder.lists ?? []).map((list) => ({
       id: list.id,
-      label: isFolderless
-        ? list.name                          
-        : `${folder.name}/${list.name}`,
+      label: isFolderless ? list.name : `${folder.name}/${list.name}`,
       statuses: list.statuses ?? [],
     }));
   });
@@ -79,29 +78,38 @@ export function AddStatusForm({ isOpen, spaceId, listId, onClose, onSuccess }: A
   }, [isOpen, listId]);
 
   const validate = (): boolean => {
+    setErrors({});
     const newErrors: Record<string, string> = {};
+
     if (!statusName.trim()) {
       newErrors.name = 'Status name is required';
     } else if (
-      existingStatuses.some(
-        (s) => s.toUpperCase() === statusName.trim().toUpperCase()
-      )
+      existingStatuses.some((s) => s.toUpperCase() === statusName.trim().toUpperCase())
     ) {
       newErrors.name = `"${statusName.trim().toUpperCase()}" already exists in this list`;
     }
-    if (!color) newErrors.color = 'Color is required';
-    if (!statusType) newErrors.type = 'Status type is required';
+
+    if (!color) {
+      newErrors.color = 'Color is required';
+    } else if (!/^#[0-9A-Fa-f]{6}$/.test(color)) {
+      newErrors.color = 'Invalid color format (e.g. #4f46e5)';
+    }
+
+    if (!statusType || !Object.values(StatusType).includes(statusType)) {
+      newErrors.type = 'Status type is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-const handleSave = async () => {
+  const handleSave = async () => {
     if (!validate()) 
-        return;
+      return;
 
     setIsSaving(true);
     try {
-      if (selectedList?.id){
+      if (selectedList?.id) {
         const request: AddStatusRequest = {
           list_id: selectedList?.id,
           status: statusName.trim().toUpperCase(),
@@ -113,7 +121,7 @@ const handleSave = async () => {
 
         if (!result) 
           return;
-        
+
         showSuccessToast('Click Up status added successfully');
         onSuccess?.(result, statusName.trim().toUpperCase());
         onClose();
@@ -123,157 +131,170 @@ const handleSave = async () => {
     }
   };
 
-  const isSaveDisabled =isPending || !listId || !statusName.trim() || !color;
-
   if (!isOpen) 
     return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-      <Card className="w-full max-w-[420px] border-border shadow-2xl">
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-foreground">Add Status to List</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+      <Card className="w-full sm:max-w-[420px] border-border shadow-2xl max-h-[90vh] flex flex-col">
+
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 shrink-0">
+          <h2 className="text-lg sm:text-xl font-bold text-foreground">Add Status to List</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            disabled={isSaving}
+            className="h-8 w-8 shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <div className="space-y-4 px-4 sm:px-6 py-4 overflow-y-auto flex-1">
+          <div>
+            <Label className="text-foreground font-medium">Status Name</Label>
+            <input
+              type="text"
+              placeholder="IN_REVIEW"
+              value={statusName}
+              onChange={(e) => {
+                setStatusName(e.target.value);
+                setErrors((err) => ({ ...err, name: '' }));
+              }}
+              className={inputClass(!!errors.name) + ' mt-2'}
               disabled={isSaving}
-              className="h-8 w-8"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            />
+            {statusName.trim() && (
+              <p className="text-xs text-muted-foreground mt-1 px-1">
+                Will be saved as:{' '}
+                <span className="font-semibold text-foreground">
+                  {statusName.trim().toUpperCase()}
+                </span>
+              </p>
+            )}
+            {errors.name && (
+              <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {errors.name}
+              </div>
+            )}
           </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label className="text-foreground font-medium">Status Name</Label>
-              <input
-                type="text"
-                placeholder="IN_REVIEW"
-                value={statusName}
-                onChange={(e) => {
-                  setStatusName(e.target.value);
-                  setErrors((err) => ({ ...err, name: '' }));
-                }}
-                className={inputClass(!!errors.name) + ' mt-2'}
-                disabled={isSaving}
-              />
-              {statusName.trim() && (
-                <p className="text-xs text-muted-foreground mt-1 px-1">
-                  Will be saved as:{' '}
-                  <span className="font-semibold text-foreground">
-                    {statusName.trim().toUpperCase()}
-                  </span>
-                </p>
-              )}
-              {errors.name && (
-                <div className="text-destructive text-xs mt-1 px-1">{errors.name}</div>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-foreground font-medium">Color</Label>
-              <div className="flex items-center gap-3 mt-2">
-                <div
-                  className="h-11 w-11 rounded-lg border border-border/60 shrink-0 cursor-pointer overflow-hidden"
-                  style={{ backgroundColor: color }}
-                >
-                  <input
-                    type="color"
-                    value={color}
-                    onChange={(e) => {
-                      setColor(e.target.value);
-                      setErrors((err) => ({ ...err, color: '' }));
-                    }}
-                    disabled={isSaving}
-                    className="opacity-0 w-full h-full cursor-pointer"
-                  />
-                </div>
+          <div>
+            <Label className="text-foreground font-medium">Color</Label>
+            <div className="flex items-center gap-3 mt-2">
+              <div
+                className="h-11 w-11 rounded-lg border border-border/60 shrink-0 cursor-pointer overflow-hidden"
+                style={{ backgroundColor: color }}
+              >
                 <input
-                  type="text"
+                  type="color"
                   value={color}
                   onChange={(e) => {
                     setColor(e.target.value);
                     setErrors((err) => ({ ...err, color: '' }));
                   }}
-                  placeholder="#4f46e5"
-                  className={inputClass(!!errors.color)}
                   disabled={isSaving}
+                  className="opacity-0 w-full h-full cursor-pointer"
                 />
               </div>
-              {errors.color && (
-                <div className="text-destructive text-xs mt-1 px-1">{errors.color}</div>
-              )}
-            </div>
-
-            <div>
-              <Label className="text-foreground font-medium">Type</Label>
-              <Select
-                value={statusType}
-                onValueChange={(v) => setStatusType(v as StatusType)}
+              <input
+                type="text"
+                value={color}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  setErrors((err) => ({ ...err, color: '' }));
+                }}
+                placeholder="#4f46e5"
+                className={inputClass(!!errors.color)}
                 disabled={isSaving}
-              >
-                <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                  <SelectValue placeholder='No status type selected' />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border w-full">
-                  {Object.values(StatusType).map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {STATUS_TYPE_LABELS[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
-
-            {selectedList && existingStatuses.length > 0 && (
-              <div className="rounded-lg border border-border/60 bg-muted/30 px-3.5 py-2.5">
-                <p className="text-xs text-muted-foreground font-medium mb-1.5">
-                  Existing statuses in this list:
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {existingStatuses.map((s) => (
-                    <span
-                      key={s}
-                      className="text-xs bg-muted rounded px-2 py-0.5 text-foreground/70 font-mono"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
+            {errors.color && (
+              <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {errors.color}
               </div>
             )}
           </div>
 
-          <div className="flex gap-2 pt-4 border-t border-border">
-            <Button
-              variant="outline"
-              onClick={onClose}
+          <div>
+            <Label className="text-foreground font-medium">Type</Label>
+            <Select
+              value={statusType}
+              onValueChange={(v) => {
+                setStatusType(v as StatusType);
+                setErrors((err) => ({ ...err, type: '' }));
+              }}
               disabled={isSaving}
-              className="flex-1"
             >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              className="flex-1 gap-2"
-              disabled={isSaveDisabled}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving…
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Add Status
-                </>
-              )}
-            </Button>
+              <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
+                <SelectValue placeholder="No status type selected" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border w-full">
+                {Object.values(StatusType).map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {STATUS_TYPE_LABELS[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.type && (
+              <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                {errors.type}
+              </div>
+            )}
           </div>
+
+          {selectedList && existingStatuses.length > 0 && (
+            <div className="rounded-lg border border-border/60 bg-muted/30 px-3 sm:px-3.5 py-2.5">
+              <p className="text-xs text-muted-foreground font-medium mb-1.5">
+                Existing statuses in this list:
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {existingStatuses.map((s) => (
+                  <span
+                    key={s}
+                    className="text-xs bg-muted rounded px-2 py-0.5 text-foreground/70 font-mono"
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
+
+        <div className="flex gap-2 px-4 sm:px-6 pb-4 sm:pb-6 pt-4 border-t border-border shrink-0">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isSaving}
+            className="flex-1"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            className="flex-1 gap-2"
+            disabled={isSaveDisabled}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="sm:inline">Saving…</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Add Status</span>
+              </>
+            )}
+          </Button>
+        </div>
+
       </Card>
     </div>
   );

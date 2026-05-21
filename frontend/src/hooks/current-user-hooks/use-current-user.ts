@@ -10,7 +10,7 @@ export function useCurrentUser() {
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery<MemberDTO | null>({
+  const { data, isLoading, isError, refetch } = useQuery<MemberDTO | null>({
     queryKey: ['currentUser'],
     retry: false,
     queryFn: async () => {
@@ -18,10 +18,10 @@ export function useCurrentUser() {
         const result = await authService.getMe();
         return result ;
       } catch (err) {
-        const action  = resolveErrorAction(err);
+        const action = resolveErrorAction(err);
         const message = normalizeErrorMessage(err);
-        const code    = extractErrorCode(err);
-        const status  = extractStatusCode(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
 
         await onError()(action, message, { code, status: status ?? undefined });
 
@@ -33,6 +33,7 @@ export function useCurrentUser() {
   return {
     user: data ?? null,
     loading: isLoading,
-    error: isError ? 'Unable to load user' : null,
+    error: isError ? 'Unable to load user information.' : null,
+    refetch,
   };
 }

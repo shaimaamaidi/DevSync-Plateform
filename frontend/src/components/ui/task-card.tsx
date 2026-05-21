@@ -18,6 +18,7 @@ import {
 import type { TaskDraft } from "@/types/clickup";
 import { priorityConfig } from "@/lib/priority";
 import { AssigneeBadges } from "./assignee-badge";
+import { createPortal } from "react-dom";
 
 interface TaskCardProps {
   task: ClickUpTask;
@@ -142,7 +143,7 @@ export function TaskCard({
   return (
     <>
       <div
-        className={`border rounded-xl px-4 py-3.5 transition-colors ${
+        className={`border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 transition-colors ${
           editing ? 'border-ring' : 'border-border/60 hover:border-border'
         }`}
       >
@@ -175,8 +176,8 @@ export function TaskCard({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="col-span-1 sm:col-span-2">
                 <p className="text-xs text-muted-foreground mb-1">Assignees</p>
                 <AssigneeSelect
                   value={draft.assignees}
@@ -213,30 +214,34 @@ export function TaskCard({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCancel}
                 disabled={saving || busy}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleSave} disabled={!canSave}>
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={!canSave}
+                className="w-full sm:w-auto"
+              >
                 {saving && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
                 Save
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3">
             <div className={`w-2 h-2 mt-[7px] rounded-full flex-shrink-0 ${cfg.dot}`} />
 
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{task.name}</p>
-              <p
-                className={'text-sm text-muted-foreground mt-1 line-clamp-2'}
-              >
+              <p className="text-sm font-medium break-words">{task.name}</p>
+              <p className="text-sm text-muted-foreground mt-1 line-clamp-2 break-words">
                 {task.description}
               </p>
 
@@ -244,32 +249,32 @@ export function TaskCard({
                 {parseAssignees(task.assignee).length > 0 ? (
                   <AssigneeBadges assignee={task.assignee} members={members} />
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic">
+                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic shrink-0">
                     No assignee
                   </span>
                 )}
                 {task.priority ? (
-                  <span className={`text-xs px-2 py-0.5 rounded-md border ${cfg.badge}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${cfg.badge}`}>
                     {task.priority}
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic">
+                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic shrink-0">
                     No priority
                   </span>
                 )}
                 {task.status ? (
-                  <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground">
+                  <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground shrink-0">
                     {task.status}
                   </span>
                 ) : (
-                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic">
+                  <span className="text-xs px-2 py-0.5 rounded-md border border-dashed text-muted-foreground/60 italic shrink-0">
                     No status
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -297,19 +302,24 @@ export function TaskCard({
         open={showDeleteDialog}
         onOpenChange={(open) => { if (!open) setShowDeleteDialog(false); }}
       >
-        <DialogContent>
+        <DialogContent
+          className="w-[calc(100%-2rem)] sm:w-full max-w-lg mx-auto"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
-            <DialogTitle>Delete task?</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-base sm:text-lg">Delete task?</DialogTitle>
+            <DialogDescription className="text-sm">
               You are about to delete <strong>{task.name}</strong>. This action{' '}
               <strong>cannot be undone</strong> — the task will be permanently removed.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
               disabled={busy}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
@@ -320,6 +330,7 @@ export function TaskCard({
                 setShowDeleteDialog(false);
               }}
               disabled={busy}
+              className="w-full sm:w-auto"
             >
               Yes, delete
             </Button>
@@ -327,19 +338,22 @@ export function TaskCard({
         </DialogContent>
       </Dialog>
 
-      <AddStatusForm
-        isOpen={showAddStatus}
-        spaceId={spaceId}
-        listId={listId}
-        onClose={() => setShowAddStatus(false)}
-        onSuccess={(updatedList: ClickUpListMetadata, addedStatus: string) => {
-          if (updatedList.statuses) {
-            setLocalStatuses(updatedList.statuses);
-            setDraft((prev) => ({ ...prev, status: addedStatus }));
-          }
-          setShowAddStatus(false);
-        }}
-      />
+      {showAddStatus && createPortal(
+        <AddStatusForm
+          isOpen={showAddStatus}
+          spaceId={spaceId}
+          listId={listId}
+          onClose={() => setShowAddStatus(false)}
+          onSuccess={(updatedList: ClickUpListMetadata, addedStatus: string) => {
+            if (updatedList.statuses) {
+              setLocalStatuses(updatedList.statuses);
+              setDraft((prev) => ({ ...prev, status: addedStatus }));
+            }
+            setShowAddStatus(false);
+          }}
+        />,
+        document.body
+      )}
     </>
   );
 }

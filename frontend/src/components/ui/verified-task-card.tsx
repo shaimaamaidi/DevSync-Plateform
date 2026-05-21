@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, Pen, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { VerifiedTask, FolderWithListsMetadata, ClickUpListMetadata } from '@/api/api';
@@ -65,10 +66,7 @@ export function VerifiedTaskCard({
     statuses: string[],
     priorities: string[],
   ) => {
-    setDraft(prev => ({
-      ...prev,
-      location: label,
-    }));
+    setDraft(prev => ({ ...prev, location: label }));
     setCurrentStatuses(statuses);
     setCurrentPriorities(priorities);
   };
@@ -77,10 +75,7 @@ export function VerifiedTaskCard({
     const label = list.name;
     const statuses = list.statuses ?? [];
     const priorities = list.priorities ?? [];
-    setDraft(prev => ({
-      ...prev,
-      location: label,  
-    }));
+    setDraft(prev => ({ ...prev, location: label }));
     setCurrentStatuses(statuses);
     setCurrentPriorities(priorities);
     setShowAddList(false);
@@ -95,7 +90,7 @@ export function VerifiedTaskCard({
   return (
     <>
       <div
-        className={`border rounded-xl px-4 py-3.5 transition-colors ${
+        className={`border rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 transition-colors ${
           editing ? 'border-ring' : 'border-border/60 hover:border-border'
         }`}
       >
@@ -120,8 +115,8 @@ export function VerifiedTaskCard({
               placeholder="Description"
             />
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="col-span-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="col-span-1 sm:col-span-2">
                 <p className="text-xs text-muted-foreground mb-1">Assignees</p>
                 <AssigneeField
                   value={draft.task_assigne}
@@ -129,7 +124,7 @@ export function VerifiedTaskCard({
                 />
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <p className="text-xs text-muted-foreground mb-1">Location</p>
                 <LocationField
                   value={draft.location}
@@ -173,12 +168,13 @@ export function VerifiedTaskCard({
               </p>
             )}
 
-            <div className="flex justify-end gap-2 pt-1">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => { setDraft(task); setEditing(false); }}
                 disabled={disabled}
+                className="w-full sm:w-auto"
               >
                 Cancel
               </Button>
@@ -186,32 +182,33 @@ export function VerifiedTaskCard({
                 size="sm"
                 onClick={() => { onUpdate(draft); setEditing(false); }}
                 disabled={disabled}
+                className="w-full sm:w-auto"
               >
                 Save
               </Button>
             </div>
           </div>
         ) : (
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3">
             <div className={`w-2 h-2 mt-[7px] rounded-full flex-shrink-0 ${cfg.dot}`} />
 
             <div className="flex-1 min-w-0" onClick={() => setExpanded(p => !p)}>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-sm font-medium">{task.task_name}</p>
+                <p className="text-sm font-medium break-words">{task.task_name}</p>
                 <ActionBadge action={task.action} taskId={task.task_id} />
               </div>
 
-              <p className={`text-sm text-muted-foreground mt-1 ${expanded ? '' : 'line-clamp-2'}`}>
+              <p className={`text-sm text-muted-foreground mt-1 break-words ${expanded ? '' : 'line-clamp-2'}`}>
                 {task.task_description}
               </p>
 
-              <div className="flex items-center gap-3 mt-3 flex-wrap">
+              <div className="flex items-center gap-2 mt-3 flex-wrap">
                 <AssigneeAvatars value={task.task_assigne} />
 
-                <span className={`text-xs px-2 py-0.5 rounded-md border ${cfg.badge}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${cfg.badge}`}>
                   {task.task_priority}
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground">
+                <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground shrink-0">
                   {task.task_status}
                 </span>
 
@@ -220,7 +217,7 @@ export function VerifiedTaskCard({
                     type="button"
                     onClick={() => setLocationOpen(p => !p)}
                     disabled={disabled}
-                    className={`text-xs px-2 py-0.5 rounded-md border transition-colors ${
+                    className={`text-xs px-2 py-0.5 rounded-md border transition-colors max-w-[140px] sm:max-w-[200px] truncate block ${
                       task.location?.trim()
                         ? 'bg-muted/50 text-muted-foreground border-border hover:border-primary/40'
                         : 'bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400'
@@ -230,7 +227,7 @@ export function VerifiedTaskCard({
                   </button>
 
                   {locationOpen && (
-                    <div className="absolute z-50 mt-1 left-0 w-56 bg-popover border border-border rounded-md shadow-md max-h-52 overflow-y-auto">
+                    <div className="absolute z-50 mt-1 left-0 right-0 sm:right-auto sm:w-56 bg-popover border border-border rounded-md shadow-md max-h-52 overflow-y-auto">
                       {structureLoading ? (
                         <div className="px-3 py-2 text-xs text-muted-foreground">Loading…</div>
                       ) : options.length === 0 ? (
@@ -247,7 +244,7 @@ export function VerifiedTaskCard({
                               setLocationOpen(false);
                             }}
                             disabled={disabled}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors truncate ${
                               task.location === opt.label ? 'bg-muted font-medium' : ''
                             }`}
                           >
@@ -262,7 +259,7 @@ export function VerifiedTaskCard({
                           disabled={disabled}
                           className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 font-medium"
                         >
-                          <Plus className="w-3.5 h-3.5" />
+                          <Plus className="w-3.5 h-3.5 shrink-0" />
                           Create new location…
                         </button>
                       </div>
@@ -272,7 +269,7 @@ export function VerifiedTaskCard({
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -296,29 +293,32 @@ export function VerifiedTaskCard({
         )}
       </div>
 
-      <AddStatusForm
-        isOpen={showAddStatus}
-        spaceId={spaceId}
-        listId={draft.location}
-        onClose={() => setShowAddStatus(false)}
-        onSuccess={(updatedList: ClickUpListMetadata, addedStatus: string) => {
-          if (updatedList.statuses) {
-            setCurrentStatuses(updatedList.statuses);
-            setDraft(prev => ({
-              ...prev,
-              task_status: addedStatus,
-            }));
-          }
-          setShowAddStatus(false);
-        }}
-      />
+      {showAddStatus && createPortal(
+        <AddStatusForm
+          isOpen={showAddStatus}
+          spaceId={spaceId}
+          listId={draft.location}
+          onClose={() => setShowAddStatus(false)}
+          onSuccess={(updatedList: ClickUpListMetadata, addedStatus: string) => {
+            if (updatedList.statuses) {
+              setCurrentStatuses(updatedList.statuses);
+              setDraft(prev => ({ ...prev, task_status: addedStatus }));
+            }
+            setShowAddStatus(false);
+          }}
+        />,
+        document.body
+      )}
 
-      <CreateListForm
-        isOpen={showAddList}
-        onClose={() => setShowAddList(false)}
-        onSuccess={handleListCreated} 
-        spaceId={spaceId}
-      />
+      {showAddList && createPortal(
+        <CreateListForm
+          isOpen={showAddList}
+          onClose={() => setShowAddList(false)}
+          onSuccess={handleListCreated}
+          spaceId={spaceId}
+        />,
+        document.body
+      )}
     </>
   );
 }

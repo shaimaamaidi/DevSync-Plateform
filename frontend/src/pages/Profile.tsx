@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { KeyRound, User, Mail, Pen, Loader2 } from 'lucide-react';
+import { KeyRound, User, Mail, Pen, Loader2, AlertCircle } from 'lucide-react';
 import { showSuccessToast } from '@/components/global-toaster';
 import type { MemberUpdateDTO } from '@/api/api';
 import { FieldSkeleton } from '@/components/ui/field-skeleton';
@@ -9,11 +9,14 @@ import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 
 export default function ProfilePage() {
-  const { user, loading: userLoading } = useCurrentUser();
+  const { user, loading: userLoading, error: userError, refetch } = useCurrentUser();
   const { mutateAsync: updateMember, isPending } = useUpdateCurrentUser();
+
   const [username, setUsername] = useState('');
   const [mail, setMail] = useState('');
   const [arabicName, setArabicName] = useState('');
+  const initials = username.slice(0, 2).toUpperCase();
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,37 +34,76 @@ export default function ProfilePage() {
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isDirty) 
+    if (!isDirty || !user) 
       return;
 
     const member: MemberUpdateDTO = {
-      id: user?.id,
+      id: user.id,
       username,
       mail,
       arabic_name: arabicName,
     };
 
-    try {
-      const result = await updateMember(member); 
+    const result = await updateMember(member); 
 
-      if (result) 
-        showSuccessToast('Profile updated successfully!');
-    } finally {}
+    if (result) 
+      showSuccessToast('Profile updated successfully!');
   };
 
-  const initials = username.slice(0, 2).toUpperCase();
+  if (userLoading) {
+    return (
+      <div className="py-6 md:py-12">
+        <div className="flex flex-col items-center mb-6 md:mb-10">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted animate-pulse mb-4" />
+          <div className="h-7 w-32 rounded-lg bg-muted animate-pulse mb-2" />
+          <div className="h-4 w-44 rounded-lg bg-muted animate-pulse" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+          <div className="w-full rounded-2xl border border-border/40 bg-background p-5 md:p-8 shadow-sm">
+            <div className="h-3 w-36 rounded bg-muted animate-pulse mb-5" />
+            <div className="space-y-5">
+              <FieldSkeleton />
+              <FieldSkeleton />
+              <FieldSkeleton />
+              <div className="h-11 w-full rounded-lg bg-muted animate-pulse mt-1" />
+            </div>
+          </div>
+          <div className="w-full rounded-2xl border border-border/40 bg-background p-5 md:p-8 shadow-sm">
+            <div className="h-3 w-20 rounded bg-muted animate-pulse mb-5" />
+            <div className="space-y-3">
+              <div className="h-3 w-24 rounded bg-muted animate-pulse" />
+              <div className="h-4 w-64 rounded bg-muted animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (userError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <div className="flex items-center gap-2 text-destructive text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          Failed to load profile data.
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="py-6 md:py-12">
       <div className="flex flex-col items-center mb-6 md:mb-10">
         <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-foreground/8 border border-border/40 flex items-center justify-center mb-4">
-          {userLoading ? (
-            <div className="w-full h-full rounded-full bg-muted animate-pulse" />
-          ) : (
-            <span className="text-2xl md:text-[28px] font-medium text-foreground">
-              {initials}
-            </span>
-          )}
+          <span className="text-2xl md:text-[28px] font-medium text-foreground">
+            {initials}
+          </span>
         </div>
         <h1 className="font-serif text-2xl md:text-[30px] font-normal text-foreground leading-tight mb-1">
           My Profile
@@ -76,15 +118,6 @@ export default function ProfilePage() {
           <h2 className="text-[11px] font-medium text-muted-foreground uppercase tracking-widest mb-5">
             Personal information
           </h2>
-
-          {userLoading ? (
-            <div className="space-y-5">
-              <FieldSkeleton />
-              <FieldSkeleton />
-              <FieldSkeleton />
-              <div className="h-11 w-full rounded-lg bg-muted animate-pulse mt-1" />
-            </div>
-          ) : (
             <form onSubmit={handleUpdate} className="space-y-5">
               <div className="space-y-1.5">
                 <label
@@ -161,7 +194,6 @@ export default function ProfilePage() {
                 )}
               </button>
             </form>
-          )}
         </div>
 
         <div className="w-full rounded-2xl border border-border/40 bg-background p-5 md:p-8 shadow-sm flex flex-col">

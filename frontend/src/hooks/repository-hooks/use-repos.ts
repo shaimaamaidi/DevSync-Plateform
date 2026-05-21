@@ -10,7 +10,7 @@ export function useRepos() {
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError } = useQuery<GitRepoDetailDTO[] | null>({
+  const { data, isLoading, isError, refetch } = useQuery<GitRepoDetailDTO[] | null>({
     queryKey: ['repos'],
     queryFn: async () => {
       try{
@@ -30,6 +30,7 @@ export function useRepos() {
   return {
     repos: data ?? [],
     loading: isLoading,
-    error: isError ? 'Unable to load repositories' : null,
+    error: isError ? 'Unable to load repositories.' : null,
+    refetch
   };
 }

@@ -10,7 +10,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { AlertCircle, Search } from 'lucide-react';
 import { DeploymentsList } from './ui/deployments-list';
 
 interface DeploymentsTrackerProps {
@@ -18,9 +18,18 @@ interface DeploymentsTrackerProps {
   repos: GitRepoDetailDTO[];
   onLoadDeployments: (repoUrl: string) => Promise<void>;
   isLoading?: boolean;
+  error?: string | null;       
+  onRetry?: () => void;
 }
 
-export function DeploymentsTracker({ deployments, repos, onLoadDeployments, isLoading }: DeploymentsTrackerProps) {
+export function DeploymentsTracker({ 
+  deployments, 
+  repos, 
+  onLoadDeployments, 
+  isLoading ,
+  error,
+  onRetry,
+}: DeploymentsTrackerProps) {
   const [searchUrl, setSearchUrl] = useState('');
   const [filteredDeployments, setFilteredDeployments] = useState<DeploymentDTO[]>(deployments);
   const [selectedRepoUrl, setSelectedRepoUrl] = useState('');
@@ -57,7 +66,7 @@ export function DeploymentsTracker({ deployments, repos, onLoadDeployments, isLo
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-4">Deployments</h2>
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Deployments</h2>
         <p className="text-muted-foreground mb-6">
           Track and manage all deployments by URL or repository name
         </p>
@@ -111,8 +120,8 @@ export function DeploymentsTracker({ deployments, repos, onLoadDeployments, isLo
         </div>
       </div>
       {isLoading ? (
-        <Card className="p-6 border-border">
-          <table className="w-full">
+        <Card className="p-6 border-border overflow-x-auto">
+          <table className="w-full min-w-[500px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
@@ -152,6 +161,21 @@ export function DeploymentsTracker({ deployments, repos, onLoadDeployments, isLo
               ))}
             </tbody>
           </table>
+        </Card>
+      ) : error ? (
+        <Card className="p-12 border-border border-dashed text-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center gap-2 text-destructive text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              Failed to load deployments.
+            </div>
+            <button
+              onClick={() => onRetry?.()}
+              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+            >
+              Try again
+            </button>
+          </div>
         </Card>
       ) : filteredDeployments.length > 0 ? (
           <DeploymentsList deployments={filteredDeployments} />

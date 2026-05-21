@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { FolderWithListsMetadata, GeneratedTask } from '@/api/api';
@@ -51,9 +52,10 @@ export function GeneratedTaskCard({
     e.dataTransfer.setData('application/x-generated-task', JSON.stringify(task));
     e.dataTransfer.effectAllowed = 'copy';
   };
+
   return (
-    <div className="bg-card border border-border/60 rounded-xl px-4 py-3.5 hover:border-border transition-colors group">
-      <div className="flex items-start gap-3">
+    <div className="bg-card border border-border/60 rounded-xl px-3 sm:px-4 py-3 sm:py-3.5 hover:border-border transition-colors group">
+      <div className="flex items-start gap-2 sm:gap-3">
         <div
           draggable={isVerificationFinished && !disabled}
           onDragStart={isVerificationFinished && !disabled ? handleDragStart : undefined}
@@ -63,29 +65,29 @@ export function GeneratedTaskCard({
         >
           <GripVertical className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground" />
         </div>
-        <div className={`w-2 h-2 rounded-full mt-[7px] ${cfg.dot}`} />
+        <div className={`w-2 h-2 rounded-full mt-[7px] flex-shrink-0 ${cfg.dot}`} />
 
           <div className="flex-1 min-w-0" onClick={() => setExpanded(p => !p)}>
-            <p className="text-sm font-medium">{task.task_name}</p>
+            <p className="text-sm font-medium break-words">{task.task_name}</p>
 
             <p
-              className={`text-sm text-muted-foreground mt-1 ${
+              className={`text-sm text-muted-foreground mt-1 break-words ${
                 expanded ? '' : 'line-clamp-2'
               }`}
             >
               {task.task_description}
             </p>
 
-            <div className="flex items-center gap-3 mt-3 flex-wrap">
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
               <AssigneeAvatars value={task.task_assigne} />
 
-              <span className={`text-xs px-2 py-0.5 rounded-md border ${
+              <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${
                 task.task_priority?.trim() ? cfg.badge : 'bg-muted text-muted-foreground border-border'
               }`}>
                 {task.task_priority?.trim() || 'No priority'}
               </span>
 
-              <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground">
+              <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground shrink-0">
                 {task.task_status?.trim() || 'No status'}
               </span>
 
@@ -94,7 +96,7 @@ export function GeneratedTaskCard({
                   type="button"
                   disabled={disabled || isVerifying}
                   onClick={() => setLocationOpen(p => !p)}
-                  className={`text-xs px-2 py-0.5 rounded-md border transition-colors ${
+                  className={`text-xs px-2 py-0.5 rounded-md border transition-colors max-w-[140px] sm:max-w-[200px] truncate block ${
                     task.location?.trim()
                       ? 'bg-muted/50 text-muted-foreground border-border hover:border-primary/40'
                       : 'bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400'
@@ -104,7 +106,7 @@ export function GeneratedTaskCard({
                 </button>
 
                 {locationOpen && (
-                  <div className="absolute z-50 mt-1 left-0 w-56 bg-popover border border-border rounded-md shadow-md max-h-52 overflow-y-auto">
+                  <div className="absolute z-50 mt-1 left-0 right-0 sm:right-auto sm:w-56 bg-popover border border-border rounded-md shadow-md max-h-52 overflow-y-auto">
                     {structureLoading ? (
                       <div className="px-3 py-2 text-xs text-muted-foreground">Loading…</div>
                     ) : options.length === 0 ? (
@@ -121,7 +123,7 @@ export function GeneratedTaskCard({
                             setLocationOpen(false);
                           }}
                           disabled={disabled || isVerifying}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors ${
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors truncate ${
                             task.location === opt.label ? 'bg-muted font-medium' : ''
                           }`}
                         >
@@ -136,7 +138,7 @@ export function GeneratedTaskCard({
                         disabled={disabled || isVerifying}
                         className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 font-medium"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3.5 h-3.5 shrink-0" />
                         Create new list…
                       </button>
                     </div>
@@ -144,22 +146,22 @@ export function GeneratedTaskCard({
                 )}
               </div>
 
-              {showCreateList && (
+              {showCreateList && createPortal(
                 <CreateListForm
                   isOpen={showCreateList}
                   onClose={() => setShowCreateList(false)}
                   onSuccess={list => {
                     onUpdate({ ...task, location: list.name });
                     setShowCreateList(false);
-                    
                   }}
                   spaceId={spaceId}
-                />
+                />,
+                document.body
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <Button
               variant="ghost"
               size="sm"

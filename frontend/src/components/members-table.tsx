@@ -7,9 +7,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { ClickUpMemberRole, type MemberCreateDTO, type MemberDTO, type MemberUpdateDTO } from '@/api/api';
+import { 
+  ClickUpMemberRole, 
+  type MemberCreateDTO, 
+  type MemberDTO, 
+  type MemberUpdateDTO 
+} from '@/api/api';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import { MemberEditModal } from './ui/member-edit-model-new';
 import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
@@ -21,9 +26,21 @@ export interface MembersTableProps {
   onInviteToClickUp: (email: string, role: ClickUpMemberRole) => Promise<boolean>;
   onRemoveFromClickUp: (memberId: number) => Promise<boolean>;
   isLoading?: boolean;
+  error?: string | null;
+  refetchMembers?: () => void;
 }
 
-export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToClickUp, onRemoveFromClickUp, isLoading }: MembersTableProps) {
+export function MembersTable({ 
+  members, 
+  onUpdate, 
+  onDelete, 
+  onAdd, 
+  onInviteToClickUp, 
+  onRemoveFromClickUp, 
+  isLoading,
+  error,
+  refetchMembers
+}: MembersTableProps) {
   const { user: currentUser } = useCurrentUser();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -69,9 +86,9 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Members Management</h2>
-        <Button onClick={handleAddClick} className="gap-2">
+      <div className="flex flex-wrap justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">Members Management</h2>
+        <Button onClick={handleAddClick} className="gap-2 shrink-0">
           <Plus className="w-4 h-4" />
           Add Member
         </Button>
@@ -79,7 +96,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
 
       <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">
         {isLoading ? (
-          <table className="w-full">
+          <table className="w-full min-w-[480px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
@@ -102,8 +119,27 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
               ))}
             </tbody>
           </table>
+        ) : error ? (
+          <table className="w-full min-w-[480px]">
+            <tbody>
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2 text-destructive text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      Failed to load members.
+                    </div>
+                    <button onClick={() => refetchMembers?.()}
+                      className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition">
+                      Try again
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         ) : (
-          <table className="w-full">
+          <table className="w-full min-w-[480px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Member</th>
@@ -181,20 +217,33 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
               <div className="h-3 w-28 bg-muted rounded" />
             </div>
           ))
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <div className="flex items-center gap-2 text-destructive text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              Failed to load members.
+            </div>
+            <button
+              onClick={() => refetchMembers?.()}
+              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+            >
+              Try again
+            </button>
+          </div>
         ) : members.length > 0 ? (
           members.map((member) => (
             <div
               key={member.id}
-              className="rounded-lg border border-border p-4 bg-card flex items-center justify-between"
+              className="rounded-lg border border-border p-4 bg-card flex items-center justify-between gap-2"
             >
-              <div>
-                <p className="font-medium text-foreground">{member.username}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-foreground truncate">{member.username}</p>
                 <p className="text-xs text-muted-foreground">{member.mail || 'N/A'}</p>
                 <p className="text-xs text-muted-foreground" dir="rtl">
                   {member.arabic_name || 'N/A'}
                 </p>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1 shink-0">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -236,12 +285,15 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
         open={deleteConfirmMemberId !== null}
         onOpenChange={(open) => { if (!open) setDeleteConfirmMemberId(null); }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Remove from ClickUp?</DialogTitle>
             <DialogDescription>This will remove the member from ClickUp. You'll be asked about database deletion next.</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setDeleteConfirmMemberId(null)}>No</Button>
             <Button
               variant="destructive"
@@ -253,19 +305,25 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
         </DialogContent>
       </Dialog>
       <Dialog open={inviteToClickUpMemberDialog} onOpenChange={setInviteToClickUpMemberDialog}>
-      <DialogContent>
+      <DialogContent
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Invite to ClickUp?</DialogTitle>
           <DialogDescription>Member added successfully. Do you want to also invite them to ClickUp?</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
           <Button variant="outline" onClick={() => setInviteToClickUpMemberDialog(false)}>No</Button>
           <Button onClick={() => { setInviteToClickUpMemberDialog(false); setRoleDialogOpen(true); }}>Yes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
     <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-      <DialogContent>
+      <DialogContent
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Select ClickUp Role</DialogTitle>
         </DialogHeader>
@@ -286,7 +344,7 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
             </Button>
           ))}
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
           <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>Cancel</Button>
           <Button onClick={async () => {
             if (memeberMail) {
@@ -299,12 +357,15 @@ export function MembersTable({ members, onUpdate, onDelete, onAdd, onInviteToCli
       </DialogContent>
     </Dialog>
     <Dialog open={deleteFromDBConfirmId !== null} onOpenChange={(open) => { if (!open) setDeleteFromDBConfirmId(null); }}>
-      <DialogContent>
+      <DialogContent
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Remove from database too?</DialogTitle>
           <DialogDescription>Member removed from ClickUp. Do you also want to delete them from the database?</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
           <Button variant="outline" onClick={() => setDeleteFromDBConfirmId(null)}>No</Button>
           <Button variant="destructive" onClick={async () => {
             if (deleteFromDBConfirmId !== null) {

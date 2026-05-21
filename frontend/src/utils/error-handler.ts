@@ -51,6 +51,15 @@ export function extractStatusCode(err: unknown): number | null {
   }
 }
 
+export function extractAssigneeListFromError(message: string): string[] {
+  const match = message.match(/\[([^\]]+)\]/);
+  if (!match) return [message];
+  return match[1]
+    .split(',')
+    .map(s => s.trim().replace(/^['"]|['"]$/g, ''))
+    .filter(Boolean);
+}
+
 export function normalizeErrorMessage(error: unknown): string {
   if (!error || typeof error !== "object") return "Unknown error";
 

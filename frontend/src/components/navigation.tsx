@@ -46,9 +46,10 @@ export function Navigation({ onTabChange }: NavigationProps) {
 
   return (
     <nav className="border-b border-border bg-card sticky top-0 z-50 shadow-sm relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-2">
+        <div className="flex items-center h-16">
 
+          {/* Logo */}
           <button
             onClick={() => handleNav('/')}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0"
@@ -68,23 +69,27 @@ export function Navigation({ onTabChange }: NavigationProps) {
             )}
           </button>
 
+          {/* Nav items — centered in remaining space */}
           {!isMobile && (
-            <div className="flex items-center gap-1 p-1 bg-muted rounded-lg mx-4">
-              {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
-                <Button
-                  key={path}
-                  variant={pathname === path ? 'default' : 'ghost'}
-                  onClick={() => handleNav(path, tab)}
-                  className="gap-2"
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{label}</span>
-                </Button>
-              ))}
+            <div className="flex-1 flex items-center justify-center">
+              <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
+                  <Button
+                    key={path}
+                    variant={pathname === path ? 'default' : 'ghost'}
+                    onClick={() => handleNav(path, tab)}
+                    className="gap-2"
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{label}</span>
+                  </Button>
+                ))}
+              </div>
             </div>
           )}
 
-          <div className="flex items-center gap-1 ml-auto">
+          {/* Actions */}
+          <div className="shrink-0 flex items-center gap-1 ml-auto">
             <Button
               variant="ghost"
               onClick={() => handleNav('/profile')}

@@ -20,3 +20,6 @@ export interface LocationWithMetadataOption {
   statuses: string[];
   priorities: string[];
 };
+
+export const DEFAULT_PRIORITIES = ['urgent', 'high', 'normal', 'low'];
+

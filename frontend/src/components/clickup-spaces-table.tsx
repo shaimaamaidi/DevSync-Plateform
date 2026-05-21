@@ -16,7 +16,7 @@ import type {
   AssociateClickUpSpaceRequest 
 } from '@/api/api';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit2, Trash2, Eye, Link as LinkIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import { ClickUpEditModal } from './ui/clickup-edit-model-new';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +35,8 @@ export interface ClickUpSpacesTableProps {
   repositories: GitRepoDetailDTO[];
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
   refreshSpaces?: () => void;
+  error?: string | null;
+  refetchSpaces?: () => void;
 }
 
 export function ClickUpSpacesTable({ 
@@ -52,6 +54,8 @@ export function ClickUpSpacesTable({
   repositories,
   onAssociate,
   refreshSpaces,
+  error,
+  refetchSpaces
 }: ClickUpSpacesTableProps) {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -76,9 +80,9 @@ export function ClickUpSpacesTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">ClickUp Spaces</h2>
-        <Button onClick={handleAddClick} className="gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">ClickUp Spaces</h2>
+        <Button onClick={handleAddClick} className="gap-2 shrink-0">
           <Plus className="w-4 h-4" />
           Add Space
         </Button>
@@ -86,7 +90,7 @@ export function ClickUpSpacesTable({
 
       <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">
         {isLoading ? (
-          <table className="w-full">
+          <table className="w-full min-w-[500px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
@@ -110,8 +114,29 @@ export function ClickUpSpacesTable({
               ))}
             </tbody>
           </table>
+        ) : error ? (
+          <table className="w-full min-w-[480px]">
+            <tbody>
+              <tr>
+                <td colSpan={4} className="px-6 py-12 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="flex items-center gap-2 text-destructive text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      Failed to load ClickUp spaces.
+                    </div>
+                    <button
+                      onClick={() => refetchSpaces?.()}
+                      className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+                    >
+                      Try again
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         ) : (
-          <table className="w-full">
+          <table className="w-full min-w-[500px]">
             <thead>
               <tr className="border-b border-border bg-muted">
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Space Name</th>
@@ -142,11 +167,11 @@ export function ClickUpSpacesTable({
                           className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
                         >
                           <LinkIcon className="w-4 h-4" />
-                          <span className="text-sm truncate max-w-xs">
+                          <span className="text-sm truncate max-w-[160px] lg:max-w-xs">
                             {space.repo.url.replace('https://github.com/', '')}
                           </span>
                           {space.repo.name && (
-                            <span className="ml-1 text-xs text-muted-foreground">({space.repo.name})</span>
+                            <span className="ml-1 text-xs text-muted-foreground hidden lg:inline">({space.repo.name})</span>
                           )}
                         </a>
                       ) : space.repo?.name ? (
@@ -214,12 +239,25 @@ export function ClickUpSpacesTable({
               <div className="h-3 w-40 bg-muted rounded" />
             </div>
           ))
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <div className="flex items-center gap-2 text-destructive text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              Failed to load click up spaces.
+            </div>
+            <button
+              onClick={() => refetchSpaces?.()}
+              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+            >
+              Try again
+            </button>
+          </div>
         ) : spaces.length > 0 ? (
           spaces.map((space, index) => (
             <div key={space.id ?? index} className="rounded-lg border border-border p-4 space-y-2 bg-card">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">{space.name}</span>
-                <div className="flex gap-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-medium text-foreground truncate">{space.name}</span>
+                <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="icon" onClick={() => space.space_code ? navigate(`/spaces/${space.space_code}/tasks`) : null} className="h-8 w-8" disabled={!space.space_code}>
                     <Eye className="w-4 h-4" />
                   </Button>
@@ -240,8 +278,8 @@ export function ClickUpSpacesTable({
               {space.repo?.url ? (
                 <a href={space.repo.url} target="_blank" rel="noopener noreferrer"
                   className="text-primary text-xs flex items-center gap-1 hover:underline">
-                  <LinkIcon className="w-3 h-3" />
-                  {space.repo.url.replace('https://github.com/', '')}
+                  <LinkIcon className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{space.repo.url.replace('https://github.com/', '')}</span>
                 </a>
               ) : (
                 <span className="text-xs text-muted-foreground italic">No repo linked</span>
@@ -273,14 +311,17 @@ export function ClickUpSpacesTable({
         open={deleteConfirmSpaceId !== null}
         onOpenChange={(open) => { if (!open) setDeleteConfirmSpaceId(null); }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Are you sure you want to delete this ClickUp space?</DialogTitle>
             <DialogDescription>
               This action cannot be undone. The ClickUp space will be permanently deleted.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setDeleteConfirmSpaceId(null)}>No</Button>
             <Button
               variant="destructive"
@@ -302,14 +343,17 @@ export function ClickUpSpacesTable({
           }
         }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Choose deletion mode</DialogTitle>
             <DialogDescription>
               How would you like to delete this space?
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={async () => {

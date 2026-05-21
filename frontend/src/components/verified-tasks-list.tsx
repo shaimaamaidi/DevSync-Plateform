@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Check } from 'lucide-react';
 import type { 
@@ -9,7 +10,7 @@ import type {
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 import { AddVerifiedTaskForm } from './ui/add-verified-task-form';
 import { VerifiedTaskCard } from './ui/verified-task-card';
-
+ 
 
 interface Props {
   tasks: VerifiedTask[];
@@ -79,7 +80,7 @@ export function VerifiedTaskList({
         isDragOver ? 'ring-2 ring-primary/40 bg-primary/5 p-2' : ''
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         {!isStructureEmpty && (
           <p className="text-xs text-muted-foreground">
             {!isLoading &&
@@ -106,12 +107,14 @@ export function VerifiedTaskList({
         )}
       </div>
 
-      {showAddForm && (
+      {showAddForm && createPortal (
         <AddVerifiedTaskForm
+          isOpen={showAddForm}
           onAdd={handleAdd}
           onCancel={() => setShowAddForm(false)}
           spaceId={spaceId}
-        />
+        />,
+        document.body
       )}
 
       <div className="flex flex-col gap-2">
@@ -144,9 +147,9 @@ export function VerifiedTaskList({
       )}
 
       {!isLoading && tasks.length > 0 && (
-        <div className="relative  flex justify-end items-center gap-3 pt-2">
+        <div className="relative flex flex-wrap justify-end items-center gap-2 pt-2">
           {!canSave && (
-            <p className="text-xs text-amber-600">
+            <p className="text-xs text-amber-600 text-right">
               All tasks need a location before saving.
             </p>
           )}

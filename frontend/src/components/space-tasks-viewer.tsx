@@ -30,7 +30,6 @@ import { ViewerSkeleton } from './ui/viewer-skeletion-card';
 import { AddTaskForm } from './ui/add-task-form';
 import { TaskCard } from './ui/task-card';
 import { buildLocationWithTasksOptions } from '@/lib/location';
-import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
 import { useSpaceTasks } from '@/hooks/clickup-space-hooks/use-clickup-space-tasks';
 import { showSuccessToast } from './global-toaster';
 import { 
@@ -41,7 +40,8 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { CreateListForm } from './ui/create-list-form'; 
-import { extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
+import { extractAssigneeListFromError, extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
+import { createPortal } from 'react-dom';
 
 export type AssigneeDialogState =
   | { open: false }
@@ -61,7 +61,7 @@ export function SpaceTasksViewer() {
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const { members, loading: membersLoading } = useMembers();
-  const { folders, loading: dataLoading, error: dataError } = useSpaceTasks(spaceId ?? '');
+  const { folders, loading: dataLoading, error: dataError, refetch: refetchTasks } = useSpaceTasks(spaceId ?? '');
   const [extraLists, setExtraLists] = useState<ClickUpListMetadata[]>([]);
   const [tasksByList, setTasksByList] = useState<Record<string, ClickUpTask[]>>({});
 
@@ -170,8 +170,8 @@ export function SpaceTasksViewer() {
           showSuccessToast('Click up task updated successfully');
         }
       } catch (err: unknown) {
-        const code    = extractErrorCode(err);
-        const status  = extractStatusCode(err);
+        const code = extractErrorCode(err);
+        const status = extractStatusCode(err);
         const message = normalizeErrorMessage(err);
 
         if (code === 'ASSIGNEE_EMAIL_NOT_IN_CLICKUP') {
@@ -209,7 +209,7 @@ export function SpaceTasksViewer() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap justify-between gap-2">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -220,12 +220,12 @@ export function SpaceTasksViewer() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h2 className="text-2xl font-bold text-foreground">Click Up Space Tasks</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-foreground">Click Up Space Tasks</h2>
             </div>
           </div>
 
           {!dataLoading && !dataError && selectedListId && (
-            <Button onClick={() => setShowAddForm((p) => !p)} disabled={busy} className="gap-2">
+            <Button onClick={() => setShowAddForm((p) => !p)} disabled={busy} className="gap-2 shrink-0">
               <Plus className="w-4 h-4" />
               Add task
             </Button>
@@ -236,9 +236,17 @@ export function SpaceTasksViewer() {
           {dataLoading && <ViewerSkeleton />}
 
           {!dataLoading && dataError && (
-            <div className="flex items-center gap-2 text-sm text-destructive py-4">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              {dataError}
+            <div className="flex flex-col items-center gap-3 py-6">
+              <div className="flex items-center gap-2 text-sm text-destructive">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {dataError}
+              </div>
+              <button
+                onClick={() => refetchTasks?.()}
+                className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+              >
+                Try again
+              </button>
             </div>
           )}
 
@@ -249,8 +257,8 @@ export function SpaceTasksViewer() {
                   No location available.
                 </p>
               ) : (
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1 max-w-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0 max-w-sm">
                     <Select
                       value={selectedListId || 'none'}
                       onValueChange={(val) => setSelectedListId(val === 'none' ? '' : val)}
@@ -296,7 +304,7 @@ export function SpaceTasksViewer() {
                     <Button
                       onClick={() => setShowCreateListForm(true)}
                       disabled={busy}
-                      className="gap-2"
+                      className="gap-2 shrink-0"
                     >
                       <Plus className="w-4 h-4" />
                       New click up location
@@ -311,8 +319,9 @@ export function SpaceTasksViewer() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {showAddForm && (
+                  {showAddForm && createPortal(
                     <AddTaskForm
+                      isOpen={showAddForm}
                       listId={selectedListId}
                       spaceId={spaceId!}
                       statuses={statuses}
@@ -323,7 +332,8 @@ export function SpaceTasksViewer() {
                       membersLoading={membersLoading}
                       onCreated={handleCreated}
                       onCancel={() => setShowAddForm(false)}
-                    />
+                    />,
+                    document.body
                   )}
 
                   {currentTasks.length === 0 && !showAddForm ? (
@@ -370,7 +380,10 @@ export function SpaceTasksViewer() {
         open={assigneeDialog.open && assigneeDialog.type === 'mails'}
         onOpenChange={(open) => { if (!open) handleCancelIgnoreMails(); }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>
               Some assignee emails were not found in ClickUp. Do you want to ignore them?
@@ -394,19 +407,22 @@ export function SpaceTasksViewer() {
             </ul>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button variant="outline" onClick={handleCancelIgnoreMails}>No</Button>
             <Button onClick={handleIgnoreMails}>Yes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <CreateListForm
-        isOpen={showCreateListForm}
-        onClose={() => setShowCreateListForm(false)}
-        onSuccess={handleListCreated}
-        spaceId={spaceId!}
-      />
+      
+      {showCreateListForm && createPortal(
+        <CreateListForm
+          isOpen={showCreateListForm}
+          onClose={() => setShowCreateListForm(false)}
+          onSuccess={handleListCreated}
+          spaceId={spaceId!}
+        />,
+        document.body
+      )}
     </>
   );
 }

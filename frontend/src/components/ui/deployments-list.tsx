@@ -5,12 +5,11 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Filter, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { DeploymentDTO } from '@/api/api';
+import type { DeploymentStatus } from '@/types/deployment';
 
 interface DeploymentsListProps {
   deployments: DeploymentDTO[];
 }
-
-type DeploymentStatus = 'all' | 'success' | 'pending' | 'failed';
 
 export function DeploymentsList({ deployments }: DeploymentsListProps) {
   const [statusFilter, setStatusFilter] = useState<DeploymentStatus>('all');

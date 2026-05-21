@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Sparkles, Plus } from 'lucide-react';
+import { Sparkles, Plus, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,8 +21,13 @@ import {
   withErrorHandling, 
   defaultOnError,
 } from '@/services/api-error';
-import { extractStatusCode, resolveErrorAction, normalizeErrorMessage, extractErrorCode } from '@/utils/error-handler';
-
+import { 
+  extractStatusCode, 
+  resolveErrorAction, 
+  normalizeErrorMessage, 
+  extractErrorCode, 
+  extractAssigneeListFromError
+} from '@/utils/error-handler';
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { GeneratedTask, VerifiedTask } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
@@ -34,7 +39,7 @@ import { GeneratedTaskList } from '@/components/generated-tasks-list';
 import { VerifiedTaskList } from '@/components/verified-tasks-list';
 import { CreateSpaceForm } from '@/components/ui/create-space-form';
 import { StepHeader } from '@/components/ui/step-header';
-import { extractAssigneeListFromError } from '@/lib/extractAssigneeListFromError';
+import { createPortal } from 'react-dom';
 
 type AssigneeDialogState =
   | { open: false }
@@ -54,6 +59,7 @@ export function MeetingTaskManager() {
   const [realIsStructureEmpty, setRealIsStructureEmpty] = useState(true);
 
   const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
+  const pendingGenerateRef = useRef(false);
   const [verifiedTasks, setVerifiedTasks] = useState<VerifiedTask[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -64,6 +70,7 @@ export function MeetingTaskManager() {
   const [disabledAll, setDisabledAll] = useState(false);
 
   const [showSpaceChangeDialog, setShowSpaceChangeDialog] = useState(false);
+  const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
   
   const [showCreateSpace, setShowCreateSpace] = useState(false);
@@ -71,10 +78,9 @@ export function MeetingTaskManager() {
   const [pendingSpaceId, setPendingSpaceId] = useState<string | null>(null);
 
   const shouldAutoGenerate = useRef(false);
-  const shouldAutoVerify = useRef(false);
 
-  const canGenerate = summary.trim().length > 0 && selectedSpaceId !== '';
-
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
   const hasStarted = generatedTasks.length > 0 || verifiedTasks.length > 0 || isGenerating || isVerifying;
 
 
@@ -94,7 +100,12 @@ export function MeetingTaskManager() {
 
   const handleSpaceChange = (value: string) => {
     const newId = value === 'none' ? '' : value;
- 
+    if (newId) {
+      setErrors(prev => {
+        const { space, ...rest } = prev;
+        return rest;
+      });
+    }
     if (!hasStarted) {
       setSelectedSpaceId(newId);
       return;
@@ -145,34 +156,48 @@ export function MeetingTaskManager() {
     }
   }, [selectedSpaceId]);
 
-
   useEffect(() => {
-    if (shouldAutoVerify.current && !structureLoading && generatedTasks.length > 0 && structure.length === 0) {
-      shouldAutoVerify.current = false;
-      setVerifiedTasks(
-        generatedTasks.map(t => ({
-          action: 'create' as const,
-          task_name: t.task_name,
-          task_description: t.task_description,
-          task_assigne: t.task_assigne,
-          task_status: t.task_status,
-          task_priority: t.task_priority,
-          location: t.location,
-        })),
-      );
+    if (pendingGenerateRef.current && !structureLoading && !isFetching) {
+      pendingGenerateRef.current = false;
+      setRealIsStructureEmpty(isStructureEmpty);
+      executeGenerate(selectedSpaceId);
     }
-  }, [structureLoading, generatedTasks, structure]);
+  }, [structureLoading, isFetching]);
+  
+  const validateForm = () => {
+    setErrors({});
+    const newErrors: Record<string, string> = {};
+
+    if (!summary && !summary?.trim()) {
+      newErrors.summary = 'Meeting summary is required';
+    }
+
+    if (selectedSpaceId === '') {
+      newErrors.space = 'Click up space is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleGenerate = async (spaceIdOverride?: string) => {
     const spaceId = spaceIdOverride ?? selectedSpaceId;
-    
-    if (!canGenerate) 
+
+    if (!validateForm()) 
       return;
 
     resetProcess();
-    setRealIsStructureEmpty(isStructureEmpty);
     setIsGenerating(true);
 
+    if (structureLoading || isFetching) {
+      pendingGenerateRef.current = true;
+      return;
+    }
+
+    await executeGenerate(spaceId);
+  };
+
+  const executeGenerate = async (spaceId: string) => {
     const result = await withErrorHandling(
       () => taskGenerationService.generateFromSummary(summary, spaceId),
       'Generate tasks from summary',
@@ -181,11 +206,32 @@ export function MeetingTaskManager() {
 
     if (result){
       showSuccessToast('Click up tasks generated successfully');
-      setGeneratedTasks(result);
-      shouldAutoVerify.current = true;
+      setGeneratedTasks(
+          result.map(t => ({
+            task_name: t.task_name,
+            task_description: t.task_description,
+            task_assigne: t.task_assigne,
+            task_status: t.task_status,
+            task_priority: t.task_priority,
+            location: t.location,
+          })),
+        );
+      if (isStructureEmpty) {
+        setVerifiedTasks(
+          result.map(t => ({
+            action: 'create' as const,
+            task_name: t.task_name,
+            task_description: t.task_description,
+            task_assigne: t.task_assigne,
+            task_status: t.task_status,
+            task_priority: t.task_priority,
+            location: t.location,
+          })),
+        );
+      }
     }
     setIsGenerating(false);
-  };
+  }
 
   const handleVerify = async () => {
     if (!generatedTasks.length) 
@@ -229,8 +275,8 @@ export function MeetingTaskManager() {
         showSuccessToast('Click up tasks saved successfully');
       }
     } catch (err: unknown) {
-      const code    = extractErrorCode(err);
-      const status  = extractStatusCode(err);
+      const code = extractErrorCode(err);
+      const status = extractStatusCode(err);
       const message = normalizeErrorMessage(err);
 
       if (code === 'ASSIGNEE_NAME_NOT_FOUND' && !ignoreNames) {
@@ -241,8 +287,9 @@ export function MeetingTaskManager() {
         const action = resolveErrorAction(err);
         await onError()(action, message, { code, status: status ?? undefined });
       }
+    }finally{
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   const handleSave = () => executeSave(false, false);
@@ -303,59 +350,104 @@ export function MeetingTaskManager() {
           <div className="mt-3 space-y-3 border border-gray-300 rounded-lg p-3">
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">ClickUp space</label>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={selectedSpaceId || 'none'}
-                  onValueChange={handleSpaceChange}
-                  disabled={spacesLoading || isGenerating || isVerifying || isSaving}
-                >
-                  <SelectTrigger  className={`w-[500px] bg-input border-border ${!selectedSpaceId || selectedSpaceId === 'none'? 'text-muted-foreground': 'text-foreground'}`}>
-                    <SelectValue
-                      placeholder={spacesLoading ? 'Loading spaces…' : 'Select a click up space…'}
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    {!spacesLoading && spaces.length === 0 ? (
-                      <SelectItem value="none" className="text-muted-foreground" disabled>No click up space found</SelectItem>
-                    ) : (
-                      <>
-                        <SelectItem value="none" className="text-muted-foreground hidden" disabled>No click up space selected</SelectItem>
-                        {spaces.map(space => (
-                          <SelectItem
-                            key={space.space_code ?? ''}
-                            value={space.space_code ?? ''}
-                          >
-                            {space.name}
+              <div className="flex flex-col gap-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col gap-1">
+                    <Select
+                      value={selectedSpaceId || 'none'}
+                      onValueChange={handleSpaceChange}
+                      disabled={spacesLoading || isGenerating || isVerifying || isSaving}
+                    >
+                      <SelectTrigger
+                        className={`w-full sm:w-[500px] bg-input border-border ${
+                          errors.space ? 'border-destructive' : ''
+                        } ${
+                          !selectedSpaceId || selectedSpaceId === 'none'
+                            ? 'text-muted-foreground'
+                            : 'text-foreground'
+                        }`}
+                      >
+                        <SelectValue
+                          placeholder={spacesLoading ? 'Loading spaces…' : 'Select a click up space…'}
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        {!spacesLoading && spaces.length === 0 ? (
+                          <SelectItem value="none" className="text-muted-foreground" disabled>
+                            No click up space found
                           </SelectItem>
-                        ))}
-                      </>
+                        ) : (
+                          <>
+                            <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                              No click up space selected
+                            </SelectItem>
+                            {spaces.map(space => (
+                              <SelectItem
+                                key={space.space_code ?? ''}
+                                value={space.space_code ?? ''}
+                              >
+                                {space.name}
+                              </SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+
+                    {errors.space && (
+                      <div className="text-destructive text-xs px-1 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.space}
+                      </div>
                     )}
-                  </SelectContent>
-                </Select>
-                <Button 
-                  onClick={handleCreateNewSpace} 
-                  disabled={isGenerating || isVerifying || isSaving || disabledAll} className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  New click up space
-                </Button>
+                  </div>
+
+                  <Button
+                    onClick={handleCreateNewSpace}
+                    disabled={isGenerating || isVerifying || isSaving || disabledAll}
+                    className="gap-2 self-start shrink-0"
+                  >
+                    <Plus className="w-4 h-4" />
+                    New click up space
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">Meeting Summary</label>
               <textarea
                 value={summary}
-                onChange={e => setSummary(e.target.value)}
+                onChange={e => {
+                  setSummary(e.target.value);
+                  if (e.target.value.trim()) {
+                    setErrors(prev => {
+                      const { summary, ...rest } = prev;
+                      return rest;
+                    });
+                  }
+                }}
                 placeholder={`Paste or type your meeting summary in arabic here…`}
                 className="w-full min-h-[120px] resize-y rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition"
               />
+              {errors.summary && (
+                <div className="text-destructive text-xs px-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  {errors.summary}
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">{summary.length} characters</span>
               <Button
-                onClick={() => handleGenerate()}
-                disabled={!canGenerate || isGenerating || isVerifying || isSaving || disabledAll}
+                onClick={() => {
+                  if (hasStarted) {
+                    setShowRegenerateDialog(true);
+                    return;
+                  }
+                  handleGenerate();
+                }}
+                disabled={isGenerating || isVerifying || isSaving || disabledAll}
                 className="gap-2"
                 title={
                   !selectedSpaceId
@@ -487,10 +579,48 @@ export function MeetingTaskManager() {
         )}
       </div>
       <Dialog
+        open={showRegenerateDialog}
+        onOpenChange={open => { if (!open) setShowRegenerateDialog(false); }}
+      >
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Regenerate tasks?</DialogTitle>
+            <DialogDescription>
+              You have already started the task generation process. Regenerating will{' '}
+              <strong>reset all current progress</strong> — generated and verified tasks will
+              be cleared — and the process will restart from scratch. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowRegenerateDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setShowRegenerateDialog(false);
+                handleGenerate();
+              }}
+            >
+              Yes, regenerate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={showSpaceChangeDialog}
         onOpenChange={open => { if (!open) { setShowSpaceChangeDialog(false); setPendingSpaceId(null); } }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Change ClickUp space?</DialogTitle>
             <DialogDescription>
@@ -500,7 +630,7 @@ export function MeetingTaskManager() {
               space. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button
               variant="outline"
               onClick={() => { setShowSpaceChangeDialog(false); setPendingSpaceId(null); }}
@@ -518,7 +648,10 @@ export function MeetingTaskManager() {
         open={assigneeDialog.open && assigneeDialog.type === 'names'}
         onOpenChange={open => { if (!open) setAssigneeDialog({ open: false }); }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Some assignee names were not found. Do you want to ignore them?</DialogTitle>
             <DialogDescription>
@@ -535,7 +668,7 @@ export function MeetingTaskManager() {
               ))}
             </ul>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setAssigneeDialog({ open: false })}>No</Button>
             <Button onClick={handleIgnoreNames}>Yes</Button>
           </DialogFooter>
@@ -546,7 +679,10 @@ export function MeetingTaskManager() {
         open={assigneeDialog.open && assigneeDialog.type === 'mails'}
         onOpenChange={open => { if (!open) setAssigneeDialog({ open: false }); }}
       >
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Some assignee emails were not found in ClickUp. Do you want to ignore them?</DialogTitle>
             <DialogDescription>
@@ -563,30 +699,33 @@ export function MeetingTaskManager() {
               ))}
             </ul>
           )}
-          <DialogFooter>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setAssigneeDialog({ open: false })}>No</Button>
             <Button onClick={handleIgnoreMails}>Yes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <CreateSpaceForm
-        isOpen={showCreateSpace}
-        onClose={() => {
-          setShowCreateSpace(false)
-        }}
-        onSuccess={space => {
-          if(hasStarted){
-            resetProcess();
-            shouldAutoGenerate.current = true;
-          }
-          setRealIsStructureEmpty(true);
-          setIsCreateNewSpace(false);
-      
-          if (space.space_code) setSelectedSpaceId(space.space_code);
-          setPendingSpaceId(null);
-        }}
-      />
+      {showCreateSpace && createPortal(
+        <CreateSpaceForm
+          isOpen={showCreateSpace}
+          onClose={() => {
+            setShowCreateSpace(false)
+          }}
+          onSuccess={space => {
+            if(hasStarted){
+              resetProcess();
+              shouldAutoGenerate.current = true;
+            }
+            setRealIsStructureEmpty(true);
+            setIsCreateNewSpace(false);
+        
+            if (space.space_code) setSelectedSpaceId(space.space_code);
+            setPendingSpaceId(null);
+          }}
+        />,
+        document.body
+      )}
 
     </div>
   );

@@ -14,7 +14,8 @@ import {
   Plus, 
   GitBranch, 
   Users, 
-  Link as LinkIcon 
+  Link as LinkIcon, 
+  AlertCircle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -38,9 +39,23 @@ interface ReposTableProps {
   isLoading?: boolean;
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
   refreshSpaces?: () => void;
+  error?: string | null;
+  refreshRepos?: () => void;
 }
 
-export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, onDelete, onAdd, isLoading, onAssociate, refreshSpaces }: ReposTableProps) {
+export function ReposTable({ 
+  repos, 
+  clickUpSpaces, 
+  availableMembers, 
+  onUpdate, 
+  onDelete, 
+  onAdd, 
+  isLoading, 
+  onAssociate, 
+  refreshSpaces, 
+  error,
+  refreshRepos 
+}: ReposTableProps) {
   const [selectedRepo, setSelectedRepo] = useState<GitRepoDetailDTO | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -59,9 +74,9 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">GitHub Repositories</h2>
-        <Button onClick={handleAddClick} className="gap-2">
+      <div className="flex flex-wrap justify-between gap-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-foreground">GitHub Repositories</h2>
+        <Button onClick={handleAddClick} className="gap-2 shrink-0">
           <Plus className="w-4 h-4" />
           Add Repository
         </Button>
@@ -69,7 +84,7 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
 
       <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">        
         {isLoading ? (
-          <table className="w-full">
+          <table className="w-full min-w-[600px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
@@ -101,9 +116,30 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
                 </tr>
                 ))}
               </tbody>
+          </table>
+          ) : error ? (
+            <table className="w-full min-w-[600px]">
+              <tbody>
+                <tr>
+                  <td colSpan={5} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="flex items-center gap-2 text-destructive text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        Failed to load repositories.
+                      </div>
+                      <button
+                        onClick={() => refreshRepos?.()}
+                        className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           ) : (
-            <table className="w-full">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-border bg-muted">
                   <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
@@ -144,9 +180,9 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
                               rel="noopener noreferrer"
                               className="text-primary hover:underline flex items-center gap-1 w-full justify-center"
                             >
-                              <LinkIcon className="w-4 h-4" />
-                              <span className="text-sm truncate max-w-xs">
-                                {repo.url.replace('https://github.com/', '')}
+                              <LinkIcon className="w-4 h-4 shrink-0" />
+                              <span className="text-sm truncate max-w-[140px] lg:max-w-xs">
+                                <span className="truncate">{repo.url.replace('https://github.com/', '')}</span>
                               </span>
                             </a>
                           ) : (
@@ -240,15 +276,28 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
               <div className="h-3 w-24 bg-muted rounded" />
             </div>
           ))
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <div className="flex items-center gap-2 text-destructive text-sm">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              Failed to load repositories.
+            </div>
+            <button
+              onClick={() => refreshRepos?.()}
+              className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+            >
+              Try again
+            </button>
+          </div>
         ) : repos.length > 0 ? (
           repos.map((repo) => (
             <div key={repo.id ?? repo.url} className="rounded-lg border border-border p-4 bg-card space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <GitBranch className="w-4 h-4 text-primary" />
-                  <span className="font-medium text-foreground">{repo.name}</span>
+                  <span className="font-medium text-foreground truncate">{repo.name}</span>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="icon" onClick={() => handleEditClick(repo)} className="h-8 w-8 text-primary">
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -265,8 +314,8 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
               {repo.url && (
                 <a href={repo.url} target="_blank" rel="noopener noreferrer"
                   className="text-primary text-xs flex items-center gap-1 hover:underline">
-                  <LinkIcon className="w-3 h-3" />
-                  {repo.url.replace('https://github.com/', '')}
+                  <LinkIcon className="w-3 h-3 shrink-0" />
+                  <span className="truncate">{repo.url.replace('https://github.com/', '')}</span>
                 </a>
               )}
 
@@ -316,15 +365,18 @@ export function ReposTable({ repos, clickUpSpaces, availableMembers, onUpdate, o
         refreshSpaces={refreshSpaces}
       />
       <Dialog open={deleteConfirmRepoId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmRepoId(null); }}>
-        <DialogContent>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Are you sure you want to delete?</DialogTitle>
             <DialogDescription>
               This action cannot be undone. The repository will be permanently deleted.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirmRepoId(null)}>
+            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+              <Button variant="outline" onClick={() => setDeleteConfirmRepoId(null)}>
               No
             </Button>
             <Button

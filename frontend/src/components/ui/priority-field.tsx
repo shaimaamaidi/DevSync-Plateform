@@ -1,16 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChevronDown, Check, Loader2 } from 'lucide-react';
 import type { FolderWithListsMetadata } from '@/api/api';
+import { DEFAULT_PRIORITIES } from '@/types/clickup';
+import { PRIORITY_DOT } from '@/lib/priority';
 
-const DEFAULT_PRIORITIES = ['urgent', 'high', 'normal', 'low'];
-
-const PRIORITY_DOT: Record<string, string> = {
-  urgent: 'bg-red-500',
-  high: 'bg-amber-500',
-  medium: 'bg-blue-500',
-  normal: 'bg-blue-500',
-  low: 'bg-muted-foreground',
-};
 
 interface Props {
   value: string;

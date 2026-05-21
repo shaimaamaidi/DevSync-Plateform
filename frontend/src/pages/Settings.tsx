@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { showSuccessToast } from '@/components/global-toaster';
 import { memberService } from '@/services/member-service';
@@ -8,6 +8,9 @@ import { defaultOnError, withErrorHandling } from '@/services/api-error';
 import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 export default function SettingsPage() {
+  const { user, loading: userLoading, error: userError, refetch } = useCurrentUser();
+  const userId = user?.id ?? null;
+  
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
@@ -17,18 +20,13 @@ export default function SettingsPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{ newPassword?: string; confirmPassword?: string }>({});
-  const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const { user, loading: userLoading, error: userError } = useCurrentUser();
-  const userId = user?.id ?? null;
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
-    setGeneralError(null);
 
     if (!userId) {
-      setGeneralError('User not loaded');
       return;
     }
 
@@ -76,16 +74,26 @@ export default function SettingsPage() {
 
   if (userLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-          <div className="text-muted-foreground">Loading user...</div>
+      <div className="flex items-center justify-center gap-2 py-20 text-muted-foreground text-sm">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Loading user...
       </div>
     );
   }
 
   if (userError) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-destructive">{userError}</div>
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <div className="flex items-center gap-2 text-destructive text-sm">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          {userError}
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground transition"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -110,15 +118,6 @@ export default function SettingsPage() {
         <p className="text-[13px] text-muted-foreground text-center font-light tracking-wide mb-5">
           Change your password to keep your account secure
         </p>
-
-        {generalError && (
-          <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/30 text-destructive text-[13px] rounded-lg px-3.5 py-2.5 mb-5">
-            <svg className="w-3.5 h-3.5 flex-shrink-0 fill-current" viewBox="0 0 16 16">
-              <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 4a.75.75 0 01.75.75v3a.75.75 0 01-1.5 0v-3A.75.75 0 018 5zm0 6.5a.875.875 0 110-1.75.875.875 0 010 1.75z" />
-            </svg>
-            {generalError}
-          </div>
-        )}
 
         <form onSubmit={handleUpdatePassword} className="space-y-5">
           <div className="space-y-1.5">

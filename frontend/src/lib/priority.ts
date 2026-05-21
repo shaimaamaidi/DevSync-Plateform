@@ -1,3 +1,11 @@
+export const PRIORITY_DOT: Record<string, string> = {
+  urgent: 'bg-red-500',
+  high: 'bg-amber-500',
+  medium: 'bg-blue-500',
+  normal: 'bg-blue-500',
+  low: 'bg-muted-foreground',
+};
+
 export const PRIORITY_CONFIG: Record<string, { badge: string; dot: string }> = {
   urgent: { badge: 'bg-red-50 text-red-700 border-red-100', dot: 'bg-red-500' },
   high: { badge: 'bg-amber-50 text-amber-700 border-amber-100', dot: 'bg-amber-500' },

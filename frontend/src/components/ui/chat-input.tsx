@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useEffect } from "react";
 import { Send } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -17,14 +17,18 @@ export function ChatInput({
   disabled,
   placeholder,
 }: ChatInputProps) {
-  const [rows, setRows] = useState(1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isMobile = useIsMobile();
 
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+  }, [value]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
-    const textarea = e.target;
-    setRows(Math.min(Math.max(1, textarea.scrollHeight / 24), 10));
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -38,43 +42,49 @@ export function ChatInput({
 
   return (
     <div className="border-t border-slate-100 px-3 sm:px-4 pt-3 pb-3 sm:pb-4 bg-white shrink-0">
-      <div
-        className="
-          flex items-end gap-2
-          bg-slate-50
-          border border-slate-200
-          rounded-xl
-          px-3 py-2
-          transition
-          focus-within:border-slate-400
-          focus-within:shadow-[0_0_0_3px_rgba(148,163,184,0.12)]
-        "
-      >
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          disabled={disabled}
-          rows={rows}
+      <div className="flex items-end gap-2">
+
+        <div
           className="
-            flex-1 resize-none bg-transparent
-            text-[13px] text-slate-800
-            leading-6 outline-none
-            max-h-[120px] overflow-y-auto
-            placeholder:text-slate-400
-            disabled:opacity-50
+            flex-1
+            bg-slate-50
+            border border-slate-200
+            rounded-xl
+            px-3 py-2
+            transition
+            focus-within:border-slate-400
+            focus-within:shadow-[0_0_0_3px_rgba(148,163,184,0.12)]
           "
-        />
+        >
+          <textarea
+            ref={textareaRef}
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            rows={1}
+            className="
+              w-full resize-none bg-transparent
+              text-[13px] text-slate-800
+              leading-6 outline-none
+              max-h-[120px] overflow-y-auto
+              placeholder:text-slate-400
+              disabled:opacity-50
+            "
+          />
+        </div>
 
         <button
           onClick={onSend}
           disabled={!canSend}
           className={`
-            w-9 h-9 rounded-lg flex items-center justify-center
+            w-10 h-10 rounded-xl flex items-center justify-center
             transition transform shrink-0
-            ${canSend ? "bg-slate-900 hover:scale-105 active:scale-95" : "bg-slate-200 cursor-default opacity-30"}
+            ${canSend
+              ? "bg-slate-900 hover:scale-105 active:scale-95"
+              : "bg-slate-200 cursor-default opacity-30"
+            }
           `}
         >
           <Send
@@ -87,7 +97,7 @@ export function ChatInput({
 
       {!isMobile && (
         <p className="mt-1 ml-0.5 text-[10px] text-slate-300">
-          Enter to send · Shift+Enter for new line
+          Press Enter to send · Shift+Enter for a new line
         </p>
       )}
     </div>

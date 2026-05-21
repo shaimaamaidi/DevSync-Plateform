@@ -39,7 +39,7 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
           <div className="flex items-center justify-between">
             <div className="flex flex-col justify-between min-h-[88px]">
               <p className="text-sm text-muted-foreground font-medium">Total Repositories</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{repos.length}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{repos.length}</p>
               <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
             </div>
             <div className="p-3 bg-primary/10 rounded-lg">
@@ -52,7 +52,7 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
           <div className="flex items-center justify-between">
             <div className="flex flex-col justify-between min-h-[88px]">
               <p className="text-sm text-muted-foreground font-medium">Team Members</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{totalMembers}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{totalMembers}</p>
               <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
             </div>
             <div className="p-3 bg-blue-500/10 rounded-lg">
@@ -65,7 +65,7 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">ClickUp Spaces</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{uniqueClickUpSpaces}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{uniqueClickUpSpaces}</p>
               <p className="text-xs text-muted-foreground mt-2">
                 {repos.length > 0
                   ? Math.round(
@@ -85,7 +85,7 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground font-medium">Successful Deploys</p>
-              <p className="text-3xl font-bold text-foreground mt-2">{successfulDeployments}</p>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{successfulDeployments}</p>
               <p className="text-xs text-muted-foreground mt-2">
                 {deployments.length > 0
                   ? Math.round((successfulDeployments / deployments.length) * 100)

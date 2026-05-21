@@ -52,15 +52,19 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
+  const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
+  const [lastRepoUrl, setLastRepoUrl] = useState<string>('');
+
   const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
+  const [clickupError, setClickupError] = useState<string | null>(null);
   const [clickupLoading, setClickupLoading] = useState(true);
 
-  const { repos, loading: reposLoading } = useRepos();
+  const { repos, loading: reposLoading, error: errorRepos, refetch: refetchRepos } = useRepos();
   const { mutateAsync: updateRepo } = useUpdateRepo();
   const { mutateAsync: deleteRepo } = useDeleteRepo();
   const { mutateAsync: addRepo } = useAddRepo();
 
-  const { members, loading: membersLoading } = useMembers();
+  const { members, loading: membersLoading, error: errorMembers, refetch: refetchMembers } = useMembers();
   const { mutateAsync: updateMember } = useUpdateMember();
   const { mutateAsync: deleteMember } = useDeleteMember();
   const { mutateAsync: addMember } = useAddMember();
@@ -77,6 +81,7 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   const refreshClickUpData = useCallback(async () => {
     setClickupLoading(true);
+    setClickupError(null);  
 
     const [spacesData] = await Promise.all([
       withErrorHandling(() => 
@@ -86,8 +91,11 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
     ),
     ]);
 
-    if (spacesData) 
+    if (spacesData){ 
       setClickUpSpaces(spacesData);
+    }else{
+      setClickupError('Failed to load ClickUp spaces.');
+    }
 
     setClickupLoading(false);
   }, []);
@@ -248,21 +256,31 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
 
   const handleLoadDeployments = useCallback(async (repoUrl: string) => {
     setIsLoadingDeployments(true);
+    setDeploymentsError(null);       
+    setLastRepoUrl(repoUrl);
 
     const deploymentData = await withErrorHandling(
       () => deploymentService.listByRepoUrl(repoUrl),
       'Load deployments',
       onError(),
     );
-    if (deploymentData) 
+    if (deploymentData){ 
       setDeployments(deploymentData);
+    }else {
+      setDeploymentsError('Failed to load deployments.');  
+    }
 
     setIsLoadingDeployments(false);
   }, []);
 
   return (
     <>
-      <DashboardStats repos={repos} deployments={deployments} members={members} isLoading={reposLoading || membersLoading || isLoadingDeployments}/>
+      <DashboardStats 
+        repos={repos} 
+        deployments={deployments} 
+        members={members} 
+        isLoading={reposLoading || membersLoading || isLoadingDeployments}
+        />
 
       <div className="my-8 border-t border-border" />
 
@@ -278,7 +296,9 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             isLoading={reposLoading || clickupLoading || membersLoading}
             onAssociate={handleAssociateClickUpSpace}
             refreshSpaces={refreshClickUpData}
-            />
+            error={errorRepos}
+            refreshRepos={refetchRepos}
+          />
         </div>
       )}
 
@@ -289,6 +309,8 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             repos={repos}
             onLoadDeployments={handleLoadDeployments}
             isLoading={reposLoading || isLoadingDeployments}
+            error={deploymentsError}                            
+            onRetry={() => lastRepoUrl && handleLoadDeployments(lastRepoUrl)}
           />
         </div>
       )}
@@ -303,6 +325,8 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             onInviteToClickUp={handleInviteMmeberToClickUp}
             onRemoveFromClickUp={handleRemoveMemberFromClickUp}
             isLoading={membersLoading} 
+            error={errorMembers}
+            refetchMembers={refetchMembers}
           />
         </div>
       )}
@@ -324,7 +348,9 @@ function Dashboard({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
             repositories={repos}
             onAssociate={handleAssociateClickUpSpace}
             refreshSpaces={refreshClickUpData}
-            />
+            error={clickupError}
+            refetchSpaces={refreshClickUpData}
+          />
         </div>
       )}
       {activeTab === 'space-tasks' && (
