@@ -14,7 +14,7 @@ Main class:
 from typing import List
 from pydantic import BaseModel, Field
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 
 
 class VerifyTasksRequest(BaseModel):
@@ -30,4 +30,4 @@ class VerifyTasksRequest(BaseModel):
         tasks: List of generated tasks to be validated against existing ClickUp tasks.
     """
     space_id: str = Field(..., min_length=1, description="Identifier of the ClickUp workspace.")
-    tasks: List[GeneratedTask] = Field(..., description="List of generated tasks to verify against ClickUp.")
+    tasks: List[GeneratedTaskFromSummary] = Field(..., description="List of generated tasks to verify against ClickUp.")

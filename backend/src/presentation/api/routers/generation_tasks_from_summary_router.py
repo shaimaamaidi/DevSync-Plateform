@@ -16,9 +16,9 @@ import logging
 from fastapi import APIRouter, Depends
 from starlette import status
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
-from backend.src.domain.entities.generate_tasks_from_summary.generate_tasks_request import GenerateTasksFromSummaryRequest
-from backend.src.domain.ports.input.i_generate_task_from_summary_use_case import IGenerateTaskFromSummaryUseCase
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary_request import GeneratedTaskFromSummaryRequest
+from backend.src.domain.ports.input.i_generate_tasks_from_summary_use_case import IGenerateTasksFromSummaryUseCase
 from backend.src.presentation.api.deps import get_generate_task_from_summary_use_case
 
 
@@ -30,7 +30,7 @@ router = APIRouter()
 
 @router.post(
     "/generate-tasks-from-summary",
-    response_model=list[GeneratedTask],
+    response_model=list[GeneratedTaskFromSummary],
     status_code=status.HTTP_200_OK,
     summary="Generate ClickUp tasks from meeting summary",
     description=(
@@ -39,8 +39,8 @@ router = APIRouter()
     )
 )
 def generate_tasks_from_summary(
-    request: GenerateTasksFromSummaryRequest,
-    use_case: IGenerateTaskFromSummaryUseCase = Depends(get_generate_task_from_summary_use_case),
+    request: GeneratedTaskFromSummaryRequest,
+    use_case: IGenerateTasksFromSummaryUseCase = Depends(get_generate_task_from_summary_use_case),
 ):
     """
     Generate ClickUp tasks from a meeting summary.
@@ -54,10 +54,10 @@ def generate_tasks_from_summary(
             Request payload containing:
             - meeting_summary: raw meeting notes
             - space_id: ClickUp workspace identifier
-        use_case (IGenerateTaskFromSummaryUseCase): Application use case responsible for generating tasks.
+        use_case (IGenerateTasksFromSummaryUseCase): Application use case responsible for generating tasks.
 
     Returns:
-        list[GeneratedTask]: List of structured ClickUp tasks generated from the summary.
+        list[GeneratedTaskFromSummary]: List of structured ClickUp tasks generated from the summary.
     """
     logger.info(
         "Generating ClickUp tasks from meeting summary: space_id=%s.",

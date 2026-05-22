@@ -15,7 +15,7 @@ from openai import APIConnectionError, APIStatusError
 from openai.types.chat import ChatCompletionUserMessageParam, ChatCompletionSystemMessageParam
 
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask, VerifiedTaskList
 from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
 from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
@@ -40,7 +40,7 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
     def verify_tasks(
         self,
         existing_tasks: List[ClickUpTask],
-        tasks: List[GeneratedTask],
+        tasks: List[GeneratedTaskFromSummary],
     ) -> List[VerifiedTask]:
         """
         Verify generated ClickUp tasks against existing tasks using an LLM.
@@ -52,8 +52,8 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
         - Filters out updates that do not introduce real changes
 
         Args:
-            existing_tasks: Tasks already present in ClickUp.
-            tasks: Tasks produced by the LLM.
+            existing_tasks(List[ClickUpTask]): Tasks already present in ClickUp.
+            tasks(List[GeneratedTaskFromSummary]): Tasks produced by the LLM.
 
         Returns:
             List[VerifiedTask]: List of tasks requiring creation or update.
@@ -157,7 +157,7 @@ class ClickUpTaskVerifierAgent(BaseAgent, IClickUpTaskVerifier):
         )
 
     @staticmethod
-    def _serialize_generated(tasks: List[GeneratedTask]) -> str:
+    def _serialize_generated(tasks: List[GeneratedTaskFromSummary]) -> str:
         """
         Convert generated tasks into a JSON string.
 

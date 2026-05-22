@@ -35,9 +35,9 @@ from backend.src.presentation.api.middleware.request_id_middleware import reques
 from backend.src.presentation.api.routers import (
     associator_router, clickup_router, repo_router, member_router,
     deployment_router, auth_router, backlog_router, health_router, verification_tasks_router,
-    generate_tasks_from_summary_router, clickup_task_save_router,
+    generation_tasks_from_summary_router, clickup_task_save_router,
     clickup_structure_metadata_router, clickup_structure_management_router, clickup_task_management_router,
-    clickup_space_task_reader_router
+    clickup_space_task_reader_router, generation_tasks_from_backlog_router
 )
 
 
@@ -180,7 +180,12 @@ def create_app() -> FastAPI:
         tags=["ClickUp - Tasks"],
     )
     app.include_router(
-        generate_tasks_from_summary_router.router,
+        generation_tasks_from_summary_router.router,
+        prefix="/clickup/tasks",
+        tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        generation_tasks_from_backlog_router.router,
         prefix="/clickup/tasks",
         tags=["ClickUp - Tasks"],
     )

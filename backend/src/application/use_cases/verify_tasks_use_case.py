@@ -12,11 +12,11 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 from backend.src.domain.helpers.clickup_folder_helpers import get_generated_tasks_by_location, get_tasks_by_location
 
-from backend.src.domain.ports.input.i_verify_task_use_case import IVerifyTaskUseCase
+from backend.src.domain.ports.input.i_verify_tasks_use_case import IVerifyTasksUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.services.clickup_task_verification.i_clickup_task_verifier import \
@@ -26,7 +26,7 @@ from backend.src.domain.ports.services.clickup_task_verification.i_clickup_task_
 logger = logging.getLogger(__name__)
 
 
-class VerifyTaskUseCase(IVerifyTaskUseCase):
+class VerifyTasksUseCase(IVerifyTasksUseCase):
     """
     Application use case for verifying generated ClickUp tasks.
 
@@ -58,7 +58,7 @@ class VerifyTaskUseCase(IVerifyTaskUseCase):
         self._member_repo =member_repo
 
 
-    def verify_tasks(self, tasks: List[GeneratedTask], space_id) -> List[VerifiedTask]:
+    def verify_tasks(self, tasks: List[GeneratedTaskFromSummary], space_id) -> List[VerifiedTask]:
         """
         Verify tasks against existing ClickUp tasks.
 
@@ -67,7 +67,7 @@ class VerifyTaskUseCase(IVerifyTaskUseCase):
         folder by folder using a dedicated verifier service.
 
         Args:
-            tasks (List[GeneratedTask]): List of generated tasks.
+            tasks (List[GeneratedTaskFromSummary]): List of generated tasks.
             space_id (str): ClickUp space identifier.
 
         Returns:

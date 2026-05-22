@@ -13,10 +13,10 @@ It acts as a contract for application-level services responsible for:
 
 from typing import List
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 
 
-class IGenerateTaskFromSummaryUseCase:
+class IGenerateTasksFromSummaryUseCase:
     """
     Define task generation behavior required by the application.
 
@@ -25,7 +25,7 @@ class IGenerateTaskFromSummaryUseCase:
     (LLM, rules, or hybrid approaches).
     """
 
-    def generate_tasks_from_meeting_summary(self, meeting_summary: str, space_id) -> List[GeneratedTask]:
+    def generate_tasks_from_meeting_summary(self, meeting_summary: str, space_id) -> List[GeneratedTaskFromSummary]:
         """
         Generate ClickUp tasks from a meeting summary.
 
@@ -34,6 +34,6 @@ class IGenerateTaskFromSummaryUseCase:
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[GeneratedTask]: List of generated tasks.
+            List[GeneratedTaskFromSummary]: List of generated tasks.
         """
         pass

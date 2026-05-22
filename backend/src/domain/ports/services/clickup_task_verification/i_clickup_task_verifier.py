@@ -10,7 +10,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
@@ -27,7 +27,7 @@ class IClickUpTaskVerifier(ABC):
     def verify_tasks(
         self,
         existing_tasks: List[ClickUpTask],
-        tasks: List[GeneratedTask]
+        tasks: List[GeneratedTaskFromSummary]
     ) -> List[VerifiedTask]:
         """
         Verify tasks against existing tasks.

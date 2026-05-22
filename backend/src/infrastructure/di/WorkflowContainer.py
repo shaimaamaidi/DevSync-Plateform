@@ -23,9 +23,10 @@ from backend.src.application.use_cases.clickup_structure_management_use_case imp
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
-from backend.src.application.use_cases.generate_task_from_summary_use_case import GenerateTaskFromSummaryUseCase
+from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
+from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
-from backend.src.application.use_cases.verify_task_use_case import VerifyTaskUseCase
+from backend.src.application.use_cases.verify_tasks_use_case import VerifyTasksUseCase
 
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
@@ -62,8 +63,10 @@ from backend.src.infrastructure.external.clickup.client.clickup_http_client impo
 from backend.src.infrastructure.external.clickup.writer.clickup_workspace_writer import ClickUpWorkSpaceWriter
 from backend.src.infrastructure.external.clickup_task_verification.clickup_task_verifier_agent import \
     ClickUpTaskVerifierAgent
+from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_agent import \
+    ClickUpTaskGeneratorFromBacklogAgent
 from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_agent import \
-    ClickUpTaskGeneratorAgent
+    ClickUpTaskFromSummaryGeneratorAgent
 from backend.src.infrastructure.prompts.prompt_loader import PromptLoader
 
 
@@ -98,7 +101,9 @@ class WorkflowContainer:
         clickup_reader (ClickUpReader): Reader adapter for ClickUp data access.
 
         # Task-related use cases
-        clickup_task_generator_use_case (GenerateTaskFromSummaryUseCase | None):
+        clickup_task_generator_from_summary_use_case (GenerateTasksFromSummaryUseCase | None):
+            Use case for generating ClickUp tasks from a summary.
+        clickup_task_generator_from_backlog_use_case (GeneratedTaskFromBacklogUseCase | None):
             Use case for generating ClickUp tasks from a summary.
         clickup_structure_metadata_use_case (ClickUpStructureMetadataUseCase | None):
             Use case responsible for retrieving ClickUp workspace structure metadata.
@@ -158,7 +163,8 @@ class WorkflowContainer:
         self.clickup_workspace_writer: ClickUpWorkSpaceWriter | None = None
 
 
-        self.clickup_task_generator_use_case: GenerateTaskFromSummaryUseCase | None = None
+        self.clickup_task_generator_from_summary_use_case: GenerateTasksFromSummaryUseCase | None = None
+        self.clickup_task_generator_from_backlog_use_case: GenerateTasksFromBacklogUseCase | None = None
         self.clickup_structure_metadata_use_case: ClickUpStructureMetadataUseCase | None = None
         self.clickup_space_task_reader_use_case: ClickUpSpaceTaskReaderUseCase | None = None
         self.clickup_task_creation_use_case: ClickUpTaskManagementUseCase | None = None
@@ -180,7 +186,7 @@ class WorkflowContainer:
 
         except Exception as e:
             logger.exception("Failed to initialize workflow container.")
-            raise AppException("A server error occurred. Please try again later.", "CONTAINER_INIT_ERROR", http_status=500)
+            raise AppException("A server error occurred. Please try again later.", "CONTAINER_INIT_ERROR", http_status=500) from e
 
     # Agents
     def _init_backlog_agents(self):
@@ -322,10 +328,22 @@ class WorkflowContainer:
         """
         logger.info("Initializing task generation from summary use case.")
 
-        self.clickup_task_generator_agent = ClickUpTaskGeneratorAgent(self.prompt_loader)
-        self.clickup_task_generator_use_case = GenerateTaskFromSummaryUseCase(
+        self.clickup_task_generator_from_summary_agent = ClickUpTaskFromSummaryGeneratorAgent(self.prompt_loader)
+        self.clickup_task_generator_from_summary_use_case = GenerateTasksFromSummaryUseCase(
             self.clickup_reader,
-            self.clickup_task_generator_agent,
+            self.clickup_task_generator_from_summary_agent,
+        )
+
+    def _init_tasks_generation_from_backlog(self):
+        """
+        Initialize the task generation from backlog use case.
+        """
+        logger.info("Initializing task generation from backlog use case.")
+
+        self.clickup_task_generator_from_backlog_agent = ClickUpTaskGeneratorFromBacklogAgent(self.prompt_loader)
+        self.clickup_task_generator_from_backlog_use_case = GenerateTasksFromBacklogUseCase(
+            self.clickup_reader,
+            self.clickup_task_generator_from_backlog_agent,
         )
 
     def _init_tasks_verification_agent(self):
@@ -460,9 +478,9 @@ class WorkflowContainer:
             clickup_writer=self.clickup_workspace_writer
         )
 
-    def create_tasks_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTaskUseCase:
+    def create_tasks_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTasksUseCase:
         """
-        Factory method for VerifyTaskUseCase.
+        Factory method for VerifyTasksUseCase.
 
         This method creates a use case responsible for verifying generated ClickUp.
 
@@ -475,7 +493,7 @@ class WorkflowContainer:
             member_repo (IMemberRepository): Request-scoped member repository.
 
         Returns:
-            VerifyTaskUseCase:
+            VerifyTasksUseCase:
                 Fully initialized use case ready to verify generated ClickUp.
 
         Raises:
@@ -489,7 +507,7 @@ class WorkflowContainer:
             raise ServiceUnavailableException(
                 "Task verification service is currently unavailable. Please try again later.")
 
-        return VerifyTaskUseCase(
+        return VerifyTasksUseCase(
             clickup_reader=self.clickup_reader,
             task_verifier=self.clickup_task_verifier_agent,
             member_repo=member_repo,

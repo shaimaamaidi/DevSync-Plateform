@@ -4,9 +4,9 @@ Integration tests for ClickUp task generation and verification routes.
 
 from fastapi.testclient import TestClient
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
-from backend.src.domain.entities.generate_tasks_from_summary.generate_tasks_request import GenerateTasksFromSummaryRequest
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary_request import GeneratedTaskFromSummaryRequest
 from backend.src.domain.entities.verify_tasks.verify_tasks_request import VerifyTasksRequest
 
 
@@ -27,7 +27,7 @@ def test_generate_tasks_from_summary(client: TestClient, container) -> None:
         generated_task,
     ]
 
-    payload = GenerateTasksFromSummaryRequest(
+    payload = GeneratedTaskFromSummaryRequest(
         meeting_summary="Discussed login and onboarding",
         space_id="space-1",
     ).model_dump()
@@ -46,7 +46,7 @@ def test_verify_tasks(client: TestClient, container) -> None:
     """
     Test verifying generated tasks through the API.
     """
-    generated_task = GeneratedTask(
+    generated_task = GeneratedTaskFromSummary(
         task_name="Build login",
         task_description="Implement login flow",
         task_assigne="Alice",

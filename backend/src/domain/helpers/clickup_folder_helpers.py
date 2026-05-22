@@ -16,7 +16,7 @@ from typing import List, Dict
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ def get_tasks_by_location(folders) -> Dict[str, List[ClickUpTask]]:
     return result
 
 
-def get_generated_tasks_by_location(generated_tasks: List[GeneratedTask]) -> Dict[str, List[GeneratedTask]]:
+def get_generated_tasks_by_location(generated_tasks: List[GeneratedTaskFromSummary]) -> Dict[str, List[GeneratedTaskFromSummary]]:
     """
     Group generated tasks by location label.
 
@@ -61,7 +61,7 @@ def get_generated_tasks_by_location(generated_tasks: List[GeneratedTask]) -> Dic
     Returns:
         Mapping of location label to a list of GeneratedTask instances.
     """
-    result: Dict[str, List[GeneratedTask]] = {}
+    result: Dict[str, List[GeneratedTaskFromSummary]] = {}
 
     for task in generated_tasks:
         result.setdefault(task.location, []).append(task)

@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, status
 
 from backend.src.domain.entities.verify_tasks.verify_tasks_request import VerifyTasksRequest
 from backend.src.domain.entities.verify_tasks.verify_tasks_response import VerifyTasksResponse
-from backend.src.domain.ports.input.i_verify_task_use_case import IVerifyTaskUseCase
+from backend.src.domain.ports.input.i_verify_tasks_use_case import IVerifyTasksUseCase
 from backend.src.presentation.api.deps import get_verify_tasks_use_case
 
 
@@ -42,7 +42,7 @@ router = APIRouter()
 )
 def verify_tasks(
     request: VerifyTasksRequest,
-    use_case: IVerifyTaskUseCase = Depends(get_verify_tasks_use_case),
+    use_case: IVerifyTasksUseCase = Depends(get_verify_tasks_use_case),
 ) -> VerifyTasksResponse:
     """
     Verify generated tasks against existing ClickUp tasks.
@@ -59,8 +59,7 @@ def verify_tasks(
             - tasks: list of generated tasks
             - space_id: ClickUp space identifier
 
-        use_case (IVerifyTaskUseCase):
-            Application use case responsible for task verification logic.
+        use_case (IVerifyTasksUseCase): Application use case responsible for task verification logic.
 
     Returns:
         VerifyTasksResponse:

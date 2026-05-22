@@ -1,17 +1,17 @@
 """
 Service port for task generation via LLMs.
 
-This module defines the ITaskGenerator interface, which specifies operations for
+This module defines the ITaskGeneratorFromSummary interface, which specifies operations for
 generating tasks from a meeting summary using LLMs or external services.
 """
 
 from abc import ABC, abstractmethod
 from typing import List, Dict
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 
 
-class ITaskGenerator(ABC):
+class ITaskGeneratorFromSummary(ABC):
     """
     Define task generation behavior required by the application.
 
@@ -25,16 +25,15 @@ class ITaskGenerator(ABC):
         self,
         meeting_summary: str,
         locations_statuses: Dict[str, Dict[str, List[str]]]
-    ) -> List[GeneratedTask]:
+    ) -> List[GeneratedTaskFromSummary]:
         """
         Generate tasks from a meeting summary.
 
         Args:
             meeting_summary: Meeting summary in Arabic or French.
-            locations_statuses: Mapping of locations to their available
-                statuses and priorities.
+            locations_statuses: Mapping of locations to their available statuses and priorities.
 
         Returns:
-            List of GeneratedTask: Generated task objects.
+            List of GeneratedTaskFromSummary: Generated task objects.
         """
         pass

@@ -14,7 +14,7 @@ Main class:
 from pydantic import BaseModel, Field
 
 
-class GenerateTasksFromSummaryRequest(BaseModel):
+class GeneratedTaskFromSummaryRequest(BaseModel):
     """
     Representation of a task generation request from meeting notes.
 
@@ -23,7 +23,7 @@ class GenerateTasksFromSummaryRequest(BaseModel):
     processed by an AI-based extraction pipeline.
 
     Attributes:
-        meeting_summary: Raw meeting notes used to generate tasks (Arabic or French).
+        meeting_summary: Raw meeting notes used to generate tasks (Arabic).
         space_id: Identifier of the ClickUp workspace where tasks will be created.
     """
     meeting_summary: str = Field(..., min_length=1, description="Raw meeting summary text used for task generation (Arabic).")

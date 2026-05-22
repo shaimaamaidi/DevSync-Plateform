@@ -1,31 +1,32 @@
 """
-Task generation from summary use case module.
+Task generation from backlog use case module.
 
-This module provides the GenerateTaskFromSummaryUseCase class, which is responsible
-for generating structured ClickUp tasks from a meeting summary.
+This module provides the GenerateTaskFromBacklogUseCase class, which is responsible
+for generating structured ClickUp tasks from a sprint backlog.
 It coordinates retrieval of ClickUp space metadata and delegates task generation
 to a dedicated generator service.
 
 Classes:
-    GenerateTaskFromSummaryUseCase: Main use case for generating tasks from a meeting summary.
+    GenerateTaskFromBacklogUseCase: Main use case for generating tasks from a sprint backlog.
 """
 
 import logging
 from typing import List
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
+from backend.src.domain.entities.sprint.sprint import Sprint
 from backend.src.domain.helpers.clickup_folder_helpers import get_folders_statuses_and_priorities
-from backend.src.domain.ports.input.i_generate_task_from_summary_use_case import IGenerateTaskFromSummaryUseCase
+from backend.src.domain.ports.input.i_generate_tasks_from_backlog_use_case import IGenerateTasksFromBacklogUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
-from backend.src.domain.ports.services.task_generation_from_summary.i_task_generator import ITaskGenerator
+from backend.src.domain.ports.services.task_generation_from_backlog.i_task_generator_from_backlog import ITaskGeneratorFromBacklog
 
 
 logger = logging.getLogger(__name__)
 
 
-class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
+class GenerateTasksFromBacklogUseCase(IGenerateTasksFromBacklogUseCase):
     """
-    Application use case for generating ClickUp tasks from a meeting summary.
+    Application use case for generating ClickUp tasks from a sprint backlog.
 
     Coordinates retrieval of ClickUp space structure and transforms it into
     usable metadata (statuses, priorities), then delegates task generation
@@ -33,10 +34,10 @@ class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
 
     Attributes:
         _clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
-        _task_generator (ITaskGenerator): Service responsible for generating tasks.
+        _task_generator (ITaskGeneratorFromBacklog): Service responsible for generating tasks.
     """
 
-    def __init__(self, clickup_reader: IClickUpReader, task_generator: ITaskGenerator):
+    def __init__(self, clickup_reader: IClickUpReader, task_generator: ITaskGeneratorFromBacklog):
         """
         Initialize the use case with required services.
 
@@ -47,23 +48,23 @@ class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
         self._clickup_reader = clickup_reader
         self._task_generator = task_generator
 
-    def generate_tasks_from_meeting_summary(self, meeting_summary: str, space_id) -> List[GeneratedTask]:
+    def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id: str) -> List[GeneratedTaskFromBacklog]:
         """
-        Generate ClickUp tasks from a meeting summary.
+        Generate ClickUp tasks from a sprint backlog.
 
         This method retrieves the ClickUp space structure, extracts relevant
         metadata (statuses and priorities), and uses a task generator to
         produce structured tasks.
 
         Args:
-            meeting_summary (str): Unstructured meeting summary text.
+            sprint_backlog (Sprint): sprint backlog content.
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[GeneratedTask]: List of generated tasks.
+            List[GeneratedTaskFromBacklog]: List of generated tasks.
         """
         logger.info(
-            "Generating tasks from meeting summary: space_id=%s.",
+            "Generating tasks from backlog: space_id=%s.",
             space_id,
         )
 
@@ -71,7 +72,7 @@ class GenerateTaskFromSummaryUseCase(IGenerateTaskFromSummaryUseCase):
         locations_statuses = get_folders_statuses_and_priorities(folders)
 
         tasks = self._task_generator.generate_tasks(
-            meeting_summary=meeting_summary,
+            backlog=sprint_backlog,
             locations_statuses=locations_statuses,
         )
         tasks = tasks or []

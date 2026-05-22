@@ -13,11 +13,11 @@ It acts as a contract for application-level services responsible for:
 
 from typing import List
 
-from backend.src.domain.entities.generate_tasks_from_summary.generated_task import GeneratedTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
 
 
-class IVerifyTaskUseCase:
+class IVerifyTasksUseCase:
     """
     Define ClickUp task verification behavior required by the application.
 
@@ -28,14 +28,14 @@ class IVerifyTaskUseCase:
 
     def verify_tasks(
         self,
-        tasks: List[GeneratedTask],
+        tasks: List[GeneratedTaskFromSummary],
         space_id: str,
     ) -> List[VerifiedTask]:
         """
         Verify generated tasks against existing ClickUp tasks.
 
         Args:
-            tasks (List[GeneratedTask]): List of generated tasks to verify.
+            tasks (List[GeneratedTaskFromSummary]): List of generated tasks to verify.
             space_id (str): ClickUp space identifier.
 
         Returns:
