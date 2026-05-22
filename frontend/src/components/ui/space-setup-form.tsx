@@ -17,7 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-export interface CreateSpaceFormProps {
+export interface SpaceSetupFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (space: ClickUpSpaceDTO) => void;
@@ -29,7 +29,7 @@ type PendingRegisterAction =
   | { type: 'not_found' }
   | { type: 'name_mismatch'; actualName: string | null };
 
-export function CreateSpaceForm({ isOpen, onClose, onSuccess }: CreateSpaceFormProps) {
+export function SpaceSetupForm({ isOpen, onClose, onSuccess }: SpaceSetupFormProps) {
   const { spaces, loading: spacesLoading } = useClickUpSpacesList();
   const { mutateAsync: createSpace, isPending: isCreating } = useCreateClickUpSpace();
   const { mutateAsync: registerSpace, isPending: isRegistering } = useRegisterClickUpSpace();

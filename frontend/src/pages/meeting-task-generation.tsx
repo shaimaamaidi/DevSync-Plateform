@@ -37,7 +37,7 @@ import { taskVerificationService } from '@/services/task-verification-service';
 import { saveInClickupService } from '@/services/save-in-clickup-service';
 import { GeneratedTaskList } from '@/components/generated-tasks-list';
 import { VerifiedTaskList } from '@/components/verified-tasks-list';
-import { CreateSpaceForm } from '@/components/ui/create-space-form';
+import { SpaceSetupForm } from '@/components/ui/space-setup-form';
 import { StepHeader } from '@/components/ui/step-header';
 import { createPortal } from 'react-dom';
 
@@ -73,8 +73,8 @@ export function MeetingTaskManager() {
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
   const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
   
-  const [showCreateSpace, setShowCreateSpace] = useState(false);
-  const [isCreateNewSpace, setIsCreateNewSpace] = useState(false);
+  const [showSpaceSetup, setShowSpaceSetup] = useState(false);
+  const [isNewSpace, setIsNewSpace] = useState(false);
   const [pendingSpaceId, setPendingSpaceId] = useState<string | null>(null);
 
   const shouldAutoGenerate = useRef(false);
@@ -123,9 +123,9 @@ export function MeetingTaskManager() {
   };
 
   const handleConfirmSpaceChangeAndGenerate = async () => {
-    if(isCreateNewSpace){
+    if(isNewSpace){
       setShowSpaceChangeDialog(false);
-      setShowCreateSpace(true);
+      setShowSpaceSetup(true);
       return;
     }
 
@@ -143,14 +143,14 @@ export function MeetingTaskManager() {
   const handleCreateNewSpace = () => {
     if (hasStarted) {
       setShowSpaceChangeDialog(true);
-      setIsCreateNewSpace(true);
+      setIsNewSpace(true);
       return;
     }
-    setShowCreateSpace(true);
+    setShowSpaceSetup(true);
   };
 
   useEffect(() => {
-    if (shouldAutoGenerate.current && selectedSpaceId && summary.trim().length > 0) {
+    if (shouldAutoGenerate.current) {
       shouldAutoGenerate.current = false;
       handleGenerate(selectedSpaceId);
     }
@@ -706,19 +706,18 @@ export function MeetingTaskManager() {
         </DialogContent>
       </Dialog>
 
-      {showCreateSpace && createPortal(
-        <CreateSpaceForm
-          isOpen={showCreateSpace}
+      {showSpaceSetup && createPortal(
+        <SpaceSetupForm
+          isOpen={showSpaceSetup}
           onClose={() => {
-            setShowCreateSpace(false)
+            setShowSpaceSetup(false)
           }}
           onSuccess={space => {
             if(hasStarted){
               resetProcess();
               shouldAutoGenerate.current = true;
             }
-            setRealIsStructureEmpty(true);
-            setIsCreateNewSpace(false);
+            setIsNewSpace(false);
         
             if (space.space_code) setSelectedSpaceId(space.space_code);
             setPendingSpaceId(null);
