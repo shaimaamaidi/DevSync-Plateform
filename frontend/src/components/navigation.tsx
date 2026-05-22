@@ -60,8 +60,8 @@ export function Navigation({ onTabChange }: NavigationProps) {
             className="w-10 h-10 rounded-xl object-cover border border-border"
           />            
           {!isMobile && (
-              <h1 className="text-lg font-bold text-foreground tracking-tight">
-                GitHub & Deployments
+              <h1 className="text-lg font-bold text-foreground tracking-tight" style={{ color: '#0E9E82' }}>
+                Rido Ops
               </h1>
             )}
           </button>
