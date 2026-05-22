@@ -11,9 +11,9 @@ interface DashboardStatsProps {
 }
 
 const statConfigs = [
-  { icon: GitBranch, iconBg: 'bg-primary/10', iconColor: 'text-primary' },
+  { icon: GitBranch, iconBg: 'bg-indigo-500/10', iconColor: 'text-indigo-600' },
   { icon: Users, iconBg: 'bg-blue-500/10', iconColor: 'text-blue-600' },
-  { icon: Zap, iconBg: 'bg-purple-500/10', iconColor: 'text-purple-600' },
+  { icon: Zap, iconBg: 'bg-orange-500/10', iconColor: 'text-orange-600' },
   { icon: CheckCircle, iconBg: 'bg-green-500/10', iconColor: 'text-green-600' },
 ];
 
@@ -42,8 +42,8 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
               <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{repos.length}</p>
               <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
             </div>
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <GitBranch className="w-6 h-6 text-primary" />
+            <div className="p-3 bg-indigo-500/10 rounded-lg">
+              <GitBranch className="w-6 h-6 text-indigo-600" />
             </div>
           </div>
         </Card>
@@ -75,8 +75,8 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
                 % repos assigned
               </p>
             </div>
-            <div className="p-3 bg-purple-500/10 rounded-lg">
-              <Zap className="w-6 h-6 text-purple-600" />
+            <div className="p-3 bg-orange-500/10 rounded-lg">
+              <Zap className="w-6 h-6 text-orange-600" />
             </div>
           </div>
         </Card>
