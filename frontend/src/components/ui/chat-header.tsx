@@ -1,4 +1,5 @@
 import { RotateCcw, FlaskConical } from "lucide-react";
+import logo from '@/assets/rido-logo.jpeg';
 
 interface ChatHeaderProps {
   step: "idle" | "market_review" | "backlog_edit" | "finalizing" | "done";
@@ -18,14 +19,11 @@ export function ChatHeader({ step, onReset }: ChatHeaderProps) {
     <div className="flex items-center justify-between px-3 sm:px-5 py-3 border-b border-slate-100 bg-white shrink-0 gap-2">
 
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-[10px] bg-foreground flex items-center justify-center shrink-0">
-          <div className="grid grid-cols-2 gap-[3px] w-[18px]">
-            <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-90" />
-            <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
-            <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
-            <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-30" />
-          </div>
-        </div>
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover border border-border shrink-0"
+        />
         <div className="min-w-0">
           <p className="text-[14px] sm:text-[15px] font-bold text-slate-900 tracking-tight truncate">
             Backlog Agent

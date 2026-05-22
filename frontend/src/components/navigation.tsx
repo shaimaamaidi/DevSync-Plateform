@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { authService } from '@/services/auth-service';
 import { useIsMobile } from '@/hooks/use-mobile';
+import logo from '@/assets/rido-logo.jpeg';
 
 type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation' | 'meeting-tasks';
 
@@ -49,27 +50,22 @@ export function Navigation({ onTabChange }: NavigationProps) {
       <div className="max-w-7xl mx-auto px-2">
         <div className="flex items-center h-16">
 
-          {/* Logo */}
           <button
             onClick={() => handleNav('/')}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity shrink-0"
           >
-            <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
-              <div className="grid grid-cols-2 gap-[3px] w-[18px]">
-                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-90" />
-                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
-                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
-                <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-30" />
-              </div>
-            </div>
-            {!isMobile && (
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-10 h-10 rounded-xl object-cover border border-border"
+          />            
+          {!isMobile && (
               <h1 className="text-lg font-bold text-foreground tracking-tight">
                 GitHub & Deployments
               </h1>
             )}
           </button>
 
-          {/* Nav items — centered in remaining space */}
           {!isMobile && (
             <div className="flex-1 flex items-center justify-center">
               <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
@@ -88,7 +84,6 @@ export function Navigation({ onTabChange }: NavigationProps) {
             </div>
           )}
 
-          {/* Actions */}
           <div className="shrink-0 flex items-center gap-1 ml-auto">
             <Button
               variant="ghost"

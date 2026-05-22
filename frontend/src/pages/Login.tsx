@@ -6,6 +6,7 @@ import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { defaultOnError, withErrorHandling } from '@/services/api-error';
 import type { MemberAuthDTO } from '@/api/api';
 import { REASON_MESSAGES } from '@/types/api-error-type';
+import logo from '@/assets/rido-logo.jpeg';
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
@@ -74,14 +75,11 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted px-4 py-8">
       <div className="w-full max-w-[420px] rounded-2xl border border-border/40 bg-background p-6 sm:p-10 shadow-sm">
         <div className="flex justify-center mb-8">
-          <div className="w-9 h-9 rounded-[10px] bg-foreground flex items-center justify-center">
-            <div className="grid grid-cols-2 gap-[3px] w-[18px]">
-              <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-90" />
-              <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
-              <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-60" />
-              <div className="w-[7px] h-[7px] rounded-[1.5px] bg-background opacity-30" />
-            </div>
-          </div>
+          <img
+            src={logo}
+            alt="Logo"
+            className="w-10 h-10 rounded-xl object-cover border border-border"
+          />
         </div>
 
         <h1 className="font-serif text-[26px] font-normal text-center text-foreground leading-tight mb-1.5">
