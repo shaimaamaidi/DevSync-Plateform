@@ -301,67 +301,17 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             ClickUpTaskUpdateException: If task update fails.
         """
         logger.info(
-            "Starting ClickUp task synchronization. total_results=%d, folders=%d, members=%d.",
+            "Starting summary task synchronization. total_results=%d, folders=%d, members=%d.",
             len(results),
             len(folders),
             len(members),
         )
 
-        email_to_id={}
-
-        if members:
-            email_to_id = {m["email"].lower(): m["id"] for m in members}
-
-        location_list_map = ClickUpTaskWriter._build_location_list_map(folders)
-
-        created_count = 0
-        updated_count = 0
-        skipped_count = 0
-
-        for result in results:
-            if result.action == "create":
-                list_id = location_list_map.get(result.location)
-                if not list_id:
-                    logger.warning(
-                        "Create skipped: folder_not_found. location=%s task_name=%s.",
-                        result.location,
-                        result.task_name,
-                    )
-                    skipped_count += 1
-                    continue
-
-                try:
-                    self._create_summary_task(list_id, result, name_to_email, email_to_id, ignore_names, ignore_mails)
-                    created_count += 1
-                except ClickUpTaskCreateException as e:
-                    logger.error(
-                        "Create failed: task_name=%s location=%s error=%s.",
-                        result.task_name,
-                        result.location,
-                        str(e),
-                    )
-                    raise
-
-            elif result.action == "update":
-                if not result.task_id:
-                    logger.warning(
-                        "Update requested but no task_id provided for '%s' — skipping.",
-                        result.task_name,
-                    )
-                    skipped_count += 1
-                    continue
-
-                try:
-                    self._update_summary_task(result, name_to_email, email_to_id, ignore_names, ignore_mails)
-                    updated_count += 1
-                except ClickUpTaskUpdateException as e:
-                    logger.error(
-                        "Update failed: task_id=%s task_name=%s error=%s.",
-                        result.task_id,
-                        result.task_name,
-                        str(e),
-                    )
-                    raise
+        created_count, updated_count, skipped_count =ClickUpTaskWriter._apply_results(
+            results, folders, members, name_to_email, ignore_names, ignore_mails,
+            create_fn=self._create_summary_task,
+            update_fn=self._update_summary_task,
+        )
 
         logger.info(
             "ClickUp synchronization completed. created=%d updated=%d skipped=%d total=%d.",
@@ -407,22 +357,73 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             ClickUpTaskUpdateException: If task update fails.
         """
         logger.info(
-            "Starting ClickUp task synchronization. total_results=%d, folders=%d, members=%d.",
+            "Starting backlog task synchronization. total_results=%d, folders=%d, members=%d.",
             len(results),
             len(folders),
             len(members),
         )
 
-        email_to_id={}
+        created_count, updated_count, skipped_count = ClickUpTaskWriter._apply_results(
+            results, folders, members, name_to_email, ignore_names, ignore_mails,
+            create_fn=self._create_backlog_task,
+            update_fn=self._update_backlog_task,
+        )
+
+        logger.info(
+            "ClickUp synchronization completed. created=%d updated=%d skipped=%d total=%d.",
+            created_count,
+            updated_count,
+            skipped_count,
+            len(results),
+        )
+
+    @staticmethod
+    def _apply_results(
+        results: List,
+        folders: List[FolderWithListsMetadata],
+        members: List[dict],
+        name_to_email: dict[str, str],
+        ignore_names: bool,
+        ignore_mails: bool,
+        create_fn,
+        update_fn,
+    ) -> tuple[int, int, int]:
+        """
+        Apply verified task results to ClickUp.
+
+        This method processes a list of verified tasks and applies the required
+        operations (create or update) in ClickUp by routing them to the correct
+        folder and resolving assignees.
+
+        Args:
+            results (List): List of verified task operations to apply.
+            folders (List[FolderWithListsMetadata]): ClickUp folder structure used to resolve list identifiers.
+            members (List[dict]): Workspace members used for assignee resolution.
+            name_to_email (dict[str, str]): Mapping of assignee names to email addresses.
+            ignore_names (bool):
+                If True, names without an email mapping are ignored.
+                If False, an exception is raised for unresolved names.
+            ignore_mails (bool):
+                If True, unresolved assignees are ignored.
+                If False, an exception is raised when resolution fails.
+
+        Returns:
+            tuple[int, int, int] : created_count, updated_count, skipped_count
+
+        Raises:
+            ClickUpTaskCreateException: If task creation fails.
+            ClickUpTaskUpdateException: If task update fails.
+        """
+        email_to_id = {}
+
+        created_count = 0
+        updated_count = 0
+        skipped_count = 0
 
         if members:
             email_to_id = {m["email"].lower(): m["id"] for m in members}
 
         location_list_map = ClickUpTaskWriter._build_location_list_map(folders)
-
-        created_count = 0
-        updated_count = 0
-        skipped_count = 0
 
         for result in results:
             if result.action == "create":
@@ -437,7 +438,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     continue
 
                 try:
-                    self._create_backlog_task(list_id, result, name_to_email, email_to_id, ignore_names, ignore_mails)
+                    create_fn(list_id, result, name_to_email, email_to_id, ignore_names, ignore_mails)
                     created_count += 1
                 except ClickUpTaskCreateException as e:
                     logger.error(
@@ -458,7 +459,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                     continue
 
                 try:
-                    self._update_backlog_task(result, name_to_email, email_to_id, ignore_names, ignore_mails)
+                    update_fn(result, name_to_email, email_to_id, ignore_names, ignore_mails)
                     updated_count += 1
                 except ClickUpTaskUpdateException as e:
                     logger.error(
@@ -468,14 +469,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                         str(e),
                     )
                     raise
-
-        logger.info(
-            "ClickUp synchronization completed. created=%d updated=%d skipped=%d total=%d.",
-            created_count,
-            updated_count,
-            skipped_count,
-            len(results),
-        )
+        return created_count, updated_count, skipped_count
 
     def _create_summary_task(
             self,
@@ -519,49 +513,14 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         endpoint = f"/list/{list_id}/task"
 
-        payload = {
-            "name": result.task_name,
-            "description": result.task_description
-        }
+        payload = ClickUpTaskWriter._build_task_payload(result, include_name=True)
 
-        if result.task_status:
-            payload["status"] = result.task_status
-
-        priority = priority_to_str(result.task_priority)
-        if priority:
-            payload["priority"] = priority
-
-        assignee_names = []
-        if result.task_assigne:
-            assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-
-
-        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
+        assignee_ids = ClickUpTaskWriter._resolve_assignee_ids(result, name_to_email, email_to_id, ignore_names,ignore_mails)
 
         if assignee_ids:
             payload["assignees"] = assignee_ids
 
-        response = self._http.post_raw(endpoint, payload)
-
-        if response.status_code == 200:
-            logger.info(
-                "Summary task created successfully. task_name=%s location=%s task_status=%s status_code=%d.",
-                result.task_name,
-                result.location,
-                result.task_status,
-                response.status_code,
-            )
-        else:
-            logger.error(
-                "Summary task creation failed. task_name=%s location=%s status_code=%d response=%s.",
-                result.task_name,
-                result.location,
-                response.status_code,
-                response.text,
-            )
-            raise ClickUpTaskCreateException(
-                f"The task \"{result.task_name}\" could not be created in ClickUp. Please try again or contact support."
-            )
+        self._post_task(endpoint, payload, task_name=result.task_name, location=result.location, task_status=result.task_status)
 
     def _create_backlog_task(
             self,
@@ -605,52 +564,17 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         endpoint = f"/list/{list_id}/task"
 
-        payload = {
-            "name": result.task_name,
-            "description": result.task_description
-        }
-
-        if result.task_status:
-            payload["status"] = result.task_status
-
-        priority = priority_to_str(result.task_priority)
-        if priority:
-            payload["priority"] = priority
+        payload = ClickUpTaskWriter._build_task_payload(result, include_name=True)
 
         if result.estimation is not None:
             payload["time_estimate"] = result.estimation * 3_600_000
 
-        assignee_names = []
-        if result.task_assigne:
-            assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-
-
-        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
+        assignee_ids = ClickUpTaskWriter._resolve_assignee_ids(result, name_to_email, email_to_id, ignore_names,ignore_mails)
 
         if assignee_ids:
             payload["assignees"] = assignee_ids
 
-        response = self._http.post_raw(endpoint, payload)
-
-        if response.status_code == 200:
-            logger.info(
-                "Backlog task created successfully. task_name=%s location=%s task_status=%s status_code=%d.",
-                result.task_name,
-                result.location,
-                result.task_status,
-                response.status_code,
-            )
-        else:
-            logger.error(
-                "Backlog task creation failed. task_name=%s location=%s status_code=%d response=%s.",
-                result.task_name,
-                result.location,
-                response.status_code,
-                response.text,
-            )
-            raise ClickUpTaskCreateException(
-                f"The task \"{result.task_name}\" could not be created in ClickUp. Please try again or contact support."
-            )
+        self._post_task(endpoint, payload, task_name=result.task_name, location=result.location, task_status=result.task_status)
 
     def _update_summary_task(
             self,
@@ -691,45 +615,14 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         endpoint = f"/task/{result.task_id}"
 
-        payload = {}
+        payload = ClickUpTaskWriter._build_task_payload(result, include_name=False)
 
-        if result.task_status:
-            payload["status"] = result.task_status
-
-        priority = priority_to_str(result.task_priority)
-        if priority:
-            payload["priority"] = priority
-
-
-        assignee_names = []
-        if result.task_assigne:
-            assignee_names = [a.strip() for a in result.task_assigne.split(",")]
-
-        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
+        assignee_ids = ClickUpTaskWriter._resolve_assignee_ids(result, name_to_email, email_to_id, ignore_names,ignore_mails)
 
         if assignee_ids:
             payload["assignees"] = {"add": assignee_ids}
 
-        response = self._http.put_raw(endpoint, payload)
-
-        if response.status_code == 200:
-            logger.info(
-                "Summary task updated successfully. task_id=%s task_name=%s status_code=%d.",
-                result.task_id,
-                result.task_name,
-                response.status_code,
-            )
-        else:
-            logger.error(
-                "Summary task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
-                result.task_id,
-                result.task_name,
-                response.status_code,
-                response.text,
-            )
-            raise ClickUpTaskUpdateException(
-                f"The task \"{result.task_name}\" could not be updated in ClickUp. Please try again or contact support."
-            )
+        self._put_task(endpoint, payload, task_id=result.task_id, task_name=result.task_name)
 
     def _update_backlog_task(
             self,
@@ -770,7 +663,44 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         endpoint = f"/task/{result.task_id}"
 
+        payload = ClickUpTaskWriter._build_task_payload(result, include_name=False)
+
+
+        if result.estimation is not None:
+            payload["time_estimate"] = result.estimation * 3_600_000
+
+        assignee_ids = ClickUpTaskWriter._resolve_assignee_ids(result, name_to_email, email_to_id, ignore_names,ignore_mails)
+
+        if assignee_ids:
+            payload["assignees"] = {"add": assignee_ids}
+
+        self._put_task(endpoint, payload, task_id=result.task_id, task_name=result.task_name)
+
+    @staticmethod
+    def _build_task_payload(result, include_name: bool = True) -> dict:
+        """
+        Build a ClickUp task payload from a verified task result.
+
+        This method converts verified task data into a payload compatible with
+        the ClickUp API. Depending on the operation type, task name and
+        description can optionally be included.
+
+        Args:
+            result:
+                Verified task result containing task metadata such as name,
+                description, status, and priority.
+            include_name:
+                If True, task name and description are included in the payload.
+                Typically enabled for task creation and disabled for updates.
+
+        Returns:
+            dict: ClickUp API payload containing task fields to create or update.
+        """
         payload = {}
+
+        if include_name:
+            payload["name"] = result.task_name
+            payload["description"] = result.task_description
 
         if result.task_status:
             payload["status"] = result.task_status
@@ -779,38 +709,38 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         if priority:
             payload["priority"] = priority
 
-        if result.estimation is not None:
-            payload["time_estimate"] = result.estimation * 3_600_000
+        return payload
 
+    @staticmethod
+    def _resolve_assignee_ids(result, name_to_email, email_to_id, ignore_names, ignore_mails) -> list:
+        """
+        Resolve ClickUp assignee IDs from verified task assignee names.
+
+        This method extracts assignee names from the verified task result,
+        resolves them into email addresses, and finally maps them to ClickUp
+        member IDs.
+
+        Args:
+            result: Verified task result containing assignee information.
+            name_to_email: Mapping of assignee names to email addresses.
+            email_to_id: Mapping of email addresses to ClickUp member IDs.
+            ignore_names:
+                If True, unknown assignee names are ignored.
+                If False, an exception is raised for unresolved names.
+            ignore_mails:
+                If True, unresolved email addresses are ignored.
+                If False, an exception is raised when email resolution fails.
+
+        Returns:
+            list: List of resolved ClickUp member IDs.
+        """
         assignee_names = []
         if result.task_assigne:
             assignee_names = [a.strip() for a in result.task_assigne.split(",")]
 
-        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names, ignore_mails)
+        assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names,ignore_mails)
 
-        if assignee_ids:
-            payload["assignees"] = {"add": assignee_ids}
-
-        response = self._http.put_raw(endpoint, payload)
-
-        if response.status_code == 200:
-            logger.info(
-                "Backlog task updated successfully. task_id=%s task_name=%s status_code=%d.",
-                result.task_id,
-                result.task_name,
-                response.status_code,
-            )
-        else:
-            logger.error(
-                "Backlog task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
-                result.task_id,
-                result.task_name,
-                response.status_code,
-                response.text,
-            )
-            raise ClickUpTaskUpdateException(
-                f"The task \"{result.task_name}\" could not be updated in ClickUp. Please try again or contact support."
-            )
+        return assignee_ids
 
     @staticmethod
     def _build_location_list_map(folders: List[FolderWithListsMetadata]) -> dict:
@@ -833,3 +763,66 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 label = lst.name if folder.id == lst.id else f"{folder.name} / {lst.name}"
                 mapping[label] = lst.id
         return mapping
+
+    def _post_task(self, endpoint: str, payload: dict, task_name: str, location: str, task_status: str) -> None:
+        """
+        Send a task creation request to the ClickUp API.
+
+        This helper method performs the HTTP POST request used to create a task
+        in ClickUp and centralizes logging and error handling for task creation
+        operations.
+
+        Args:
+            endpoint: ClickUp API endpoint used for task creation.
+            payload: Request payload containing task data.
+            task_name: Name of the task being created.
+            location: Target ClickUp folder/list location.
+            task_status: Initial status assigned to the task.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskCreateException: Raised when the ClickUp API request fails.
+        """
+        response = self._http.post_raw(endpoint, payload)
+        if response.status_code == 200:
+            logger.info("Task created successfully. task_name=%s location=%s task_status=%s status_code=%d.",
+                        task_name, location, task_status, response.status_code)
+        else:
+            logger.error("Task creation failed. task_name=%s location=%s status_code=%d response=%s.",
+                         task_name, location, response.status_code, response.text)
+            raise ClickUpTaskCreateException(
+                f"The task \"{task_name}\" could not be created in ClickUp. Please try again or contact support."
+            )
+
+    def _put_task(self, endpoint: str, payload: dict, task_id: str, task_name: str) -> None:
+        """
+        Send a task update request to the ClickUp API.
+
+        This helper method performs the HTTP PUT request used to update an
+        existing ClickUp task and centralizes logging and error handling for
+        task update operations.
+
+        Args:
+            endpoint: ClickUp API endpoint used for task updates.
+            payload: Request payload containing updated task fields.
+            task_id: Identifier of the ClickUp task being updated.
+            task_name: Name of the task being updated.
+
+        Returns:
+            None.
+
+        Raises:
+            ClickUpTaskUpdateException: Raised when the ClickUp API request fails.
+        """
+        response = self._http.put_raw(endpoint, payload)
+        if response.status_code == 200:
+            logger.info("Task updated successfully. task_id=%s task_name=%s status_code=%d.",
+                        task_id, task_name, response.status_code)
+        else:
+            logger.error("Task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
+                         task_id, task_name, response.status_code, response.text)
+            raise ClickUpTaskUpdateException(
+                f"The task \"{task_name}\" could not be updated in ClickUp. Please try again or contact support."
+            )
