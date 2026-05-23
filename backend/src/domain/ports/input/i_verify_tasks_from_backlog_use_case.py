@@ -10,14 +10,16 @@ It acts as a contract for application-level services responsible for:
 - Detecting changes based on task description matching
 - Producing a diff of actions to apply in ClickUp
 """
-
+from abc import ABC, abstractmethod
 from typing import List
 
+from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
 
-class IVerifyTasksUseCase:
+class IVerifyTasksFromBacklogUseCase(ABC):
     """
     Define ClickUp task verification behavior required by the application.
 
@@ -26,19 +28,20 @@ class IVerifyTasksUseCase:
     (create or update operations), abstracting comparison logic and rules.
     """
 
+    @abstractmethod
     def verify_tasks(
         self,
-        tasks: List[GeneratedTaskFromSummary],
+        tasks: List[GeneratedTaskFromBacklog],
         space_id: str,
-    ) -> List[VerifiedTask]:
+    ) -> List[VerifiedTaskFromBacklog]:
         """
         Verify generated tasks against existing ClickUp tasks.
 
         Args:
-            tasks (List[GeneratedTaskFromSummary]): List of generated tasks to verify.
+            tasks (List[GeneratedTaskFromBacklog]): List of generated tasks from a backlog to verify.
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[VerifiedTask]: List of actions to apply (create or update only).
+            List[VerifiedTaskFromBacklog]: List of actions to apply (create or update only).
         """
         pass

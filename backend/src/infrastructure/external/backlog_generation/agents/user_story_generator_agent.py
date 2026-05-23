@@ -8,16 +8,10 @@ with user stories based on product context and refined market intelligence.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.backlog.epic import Epic
 from backend.src.domain.entities.backlog.user_story import UserStoryList
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_strory_generator import IUserStoryGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -63,9 +57,10 @@ class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
         """
         logger.info("Generating user stories for epic: %s.", epic.title)
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="UserStoryGeneratorAgent",
             folder_name="backlog_generation",
-            name="user_story_generator_agent",
+            prompt_name="user_story_generator_agent",
             variables={
                 "title": epic.title,
                 "description": epic.description,
@@ -79,38 +74,12 @@ class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
                 "user_pain_points": context.refined_user_pain_points,
                 "best_practices": context.refined_best_practices,
                 "enrichment_notes": context.refined_enrichment_notes,
-            }
+            },
+            response_format=UserStoryList,
         )
 
+        result.epic_title = epic.title
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("User story generation completed for epic: %s.", epic.title)
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=UserStoryList,
-                temperature=0,
-            )
-
-            response = completion.choices[0].message.parsed
-            response.epic_title = epic.title
-
-            logger.info("User story generation completed for epic: %s.", epic.title)
-
-            return response
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in UserStoryGeneratorAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in UserStoryGeneratorAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("User story generating failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

@@ -10,13 +10,13 @@ It acts as a contract for application-level services responsible for:
 - Extracting actionable tasks
 - Mapping tasks into ClickUp-compatible structures
 """
-
+from abc import ABC, abstractmethod
 from typing import List
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 
 
-class IGenerateTasksFromSummaryUseCase:
+class IGenerateTasksFromSummaryUseCase(ABC):
     """
     Define task generation behavior required by the application.
 
@@ -25,6 +25,7 @@ class IGenerateTasksFromSummaryUseCase:
     (LLM, rules, or hybrid approaches).
     """
 
+    @abstractmethod
     def generate_tasks_from_meeting_summary(self, meeting_summary: str, space_id) -> List[GeneratedTaskFromSummary]:
         """
         Generate ClickUp tasks from a meeting summary.

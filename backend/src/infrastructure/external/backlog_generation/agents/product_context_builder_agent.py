@@ -11,13 +11,7 @@ target users, business goals, and constraints.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iproduct_context_builder import IProductContextBuilder
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -57,39 +51,16 @@ class ProductContextBuilderAgent(BaseAgent, IProductContextBuilder):
         """
         logger.info("Starting product context building process.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="ProductContextBuilderAgent",
             folder_name="backlog_generation",
-            name="product_context_builder_agent",
+            prompt_name="product_context_builder_agent",
             variables={
                 "description": description,
-            }
+            },
+            response_format=InitialDescription,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("Product context building completed successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=InitialDescription,
-                temperature=0,
-            )
-
-            logger.info("Product context building completed successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in ProductContextBuilderAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in ProductContextBuilderAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Product context building failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

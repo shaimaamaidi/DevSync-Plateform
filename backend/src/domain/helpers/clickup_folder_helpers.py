@@ -16,6 +16,7 @@ from typing import List, Dict
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 
 
@@ -51,7 +52,7 @@ def get_tasks_by_location(folders) -> Dict[str, List[ClickUpTask]]:
     return result
 
 
-def get_generated_tasks_by_location(generated_tasks: List[GeneratedTaskFromSummary]) -> Dict[str, List[GeneratedTaskFromSummary]]:
+def get_generated_tasks_from_summary_by_location(generated_tasks: List[GeneratedTaskFromSummary]) -> Dict[str, List[GeneratedTaskFromSummary]]:
     """
     Group generated tasks by location label.
 
@@ -62,6 +63,28 @@ def get_generated_tasks_by_location(generated_tasks: List[GeneratedTaskFromSumma
         Mapping of location label to a list of GeneratedTask instances.
     """
     result: Dict[str, List[GeneratedTaskFromSummary]] = {}
+
+    for task in generated_tasks:
+        result.setdefault(task.location, []).append(task)
+
+    logger.info(
+        "Generated tasks grouped by location: %s",
+        {label: len(tasks) for label, tasks in result.items()},
+    )
+
+    return result
+
+def get_generated_tasks_from_backlog_by_location(generated_tasks: List[GeneratedTaskFromBacklog]) -> Dict[str, List[GeneratedTaskFromBacklog]]:
+    """
+    Group generated tasks by location label.
+
+    Args:
+        generated_tasks: List of GeneratedTaskFromBacklog instances.
+
+    Returns:
+        Mapping of location label to a list of GeneratedTask instances.
+    """
+    result: Dict[str, List[GeneratedTaskFromBacklog]] = {}
 
     for task in generated_tasks:
         result.setdefault(task.location, []).append(task)

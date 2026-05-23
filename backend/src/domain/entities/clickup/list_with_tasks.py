@@ -33,6 +33,19 @@ class ClickUpTask(BaseModel):
     assignee: Optional[str] = Field(None, description="Email of the assignee, if any.")
     priority: Optional[str] = Field(None, description="Priority level of the task, if any.")
 
+    def to_dict(self) -> dict:
+        """
+        Serialize task fields for LLM consumption.
+        """
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "status": self.status,
+            "priority": self.priority,
+            "assignee": self.assignee,
+        }
+
 
 class ClickUpList(BaseModel):
     """

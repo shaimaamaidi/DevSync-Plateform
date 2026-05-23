@@ -11,15 +11,9 @@ that serve as the foundation of backlog generation.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.backlog.epic import EpicList
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iepic_generator import IEpicGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -63,9 +57,10 @@ class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
         """
         logger.info("Starting epic generation process.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="EpicGeneratorAgent",
             folder_name="backlog_generation",
-            name="epic_generator_agent",
+            prompt_name="epic_generator_agent",
             variables={
                 "overview": detailed_description.product_overview,
                 "target_users": "\n".join(f"- {u}" for u in detailed_description.target_users),
@@ -77,34 +72,10 @@ class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
                 "user_pain_points": context.refined_user_pain_points,
                 "best_practices": context.refined_best_practices,
                 "enrichment_notes": context.refined_enrichment_notes,
-            }
+            },
+            response_format=EpicList,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("Epic generation completed successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=EpicList,
-                temperature=0,
-            )
-
-            logger.info("Epic generation completed successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in BacklogPrioritizerAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in BacklogPrioritizerAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Epic generating failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

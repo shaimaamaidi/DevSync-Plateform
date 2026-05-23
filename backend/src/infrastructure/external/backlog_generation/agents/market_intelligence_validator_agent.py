@@ -9,15 +9,9 @@ product description.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_validator import \
     IMarketIntelligenceValidator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -62,9 +56,10 @@ class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
         """
         logger.info("Validating market intelligence with LLM.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="MarketIntelligenceValidatorAgent",
             folder_name="backlog_generation",
-            name="market_intelligence_validator_agent",
+            prompt_name="market_intelligence_validator_agent",
             variables={
                 "overview": detailed_description.product_overview,
                 "target_users": "\n".join(f"- {u}" for u in detailed_description.target_users),
@@ -77,34 +72,10 @@ class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
                 "user_pain_points": context.user_pain_points,
                 "best_practices": context.best_practices,
                 "enrichment_notes": context.enrichment_notes,
-            }
+            },
+            response_format=RefinedMarketIntelligenceSummary,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("Market intelligence validated successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=RefinedMarketIntelligenceSummary,
-                temperature=0,
-            )
-
-            logger.info("Market intelligence validated successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in MarketIntelligenceValidatorAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in MarketIntelligenceValidatorAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Market intelligence validating failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

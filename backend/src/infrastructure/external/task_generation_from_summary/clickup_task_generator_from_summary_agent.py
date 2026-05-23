@@ -1,7 +1,7 @@
 """
 ClickUp task generator agent.
 
-This module defines the ClickUpTaskGeneratorAgent, responsible for generating
+This module defines the ClickUpTaskFromSummaryGeneratorAgent, responsible for generating
 ClickUp tasks from a meeting summary using an LLM. It transforms unstructured
 meeting content into structured domain tasks compatible with ClickUp workflow.
 """
@@ -10,14 +10,8 @@ import logging
 import json
 from typing import List, Dict
 
-from openai import APIStatusError, APIConnectionError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskListFromSummary
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.task_generation_from_summary.i_task_generator_from_summary import ITaskGeneratorFromSummary
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -68,41 +62,17 @@ class ClickUpTaskFromSummaryGeneratorAgent(BaseAgent, ITaskGeneratorFromSummary)
         else:
             locations_text = "No locations available."
 
-        messages = self.prompt_loader.get_messages(
+        parsed: GeneratedTaskListFromSummary = self._call_llm(
+            agent_name="ClickUpTaskFromSummaryGeneratorAgent",
             folder_name="task_generation_from_summary",
-            name="clickup_task_generator_agent",
+            prompt_name="clickup_task_generator_agent",
             variables={
                 "meeting_summary": meeting_summary,
-                "locations_text" : locations_text
-            }
+                "locations_text": locations_text
+            },
+            response_format=GeneratedTaskListFromSummary,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
-
-        try:
-            response = self.client.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                temperature=0,
-                response_format=GeneratedTaskListFromSummary,
-            )
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in ClickUpTaskGeneratorAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in ClickUpTaskGeneratorAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Click up tasks generating from meeting summary failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
-
-        parsed: GeneratedTaskListFromSummary = response.choices[0].message.parsed
         if not parsed or not parsed.tasks:
             logger.warning("No tasks extracted from meeting summary.")
             return []

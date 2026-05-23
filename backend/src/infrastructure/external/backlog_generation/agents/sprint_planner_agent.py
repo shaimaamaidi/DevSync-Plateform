@@ -8,14 +8,8 @@ prioritized backlog into time-based sprint distributions suitable for agile plan
 
 import logging
 
-from openai import APIStatusError, APIConnectionError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.entities.sprint.planning import SprintPlanning
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.isprint_planner import ISprintPlanner
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
@@ -54,39 +48,16 @@ class SprintPlannerAgent(BaseAgent, ISprintPlanner):
         """
         logger.info("Starting sprint planning generation.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="SprintPlannerAgent",
             folder_name="backlog_generation",
-            name="sprint_planner_agent",
+            prompt_name="sprint_planner_agent",
             variables={
                 "backlog": format_backlog(backlog),
-            }
+            },
+            response_format=SprintPlanning,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("Sprint planning generation completed successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=SprintPlanning,
-                temperature=0,
-            )
-
-            logger.info("Sprint planning generation completed successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in SprintPlannerAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in SprintPlannerAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Sprint planning failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

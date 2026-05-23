@@ -7,7 +7,7 @@ from a sprint backlog using AI-based extraction.
 The request represents a structured sprint backlog that will be transformed
 into actionable tasks associated with a ClickUp workspace.
 
-Main classes:
+Main class:
     GeneratedTaskFromBacklogRequest
 """
 
@@ -27,5 +27,5 @@ class GeneratedTaskFromBacklogRequest(BaseModel):
         sprint_backlog: Sprint backlog data used to generate tasks.
         space_id: Identifier of the ClickUp workspace where tasks will be created.
     """
-    sprint_backlog: Sprint
+    sprint_backlog: Sprint = Field(..., description="Sprint backlog data used to generate tasks.")
     space_id: str = Field(..., min_length=1, description="Identifier of the ClickUp workspace.")

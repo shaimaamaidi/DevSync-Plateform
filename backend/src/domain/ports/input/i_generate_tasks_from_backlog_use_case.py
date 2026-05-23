@@ -10,14 +10,14 @@ It acts as a contract for application-level services responsible for:
 - Extracting actionable tasks
 - Mapping tasks into ClickUp-compatible structures
 """
-
+from abc import ABC, abstractmethod
 from typing import List
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
 from backend.src.domain.entities.sprint.sprint import Sprint
 
 
-class IGenerateTasksFromBacklogUseCase:
+class IGenerateTasksFromBacklogUseCase(ABC):
     """
     Define task generation behavior required by the application.
 
@@ -26,6 +26,7 @@ class IGenerateTasksFromBacklogUseCase:
     (LLM, rules, or hybrid approaches).
     """
 
+    @abstractmethod
     def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id) -> List[GeneratedTaskFromBacklog]:
         """
         Generate ClickUp tasks from a sprint backlog.

@@ -10,14 +10,8 @@ for web exploration and market intelligence enrichment.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.market.query import QueryGeneration
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_query_generator import IMarketQueryGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -56,9 +50,10 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
         """
         logger.info("Starting market query generation process.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="MarketQueryGeneratorAgent",
             folder_name="backlog_generation",
-            name="market_query_generator_agent",
+            prompt_name="market_query_generator_agent",
             variables={
                 "overview": detailed_description.product_overview,
                 "target_users": "\n".join(f"- {u}" for u in detailed_description.target_users),
@@ -66,34 +61,11 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
                 "business_goals": "\n".join(f"- {g}" for g in detailed_description.business_goals),
                 "constraints": "\n".join(f"- {c}" for c in detailed_description.constraints),
                 "summary": detailed_description.summary,
-            }
+            },
+            response_format=QueryGeneration,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("Market query generation completed successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=QueryGeneration,
-                temperature=0,
-            )
+        return result
 
-            logger.info("Market query generation completed successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in MarketQueryGeneratorAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in MarketQueryGeneratorAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Market query generating failed: reason=%s.", str(e))
-            raise LLMParsingException() from e

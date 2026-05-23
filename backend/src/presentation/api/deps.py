@@ -31,7 +31,7 @@ from backend.src.application.use_cases.generate_backlog_use_case import Generate
 from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
-from backend.src.application.use_cases.verify_tasks_use_case import VerifyTasksUseCase
+from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.infrastructure.di.container import Container
@@ -221,7 +221,7 @@ def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskManagemen
 
     except Exception as e:
         logger.exception("Failed to retrieve ClickUp task creation use case: %s", str(e))
-        raise ServiceUnavailableException("ClickUp task creation service is unavailable.") from e
+        raise ServiceUnavailableException("Click up task creation service is unavailable.") from e
 
 def get_clickup_space_task_reader_use_case(request: Request) -> ClickUpSpaceTaskReaderUseCase:
     """
@@ -276,7 +276,7 @@ def get_clickup_structure_metadata_use_case(request: Request) -> ClickUpStructur
         use_case = request.app.state.workflow_container.clickup_structure_metadata_use_case
 
         if use_case is None:
-            raise ServiceUnavailableException("ClickUp structure metadata use case is not initialized.")
+            raise ServiceUnavailableException("Click up structure metadata use case is not initialized.")
 
         return use_case
 
@@ -284,8 +284,8 @@ def get_clickup_structure_metadata_use_case(request: Request) -> ClickUpStructur
         raise
 
     except Exception as e:
-        logger.exception("Failed to retrieve ClickUp structure metadata use case: %s", str(e))
-        raise ServiceUnavailableException("ClickUp structure metadata service is unavailable.") from e
+        logger.exception("Failed to retrieve Click up structure metadata use case: %s", str(e))
+        raise ServiceUnavailableException("Click up structure metadata service is unavailable.") from e
 
 # Request-scoped use case (requires member_repo)
 def get_save_task_use_case(
@@ -323,14 +323,14 @@ def get_save_task_use_case(
         raise ServiceUnavailableException("Save task service is unavailable.") from e
 
 # Request-scoped use case (requires member_repo)
-def get_verify_tasks_use_case(
+def get_verify_tasks_from_summary_use_case(
     request: Request,
     container: Container = Depends(get_container),
-) -> VerifyTasksUseCase:
+) -> VerifyTasksFromSummaryUseCase:
     """
     Build and provide the verify tasks use case for the current request.
 
-    Unlike the other use cases, VerifyTasksUseCase requires member_repo
+    Unlike the other use cases, VerifyTasksFromSummaryUseCase requires member_repo
     which is request-scoped (bound to a SQLAlchemy session). It is therefore
     constructed fresh per request by combining:
         - Singleton ClickUp infrastructure from WorkflowContainer (app.state)
@@ -341,21 +341,56 @@ def get_verify_tasks_use_case(
         container (Container): The request-scoped DI container providing member_repo.
 
     Returns:
-        VerifyTasksUseCase: A fully initialized verify tasks use case for this request.
+        VerifyTasksFromSummaryUseCase: A fully initialized verify tasks use case for this request.
 
     Raises:
         ServiceUnavailableException: If the ClickUp infrastructure is not initialized in
             the application state, or if an unexpected error occurs while building the use case.
     """
     try:
-        return request.app.state.workflow_container.create_tasks_verification_use_case(
+        return request.app.state.workflow_container.create_tasks_from_summary_verification_use_case(
             member_repo=container.member_repo
         )
     except ServiceUnavailableException:
         raise
     except Exception as e:
-        logger.exception("Failed to build save task use case: %s", str(e))
-        raise ServiceUnavailableException("Verify task service is unavailable.") from e
+        logger.exception("Failed to build verify task from summary use case: %s", str(e))
+        raise ServiceUnavailableException("Verify task from summary service is unavailable.") from e
+
+# Request-scoped use case (requires member_repo)
+def get_verify_tasks_from_backlog_use_case(
+    request: Request,
+    container: Container = Depends(get_container),
+) -> VerifyTasksFromSummaryUseCase:
+    """
+    Build and provide the verify tasks use case for the current request.
+
+    Unlike the other use cases, VerifyTasksFromSummaryUseCase requires member_repo
+    which is request-scoped (bound to a SQLAlchemy session). It is therefore
+    constructed fresh per request by combining:
+        - Singleton ClickUp infrastructure from WorkflowContainer (app.state)
+        - Request-scoped member_repo from the session-bound Container
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+        container (Container): The request-scoped DI container providing member_repo.
+
+    Returns:
+        VerifyTasksFromBacklogUseCase: A fully initialized verify tasks use case for this request.
+
+    Raises:
+        ServiceUnavailableException: If the ClickUp infrastructure is not initialized in
+            the application state, or if an unexpected error occurs while building the use case.
+    """
+    try:
+        return request.app.state.workflow_container.create_tasks_from_backlog_verification_use_case(
+            member_repo=container.member_repo
+        )
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to build verify task from backlog use case: %s", str(e))
+        raise ServiceUnavailableException("Verify task from backlog service is unavailable.") from e
 
 # Request-scoped use case (requires clickup_repo)
 def get_clickup_structure_creation_use_case(
@@ -405,5 +440,5 @@ def get_clickup_structure_creation_use_case(
     except ServiceUnavailableException:
         raise
     except Exception as e:
-        logger.exception("Failed to build clickup structure creation use case: %s", str(e))
-        raise ServiceUnavailableException("Creation clickup structure service is unavailable.") from e
+        logger.exception("Failed to build click up structure creation use case: %s", str(e))
+        raise ServiceUnavailableException("Creation click up structure service is unavailable.") from e

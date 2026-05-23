@@ -9,16 +9,10 @@ and refined market intelligence.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.backlog.task import TaskList
 from backend.src.domain.entities.backlog.user_story import UserStory
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.itask_generator import ITaskGenerator
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -65,53 +59,27 @@ class TaskGeneratorAgent(BaseAgent, ITaskGenerator):
         """
         logger.info("Generating tasks for user story: %s.", user_story.title)
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="TaskGeneratorAgent",
             folder_name="backlog_generation",
-            name="task_generator_agent",
+            prompt_name="task_generator_agent",
             variables={
                 "title": user_story.title,
                 "description": user_story.description,
                 "overview": detailed_description.product_overview,
-                "target_users":  "\n".join(f"- {u}" for u in detailed_description.target_users),
+                "target_users": "\n".join(f"- {u}" for u in detailed_description.target_users),
                 "core_features": "\n".join(f"- {f}" for f in detailed_description.core_features),
-                "business_goals":  "\n".join(f"- {g}" for g in detailed_description.business_goals),
+                "business_goals": "\n".join(f"- {g}" for g in detailed_description.business_goals),
                 "summary": detailed_description.summary,
-                "technical_constraints":  "\n".join(f"- {c}" for c in detailed_description.constraints),
-                "best_practices":  "\n".join(f"- {p}" for p in context.refined_best_practices),
+                "technical_constraints": "\n".join(f"- {c}" for c in detailed_description.constraints),
+                "best_practices": "\n".join(f"- {p}" for p in context.refined_best_practices),
                 "enrichment_notes": context.refined_enrichment_notes,
-            }
+            },
+            response_format=TaskList,
         )
 
+        result.user_story_title = user_story.title
 
+        logger.info("Task generation completed for user story: %s.", user_story.title)
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
-
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=TaskList,
-                temperature=0,
-            )
-
-            response = completion.choices[0].message.parsed
-            response.user_story_title = user_story.title
-
-            logger.info("Task generation completed for user story: %s.", user_story.title)
-
-            return response
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in TaskGeneratorAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in TaskGeneratorAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Task generating failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

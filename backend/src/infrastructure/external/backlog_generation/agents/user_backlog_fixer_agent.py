@@ -9,17 +9,8 @@ with the expected domain model.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import (
-    ChatCompletionSystemMessageParam,
-    ChatCompletionUserMessageParam,
-)
-
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.entities.backlog.validation import BacklogValidation
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_backlog_fixer import IUserBacklogFixer
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
@@ -64,40 +55,17 @@ class UserBacklogFixerAgent(BaseAgent, IUserBacklogFixer):
         """
         logger.info("Starting user backlog validation process.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="UserBacklogFixerAgent",
             folder_name="backlog_generation",
-            name="user_backlog_fixer_agent",
+            prompt_name="user_backlog_fixer_agent",
             variables={
                 "reference_backlog": format_backlog(backlog_reference),
                 "user_backlog": format_backlog(backlog_to_validate),
-            }
+            },
+            response_format=BacklogValidation,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("User backlog validation completed successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=BacklogValidation,
-                temperature=0,
-            )
-
-            logger.info("User backlog validation completed successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in UserBacklogFixerAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in UserBacklogFixerAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("User backlog fixing failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

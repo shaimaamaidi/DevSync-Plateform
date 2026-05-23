@@ -5,9 +5,9 @@ Integration tests for ClickUp task generation and verification routes.
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTask
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary_request import GeneratedTaskFromSummaryRequest
-from backend.src.domain.entities.verify_tasks.verify_tasks_request import VerifyTasksRequest
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary_request import VerifyTasksRequest
 
 
 def test_generate_tasks_from_summary(client: TestClient, container) -> None:

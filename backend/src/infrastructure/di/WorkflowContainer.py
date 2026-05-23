@@ -26,7 +26,8 @@ from backend.src.application.use_cases.generate_backlog_use_case import Generate
 from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
 from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
-from backend.src.application.use_cases.verify_tasks_use_case import VerifyTasksUseCase
+from backend.src.application.use_cases.verify_tasks_from_backlog_use_case import VerifyTasksFromBacklogUseCase
+from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
@@ -61,11 +62,13 @@ from backend.src.infrastructure.external.clickup.clickup_reader import ClickUpRe
 from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
 from backend.src.infrastructure.external.clickup.writer.clickup_workspace_writer import ClickUpWorkSpaceWriter
-from backend.src.infrastructure.external.clickup_task_verification.clickup_task_verifier_agent import \
-    ClickUpTaskVerifierAgent
-from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_agent import \
+from backend.src.infrastructure.external.task_verification.task_from_backlog_verifier_agent import \
+    TaskFromBacklogVerifierAgent
+from backend.src.infrastructure.external.task_verification.task_from_summary_verifier_agent import \
+    TaskFromSummaryVerifierAgent
+from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_from_backlog_agent import \
     ClickUpTaskGeneratorFromBacklogAgent
-from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_agent import \
+from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_from_summary_agent import \
     ClickUpTaskFromSummaryGeneratorAgent
 from backend.src.infrastructure.prompts.prompt_loader import PromptLoader
 
@@ -352,7 +355,8 @@ class WorkflowContainer:
         """
         logger.info("Initializing task verification agent.")
 
-        self.clickup_task_verifier_agent = ClickUpTaskVerifierAgent(self.prompt_loader)
+        self.task_from_summary_verifier_agent = TaskFromSummaryVerifierAgent(self.prompt_loader)
+        self.task_from_backlog_verifier_agent = TaskFromBacklogVerifierAgent(self.prompt_loader)
 
     def _init_clickup_structure_metadata_use_case(self):
         """
@@ -369,8 +373,7 @@ class WorkflowContainer:
         from the ClickUp API.
 
         Raises:
-            AppException:
-                If required ClickUp infrastructure is not properly initialized.
+            AppException: If required ClickUp infrastructure is not properly initialized.
         """
         logger.info("Initializing ClickUpStructureMetadataUseCase.")
 
@@ -461,12 +464,10 @@ class WorkflowContainer:
             member_repo (IMemberRepository): Request-scoped member repository.
 
         Returns:
-            ClickUpStructureManagementUseCase:
-                Fully initialized use case ready to create ClickUp workspace structure.
+            ClickUpStructureManagementUseCase: Fully initialized use case ready to create ClickUp workspace structure.
 
         Raises:
-            ServiceUnavailableException:
-                If required ClickUp writer infrastructure is not initialized.
+            ServiceUnavailableException: If required ClickUp writer infrastructure is not initialized.
         """
         if self.clickup_writer is None:
             raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
@@ -478,9 +479,9 @@ class WorkflowContainer:
             clickup_writer=self.clickup_workspace_writer
         )
 
-    def create_tasks_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTasksUseCase:
+    def create_tasks_from_summary_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTasksFromSummaryUseCase:
         """
-        Factory method for VerifyTasksUseCase.
+        Factory method for VerifyTasksFromSummaryUseCase.
 
         This method creates a use case responsible for verifying generated ClickUp.
 
@@ -493,22 +494,53 @@ class WorkflowContainer:
             member_repo (IMemberRepository): Request-scoped member repository.
 
         Returns:
-            VerifyTasksUseCase:
-                Fully initialized use case ready to verify generated ClickUp.
+            VerifyTasksFromSummaryUseCase: Fully initialized use case ready to verify generated ClickUp.
 
         Raises:
-            ServiceUnavailableException:
-                If required ClickUp writer infrastructure is not initialized.
+            ServiceUnavailableException: If required ClickUp writer infrastructure is not initialized.
         """
         if self.clickup_reader is None:
             raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
-        if self.clickup_task_verifier_agent is None:
+        if self.task_from_summary_verifier_agent is None:
             raise ServiceUnavailableException(
                 "Task verification service is currently unavailable. Please try again later.")
 
-        return VerifyTasksUseCase(
+        return VerifyTasksFromSummaryUseCase(
             clickup_reader=self.clickup_reader,
-            task_verifier=self.clickup_task_verifier_agent,
+            task_verifier=self.task_from_summary_verifier_agent,
+            member_repo=member_repo,
+        )
+
+    def create_tasks_from_backlog_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTasksFromBacklogUseCase:
+        """
+        Factory method for VerifyTasksFromBacklogUseCase.
+
+        This method creates a use case responsible for verifying generated ClickUp.
+
+        It combines:
+            - The external member service (repository abstraction)
+            - The ClickUp workspace reader infrastructure component
+            - the agent who verify the tasks
+
+        Args:
+            member_repo (IMemberRepository): Request-scoped member repository.
+
+        Returns:
+            VerifyTasksFromBacklogUseCase: Fully initialized use case ready to verify generated ClickUp.
+
+        Raises:
+            ServiceUnavailableException: If required ClickUp writer infrastructure is not initialized.
+        """
+        if self.clickup_reader is None:
+            raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
+
+        if self.task_from_backlog_verifier_agent is None:
+            raise ServiceUnavailableException(
+                "Task verification service is currently unavailable. Please try again later.")
+
+        return VerifyTasksFromBacklogUseCase(
+            clickup_reader=self.clickup_reader,
+            task_verifier=self.task_from_backlog_verifier_agent,
             member_repo=member_repo,
         )

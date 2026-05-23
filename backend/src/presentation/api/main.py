@@ -34,8 +34,8 @@ from backend.src.presentation.api.middleware.auth_middleware import JWTAuthMiddl
 from backend.src.presentation.api.middleware.request_id_middleware import request_id_middleware
 from backend.src.presentation.api.routers import (
     associator_router, clickup_router, repo_router, member_router,
-    deployment_router, auth_router, backlog_router, health_router, verification_tasks_router,
-    generation_tasks_from_summary_router, clickup_task_save_router,
+    deployment_router, auth_router, backlog_router, health_router, verification_tasks_from_summary_router,
+    verification_tasks_from_backlog_router, generation_tasks_from_summary_router, clickup_task_save_router,
     clickup_structure_metadata_router, clickup_structure_management_router, clickup_task_management_router,
     clickup_space_task_reader_router, generation_tasks_from_backlog_router
 )
@@ -175,7 +175,12 @@ def create_app() -> FastAPI:
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
     app.include_router(backlog_router.router, prefix="/backlog", tags=["Backlog"])
     app.include_router(
-        verification_tasks_router.router,
+        verification_tasks_from_summary_router.router,
+        prefix="/clickup/tasks",
+        tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        verification_tasks_from_backlog_router.router,
         prefix="/clickup/tasks",
         tags=["ClickUp - Tasks"],
     )

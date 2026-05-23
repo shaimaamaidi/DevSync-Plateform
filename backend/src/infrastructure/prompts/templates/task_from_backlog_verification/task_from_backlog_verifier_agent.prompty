@@ -1,6 +1,6 @@
 ---
-name: ClickUpTaskVerification
-description: Verifies generated ClickUp tasks against existing ones and decides whether to create or update
+name: TaskFromBacklogVerification
+description: Verifies generated ClickUp tasks from a sprint backlog against existing ones and decides whether to create or update
 authors:
   - Amaidi Chaima
 model:
@@ -14,6 +14,7 @@ tags:
   - project-management
   - update
   - create
+  - backlog
 version: 1.0.0
 ---
 
@@ -30,8 +31,9 @@ system: |
   - status
   - priority
   - assignee
+  - estimation
 
-  2. A list of newly generated tasks extracted from a meeting summary.
+  2. A list of newly generated tasks extracted from a sprint backlog.
 
   ---
 
@@ -47,6 +49,7 @@ system: |
   - status
   - priority
   - assignee
+  - estimation
 
   Task names can change between runs and must NOT be used for matching.
 
@@ -72,11 +75,13 @@ system: |
   - status
   - priority
   - assignee
+  - estimation
 
   Rules:
   - Status change → action = "update"
   - Priority change → action = "update"
   - Assignee change → action = "update"
+  - Estimation change → action = "update"
 
   ---
 
@@ -102,12 +107,24 @@ system: |
 
   ---
 
+  ## ESTIMATION RULE
+
+  Estimation represents the expected effort in hours for a task.
+
+  Rules:
+  - If the generated estimation differs from the existing one → action = "update"
+  - Estimation must always be a positive integer.
+  - If no estimation is provided in the generated task → keep the existing estimation unchanged.
+
+  ---
+
   ## NO CHANGE RULE
 
   If the task already exists AND:
   - status is the same
   - priority is the same
   - assignee contains no new names
+  - estimation is the same
 
   → DO NOT return this task at all.
 
@@ -137,7 +154,8 @@ system: |
         "task_status": "to do",
         "task_priority": "normal",
         "task_assigne": "X",
-        "location": "FolderName / ListName"
+        "location": "FolderName / ListName",
+        "estimation": 3
       },
       {
         "action": "update",
@@ -147,7 +165,8 @@ system: |
         "task_status": "in progress",
         "task_priority": "high",
         "task_assigne": "X,Y",
-        "location": "FolderName / ListName"
+        "location": "FolderName / ListName",
+        "estimation": 5
       }
     ]
   }

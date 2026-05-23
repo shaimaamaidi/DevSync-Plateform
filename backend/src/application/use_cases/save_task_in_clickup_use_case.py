@@ -13,7 +13,7 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 from backend.src.domain.ports.input.i_save_task_in_clickup_use_case import ISaveTaskInClickUpUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
@@ -56,7 +56,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
 
     def save_to_clickup(
             self,
-            tasks: List[VerifiedTask],
+            tasks: List[VerifiedTaskFromSummary],
             space_id: str,
             ignore_names: bool,
             ignore_mails: bool
@@ -69,7 +69,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
         delegates task creation/update to the ClickUp writer.
 
         Args:
-            tasks (List[VerifiedTask]): List of verified tasks to apply.
+            tasks (List[VerifiedTaskFromSummary]): List of verified tasks to apply.
             space_id (str): ClickUp space identifier.
             ignore_names (bool): Whether to ignore name-based resolution.
             ignore_mails (bool): Whether to ignore email-based assignment.

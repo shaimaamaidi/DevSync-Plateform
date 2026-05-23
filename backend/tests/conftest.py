@@ -37,7 +37,7 @@ from backend.src.presentation.api.routers import (
     member_router,
     repo_router,
     backlog_router,
-    verification_tasks_router,
+    verification_tasks_from_summary_router,
     clickup_task_save_router,
 )
 

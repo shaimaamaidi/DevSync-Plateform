@@ -8,13 +8,7 @@ is consistent, normalized, and compliant with expected domain rules.
 
 import logging
 
-from openai import APIConnectionError, APIStatusError
-from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
-
 from backend.src.domain.entities.backlog.structure import BacklogStructure
-from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
-from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
-from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
@@ -53,39 +47,16 @@ class BacklogCleanerAgent(BaseAgent, IBacklogCleaner):
         """
         logger.info("Starting backlog cleaning process.")
 
-        messages = self.prompt_loader.get_messages(
+        result = self._call_llm(
+            agent_name="BacklogCleanerAgent",
             folder_name="backlog_generation",
-            name="backlog_cleaner_agent",
+            prompt_name="backlog_cleaner_agent",
             variables={
-                "backlog": format_backlog(backlog),
-            }
+                "backlog": format_backlog(backlog)
+            },
+            response_format=BacklogStructure,
         )
 
-        messages = [
-            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
-            ChatCompletionUserMessageParam(role="user", content=messages["user"])
-        ]
+        logger.info("Backlog cleaning completed successfully.")
 
-        try:
-            completion = self.client.beta.chat.completions.parse(
-                model=self.model,
-                messages=messages,
-                response_format=BacklogStructure,
-                temperature=0,
-            )
-
-            logger.info("Backlog cleaning completed successfully.")
-
-            return completion.choices[0].message.parsed
-
-        except APIConnectionError as e:
-            logger.exception("Network error contacting LLM in BacklogCleanerAgent: reason=%s.", str(e))
-            raise LLMNetworkException() from e
-
-        except APIStatusError as e:
-            logger.exception("LLM API error in BacklogCleanerAgent: status=%d.", e.status_code)
-            raise LLMApiException() from e
-
-        except Exception as e:
-            logger.exception("Backlog cleaning failed: reason=%s.", str(e))
-            raise LLMParsingException() from e
+        return result

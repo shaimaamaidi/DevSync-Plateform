@@ -1,5 +1,5 @@
 """
-ClickUp task verification API routes.
+Task from summary verification API routes.
 
 This module defines API endpoints for verifying generated tasks against existing
 ClickUp tasks.
@@ -17,10 +17,10 @@ import logging
 
 from fastapi import APIRouter, Depends, status
 
-from backend.src.domain.entities.verify_tasks.verify_tasks_request import VerifyTasksRequest
-from backend.src.domain.entities.verify_tasks.verify_tasks_response import VerifyTasksResponse
-from backend.src.domain.ports.input.i_verify_tasks_use_case import IVerifyTasksUseCase
-from backend.src.presentation.api.deps import get_verify_tasks_use_case
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary_request import VerifiedTaskFromSummaryRequest
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary_response import VerifiedTaskFromSummaryResponse
+from backend.src.domain.ports.input.i_verify_tasks_from_summary_use_case import IVerifyTasksFromSummaryUseCase
+from backend.src.presentation.api.deps import get_verify_tasks_from_summary_use_case
 
 
 logger = logging.getLogger(__name__)
@@ -30,20 +30,20 @@ router = APIRouter()
 
 
 @router.post(
-    "/verify",
-    response_model=VerifyTasksResponse,
+    "/verify-from-summary",
+    response_model=VerifiedTaskFromSummaryResponse,
     status_code=status.HTTP_200_OK,
     summary="Verify generated tasks against existing ClickUp tasks",
     description=(
-        "Receives a list of generated tasks and a ClickUp space identifier. "
+        "Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. "
         "Compares them folder by folder against existing tasks and returns "
         "a list of verified tasks with create or update actions."
     ),
 )
 def verify_tasks(
-    request: VerifyTasksRequest,
-    use_case: IVerifyTasksUseCase = Depends(get_verify_tasks_use_case),
-) -> VerifyTasksResponse:
+    request: VerifiedTaskFromSummaryRequest,
+    use_case: IVerifyTasksFromSummaryUseCase = Depends(get_verify_tasks_from_summary_use_case),
+) -> VerifiedTaskFromSummaryResponse:
     """
     Verify generated tasks against existing ClickUp tasks.
 
@@ -59,7 +59,7 @@ def verify_tasks(
             - tasks: list of generated tasks
             - space_id: ClickUp space identifier
 
-        use_case (IVerifyTasksUseCase): Application use case responsible for task verification logic.
+        use_case (IVerifyTasksFromSummaryUseCase): Application use case responsible for task verification logic.
 
     Returns:
         VerifyTasksResponse:
@@ -86,7 +86,7 @@ def verify_tasks(
         sum(1 for r in results if r.action == "update"),
     )
 
-    return VerifyTasksResponse(
+    return VerifiedTaskFromSummaryResponse(
         total=len(results),
         tasks=results,
     )

@@ -9,13 +9,13 @@ It acts as a contract for application-level services responsible for:
 - Resolving workspace members and assignees
 - Synchronizing verified domain results with ClickUp
 """
-
+from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
 
-class ISaveTaskInClickUpUseCase:
+class ISaveTaskInClickUpUseCase(ABC):
     """
     Define ClickUp task persistence behavior required by the application.
 
@@ -24,9 +24,10 @@ class ISaveTaskInClickUpUseCase:
     resolution logic.
     """
 
+    @abstractmethod
     def save_to_clickup(
             self,
-            tasks: List[VerifiedTask],
+            tasks: List[VerifiedTaskFromSummary],
             space_id,
             ignore_names: bool,
             ignore_mails: bool
@@ -35,7 +36,7 @@ class ISaveTaskInClickUpUseCase:
         Apply verified tasks into ClickUp.
 
         Args:
-            tasks (List[VerifiedTask]): List of verified task actions.
+            tasks (List[VerifiedTaskFromSummary]): List of verified task actions.
             space_id (str): ClickUp space identifier.
             ignore_names (bool): Whether to ignore name-based resolution.
             ignore_mails (bool): Whether to ignore email-based assignment.

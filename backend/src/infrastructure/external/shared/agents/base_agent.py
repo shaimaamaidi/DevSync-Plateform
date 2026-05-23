@@ -12,12 +12,17 @@ import logging
 
 import os
 from pathlib import Path
+from typing import Type, TypeVar, Generic
 
 from dotenv import load_dotenv
-from openai import AzureOpenAI
+from openai import AzureOpenAI, APIConnectionError, APIStatusError
+from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
 from backend.src.domain.exceptions.azure.agent_initialization_exception import AgentInitializationException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
+from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
+from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 
 
@@ -27,8 +32,10 @@ logger = logging.getLogger(__name__)
 _BACKEND_DIR = Path(__file__).resolve().parents[5]
 _DOTENV_PATH = _BACKEND_DIR / ".env"
 
+T = TypeVar("T")
 
-class BaseAgent:
+
+class BaseAgent(Generic[T]):
     """
     Base class for all LLM agents.
 
@@ -99,3 +106,65 @@ class BaseAgent:
             ) from e
 
         self.prompt_loader = prompt_loader
+
+    def _call_llm(
+            self,
+            agent_name: str,
+            folder_name: str,
+            prompt_name: str,
+            variables: dict,
+            response_format: Type[T],
+    ) -> T:
+        """
+        Execute a structured LLM call with unified error handling.
+
+        Loads the prompt, builds messages, calls the LLM, and returns
+        the parsed response. Raises domain exceptions on failure.
+
+        Args:
+            agent_name: Agent name.
+            folder_name: Prompt folder name.
+            prompt_name: Prompt template name.
+            variables: Variables to inject into the prompt.
+            response_format: Pydantic model for structured output parsing.
+
+        Returns:
+            Parsed response of type T.
+
+        Raises:
+            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMApiException: If the LLM API returns an error response.
+            LLMParsingException: If the LLM response cannot be parsed correctly.
+        """
+        messages = self.prompt_loader.get_messages(
+            folder_name=folder_name,
+            name=prompt_name,
+            variables=variables,
+        )
+        messages = [
+            ChatCompletionSystemMessageParam(role="system", content=messages["system"]),
+            ChatCompletionUserMessageParam(role="user", content=messages["user"]),
+        ]
+
+        try:
+            response = self.client.chat.completions.parse(
+                model=self.model,
+                messages=messages,
+                temperature=0,
+                response_format=response_format,
+            )
+            return response.choices[0].message.parsed
+
+
+        except APIConnectionError as e:
+            logger.exception("Network error contacting LLM in %s: reason=%s.", agent_name, str(e))
+            raise LLMNetworkException() from e
+
+        except APIStatusError as e:
+            logger.exception("LLM API error in %s: status=%d.", agent_name, e.status_code)
+            raise LLMApiException() from e
+
+
+        except Exception as e:
+            logger.exception("LLM call failed in %s: reason=%s.", agent_name, str(e))
+            raise LLMParsingException() from e

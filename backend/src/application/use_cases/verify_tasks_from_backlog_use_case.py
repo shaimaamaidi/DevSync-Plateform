@@ -2,31 +2,28 @@
 ClickUp task verification use case module.
 
 This module provides the VerifyTaskUseCase class, which is responsible for verifying
-tasks against existing ClickUp tasks.
+tasks generated from backlog against existing ClickUp tasks.
 It organizes tasks by folder and delegates comparison logic to a verifier service.
 
 Classes:
-    VerifyTaskUseCase: Main use case for verifying generated tasks.
+    VerifyTasksFromBacklogUseCase: Main use case for verifying generated tasks.
 """
 
 import logging
 from typing import List
 
-from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
-from backend.src.domain.helpers.clickup_folder_helpers import get_generated_tasks_by_location, get_tasks_by_location
-
-from backend.src.domain.ports.input.i_verify_tasks_use_case import IVerifyTasksUseCase
+from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
+from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
+from backend.src.domain.helpers.clickup_folder_helpers import get_tasks_by_location, get_generated_tasks_from_backlog_by_location
+from backend.src.domain.ports.input.i_verify_tasks_from_backlog_use_case import IVerifyTasksFromBacklogUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
-from backend.src.domain.ports.services.clickup_task_verification.i_clickup_task_verifier import \
-    IClickUpTaskVerifier
-
+from backend.src.domain.ports.services.task_verification.i_task_from_backlog_verifier import ITaskFromBacklogVerifier
 
 logger = logging.getLogger(__name__)
 
 
-class VerifyTasksUseCase(IVerifyTasksUseCase):
+class VerifyTasksFromBacklogUseCase(IVerifyTasksFromBacklogUseCase):
     """
     Application use case for verifying generated ClickUp tasks.
 
@@ -35,14 +32,14 @@ class VerifyTasksUseCase(IVerifyTasksUseCase):
 
     Attributes:
         _clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
-        _task_verifier (IClickUpTaskVerifier): Service responsible for task verification logic.
+        _task_verifier (ITaskFromBacklogVerifier): Service responsible for task verification logic.
         _member_repo (IMemberRepository): Repository for resolving member identities.
     """
 
     def __init__(
         self,
         clickup_reader: IClickUpReader,
-        task_verifier: IClickUpTaskVerifier,
+        task_verifier: ITaskFromBacklogVerifier,
         member_repo: IMemberRepository
     ):
         """
@@ -50,15 +47,14 @@ class VerifyTasksUseCase(IVerifyTasksUseCase):
 
         Args:
             clickup_reader (IClickUpReader): ClickUp reader port implementation.
-            task_verifier (IClickUpTaskVerifier): Task verifier service.
+            task_verifier (ITaskFromBacklogVerifier): Task verifier service.
             member_repo (IMemberRepository): Member repository.
         """
         self._clickup_reader = clickup_reader
         self._task_verifier = task_verifier
         self._member_repo =member_repo
 
-
-    def verify_tasks(self, tasks: List[GeneratedTaskFromSummary], space_id) -> List[VerifiedTask]:
+    def verify_tasks(self, tasks: List[GeneratedTaskFromBacklog], space_id) -> List[VerifiedTaskFromBacklog]:
         """
         Verify tasks against existing ClickUp tasks.
 
@@ -67,11 +63,11 @@ class VerifyTasksUseCase(IVerifyTasksUseCase):
         folder by folder using a dedicated verifier service.
 
         Args:
-            tasks (List[GeneratedTaskFromSummary]): List of generated tasks.
+            tasks (List[GeneratedTaskFromBacklog]): List of generated tasks.
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[VerifiedTask]: List of verified tasks with corresponding actions.
+            List[VerifiedTaskFromBacklog]: List of verified tasks with corresponding actions.
         """
         logger.info(
             "Verifying tasks in ClickUp: space_id=%s tasks=%d.",
@@ -110,7 +106,7 @@ class VerifyTasksUseCase(IVerifyTasksUseCase):
 
                 task.assignee = ", ".join(resolved_names) if resolved_names else "غير محدد"
 
-        generated_by_location = get_generated_tasks_by_location(tasks)
+        generated_by_location = get_generated_tasks_from_backlog_by_location(tasks)
 
         all_results = []
         for location, gen_tasks in generated_by_location.items():

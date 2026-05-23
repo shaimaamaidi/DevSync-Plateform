@@ -10,7 +10,7 @@ from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTask
 
 
 class IClickUpTaskWriter(ABC):

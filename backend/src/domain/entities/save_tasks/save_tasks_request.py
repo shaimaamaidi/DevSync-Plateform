@@ -12,7 +12,7 @@ Main class:
 from typing import List
 from pydantic import BaseModel, Field
 
-from backend.src.domain.entities.verify_tasks.verified_task import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTask
 
 
 class SaveTasksRequest(BaseModel):
