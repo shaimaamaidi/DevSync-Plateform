@@ -1,20 +1,20 @@
 """
-ClickUp task saving use case module.
+Summary task saving use case module.
 
-This module provides the SaveTaskInClickUpUseCase class, which is responsible
-for applying verified tasks into ClickUp.
+This module provides the SaveSummaryTaskInClickUpUseCase class, which is responsible
+for applying verified summary tasks into ClickUp.
 It coordinates retrieval of space structure, member resolution, and delegates
 task persistence to a ClickUp writer.
 
 Classes:
-    SaveTaskInClickUpUseCase: Main use case for saving verified tasks into ClickUp.
+    SaveSummaryTaskInClickUpUseCase: Main use case for saving verified summary tasks into ClickUp.
 """
 
 import logging
 from typing import List
 
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
-from backend.src.domain.ports.input.i_save_task_in_clickup_use_case import ISaveTaskInClickUpUseCase
+from backend.src.domain.ports.input.i_save_summary_tasks_in_clickup_use_case import ISaveSummaryTasksInClickUpUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
@@ -23,9 +23,9 @@ from backend.src.domain.ports.repositories.i_member_repository import IMemberRep
 logger = logging.getLogger(__name__)
 
 
-class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
+class SaveSummaryTasksInClickUpUseCase(ISaveSummaryTasksInClickUpUseCase):
     """
-    Application use case for saving verified tasks into ClickUp.
+    Application use case for saving verified summary tasks into ClickUp.
 
     Coordinates retrieval of ClickUp space structure, resolves task assignees
     using member repository, and delegates task creation/update to a ClickUp writer.
@@ -54,7 +54,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
         self._clickup_reader = clickup_reader
         self._clickup_writer = clickup_writer
 
-    def save_to_clickup(
+    def save_summary_tasks_to_clickup(
             self,
             tasks: List[VerifiedTaskFromSummary],
             space_id: str,
@@ -62,7 +62,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
             ignore_mails: bool
     ) -> None:
         """
-        Apply verified tasks into ClickUp.
+        Apply verified summary tasks into ClickUp.
 
         This method retrieves the ClickUp space structure, resolves assignees
         based on extracted names, optionally fetches workspace members, and
@@ -100,7 +100,7 @@ class SaveTaskInClickUpUseCase(ISaveTaskInClickUpUseCase):
         if name_to_email :
             members = self._clickup_reader.get_workspace_members()
 
-        self._clickup_writer.apply_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
+        self._clickup_writer.apply_summary_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
 
         logger.info(
             "Tasks saved to ClickUp successfully: space_id=%s created_tasks=%d.",

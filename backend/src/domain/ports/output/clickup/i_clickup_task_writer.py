@@ -10,7 +10,8 @@ from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
 
 class IClickUpTaskWriter(ABC):
@@ -108,9 +109,9 @@ class IClickUpTaskWriter(ABC):
         pass
 
     @abstractmethod
-    def apply_results(
+    def apply_summary_results(
             self,
-            results: List[VerifiedTask],
+            results: List[VerifiedTaskFromSummary],
             folders: List[FolderWithListsMetadata],
             members: List[dict],
             name_to_email: dict[str, str],
@@ -118,7 +119,38 @@ class IClickUpTaskWriter(ABC):
             ignore_mails: bool
     ) -> None:
         """
-        Apply verified task results to ClickUp.
+        Apply verified summary task results to ClickUp.
+
+        This method takes domain-level verification results and translates them
+        into ClickUp operations (task creation or updates) using workspace context.
+
+        Args:
+            results: List of verification results describing actions to apply.
+            folders: ClickUp space structure used to resolve folders and lists.
+            members: Workspace members with their metadata (id, username, email).
+            name_to_email: Mapping of usernames to email addresses.
+            ignore_names (bool):Flag indicating whether name-based assignment should
+                be ignored.
+            ignore_mails (bool):Flag indicating whether email-based assignment should
+                be ignored.
+
+        Returns:
+            None
+        """
+        pass
+
+    @abstractmethod
+    def apply_backlog_results(
+            self,
+            results: List[VerifiedTaskFromBacklog],
+            folders: List[FolderWithListsMetadata],
+            members: List[dict],
+            name_to_email: dict[str, str],
+            ignore_names: bool,
+            ignore_mails: bool
+    ) -> None:
+        """
+        Apply verified backlog task results to ClickUp.
 
         This method takes domain-level verification results and translates them
         into ClickUp operations (task creation or updates) using workspace context.

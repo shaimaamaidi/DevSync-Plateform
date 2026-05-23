@@ -30,7 +30,8 @@ from backend.src.application.use_cases.clickup_task_management_use_case import C
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
-from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
+from backend.src.application.use_cases.save_backlog_tasks_use_case import SaveBacklogTasksInClickUpUseCase
+from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
 from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
@@ -288,14 +289,14 @@ def get_clickup_structure_metadata_use_case(request: Request) -> ClickUpStructur
         raise ServiceUnavailableException("Click up structure metadata service is unavailable.") from e
 
 # Request-scoped use case (requires member_repo)
-def get_save_task_use_case(
+def get_save_summary_tasks_use_case(
     request: Request,
     container: Container = Depends(get_container),
-) -> SaveTaskInClickUpUseCase:
+) -> SaveSummaryTasksInClickUpUseCase:
     """
-    Build and provide the save task use case for the current request.
+    Build and provide the save summary task use case for the current request.
 
-    Unlike the other use cases, SaveTaskInClickUpUseCase requires member_repo
+    Unlike the other use cases, SaveSummaryTasksInClickUpUseCase requires member_repo
     which is request-scoped (bound to a SQLAlchemy session). It is therefore
     constructed fresh per request by combining:
         - Singleton ClickUp infrastructure from WorkflowContainer (app.state)
@@ -306,21 +307,56 @@ def get_save_task_use_case(
         container (Container): The request-scoped DI container providing member_repo.
 
     Returns:
-        SaveTaskInClickUpUseCase: A fully initialized save task use case for this request.
+        SaveSummaryTasksInClickUpUseCase: A fully initialized save task use case for this request.
 
     Raises:
         ServiceUnavailableException: If the ClickUp infrastructure is not initialized in the
             application state, or if an unexpected error occurs while building the use case.
     """
     try:
-        return request.app.state.workflow_container.create_save_task_use_case(
+        return request.app.state.workflow_container.create_save_summary_tasks_use_case(
             member_repo=container.member_repo
         )
     except ServiceUnavailableException:
         raise
     except Exception as e:
-        logger.exception("Failed to build save task use case: %s", str(e))
-        raise ServiceUnavailableException("Save task service is unavailable.") from e
+        logger.exception("Failed to build save summary task use case: %s", str(e))
+        raise ServiceUnavailableException("Save summary task service is unavailable.") from e
+
+# Request-scoped use case (requires member_repo)
+def get_save_backlog_tasks_use_case(
+    request: Request,
+    container: Container = Depends(get_container),
+) -> SaveBacklogTasksInClickUpUseCase:
+    """
+    Build and provide the save backlog task use case for the current request.
+
+    Unlike the other use cases, SaveBacklogTasksInClickUpUseCase requires member_repo
+    which is request-scoped (bound to a SQLAlchemy session). It is therefore
+    constructed fresh per request by combining:
+        - Singleton ClickUp infrastructure from WorkflowContainer (app.state)
+        - Request-scoped member_repo from the session-bound Container
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+        container (Container): The request-scoped DI container providing member_repo.
+
+    Returns:
+        SaveSummaryTasksInClickUpUseCase: A fully initialized save task use case for this request.
+
+    Raises:
+        ServiceUnavailableException: If the ClickUp infrastructure is not initialized in the
+            application state, or if an unexpected error occurs while building the use case.
+    """
+    try:
+        return request.app.state.workflow_container.create_save_backlog_tasks_use_case(
+            member_repo=container.member_repo
+        )
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to build save backlog task use case: %s", str(e))
+        raise ServiceUnavailableException("Save backlog task service is unavailable.") from e
 
 # Request-scoped use case (requires member_repo)
 def get_verify_tasks_from_summary_use_case(

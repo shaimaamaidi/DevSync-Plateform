@@ -25,7 +25,8 @@ from backend.src.application.use_cases.clickup_task_management_use_case import C
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
-from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
+from backend.src.application.use_cases.save_backlog_tasks_use_case import SaveBacklogTasksInClickUpUseCase
+from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
 from backend.src.application.use_cases.verify_tasks_from_backlog_use_case import VerifyTasksFromBacklogUseCase
 from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 
@@ -421,9 +422,9 @@ class WorkflowContainer:
             self.clickup_reader
         )
 
-    def create_save_task_use_case(self, member_repo: IMemberRepository) -> SaveTaskInClickUpUseCase:
+    def create_save_summary_tasks_use_case(self, member_repo: IMemberRepository) -> SaveSummaryTasksInClickUpUseCase:
         """
-        Factory method for SaveTaskInClickUpUseCase.
+        Factory method for SaveSummaryTasksInClickUpUseCase.
 
         Combines singleton ClickUp infrastructure with a request-scoped member_repo.
 
@@ -431,7 +432,34 @@ class WorkflowContainer:
             member_repo: Request-scoped member repository.
 
         Returns:
-            SaveTaskInClickUpUseCase: Fully initialized use case.
+            SaveSummaryTasksInClickUpUseCase: Fully initialized use case.
+
+        Raises:
+            ServiceUnavailableException: If ClickUp infrastructure is not initialized.
+        """
+        if self.clickup_reader is None:
+            raise ServiceUnavailableException("ClickUp task service is currently unavailable. Please try again later.")
+
+        if self.clickup_writer is None:
+            raise ServiceUnavailableException("ClickUp service service is currently unavailable. Please try again later.")
+
+        return SaveSummaryTasksInClickUpUseCase(
+            clickup_reader=self.clickup_reader,
+            member_repo=member_repo,
+            clickup_writer=self.clickup_writer,
+        )
+
+    def create_save_backlog_tasks_use_case(self, member_repo: IMemberRepository) -> SaveBacklogTasksInClickUpUseCase:
+        """
+        Factory method for SaveBacklogTasksInClickUpUseCase.
+
+        Combines singleton ClickUp infrastructure with a request-scoped member_repo.
+
+        Args:
+            member_repo: Request-scoped member repository.
+
+        Returns:
+            SaveBacklogTasksInClickUpUseCase: Fully initialized use case.
 
         Raises:
             ServiceUnavailableException: If ClickUp infrastructure is not initialized.
@@ -442,7 +470,7 @@ class WorkflowContainer:
         if self.clickup_writer is None:
             raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
-        return SaveTaskInClickUpUseCase(
+        return SaveBacklogTasksInClickUpUseCase(
             clickup_reader=self.clickup_reader,
             member_repo=member_repo,
             clickup_writer=self.clickup_writer,

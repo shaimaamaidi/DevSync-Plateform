@@ -1,15 +1,15 @@
 """
-Unit tests for SaveTaskInClickUpUseCase.
+Unit tests for SaveSummaryTasksInClickUpUseCase.
 """
 
 from unittest.mock import MagicMock
 
-from backend.src.application.use_cases.save_task_in_clickup_use_case import SaveTaskInClickUpUseCase
-from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTask
+from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
 
-def _verified_task() -> VerifiedTask:
-    return VerifiedTask(
+def _verified_task() -> VerifiedTaskFromSummary:
+    return VerifiedTaskFromSummary(
         action="create",
         task_name="Build login",
         task_description="Implement login flow",
@@ -30,7 +30,7 @@ def test_save_to_clickup_resolves_members_and_applies_results() -> None:
 
     clickup_writer = MagicMock()
 
-    use_case = SaveTaskInClickUpUseCase(
+    use_case = SaveSummaryTasksInClickUpUseCase(
         clickup_task_service=clickup_task_service,
         member_repo=member_repo,
         clickup_writer=clickup_writer,
@@ -59,7 +59,7 @@ def test_save_to_clickup_skips_member_lookup_when_no_assignees() -> None:
     member_repo = MagicMock()
     clickup_writer = MagicMock()
 
-    use_case = SaveTaskInClickUpUseCase(
+    use_case = SaveSummaryTasksInClickUpUseCase(
         clickup_task_service=clickup_task_service,
         member_repo=member_repo,
         clickup_writer=clickup_writer,
