@@ -20,6 +20,7 @@ from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpRea
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.domain.ports.services.task_verification.i_task_from_backlog_verifier import ITaskFromBacklogVerifier
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -54,7 +55,11 @@ class VerifyTasksFromBacklogUseCase(IVerifyTasksFromBacklogUseCase):
         self._task_verifier = task_verifier
         self._member_repo =member_repo
 
-    def verify_tasks(self, tasks: List[GeneratedTaskFromBacklog], space_id) -> List[VerifiedTaskFromBacklog]:
+    def verify_tasks(
+        self,
+        tasks: List[GeneratedTaskFromBacklog],
+        space_id: str
+    ) -> List[VerifiedTaskFromBacklog]:
         """
         Verify tasks against existing ClickUp tasks.
 

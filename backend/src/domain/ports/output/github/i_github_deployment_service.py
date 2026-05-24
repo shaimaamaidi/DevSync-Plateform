@@ -8,10 +8,10 @@ with GitHub, such as fetching deployments and other repository-related data.
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 
 
-class IGitHubService(ABC):
+class IGitHubDeploymentService(ABC):
     """
     Define GitHub service behavior required by the application.
 
@@ -20,12 +20,14 @@ class IGitHubService(ABC):
     """
 
     @abstractmethod
-    async def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+    async def get_deployments(self, repo_url: str, max_deployments: int | None) -> List[DeploymentDTO]:
         """
         Fetch deployments for a GitHub repository.
 
         Args:
             repo_url (str): GitHub repository URL.
+            max_deployments (int | None): Maximum number of deployments to fetch.
+                If None, the value configured in the environment (.env) is used.
 
         Returns:
             List[DeploymentDTO]: List of deployment data transfer objects.

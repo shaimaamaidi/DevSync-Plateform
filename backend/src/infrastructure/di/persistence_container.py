@@ -6,7 +6,7 @@ technical services, external adapters, and application services for dependency
 injection within the application layer.
 
 Classes:
-    Container: Request-scoped dependency injection container.
+    PersistenceContainer: Request-scoped dependency injection container.
 """
 
 import logging
@@ -14,7 +14,6 @@ import logging
 from backend.src.application.use_cases.auth_use_case import AuthUseCase
 from backend.src.application.services.member_service import MemberService
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.infrastructure.external.github_deployments import GitHubDeploymentAdapter
 from backend.src.infrastructure.persistence.repositories.clickup_repository import SqlAlchemyClickUpRepository
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
 from backend.src.infrastructure.persistence.repositories.repo_repository import SqlAlchemyRepoRepository
@@ -22,14 +21,13 @@ from backend.src.infrastructure.persistence.repositories.member_repository impor
 from backend.src.application.services.repo_service import RepoService
 from backend.src.application.services.clickup_service import ClickUpService
 from backend.src.application.use_cases.associator_use_case import AssociatorUseCase
-from backend.src.application.use_cases.deployment_use_case import DeploymentUseCase
 from backend.src.infrastructure.security.jwt_handler import JWTHandler
 
 
 logger = logging.getLogger(__name__)
 
 
-class Container:
+class PersistenceContainer:
     """
     Request-scoped dependency injection container.
 
@@ -50,8 +48,6 @@ class Container:
         jwt_handler (JWTHandler)
 
         # External services
-        github_service (GitHubDeploymentAdapter)
-        deployment_use_case (DeploymentUseCase)
         associator_use_case (AssociatorUseCase)
         auth_use_case (AuthUseCase)
 
@@ -85,7 +81,7 @@ class Container:
 
         except Exception as e:
             logger.exception("Failed to initialize request container.")
-            raise AppException("A server error occurred. Please try again later.", "CONTAINER_INIT_ERROR", http_status=500)
+            raise AppException("A server error occurred. Please try again later.", "CONTAINER_INIT_ERROR", http_status=500) from e
 
     # Repositories
     def _init_repositories(self):
@@ -119,8 +115,6 @@ class Container:
         """
         logger.info("Initializing external services.")
 
-        self.github_service = GitHubDeploymentAdapter()
-        self.deployment_use_case = DeploymentUseCase(self.repo_repo, self.github_service)
         self.associator_use_case = AssociatorUseCase(
             repo_service=self.repo_repo,
             clickup_service=self.clickup_repo,

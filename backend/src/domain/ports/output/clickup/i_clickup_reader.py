@@ -10,6 +10,7 @@ from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 
 
 class IClickUpReader(ABC):
@@ -84,5 +85,21 @@ class IClickUpReader(ABC):
 
         Raises:
             ClickUpWorkspaceMembersException: If no valid members are found.
+        """
+        pass
+
+    @abstractmethod
+    def get_task_by_id(self, task_id: str) -> ClickUpTask:
+        """
+        Retrieve a single task by its ID.
+
+        Args:
+            task_id: ClickUp task identifier.
+
+        Returns:
+            ClickUpTask: Parsed task dict with status, assignees, dates, and description.
+
+        Raises:
+            ClickUpResourceNotFoundException: If the task does not exist.
         """
         pass

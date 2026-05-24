@@ -21,6 +21,7 @@ from backend.src.domain.entities.generated_tasks.generated_task_from_backlog_req
 from backend.src.domain.ports.input.i_generate_tasks_from_backlog_use_case import IGenerateTasksFromBacklogUseCase
 from backend.src.presentation.api.deps import get_generate_task_from_backlog_use_case
 
+
 logger = logging.getLogger(__name__)
 
 

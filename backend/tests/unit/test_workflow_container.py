@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
-from backend.src.infrastructure.di.WorkflowContainer import WorkflowContainer
+from backend.src.infrastructure.di.clickup_container import WorkflowContainer
 
 
 def test_workflow_container_initializes_agents_and_tools() -> None:

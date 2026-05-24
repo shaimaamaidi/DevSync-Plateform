@@ -15,12 +15,12 @@ Routes:
 import logging
 from typing import List
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
-from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.presentation.api.deps import get_clickup_structure_metadata_use_case
+
 
 logger = logging.getLogger(__name__)
 

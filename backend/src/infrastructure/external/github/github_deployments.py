@@ -12,35 +12,31 @@ raw GitHub data into DeploymentDTO objects suitable for further processing.
 import logging
 
 import os
-import re
 from pathlib import Path
 
 import httpx
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import List
 
 from dotenv import load_dotenv
 
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 from backend.src.domain.exceptions.github.github_api_exception import GitHubApiException
-from backend.src.domain.exceptions.github.github_rate_limit_exception import GitHubRateLimitException
-from backend.src.domain.exceptions.github.github_repo_not_found_exception import GitHubRepoNotFoundException
-from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
-from backend.src.domain.ports.output.i_github_service import IGitHubService
-
+from backend.src.domain.ports.output.github.i_github_deployment_service import IGitHubDeploymentService
+from backend.src.infrastructure.external.github.base_github_client import BaseGitHubClient
 
 logger = logging.getLogger(__name__)
 
 
-_BACKEND_DIR = Path(__file__).resolve().parents[3]
+_BACKEND_DIR = Path(__file__).resolve().parents[4]
 _DOTENV_PATH = _BACKEND_DIR / ".env"
 
 DEPLOY_KEYWORDS = {"deploy", "release", "publish", "cd", "continuous-delivery", "ship"}
 
 
-class GitHubDeploymentAdapter(IGitHubService):
+class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
     """
     Adapter for fetching and managing GitHub repository deployments.
 
@@ -64,15 +60,14 @@ class GitHubDeploymentAdapter(IGitHubService):
         Raises:
             MissingEnvVariableException: If the GITHUB_TOKEN environment variable is not set.
         """
+        BaseGitHubClient.__init__(self)
+        IGitHubDeploymentService.__init__(self)
         loaded = load_dotenv(_DOTENV_PATH, override=False)
 
         if not loaded:
             logger.warning(".env file not found at %s.", _DOTENV_PATH)
 
         try:
-            CONNECT_TIMEOUT = int(os.getenv("CONNECT_TIMEOUT",10))
-            READ_TIMEOUT = int(os.getenv("READ_TIMEOUT",60))
-
             self.ACTIONS_MAX_RUNS = int(os.getenv("ACTIONS_MAX_RUNS",100))
 
             self.DEPLOYMENTS_MAX_ITEMS = int(os.getenv("DEPLOYMENTS_MAX_ITEMS",30))
@@ -84,131 +79,6 @@ class GitHubDeploymentAdapter(IGitHubService):
                 e
             )
             raise MissingEnvVariableException() from e
-
-        self.GITHUB_TIMEOUT = httpx.Timeout(connect=CONNECT_TIMEOUT, read=READ_TIMEOUT, write=READ_TIMEOUT, pool=CONNECT_TIMEOUT)
-
-        self.GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
-        if not self.GITHUB_TOKEN:
-            logger.error("Missing required environment variable: GITHUB_TOKEN")
-            raise MissingEnvVariableException()
-
-    @staticmethod
-    def _parse_repo(url: str) -> tuple[str, str]:
-        """
-        Parse the GitHub repository URL to extract owner and repository name.
-
-        Args:
-            url (str): Full URL of the GitHub repository.
-
-        Returns:
-            tuple[str, str]: Tuple of (owner, repository name).
-
-        Raises:
-            InvalidGitHubUrlException: If the URL format is invalid or cannot be parsed.
-        """
-        logger.info("Parsing GitHub repository URL: %s.", url)
-
-        url = url.rstrip("/")
-        match = re.search(r"github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
-
-        if not match:
-            logger.warning("Invalid GitHub repository URL: %s.", url)
-            raise InvalidGitHubUrlException()
-
-        owner, repo = match.group(1), match.group(2)
-
-        logger.info("Parsed owner=%s, repo=%s.", owner, repo)
-
-        return owner, repo
-
-    async def _github_get(self, url: str, max_pages: int = 0) -> list[dict]:
-        """
-        Perform an authenticated GET request to the GitHub API, handling pagination.
-
-        Args:
-            url (str): GitHub API endpoint URL.
-            max_pages (int): Maximum number of pages to fetch (0 = unlimited).
-
-        Returns:
-            list[dict]: Aggregated list of results from all pages.
-
-        Raises:
-            GitHubRepoNotFoundException: If the repository or endpoint returns 404.
-            GitHubRateLimitException: If the GitHub API rate limit is exceeded.
-            GitHubApiException: For other HTTP errors or request failures.
-        """
-        logger.info("Fetching data from GitHub API: %s.", url)
-
-        results = []
-        page_count = 0
-        MAX_RETRIES = 3  # number of times to retry on rate limit
-
-        async with httpx.AsyncClient(timeout=self.GITHUB_TIMEOUT) as client:
-            while url:
-                if max_pages and page_count >= max_pages:
-                    logger.info(
-                        "Reached max_pages=%d for %s, stopping pagination.",
-                        max_pages, url,
-                    )
-                    break
-
-                page_count += 1
-                retries = 0
-
-                while retries <= MAX_RETRIES:
-                    try:
-                        resp = await client.get(url, headers=self._get_headers())
-                        resp.raise_for_status()
-                        break
-                    except httpx.HTTPStatusError as e:
-                        if e.response.status_code == 404:
-                            logger.warning("GitHub resource not found at %s.", url)
-                            raise GitHubRepoNotFoundException()
-                        if e.response.status_code == 403:
-                            reset = e.response.headers.get("X-RateLimit-Reset")
-                            if reset:
-                                reset_time = max(int(reset) - int(datetime.now(timezone.utc).timestamp()), 1)
-                                logger.warning(
-                                    "GitHub rate limit hit, sleeping %d seconds before retry...", reset_time
-                                )
-                                await asyncio.sleep(reset_time)
-                                retries += 1
-                                if retries > MAX_RETRIES:
-                                    raise GitHubRateLimitException() from e
-                                continue
-                        logger.exception("GitHub API HTTP error: %s", str(e))
-                        raise GitHubApiException() from e
-
-                    except httpx.RequestError as e:
-                        logger.exception("GitHub API request failed: %s", str(e))
-                        raise GitHubApiException() from e
-
-                try:
-                    data = resp.json()
-
-                except Exception as e:
-                    logger.exception("Failed to decode JSON from %s: %s", url, e)
-                    raise GitHubApiException("Failed to process the response. Please try again.") from e
-
-                if isinstance(data, list):
-                    results.extend(data)
-                else:
-                    logger.info("Fetched single object from GitHub API: %s.", url)
-                    results.append(data)
-
-                link = resp.headers.get("Link", "")
-                url = None
-                for part in link.split(","):
-                    if 'rel="next"' in part:
-                        m = re.search(r"<([^>]+)>", part)
-                        if m:
-                            url = m.group(1)
-                        break
-
-        logger.info("GitHub API fetch completed, %d items fetched.", len(results))
-
-        return results
 
     @staticmethod
     def _is_deploy_workflow(workflow_name: str) -> bool:
@@ -225,7 +95,10 @@ class GitHubDeploymentAdapter(IGitHubService):
         return any(keyword in name_lower for keyword in DEPLOY_KEYWORDS)
 
     async def _fetch_latest_status_per_environment(
-        self, owner: str, repo: str, environments: set[str]
+        self,
+        owner: str,
+        repo: str,
+        environments: set[str]
     ) -> dict[str, tuple[str, str]]:
         """
         Fetch the latest deployment status for each environment in one pass.
@@ -292,7 +165,10 @@ class GitHubDeploymentAdapter(IGitHubService):
         return result
 
     async def _fetch_deployments_from_api(
-        self, owner: str, repo: str
+        self,
+        owner: str,
+        repo: str,
+        max_deployments: int | None
     ) -> List[DeploymentDTO]:
         """
         Fetch deployments from the GitHub Deployments API.
@@ -309,6 +185,8 @@ class GitHubDeploymentAdapter(IGitHubService):
         Args:
             owner (str): Repository owner.
             repo (str): Repository name.
+            max_deployments (int | None): Maximum number of deployments to fetch.
+                If None, the value configured in the environment (.env) is used.
 
         Returns:
             List[DeploymentDTO]: List of DeploymentDTOs built from the Deployments API.
@@ -321,7 +199,10 @@ class GitHubDeploymentAdapter(IGitHubService):
             "Fetching GitHub Deployments API for %s/%s (cap=%d).",
             owner, repo, self.DEPLOYMENTS_MAX_ITEMS,
         )
-        max_items = self.DEPLOYMENTS_MAX_ITEMS
+        if max_deployments:
+            max_items = max_deployments
+        else:
+            max_items = self.DEPLOYMENTS_MAX_ITEMS
 
         per_page = min(max_items, 100)
         raw = await self._github_get(
@@ -372,7 +253,9 @@ class GitHubDeploymentAdapter(IGitHubService):
         return deployments
 
     async def _fetch_deployments_from_actions(
-        self, owner: str, repo: str
+        self,
+        owner: str,
+        repo: str
     ) -> List[DeploymentDTO]:
         """
         Fetch deploy-related workflow runs from GitHub Actions.
@@ -470,7 +353,7 @@ class GitHubDeploymentAdapter(IGitHubService):
 
         return deployments
 
-    async def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+    async def get_deployments(self, repo_url: str, max_deployments: int | None) -> List[DeploymentDTO]:
         """
         Retrieve deployments for a repository URL.
 
@@ -483,6 +366,8 @@ class GitHubDeploymentAdapter(IGitHubService):
 
         Args:
             repo_url (str): GitHub repository URL.
+            max_deployments (int | None): Maximum number of deployments to fetch.
+                If None, the value configured in the environment (.env) is used.
 
         Returns:
             List[DeploymentDTO]: Deduplicated, sorted list of DeploymentDTOs.
@@ -496,7 +381,7 @@ class GitHubDeploymentAdapter(IGitHubService):
 
         owner, repo = self._parse_repo(repo_url)
 
-        api_deployments = await self._fetch_deployments_from_api(owner, repo)
+        api_deployments = await self._fetch_deployments_from_api(owner, repo, max_deployments)
 
         actions_deployments = await self._fetch_deployments_from_actions(owner, repo)
 
@@ -520,10 +405,3 @@ class GitHubDeploymentAdapter(IGitHubService):
         )
 
         return merged
-
-    def _get_headers(self) -> dict:
-        return {
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Authorization": f"token {self.GITHUB_TOKEN}",
-        }

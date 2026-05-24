@@ -4,7 +4,7 @@ Unit tests for Container dependency injection.
 
 from unittest.mock import MagicMock, patch
 
-from backend.src.infrastructure.di.container import Container
+from backend.src.infrastructure.di.persistence_container import Container
 
 
 def test_container_initializes_services() -> None:

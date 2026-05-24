@@ -210,7 +210,10 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             yield f"data: {json.dumps({'text': chunk})}\n\n"
 
     async def reply_stream(
-            self, thread_id: str, tool_result: str, user_result: str
+        self,
+        thread_id: str,
+        tool_result: str,
+        user_result: str
     ) -> AsyncGenerator[str, None]:
         """
         Handle the verification loop for market intelligence refinement.
@@ -283,7 +286,10 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             yield f"data: {json.dumps({'text': chunk})}\n\n"
 
     async def reply_backlog_stream(
-            self, thread_id: str, user_result: str, tool_result: str
+        self,
+        thread_id: str,
+        user_result: str,
+        tool_result: str
     ) -> AsyncGenerator[str, None]:
         """
         Handle the backlog verification loop.

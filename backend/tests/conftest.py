@@ -20,7 +20,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 from backend.src.domain.entities.git_repo import GitRepoDTO, GitRepoDetailDTO, RepoMemberDTO
 from backend.src.domain.entities.member import MemberDTO, MemberWithReposDTO, RepoSummary
 from backend.src.domain.exceptions.base.app_exception import AppException
@@ -30,15 +30,11 @@ from backend.src.presentation.api.routers import (
     auth_router,
     associator_router,
     clickup_router,
-    clickup_structure_management_router,
     clickup_structure_metadata_router,
     deployment_router,
-    generation_tasks_from_summary_router,
     member_router,
     repo_router,
     backlog_router,
-    verification_tasks_from_summary_router,
-    summary_tasks_save_router,
 )
 
 

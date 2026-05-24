@@ -20,8 +20,8 @@ from backend.src.domain.entities.associator import (
     AssociateMembersResponse,
     RepoMembersRequest,
 )
-from backend.src.infrastructure.di.container import Container
-from backend.src.presentation.api.deps import get_container
+from backend.src.infrastructure.di.persistence_container import PersistenceContainer
+from backend.src.presentation.api.deps import get_persistence_container
 
 
 logger = logging.getLogger(__name__)
@@ -42,14 +42,14 @@ router = APIRouter()
 )
 def associate_space(
     request: AssociateClickUpSpaceRequest,
-    container: Container = Depends(get_container),
+    container: PersistenceContainer = Depends(get_persistence_container),
 ) -> AssociateClickUpSpaceResponse:
     """
     Associate a ClickUp space with a repository.
 
     Args:
         request (AssociateClickUpSpaceRequest): The association request payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         AssociateClickUpSpaceResponse: The association result.
@@ -84,14 +84,14 @@ def associate_space(
 )
 def associate_members(
     request: RepoMembersRequest,
-    container: Container = Depends(get_container),
+    container: PersistenceContainer = Depends(get_persistence_container),
 ) -> AssociateMembersResponse:
     """
     Replace repository members with the provided list.
 
     Args:
         request (RepoMembersRequest): The request containing repository and member list.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         AssociateMembersResponse: The association result.
@@ -126,14 +126,14 @@ def associate_members(
 )
 def add_members(
     request: RepoMembersRequest,
-    container: Container = Depends(get_container),
+    container: PersistenceContainer = Depends(get_persistence_container),
 ) -> AssociateMembersResponse:
     """
     Add members to a repository.
 
     Args:
         request (RepoMembersRequest): The request containing repository and member list.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         AssociateMembersResponse: The result of adding members.
@@ -168,14 +168,14 @@ def add_members(
 )
 def remove_members(
     request: RepoMembersRequest,
-    container: Container = Depends(get_container),
+    container: PersistenceContainer = Depends(get_persistence_container),
 ) -> AssociateMembersResponse:
     """
     Remove members from a repository.
 
     Args:
         request (RepoMembersRequest): The request containing repository and member list.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         AssociateMembersResponse: The result of removing members.

@@ -25,7 +25,11 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.infrastructure.di.WorkflowContainer import WorkflowContainer
+from backend.src.infrastructure.di.backlog_generation_container import BacklogGenerationContainer
+from backend.src.infrastructure.di.clickup_container import ClickUpContainer
+from backend.src.infrastructure.di.task_generation_container import TaskGenerationContainer
+from backend.src.infrastructure.di.task_status_container import TaskStatusContainer
+from backend.src.infrastructure.di.deployment_container import DeploymentContainer
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
@@ -34,10 +38,13 @@ from backend.src.presentation.api.middleware.auth_middleware import JWTAuthMiddl
 from backend.src.presentation.api.middleware.request_id_middleware import request_id_middleware
 from backend.src.presentation.api.routers import (
     associator_router, clickup_router, repo_router, member_router,
-    deployment_router, auth_router, backlog_router, health_router, verification_tasks_from_summary_router,
-    verification_tasks_from_backlog_router, generation_tasks_from_summary_router, summary_tasks_save_router,
-    backlog_tasks_save_router, clickup_structure_metadata_router, clickup_structure_management_router,
-    clickup_task_management_router, clickup_space_task_reader_router, generation_tasks_from_backlog_router
+    deployment_router, auth_router, backlog_router, health_router,
+    verification_tasks_from_summary_router, verification_tasks_from_backlog_router,
+    generation_tasks_from_summary_router, summary_tasks_save_router,
+    backlog_tasks_save_router, clickup_structure_metadata_router,
+    clickup_structure_management_router, clickup_task_management_router,
+    clickup_space_task_reader_router, generation_tasks_from_backlog_router,
+    task_status_check_router
 )
 
 
@@ -49,39 +56,35 @@ async def lifespan(app: FastAPI):
     """
     Manage application lifecycle events (startup and shutdown).
 
-    This function is executed by FastAPI when the application starts and stops.
-    It is responsible for initializing infrastructure components such as:
-    - Database connection manager
-    - Background schedulers
-    - Backlog workflow container and tools
-
     Startup sequence:
         1. Initialize logging and application context
         2. Create MySQL database connector
         3. Start token cleanup scheduler
-        4. Initialize backlog workflow container and tools
-        5. Attach components to app.state
+        4. Initialize BacklogGenerationContainer (agents, tools, orchestrator)
+        5. Initialize ClickUpContainer (ClickUp infrastructure + use cases)
+        6. Initialize TaskGenerationContainer (task generation + verification agents)
+        7. Initialize TaskStatusContainer (task status agents + use cases)
+        8. Initialize DeploymentContainer (GitHub deployment adapter)
+        9. Attach all containers to app.state
 
     Shutdown sequence:
         1. Stop background scheduler
-        2. Release resources and gracefully shutdown services
+        2. Cleanup BacklogGenerationContainer (web search agent, orchestrator)
+        3. Close database connector
 
     Args:
-        app (FastAPI):
-            The FastAPI application instance.
+        app (FastAPI): The FastAPI application instance.
 
     Yields:
-        None:
-            Control is returned to FastAPI during application runtime.
+        None: Control is returned to FastAPI during application runtime.
 
     Raises:
-        Exception: If any startup component fails to initialize (database connector, scheduler,
-            web search tool, or backlog workflow orchestrator), or if an unexpected runtime
-            error occurs during application startup or shutdown.
+        Exception: If any startup component fails to initialize.
     """
     # ── Startup ──
     logger.info("Application starting up.")
     try:
+        # ── Database ──
         app.state.db = MySQLConnector()
 
         # ── Scheduler ──
@@ -89,11 +92,26 @@ async def lifespan(app: FastAPI):
         scheduler.start()
         app.state.scheduler = scheduler
 
-        # ── Backlog Workflow ──
-        workflow_container = WorkflowContainer()
-        await workflow_container.initialize_web_search_tool()
-        await workflow_container.initialize_backlog_workflow_orchestrator()
-        app.state.workflow_container = workflow_container
+        # ── BacklogGenerationContainer ──
+        backlog_generation_container = BacklogGenerationContainer()
+        await backlog_generation_container.initialize_web_search_tool()
+        await backlog_generation_container.initialize_backlog_workflow_orchestrator()
+        app.state.backlog_generation_container = backlog_generation_container
+
+        # ── ClickUpContainer ──
+        app.state.clickup_container = ClickUpContainer()
+
+        # ── TaskGenerationContainer ──
+        app.state.task_generation_container = TaskGenerationContainer()
+
+        # ── TaskStatusContainer ──
+        app.state.task_status_container = TaskStatusContainer()
+
+        # ── DeploymentContainer ──
+        app.state.deployment_container = DeploymentContainer()
+
+        logger.info("Application started successfully.")
+
     except Exception as e:
         logger.exception("Application startup failed: %s", str(e))
         raise
@@ -109,10 +127,10 @@ async def lifespan(app: FastAPI):
         logger.warning("Failed to stop scheduler during shutdown.")
 
     try:
-        await app.state.workflow_container.cleanup()
-        logger.info("Backlog container cleaned up.")
+        await app.state.backlog_generation_container.cleanup()
+        logger.info("Backlog generation container cleaned up.")
     except Exception:
-        logger.warning("Failed to cleanup backlog container during shutdown.")
+        logger.warning("Failed to cleanup backlog generation container during shutdown.")
 
     try:
         app.state.db.close()
@@ -120,24 +138,13 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.warning("Failed to close database connector during shutdown.")
 
+
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application instance.
 
-    This factory function builds the complete FastAPI application by:
-    - Initializing logging configuration
-    - Creating the FastAPI instance
-    - Registering middleware (authentication, CORS, request ID tracking)
-    - Registering global exception handlers
-    - Mounting all API routers with prefixes and tags
-
     Returns:
-        FastAPI:
-            Fully configured FastAPI application ready to serve requests.
-
-    Notes:
-        - This function is the single entry point for application creation.
-        - It ensures consistent configuration across environments.
+        FastAPI: Fully configured FastAPI application ready to serve requests.
     """
     setup_logger()
 
@@ -148,9 +155,8 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Auth Middleware
+    # ── Middleware ──
     app.add_middleware(JWTAuthMiddleware)
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["http://localhost:5173"],
@@ -158,14 +164,14 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
     app.middleware("http")(request_id_middleware)
 
+    # ── Exception Handlers ──
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
     app.add_exception_handler(Exception, FastAPIExceptionHandler.handle_generic_exception)
 
-    # Routers
+    # ── Routers ──
     app.include_router(health_router.router, prefix="/health", tags=["health"])
     app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])
@@ -223,6 +229,11 @@ def create_app() -> FastAPI:
         clickup_space_task_reader_router.router,
         prefix="/clickup/tasks/spaces",
         tags=["ClickUp - Tasks"],
+    )
+    app.include_router(
+        task_status_check_router.router,
+        prefix="/task-status",
+        tags=["Task Status Check"],
     )
 
     return app

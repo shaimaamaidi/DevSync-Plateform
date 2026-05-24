@@ -9,7 +9,7 @@ import logging
 
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
-from backend.src.infrastructure.di.container import Container
+from backend.src.infrastructure.di.persistence_container import Container
 from backend.src.domain.entities.member import MemberCreateDTO
 
 

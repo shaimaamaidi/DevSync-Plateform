@@ -14,7 +14,7 @@ from typing import List, Optional
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
 from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception import ClickUpResourceNotFoundException
@@ -277,6 +277,32 @@ class ClickUpReader(IClickUpReader):
         )
 
         return members
+
+    def get_task_by_id(self, task_id: str) -> ClickUpTask:
+        """
+        Retrieve a single task by its ID.
+
+        Args:
+            task_id: ClickUp task identifier.
+
+        Returns:
+            ClickUpTask: Parsed task dict with status, assignees, dates, and description.
+
+        Raises:
+            ClickUpResourceNotFoundException: If the task does not exist.
+        """
+        logger.info("Fetching task by id. task_id=%s.", task_id)
+
+        try:
+            response = self._http.get(f"/task/{task_id}")
+        except ClickUpClientException as e:
+            raise ClickUpResourceNotFoundException(
+                "The requested ClickUp task could not be found. It may have been deleted or you may not have access to it."
+            ) from e
+
+        logger.info("Task found. task_id=%s, name=%s.", task_id, response.get("name", ""))
+
+        return parse_task(response)
 
     @staticmethod
     def _parse_member_with_role(member: dict) -> Optional[dict]:

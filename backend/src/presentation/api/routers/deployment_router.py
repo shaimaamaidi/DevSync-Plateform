@@ -13,8 +13,8 @@ from typing import List
 from fastapi import APIRouter, Depends
 from starlette import status
 
-from backend.src.domain.entities.deployment import DeploymentDTO
-from backend.src.infrastructure.di.container import Container
+from backend.src.domain.entities.github.deployment import DeploymentDTO
+from backend.src.infrastructure.di.persistence_container import Container
 from backend.src.presentation.api.deps import get_container
 
 

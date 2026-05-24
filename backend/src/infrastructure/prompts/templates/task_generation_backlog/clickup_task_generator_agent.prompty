@@ -131,7 +131,6 @@ system: |
 
 user: |
   Below is the sprint backlog:
-
   {{backlog}}
 
   Available locations and their statuses:

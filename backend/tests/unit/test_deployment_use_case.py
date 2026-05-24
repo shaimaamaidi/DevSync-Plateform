@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock
 
 from backend.src.application.use_cases.deployment_use_case import DeploymentUseCase
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 
 
 @pytest.mark.asyncio

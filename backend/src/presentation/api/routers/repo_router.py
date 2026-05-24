@@ -25,8 +25,8 @@ from backend.src.domain.entities.git_repo import (
     GitRepoDetailDTO,
     GitRepoUpdateDTO,
 )
-from backend.src.infrastructure.di.container import Container
-from backend.src.presentation.api.deps import get_container
+from backend.src.infrastructure.di.persistence_container import PersistenceContainer
+from backend.src.presentation.api.deps import get_persistence_container
 
 
 logger = logging.getLogger(__name__)
@@ -42,12 +42,12 @@ router = APIRouter()
     summary="Get all repositories",
     description="Retrieves all repositories stored in the system."
 )
-def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepoDTO]:
+def get_all_repos(container: PersistenceContainer = Depends(get_persistence_container)) -> List[GitRepoDTO]:
     """
     Return all repositories.
 
     Args:
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         List[GitRepoDTO]: List of all repositories.
@@ -68,12 +68,12 @@ def get_all_repos(container: Container = Depends(get_container)) -> List[GitRepo
     summary="Get all repositories with details",
     description="Retrieves all repositories along with extended metadata and detailed information."
 )
-def get_all_with_details(container: Container = Depends(get_container)) -> List[GitRepoDetailDTO]:
+def get_all_with_details(container: PersistenceContainer = Depends(get_persistence_container)) -> List[GitRepoDetailDTO]:
     """
     Return repositories with details.
 
     Args:
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         List[GitRepoDetailDTO]: List of repositories with details.
@@ -93,13 +93,13 @@ def get_all_with_details(container: Container = Depends(get_container)) -> List[
     summary="Get all repositories with details",
     description="Retrieves all repositories along with extended metadata and detailed information."
 )
-def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_container)) -> GitRepoDTO:
+def add_repo(repo: GitRepoCreateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> GitRepoDTO:
     """
     Create a new repository.
 
     Args:
         repo (GitRepoCreateDTO): The repository creation payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         GitRepoDTO: The created repository.
@@ -128,13 +128,13 @@ def add_repo(repo: GitRepoCreateDTO, container: Container = Depends(get_containe
     summary="Get repository by ID",
     description="Retrieves a repository using its unique identifier, including full details."
 )
-def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
+def get_repo_by_id(repo_id: int, container: PersistenceContainer = Depends(get_persistence_container)) -> GitRepoDetailDTO:
     """
     Fetch a repository by id.
 
     Args:
         repo_id (int): The repository ID.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         GitRepoDetailDTO: The repository details.
@@ -154,13 +154,13 @@ def get_repo_by_id(repo_id: int, container: Container = Depends(get_container)) 
     summary="Get repository by name",
     description="Retrieves a repository by its name with full detailed information."
 )
-def get_repo_by_name(name: str, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
+def get_repo_by_name(name: str, container: PersistenceContainer = Depends(get_persistence_container)) -> GitRepoDetailDTO:
     """
     Fetch a repository by name.
 
     Args:
         name (str): The repository name.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         GitRepoDetailDTO: The repository details.
@@ -182,14 +182,14 @@ def get_repo_by_name(name: str, container: Container = Depends(get_container)) -
     summary="Update a repository",
     description="Updates an existing repository identified by its ID with new values such as name or URL."
 )
-def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Depends(get_container)) -> GitRepoDetailDTO:
+def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> GitRepoDetailDTO:
     """
     Update a repository by id.
 
     Args:
         repo_id (int): The repository ID.
         repo (GitRepoUpdateDTO): The update payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         GitRepoDetailDTO: The updated repository details.
@@ -216,13 +216,13 @@ def update_repo(repo_id: int, repo: GitRepoUpdateDTO, container: Container = Dep
     summary="Delete a repository",
     description="Deletes a repository by its ID and returns whether the operation was successful."
 )
-def delete_repo(repo_id: int, container: Container = Depends(get_container)) -> bool:
+def delete_repo(repo_id: int, container: PersistenceContainer = Depends(get_persistence_container)) -> bool:
     """
     Delete a repository by id.
 
     Args:
         repo_id (int): The repository ID.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         bool: True if deletion was successful.

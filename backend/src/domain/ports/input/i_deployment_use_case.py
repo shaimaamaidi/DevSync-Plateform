@@ -13,7 +13,7 @@ It acts as the application layer orchestration contract for:
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 
 
 class IDeploymentUseCase(ABC):

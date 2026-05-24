@@ -5,7 +5,7 @@ Integration test for the /deployments endpoint.
 from datetime import datetime
 from fastapi.testclient import TestClient
 from unittest.mock import AsyncMock
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 
 
 def test_get_deployments_endpoint_returns_expected_data(client: TestClient, container):

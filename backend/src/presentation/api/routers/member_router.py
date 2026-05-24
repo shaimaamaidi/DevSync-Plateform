@@ -18,8 +18,8 @@ from fastapi import APIRouter, Depends
 from starlette import status
 
 from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, MemberUpdateDTO, MemberWithReposDTO
-from backend.src.infrastructure.di.container import Container
-from backend.src.presentation.api.deps import get_container
+from backend.src.infrastructure.di.persistence_container import PersistenceContainer
+from backend.src.presentation.api.deps import get_persistence_container
 
 
 logger = logging.getLogger(__name__)
@@ -35,13 +35,13 @@ router = APIRouter()
     summary="Create a new member",
     description="Creates a new member in the system using the provided data. The member is persisted and returned after successful creation."
 )
-def add_member(member: MemberCreateDTO, container: Container = Depends(get_container)) -> MemberDTO:
+def add_member(member: MemberCreateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> MemberDTO:
     """
     Create a new member.
 
     Args:
         member (MemberCreateDTO): The member creation payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         MemberDTO: The created member.
@@ -74,13 +74,13 @@ def add_member(member: MemberCreateDTO, container: Container = Depends(get_conta
         "Retrieves all members associated with a specific repository ID."
     )
 )
-def get_members_by_repo(repo_id: int, container: Container = Depends(get_container)) -> List[MemberDTO]:
+def get_members_by_repo(repo_id: int, container: PersistenceContainer = Depends(get_persistence_container)) -> List[MemberDTO]:
     """
     Return members for a repository.
 
     Args:
         repo_id (int): The repository ID.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         List[MemberDTO]: List of members for the repository.
@@ -109,12 +109,12 @@ def get_members_by_repo(repo_id: int, container: Container = Depends(get_contain
         "Retrieves all members in the system along with their associated repositories."
     )
 )
-def get_all_with_repos(container: Container = Depends(get_container)) -> List[MemberWithReposDTO]:
+def get_all_with_repos(container: PersistenceContainer = Depends(get_persistence_container)) -> List[MemberWithReposDTO]:
     """
     Return all members with repositories.
 
     Args:
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         List[MemberWithReposDTO]: List of all members with their repositories.
@@ -137,14 +137,14 @@ def get_all_with_repos(container: Container = Depends(get_container)) -> List[Me
     summary="Update a member",
     description="Updates an existing member identified by its ID with the provided data. Returns the updated member along with its repositories."
 )
-def update_member(member_id: int, member: MemberUpdateDTO, container: Container = Depends(get_container)) -> MemberWithReposDTO:
+def update_member(member_id: int, member: MemberUpdateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> MemberWithReposDTO:
     """
     Update a member by id.
 
     Args:
         member_id (int): The member ID.
         member (MemberUpdateDTO): The update payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         MemberWithReposDTO: The updated member with repositories.
@@ -169,7 +169,7 @@ def update_member(member_id: int, member: MemberUpdateDTO, container: Container 
     summary="Delete a member",
     description="Deletes a member by its ID. Returns a boolean indicating whether the operation was successful."
 )
-def delete_member(member_id: int, container: Container = Depends(get_container)) -> bool:
+def delete_member(member_id: int, container: PersistenceContainer = Depends(get_persistence_container)) -> bool:
     """
     Delete a member by id.
 

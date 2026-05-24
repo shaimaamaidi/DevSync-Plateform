@@ -37,10 +37,10 @@ class SaveSummaryTasksInClickUpUseCase(ISaveSummaryTasksInClickUpUseCase):
     """
 
     def __init__(
-            self,
-            member_repo: IMemberRepository,
-            clickup_reader: IClickUpReader,
-            clickup_writer: IClickUpTaskWriter
+        self,
+        member_repo: IMemberRepository,
+        clickup_reader: IClickUpReader,
+        clickup_writer: IClickUpTaskWriter
     ):
         """
         Initialize the use case with required services and repositories.
@@ -55,11 +55,11 @@ class SaveSummaryTasksInClickUpUseCase(ISaveSummaryTasksInClickUpUseCase):
         self._clickup_writer = clickup_writer
 
     def save_summary_tasks_to_clickup(
-            self,
-            tasks: List[VerifiedTaskFromSummary],
-            space_id: str,
-            ignore_names: bool,
-            ignore_mails: bool
+        self,
+        tasks: List[VerifiedTaskFromSummary],
+        space_id: str,
+        ignore_names: bool,
+        ignore_mails: bool
     ) -> None:
         """
         Apply verified summary tasks into ClickUp.

@@ -24,8 +24,8 @@ from backend.src.domain.entities.clickup_space import (
     ClickUpSpaceLightDTO,
     ClickUpSpaceUpdateDTO,
 )
-from backend.src.infrastructure.di.container import Container
-from backend.src.presentation.api.deps import get_container
+from backend.src.infrastructure.di.persistence_container import PersistenceContainer
+from backend.src.presentation.api.deps import get_persistence_container
 
 
 logger = logging.getLogger(__name__)
@@ -43,12 +43,12 @@ router = APIRouter()
         "Retrieves the full list of ClickUp spaces stored in the system."
     )
 )
-def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickUpSpaceDTO]:
+def get_all_spaces(container: PersistenceContainer = Depends(get_persistence_container)) -> list[ClickUpSpaceDTO]:
     """
     Return all ClickUp spaces.
 
     Args:
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         list[ClickUpSpaceDTO]: List of all ClickUp spaces.
@@ -71,12 +71,12 @@ def get_all_spaces(container: Container = Depends(get_container)) -> list[ClickU
         "for lightweight usage (e.g., dropdowns or listings)."
     )
 )
-def get_all_light(container: Container = Depends(get_container)) -> list[ClickUpSpaceLightDTO]:
+def get_all_light(container: PersistenceContainer = Depends(get_persistence_container)) -> list[ClickUpSpaceLightDTO]:
     """
     Return all ClickUp spaces in light form.
 
     Args:
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         list[ClickUpSpaceLightDTO]: List of all ClickUp spaces (light version).
@@ -98,13 +98,13 @@ def get_all_light(container: Container = Depends(get_container)) -> list[ClickUp
         "Fetches detailed information about a specific ClickUp space using its unique identifier."
     )
 )
-def get_space_by_id(space_id: int, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
+def get_space_by_id(space_id: int, container: PersistenceContainer = Depends(get_persistence_container)) -> ClickUpSpaceDetailDTO:
     """
     Fetch a ClickUp space by id.
 
     Args:
         space_id (int): The ClickUp space ID.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         ClickUpSpaceDetailDTO: The ClickUp space details.
@@ -126,13 +126,13 @@ def get_space_by_id(space_id: int, container: Container = Depends(get_container)
         "Fetches detailed information about a specific ClickUp space using its unique identifier."
     )
 )
-def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDTO:
+def create_space(space: ClickUpSpaceCreateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> ClickUpSpaceDTO:
     """
     Create a ClickUp space.
 
     Args:
         space (ClickUpSpaceCreateDTO): The ClickUp space creation payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         ClickUpSpaceDTO: The created ClickUp space.
@@ -161,14 +161,14 @@ def create_space(space: ClickUpSpaceCreateDTO, container: Container = Depends(ge
         "Updates an existing ClickUp space identified by its ID with new provided values."
     )
 )
-def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Container = Depends(get_container)) -> ClickUpSpaceDetailDTO:
+def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> ClickUpSpaceDetailDTO:
     """
     Update a ClickUp space by id.
 
     Args:
         space_id (int): The ClickUp space ID.
         space (ClickUpSpaceUpdateDTO): The update payload.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         ClickUpSpaceDetailDTO: The updated ClickUp space details.
@@ -191,13 +191,13 @@ def update_space(space_id: int, space: ClickUpSpaceUpdateDTO, container: Contain
         "Updates an existing ClickUp space identified by its ID with new provided values."
     )
 )
-def delete_space(space_id: int, container: Container = Depends(get_container)) -> bool:
+def delete_space(space_id: int, container: PersistenceContainer = Depends(get_persistence_container)) -> bool:
     """
     Delete a ClickUp space by id.
 
     Args:
         space_id (int): The ClickUp space ID.
-        container (Container): Dependency injection container.
+        container (PersistenceContainer): Dependency injection container.
 
     Returns:
         bool: True if deletion was successful.

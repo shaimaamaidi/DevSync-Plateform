@@ -12,12 +12,13 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.deployment import DeploymentDTO
+from backend.src.domain.entities.github.deployment import DeploymentDTO
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 
 from backend.src.domain.ports.input.i_deployment_use_case import IDeploymentUseCase
+from backend.src.domain.ports.output.github.i_github_deployment_service import IGitHubDeploymentService
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
-from backend.src.domain.ports.output.i_github_service import IGitHubService
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,19 +31,19 @@ class DeploymentUseCase(IDeploymentUseCase):
 
     Attributes:
          _repo (IRepoRepository): Repository persistence port.
-        _github (IGitHubService): GitHub service port.
+        _github_deployment_service (IGitHubDeploymentService): GitHub service port.
     """
 
-    def __init__(self, repo_repo: IRepoRepository, github_service: IGitHubService):
+    def __init__(self, repo_repo: IRepoRepository, github_deployment_service: IGitHubDeploymentService):
         """
         Initialize the use case with a GitHub adapter and repository adapter.
 
         Args:
-            github_service (IGitHubService): GitHub service port.
+            github_deployment_service (IGitHubDeploymentService): GitHub service port.
             repo_repo (IRepoRepository): Repository persistence port.
         """
         self._repo = repo_repo
-        self._github = github_service
+        self._github_deployment_service = github_deployment_service
 
     async def list_deployments(self, repo_url: str) -> List[DeploymentDTO]:
         """
@@ -74,7 +75,7 @@ class DeploymentUseCase(IDeploymentUseCase):
 
         result = self._repo.find_by_url(repo_url)
 
-        results = await self._github.get_deployments(result.url)
+        results = await self._github_deployment_service.get_deployments(result.url, max_deployments=None)
 
         logger.info(
             "Fetched %s deployments for repository successfully: repo_url=%s.",
