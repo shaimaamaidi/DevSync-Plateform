@@ -103,3 +103,38 @@ class IClickUpReader(ABC):
             ClickUpResourceNotFoundException: If the task does not exist.
         """
         pass
+
+    @abstractmethod
+    def get_task_time_context(self, task_id: str) -> dict:
+        """
+        Retrieve all available date signals for a task.
+
+        ClickUp does not expose a full status-change history via API.
+        This method collects every date signal available and derives
+        `since_current_status` from time_in_status when possible.
+
+        Collected signals:
+            - date_created : when the task was created (exact)
+            - date_updated : last modification of any field (exact)
+            - date_closed : when marked Done/Closed (exact, or None)
+            - start_date : manually set start date (or None)
+            - due_date : due date if set (or None)
+            - current_status : current status string
+            - since_current_status : datetime when task entered current status
+                derived from time_in_status.current_status.since
+                (requires "Total time in Status" ClickApp enabled)
+
+        Args:
+            task_id: ClickUp task identifier.
+
+        Returns:
+            Dict with keys:
+                date_created (datetime)
+                date_updated (datetime)
+                date_closed (datetime | None)
+                start_date (datetime | None)
+                due_date (datetime | None)
+                current_status (str)
+                since_current_status (datetime | None)
+        """
+        pass

@@ -75,7 +75,7 @@ class DeploymentUseCase(IDeploymentUseCase):
 
         result = self._repo.find_by_url(repo_url)
 
-        results = await self._github_deployment_service.get_deployments(result.url, max_deployments=None)
+        results = await self._github_deployment_service.get_deployments(result.url)
 
         logger.info(
             "Fetched %s deployments for repository successfully: repo_url=%s.",

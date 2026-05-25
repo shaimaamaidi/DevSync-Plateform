@@ -15,8 +15,7 @@ from backend.src.domain.entities.check_task_status.synthesized_task_status_resul
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.entities.github.deployment import DeploymentDTO
-from backend.src.domain.ports.services.task_status_check.i_task_status_synthesizer import \
-    ITaskStatusSynthesizer
+from backend.src.domain.ports.services.task_status_check.i_task_status_synthesizer import ITaskStatusSynthesizer
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
@@ -38,7 +37,8 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
         self,
         task: ClickUpTask,
         deployments: List[DeploymentDTO],
-        commits: List[CommitDTO]
+        commits: List[CommitDTO],
+        signals: dict
     ) -> SynthesizedTaskStatusResult:
         """
         Synthesize the status of a ClickUp task using an LLM.
@@ -71,6 +71,7 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
             prompt_name="task_status_synthesizer_agent",
             variables={
                 "task": json.dumps(task.to_dict(), ensure_ascii=False, indent=2),
+                "signals": json.dumps(signals, ensure_ascii=False, indent=2),
                 "commits": json.dumps(
                     [c.to_dict() for c in commits],
                     ensure_ascii=False,

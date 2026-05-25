@@ -29,7 +29,8 @@ class ITaskStatusSynthesizer(ABC):
         self,
         task: ClickUpTask,
         deployments: List[DeploymentDTO],
-        commits: List[CommitDTO]
+        commits: List[CommitDTO],
+        signals: dict
     ) -> SynthesizedTaskStatusResult:
         """
         Synthesize the status of a task based on deployments and commits.

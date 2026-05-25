@@ -10,6 +10,7 @@ responses into domain entities.
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
@@ -23,7 +24,9 @@ from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpRea
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
 from backend.src.infrastructure.external.clickup.helpers.clickup_helper import parse_task
 
+
 logger = logging.getLogger(__name__)
+
 
 PRIORITIES = ["urgent", "high", "normal", "low"]
 
@@ -304,6 +307,104 @@ class ClickUpReader(IClickUpReader):
 
         return parse_task(response)
 
+    def get_task_time_context(self, task_id: str) -> dict:
+        """
+        Retrieve all available date signals for a task.
+
+        ClickUp does not expose a full status-change history via API.
+        This method collects every date signal available and derives
+        `since_current_status` from time_in_status when possible.
+
+        Collected signals:
+            - date_created : when the task was created (exact)
+            - date_updated : last modification of any field (exact)
+            - date_closed : when marked Done/Closed (exact, or None)
+            - start_date : manually set start date (or None)
+            - due_date : due date if set (or None)
+            - current_status : current status string
+            - since_current_status : datetime when task entered current status
+                derived from time_in_status.current_status.since
+                (requires "Total time in Status" ClickApp enabled)
+
+        Args:
+            task_id: ClickUp task identifier.
+
+        Returns:
+            Dict with keys:
+                date_created (datetime)
+                date_updated (datetime)
+                date_closed (datetime | None)
+                start_date (datetime | None)
+                due_date (datetime | None)
+                current_status (str)
+                since_current_status (datetime | None)
+
+        Raises:
+            ClickUpResourceNotFoundException: If the task does not exist.
+        """
+        logger.info("Fetching task time context. task_id=%s.", task_id)
+
+        try:
+            task_raw = self._http.get(f"/task/{task_id}")
+        except ClickUpClientException as e:
+            raise ClickUpResourceNotFoundException(
+                "The requested ClickUp task could not be found."
+            ) from e
+
+        date_created = ClickUpReader._ms_to_dt(task_raw.get("date_created"))
+        date_updated = ClickUpReader._ms_to_dt(task_raw.get("date_updated"))
+        date_closed = ClickUpReader._ms_to_dt(task_raw.get("date_closed"))
+        start_date = ClickUpReader._ms_to_dt(task_raw.get("start_date"))
+        due_date = ClickUpReader._ms_to_dt(task_raw.get("due_date"))
+
+        current_status = (
+            (task_raw.get("status") or {}).get("status", "unknown").lower()
+        )
+
+        since_current_status: datetime | None = None
+
+        try:
+            tis = self._http.get(f"/task/{task_id}/time_in_status")
+            since_ms = (
+                tis.get("current_status", {})
+                .get("since")
+            )
+            since_current_status = ClickUpReader._ms_to_dt(str(since_ms) if since_ms else None)
+
+            logger.info(
+                "time_in_status fetched. task_id=%s, since=%s.",
+                task_id, since_current_status,
+            )
+        except ClickUpClientException:
+            logger.warning(
+                "time_in_status unavailable for task_id=%s. "
+                "'Total time in Status' ClickApp may be disabled. "
+                "Falling back to None.",
+                task_id,
+            )
+
+        context = {
+            "date_created": date_created,
+            "date_updated": date_updated,
+            "date_closed": date_closed,
+            "start_date": start_date,
+            "due_date": due_date,
+            "current_status": current_status,
+            "since_current_status": since_current_status,
+        }
+
+        logger.info(
+            "Task time context built. task_id=%s, status=%s, "
+            "created=%s, closed=%s, since_status=%s.",
+            task_id,
+            current_status,
+            date_created,
+            date_closed,
+            since_current_status,
+        )
+
+        return context
+
     @staticmethod
     def _parse_member_with_role(member: dict) -> Optional[dict]:
         """
@@ -570,3 +671,15 @@ class ClickUpReader(IClickUpReader):
             ) from e
 
         return results
+
+    @staticmethod
+    def _ms_to_dt(ms_str: str | None) -> datetime | None:
+        """
+        Convert ClickUp millisecond timestamp string to datetime.
+        """
+        if not ms_str:
+            return None
+        try:
+            return datetime.fromtimestamp(int(ms_str) / 1000, tz=timezone.utc)
+        except (ValueError, OSError):
+            return None

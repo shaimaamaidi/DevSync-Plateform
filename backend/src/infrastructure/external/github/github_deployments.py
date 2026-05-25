@@ -80,6 +80,303 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             )
             raise MissingEnvVariableException() from e
 
+    async def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+        """
+        Retrieve deployments for a repository URL.
+
+        Merges results from:
+        1. GitHub Deployments API — explicit deployment events
+        2. GitHub Actions runs — workflow runs with deploy-related names
+
+        Results are deduplicated by dep_id and sorted newest-first by
+        created_at string (ISO-sortable).
+
+        Args:
+            repo_url (str): GitHub repository URL.
+
+        Returns:
+            List[DeploymentDTO]: Deduplicated, sorted list of DeploymentDTOs.
+
+        Raises:
+            InvalidGitHubUrlException: If the repository URL is malformed.
+            GitHubRepoNotFoundException: If the repository does not exist.
+            GitHubApiException: For network or API errors during fetch.
+        """
+        logger.info("Fetching all deployments for repository: %s.", repo_url)
+
+        owner, repo = self._parse_repo(repo_url)
+
+        api_deployments = await self._fetch_deployments_from_api(owner, repo)
+
+        actions_deployments = await self._fetch_deployments_from_actions(owner, repo)
+
+        seen_ids: set[int] = set()
+        merged: List[DeploymentDTO] = []
+
+        for dep in api_deployments + actions_deployments:
+            if dep.dep_id not in seen_ids:
+                seen_ids.add(dep.dep_id)
+                merged.append(dep)
+
+        merged.sort(key=lambda d: d.created_at or datetime.min, reverse=True)
+
+        logger.info(
+            "Total deployments after merge for %s: %d "
+            "(%d from Deployments API, %d from Actions).",
+            repo_url,
+            len(merged),
+            len(api_deployments),
+            len(actions_deployments),
+        )
+
+        return merged
+
+    async def get_deployments_between_dates(
+        self,
+        repo_url: str,
+        since: datetime,
+        until: datetime,
+        max_deployments: int ,
+    ) -> List[DeploymentDTO]:
+        """
+        Retrieve deployments within a date range.
+
+        Strategy (mirrors get_commits_between_dates):
+            - Paginate API + Actions newest-first
+            - Stop pagination as soon as created_at goes below `since`
+            - Apply max_deployments cap AFTER date filtering
+
+        Args:
+            repo_url: GitHub repository URL.
+            since: Start datetime (inclusive).
+            until: End datetime (inclusive).
+            max_deployments: Maximum to return after date filtering.
+                Defaults to DEPLOYMENTS_MAX_ITEMS.
+
+        Returns:
+            List[DeploymentDTO]: Deployments in [since, until], newest first.
+        """
+        logger.info(
+            "Fetching deployments for %s between %s and %s (cap=%s).",
+            repo_url, since.isoformat(), until.isoformat(), max_deployments,
+        )
+
+        owner, repo = self._parse_repo(repo_url)
+
+        raw_deps, raw_runs = await asyncio.gather(
+            self._fetch_raw_deployments_in_window(owner, repo, since, until),
+            self._fetch_actions_in_window(owner, repo, since, until),
+        )
+
+        environments: set[str] = {
+            dep.get("environment", "-") for dep in raw_deps if dep.get("environment")
+        }
+        status_map = await self._fetch_latest_status_per_environment(owner, repo, environments)
+
+        api_deployments: List[DeploymentDTO] = []
+        for dep in raw_deps:
+            env = dep.get("environment", "-")
+            state, log_url = status_map.get(env, ("no status", "-"))
+            api_deployments.append(DeploymentDTO(
+                dep_id=dep["id"],
+                environment=env,
+                ref=dep.get("ref", "-"),
+                sha=dep.get("sha", "")[:7],
+                creator=dep.get("creator", {}).get("login", "-"),
+                created_at=datetime.fromisoformat(
+                    dep.get("created_at").replace("Z", "+00:00")
+                ).astimezone() if dep.get("created_at") else None,
+                description=dep.get("description") or "-",
+                state=state,
+                log_url=log_url,
+            ))
+
+        actions_deployments: List[DeploymentDTO] = []
+        for run in raw_runs:
+            workflow_name = run.get("name") or run.get("display_title") or ""
+            conclusion = run.get("conclusion") or ""
+            status = run.get("status") or ""
+
+            if conclusion == "success":
+                state = "success"
+            elif conclusion in ("failure", "timed_out"):
+                state = "failure"
+            elif conclusion == "cancelled":
+                state = "inactive"
+            elif status in ("in_progress", "queued", "waiting"):
+                state = status
+            else:
+                state = conclusion or status or "no status"
+
+            actions_deployments.append(DeploymentDTO(
+                dep_id=run.get("id", 0),
+                environment=run.get("head_branch") or "-",
+                ref=run.get("head_branch") or "-",
+                sha=(run.get("head_sha") or "")[:7],
+                creator=(run.get("actor") or {}).get("login", "-"),
+                created_at=datetime.fromisoformat(
+                    run.get("created_at").replace("Z", "+00:00")
+                ).astimezone() if run.get("created_at") else None,
+                description=f"[Actions] {workflow_name}",
+                state=state,
+                log_url=run.get("html_url") or "-",
+            ))
+
+        seen_ids: set[int] = set()
+        merged: List[DeploymentDTO] = []
+        for dep in api_deployments + actions_deployments:
+            if dep.dep_id not in seen_ids:
+                seen_ids.add(dep.dep_id)
+                merged.append(dep)
+
+        merged.sort(key=lambda d: d.created_at or datetime.min, reverse=True)
+
+        result = merged[:max_deployments]
+
+        logger.info(
+            "Found %d deployment(s) in window [%s → %s] (cap=%d) for %s.",
+            len(result), since.isoformat(), until.isoformat(), cap, repo_url,
+        )
+
+        return result
+
+    async def _fetch_raw_deployments_in_window(
+        self,
+        owner: str,
+        repo: str,
+        since: datetime,
+        until: datetime,
+    ) -> list[dict]:
+        """
+        Paginate /deployments and stop as soon as we go past `since`.
+
+        GitHub returns deployments newest-first, so once created_at < since
+        all remaining pages are also out of the window — we can stop early.
+
+        Args:
+            owner: Repository owner.
+            repo: Repository name.
+            since: Start datetime (inclusive).
+            until: End datetime (inclusive).
+
+        Returns:
+            Raw deployment dicts whose created_at falls in [since, until].
+        """
+        results: list[dict] = []
+        page = 1
+
+        async with httpx.AsyncClient(timeout=self.GITHUB_TIMEOUT) as client:
+            while True:
+                url = (
+                    f"https://api.github.com/repos/{owner}/{repo}/deployments"
+                    f"?per_page=100&page={page}"
+                )
+                resp = await client.get(url, headers=self._get_headers())
+                resp.raise_for_status()
+                batch: list[dict] = resp.json()
+
+                if not batch:
+                    break
+
+                stop = False
+                for dep in batch:
+                    raw_date = dep.get("created_at")
+                    if not raw_date:
+                        continue
+
+                    created_at = datetime.fromisoformat(
+                        raw_date.replace("Z", "+00:00")
+                    ).astimezone()
+
+                    if created_at < since:
+                        # GitHub is newest-first — everything after is older, stop
+                        stop = True
+                        break
+
+                    if created_at <= until:
+                        results.append(dep)
+
+                if stop:
+                    break
+
+                # No Link header → last page
+                link = resp.headers.get("Link", "")
+                if 'rel="next"' not in link:
+                    break
+
+                page += 1
+
+        return results
+
+    async def _fetch_actions_in_window(
+        self,
+        owner: str,
+        repo: str,
+        since: datetime,
+        until: datetime,
+    ) -> list[dict]:
+        """
+        Paginate Actions runs and stop as soon as we go past `since`.
+
+        Same early-stop strategy as _fetch_raw_deployments_in_window.
+
+        Args:
+            owner: Repository owner.
+            repo: Repository name.
+            since: Start datetime (inclusive).
+            until: End datetime (inclusive).
+
+        Returns:
+            Raw workflow run dicts in [since, until] with deploy-related names.
+        """
+        results: list[dict] = []
+        page = 1
+
+        async with httpx.AsyncClient(timeout=self.GITHUB_TIMEOUT) as client:
+            while True:
+                url = (
+                    f"https://api.github.com/repos/{owner}/{repo}/actions/runs"
+                    f"?per_page=100&page={page}"
+                )
+                resp = await client.get(url, headers=self._get_headers())
+                resp.raise_for_status()
+
+                data = resp.json()
+                runs: list[dict] = data.get("workflow_runs", [])
+
+                if not runs:
+                    break
+
+                stop = False
+                for run in runs:
+                    raw_date = run.get("created_at")
+                    if not raw_date:
+                        continue
+
+                    created_at = datetime.fromisoformat(
+                        raw_date.replace("Z", "+00:00")
+                    ).astimezone()
+
+                    if created_at < since:
+                        stop = True
+                        break
+
+                    if created_at <= until:
+                        workflow_name = run.get("name") or run.get("display_title") or ""
+                        if self._is_deploy_workflow(workflow_name):
+                            results.append(run)
+
+                if stop:
+                    break
+
+                link = resp.headers.get("Link", "")
+                if 'rel="next"' not in link:
+                    break
+
+                page += 1
+
+        return results
+
     @staticmethod
     def _is_deploy_workflow(workflow_name: str) -> bool:
         """
@@ -168,7 +465,6 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         self,
         owner: str,
         repo: str,
-        max_deployments: int | None
     ) -> List[DeploymentDTO]:
         """
         Fetch deployments from the GitHub Deployments API.
@@ -185,8 +481,6 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         Args:
             owner (str): Repository owner.
             repo (str): Repository name.
-            max_deployments (int | None): Maximum number of deployments to fetch.
-                If None, the value configured in the environment (.env) is used.
 
         Returns:
             List[DeploymentDTO]: List of DeploymentDTOs built from the Deployments API.
@@ -199,10 +493,8 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             "Fetching GitHub Deployments API for %s/%s (cap=%d).",
             owner, repo, self.DEPLOYMENTS_MAX_ITEMS,
         )
-        if max_deployments:
-            max_items = max_deployments
-        else:
-            max_items = self.DEPLOYMENTS_MAX_ITEMS
+
+        max_items = self.DEPLOYMENTS_MAX_ITEMS
 
         per_page = min(max_items, 100)
         raw = await self._github_get(
@@ -352,56 +644,3 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         )
 
         return deployments
-
-    async def get_deployments(self, repo_url: str, max_deployments: int | None) -> List[DeploymentDTO]:
-        """
-        Retrieve deployments for a repository URL.
-
-        Merges results from:
-        1. GitHub Deployments API — explicit deployment events
-        2. GitHub Actions runs — workflow runs with deploy-related names
-
-        Results are deduplicated by dep_id and sorted newest-first by
-        created_at string (ISO-sortable).
-
-        Args:
-            repo_url (str): GitHub repository URL.
-            max_deployments (int | None): Maximum number of deployments to fetch.
-                If None, the value configured in the environment (.env) is used.
-
-        Returns:
-            List[DeploymentDTO]: Deduplicated, sorted list of DeploymentDTOs.
-
-        Raises:
-            InvalidGitHubUrlException: If the repository URL is malformed.
-            GitHubRepoNotFoundException: If the repository does not exist.
-            GitHubApiException: For network or API errors during fetch.
-        """
-        logger.info("Fetching all deployments for repository: %s.", repo_url)
-
-        owner, repo = self._parse_repo(repo_url)
-
-        api_deployments = await self._fetch_deployments_from_api(owner, repo, max_deployments)
-
-        actions_deployments = await self._fetch_deployments_from_actions(owner, repo)
-
-        seen_ids: set[int] = set()
-        merged: List[DeploymentDTO] = []
-
-        for dep in api_deployments + actions_deployments:
-            if dep.dep_id not in seen_ids:
-                seen_ids.add(dep.dep_id)
-                merged.append(dep)
-
-        merged.sort(key=lambda d: d.created_at or datetime.min, reverse=True)
-
-        logger.info(
-            "Total deployments after merge for %s: %d "
-            "(%d from Deployments API, %d from Actions).",
-            repo_url,
-            len(merged),
-            len(api_deployments),
-            len(actions_deployments),
-        )
-
-        return merged

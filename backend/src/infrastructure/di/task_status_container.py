@@ -84,7 +84,7 @@ class TaskStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubConta
         logger.info("Initializing task status container.")
 
         try:
-            BaseAIContainer.__init__(self) 
+            BaseAIContainer.__init__(self)
             BaseClickUpContainer.__init__(self)
             BaseGitHubContainer.__init__(self)
             self._init_github_commit_service()

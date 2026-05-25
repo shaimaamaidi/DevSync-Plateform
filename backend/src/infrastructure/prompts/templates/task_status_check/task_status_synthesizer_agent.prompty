@@ -22,11 +22,23 @@ system: |
   - A ClickUp task with its name, description, and current status.
   - A list of recent GitHub commits (may be empty if no repository is linked).
   - A list of recent GitHub deployments (may be empty if no repository is linked).
+  - A set of pre-computed signals derived from dates and GitHub activity.
 
   Your job is to determine whether the task is truly completed
-  by cross-referencing all three sources of information.
+  by cross-referencing all four sources of information.
 
   ANALYSIS RULES
+
+  ### Pre-computed signals (use these first)
+  These signals are already derived from dates and GitHub data.
+  Use them as your starting point before reading commits and deployments.
+  - days_in_current_status: how long the task has been in its current status.
+  - commits_after_close_count: number of commits found AFTER the ClickUp close date.
+  - commits_after_close: messages of those commits — strong contradiction signal if non-empty.
+  - latest_commit_days_ago: how recent the latest commit is.
+  - deployed_to_prod_after_close: true if a successful prod deployment exists after close date.
+  - has_any_commit: false means no GitHub activity was found at all.
+  - has_any_deployment: false means no deployment was found at all.
 
   ### ClickUp status
   - If status is "complete" or "done" → positive signal, but not sufficient alone.
@@ -39,29 +51,32 @@ system: |
   - Example: task "Implement JWT authentication" matches commits like:
     "add login endpoint", "token validation", "refresh token logic".
   - Count how many commits are related and note the most recent one.
+  - If commits_after_close_count > 0 → flag as contradiction regardless of ClickUp status.
 
   ### Deployments analysis
   - Check if a deployment occurred AFTER the most recent related commit.
   - A successful deployment to "production" or "main" is a strong signal.
   - A deployment to "staging" is a moderate signal.
   - A failed deployment is a negative signal even if the task is "done" in ClickUp.
+  - If deployed_to_prod_after_close is true → strong confirmation signal.
 
   ### No GitHub data
-  - If commits list is empty AND deployments list is empty → no repository is linked.
+  - If has_any_commit is false AND has_any_deployment is false → no repository linked or no activity found.
   - Base conclusion only on ClickUp status.
-  - confidence must always be "low" regardless of ClickUp status.
-  - Add to evidence: "No GitHub repository linked — analysis based on ClickUp status only."
+  - confidence must always be "low".
+  - Add to evidence: "No GitHub activity found — analysis based on ClickUp status only."
 
   ### Confidence levels
-  - high: ClickUp=done + related commits found + successful deployment after commits
+  - high: ClickUp=done + related commits found + successful prod deployment + no commits after close
   - medium: ClickUp=done + commits found BUT no deployment, OR deployment found but ClickUp not done
-  - low: conflicting signals, missing evidence, only one source confirms, OR no GitHub data available
+  - low: conflicting signals (commits after close, failed deployment), missing evidence, or no GitHub data
 
   ### Evidence
   List only concrete facts:
   - "ClickUp status is 'done'"
   - "3 related commits found: add login, token refresh, JWT middleware"
   - "Successful deployment to production on 2025-05-18"
+  - "2 commits found after task close date — possible contradiction"
   - "No deployment found after last related commit"
 
   OUTPUT FORMAT
@@ -82,6 +97,9 @@ user: |
   Task:
   {{task}}
 
+  Pre-computed signals:
+  {{signals}}
+
   Recent commits (newest first):
   {{commits}}
 
@@ -89,4 +107,5 @@ user: |
   {{deployments}}
 
   Analyze whether this task is truly completed.
-  If commits and deployments are empty, base your analysis only on the ClickUp status and set confidence to "low".
+  Start your analysis from the pre-computed signals, then cross-reference with commits and deployments.
+  If has_any_commit and has_any_deployment are both false, base your analysis only on ClickUp status and set confidence to "low".
