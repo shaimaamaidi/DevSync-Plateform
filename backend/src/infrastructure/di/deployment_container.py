@@ -22,8 +22,6 @@ from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.ports.repositories.i_repo_repository import IRepoRepository
 from backend.src.infrastructure.di.base_github_container import BaseGitHubContainer
 
-from backend.src.infrastructure.external.github.github_deployments import GitHubDeploymentAdapter
-
 
 logger = logging.getLogger(__name__)
 

@@ -17,12 +17,12 @@ import logging
 
 from fastapi import APIRouter, Depends, status
 
-from backend.src.application.use_cases.task_status_check.search_task_use_case import SearchTaskUseCase
-from backend.src.application.use_cases.task_status_check.synthesize_task_status_use_case import SynthesizeTaskStatusUseCase
 from backend.src.domain.entities.check_task_status.task_search_request import TaskSearchRequest
 from backend.src.domain.entities.check_task_status.task_search_response import TaskSearchResponse
 from backend.src.domain.entities.check_task_status.synthesized_task_status_request import SynthesizedTaskStatusRequest
 from backend.src.domain.entities.check_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
+from backend.src.domain.ports.input.task_status_check.i_search_task_use_case import ISearchTaskUseCase
+from backend.src.domain.ports.input.task_status_check.i_synthesize_task_status_use_case import ISynthesizeTaskStatusUseCase
 from backend.src.presentation.api.deps import get_search_task_use_case, get_synthesize_task_status_use_case
 
 
@@ -45,7 +45,7 @@ router = APIRouter()
 )
 def search_task(
     body: TaskSearchRequest,
-    use_case: SearchTaskUseCase = Depends(get_search_task_use_case),
+    use_case: ISearchTaskUseCase = Depends(get_search_task_use_case),
 ) -> TaskSearchResponse:
     """
     Search for ClickUp tasks matching a user question.
@@ -62,7 +62,7 @@ def search_task(
             - question: user question describing the task
             - space_id: ClickUp space identifier
 
-        use_case (SearchTaskUseCase): Application use case responsible for task search logic.
+        use_case (ISearchTaskUseCase): Application use case responsible for task search logic.
 
     Returns:
         TaskSearchResponse:
@@ -104,7 +104,7 @@ def search_task(
 )
 async def synthesize_task_status(
     body: SynthesizedTaskStatusRequest,
-    use_case: SynthesizeTaskStatusUseCase = Depends(get_synthesize_task_status_use_case),
+    use_case: ISynthesizeTaskStatusUseCase = Depends(get_synthesize_task_status_use_case),
 ) -> SynthesizedTaskStatusResult:
     """
     Synthesize the completion status of a ClickUp task.
@@ -122,7 +122,7 @@ async def synthesize_task_status(
             - task: ClickUp task to analyze
             - repo_url: optional GitHub repository URL
 
-        use_case (SynthesizeTaskStatusUseCase): Application use case responsible for task status synthesis.
+        use_case (ISynthesizeTaskStatusUseCase): Application use case responsible for task status synthesis.
 
     Returns:
         SynthesizedTaskStatusResult:

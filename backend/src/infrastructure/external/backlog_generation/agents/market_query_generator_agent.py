@@ -13,13 +13,14 @@ import logging
 from backend.src.domain.entities.market.query import QueryGeneration
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_query_generator import IMarketQueryGenerator
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
+class MarketQueryGeneratorAgent(BaseAgent[QueryGeneration], IMarketQueryGenerator):
     """
     LLM-based implementation of IMarketQueryGenerator.
 
@@ -28,6 +29,16 @@ class MarketQueryGeneratorAgent(BaseAgent, IMarketQueryGenerator):
     - Transforming business context into web-searchable intents
     - Supporting market intelligence enrichment workflows
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the MarketQueryGeneratorAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def generate_queries(self, detailed_description: InitialDescription) -> QueryGeneration:
         """

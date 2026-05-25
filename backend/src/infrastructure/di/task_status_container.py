@@ -26,8 +26,6 @@ from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 from backend.src.infrastructure.di.base_github_container import BaseGitHubContainer
 
-from backend.src.infrastructure.external.github.github_deployments import GitHubDeploymentAdapter
-from backend.src.infrastructure.external.github.github_commits import GitHubCommitsAdapter
 from backend.src.infrastructure.external.task_status_check.task_search_agent import TaskSearchAgent
 from backend.src.infrastructure.external.task_status_check.task_status_synthesizer_agent import TaskStatusSynthesizerAgent
 
@@ -87,7 +85,6 @@ class TaskStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubConta
             BaseAIContainer.__init__(self)
             BaseClickUpContainer.__init__(self)
             BaseGitHubContainer.__init__(self)
-            self._init_github_commit_service()
             self._init_task_status_agents()
             self._init_task_status_use_cases()
 
@@ -102,32 +99,6 @@ class TaskStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubConta
                 "TASK_STATUS_CONTAINER_INIT_ERROR",
                 http_status=500,
             ) from e
-
-    def _init_github_commit_service(self):
-        """
-        Initialize GitHub commit service.
-
-        This service is responsible for retrieving commit history
-        associated with repositories for task status synthesis.
-        """
-        logger.info("Initializing GitHub commit service.")
-        try:
-            self.github_commit_service = GitHubCommitsAdapter()
-        except Exception as e:
-            logger.exception("Failed to initialize GitHubCommitsAdapter.")
-            raise AppException(
-                "GitHub services are currently unavailable. Please try again later.",
-                "GITHUB_ADAPTER_INIT_ERROR",
-                http_status=500,
-            ) from e
-
-    def _init_github_services(self):
-        """
-        Initialize GitHub adapter services for deployments and commits.
-        """
-        logger.info("Initializing GitHub services.")
-
-        self.github_commit_service = GitHubCommitsAdapter()
 
     def _init_task_status_agents(self):
         """

@@ -80,7 +80,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             )
             raise MissingEnvVariableException() from e
 
-    async def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+    async def get_deployments(self, repo_url: str, max_deployments: int | None) -> List[DeploymentDTO]:
         """
         Retrieve deployments for a repository URL.
 
@@ -93,6 +93,8 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
 
         Args:
             repo_url (str): GitHub repository URL.
+            max_deployments (int | None): Maximum number of deployments to return.
+                If None, uses the default configured limit from environment.
 
         Returns:
             List[DeploymentDTO]: Deduplicated, sorted list of DeploymentDTOs.
@@ -104,9 +106,11 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         """
         logger.info("Fetching all deployments for repository: %s.", repo_url)
 
+        max_items = max_deployments or self.DEPLOYMENTS_MAX_ITEMS
+
         owner, repo = self._parse_repo(repo_url)
 
-        api_deployments = await self._fetch_deployments_from_api(owner, repo)
+        api_deployments = await self._fetch_deployments_from_api(owner, repo, max_deployments)
 
         actions_deployments = await self._fetch_deployments_from_actions(owner, repo)
 
@@ -129,7 +133,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             len(actions_deployments),
         )
 
-        return merged
+        return merged[:max_items]
 
     async def get_deployments_between_dates(
         self,
@@ -234,8 +238,8 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         result = merged[:max_deployments]
 
         logger.info(
-            "Found %d deployment(s) in window [%s → %s] (cap=%d) for %s.",
-            len(result), since.isoformat(), until.isoformat(), cap, repo_url,
+            "Found %d deployment(s) in window [%s → %s] for %s.",
+            len(result), since.isoformat(), until.isoformat(), repo_url,
         )
 
         return result
@@ -465,6 +469,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         self,
         owner: str,
         repo: str,
+        max_deployments: int | None
     ) -> List[DeploymentDTO]:
         """
         Fetch deployments from the GitHub Deployments API.
@@ -481,6 +486,8 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
         Args:
             owner (str): Repository owner.
             repo (str): Repository name.
+            max_deployments (int | None): Maximum number of deployments to return.
+                If None, uses the default configured limit from environment.
 
         Returns:
             List[DeploymentDTO]: List of DeploymentDTOs built from the Deployments API.
@@ -493,8 +500,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             "Fetching GitHub Deployments API for %s/%s (cap=%d).",
             owner, repo, self.DEPLOYMENTS_MAX_ITEMS,
         )
-
-        max_items = self.DEPLOYMENTS_MAX_ITEMS
+        max_items = max_deployments or self.DEPLOYMENTS_MAX_ITEMS
 
         per_page = min(max_items, 100)
         raw = await self._github_get(

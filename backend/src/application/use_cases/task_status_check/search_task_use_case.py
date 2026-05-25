@@ -14,7 +14,7 @@ Classes:
 
 import logging
 
-from backend.src.domain.entities.check_task_status.task_search_response import TaskSearchResponse
+from backend.src.domain.entities.check_task_status.task_search_response import TaskSearchResponse, TaskSearchStatus
 from backend.src.domain.ports.input.task_status_check.i_search_task_use_case import ISearchTaskUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.services.task_status_check.i_task_search import ITaskSearch
@@ -88,6 +88,7 @@ class SearchTaskUseCase(ISearchTaskUseCase):
         if not has_tasks:
             logger.warning("No tasks found in space. space_id=%s.", space_id)
             return TaskSearchResponse(
+                status=TaskSearchStatus.NO_TASKS_IN_SPACE,
                 response="The selected space does not contain any tasks to search.",
                 task=[]
             )
@@ -102,16 +103,19 @@ class SearchTaskUseCase(ISearchTaskUseCase):
 
         if len(results) == 0:
             return TaskSearchResponse(
+                status=TaskSearchStatus.NO_MATCH,
                 response="No tasks found matching your query. Please try rephrasing your question.",
                 task=[]
             )
         elif len(results) == 1:
             return TaskSearchResponse(
+                status=TaskSearchStatus.SINGLE_MATCH,
                 response=f"I found one task matching your query: **{results[0].name}**. Is this the task you are referring to?",
                 task=results
             )
         else:
             return TaskSearchResponse(
+                status=TaskSearchStatus.MULTIPLE_MATCHES,
                 response="I found multiple tasks matching your query. Please select the one you are referring to.",
                 task=results[:3]
             )

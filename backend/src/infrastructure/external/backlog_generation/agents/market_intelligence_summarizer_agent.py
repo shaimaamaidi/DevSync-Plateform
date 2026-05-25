@@ -17,13 +17,14 @@ from backend.src.domain.entities.market.intelligence import MarketIntelligenceSu
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_summarizer import \
     IMarketIntelligenceSummarizer
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class MarketIntelligenceSummarizerAgent(BaseAgent, IMarketIntelligenceSummarizer):
+class MarketIntelligenceSummarizerAgent(BaseAgent[MarketIntelligenceSummary], IMarketIntelligenceSummarizer):
     """
     LLM-based implementation of IMarketIntelligenceSummarizer.
 
@@ -32,6 +33,16 @@ class MarketIntelligenceSummarizerAgent(BaseAgent, IMarketIntelligenceSummarizer
     - Enriching context using optional web results
     - Extracting structured insights for backlog generation
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the MarketIntelligenceSummarizerAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def summarize_context(
         self,

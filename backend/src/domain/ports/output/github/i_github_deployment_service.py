@@ -21,12 +21,14 @@ class IGitHubDeploymentService(ABC):
     """
 
     @abstractmethod
-    async def get_deployments(self, repo_url: str) -> List[DeploymentDTO]:
+    async def get_deployments(self, repo_url: str, max_deployments: int | None) -> List[DeploymentDTO]:
         """
         Fetch deployments for a GitHub repository.
 
         Args:
             repo_url (str): GitHub repository URL.
+            max_deployments (int | None): Maximum number of deployments to return.
+                If None, uses the default configured limit from environment.
 
         Returns:
             List[DeploymentDTO]: List of deployment data transfer objects.

@@ -30,11 +30,6 @@ from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpR
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 
-from backend.src.infrastructure.external.clickup.clickup_reader import ClickUpReader
-from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
-from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-from backend.src.infrastructure.external.clickup.writer.clickup_workspace_writer import ClickUpWorkSpaceWriter
-
 
 logger = logging.getLogger(__name__)
 
@@ -97,14 +92,14 @@ class ClickUpContainer(BaseClickUpContainer):
             self._init_clickup_space_task_reader_use_case()
             self._init_clickup_task_creation_use_case()
 
-            logger.info("ClickUp container initialized successfully.")
+            logger.info("Click up container initialized successfully.")
 
         except AppException:
             raise
         except Exception as e:
-            logger.exception("Failed to initialize ClickUp container.")
+            logger.exception("Failed to initialize Click up container.")
             raise AppException(
-                "ClickUp services are currently unavailable. Please try again later.",
+                "Click up services are currently unavailable. Please try again later.",
                 "CLICKUP_CONTAINER_INIT_ERROR",
                 http_status=500,
             ) from e
@@ -117,7 +112,7 @@ class ClickUpContainer(BaseClickUpContainer):
         writing workspace-level data to ClickUp, such as structure creation
         or updates.
         """
-        logger.info("Initializing ClickUp external service.")
+        logger.info("Initializing Click up external service.")
 
         self.clickup_workspace_writer = ClickUpWorkSpaceWriter(self.http_client)
 

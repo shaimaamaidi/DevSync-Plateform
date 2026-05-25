@@ -28,6 +28,9 @@ Functions:
     # TaskStatusContainer
     get_search_task_use_case: Provides the task search use case instance.
     get_synthesize_task_status_use_case: Provides the task status synthesis use case instance.
+
+    # ProjectStatusContainer
+    get_check_project_status_use_case: Provide the project status check use case instance.
 """
 
 import logging
@@ -35,6 +38,7 @@ from typing import Generator
 
 from fastapi import Depends, Request
 
+from backend.src.application.use_cases.check_project_status_use_case import CheckProjectStatusUseCase
 from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
 from backend.src.application.use_cases.clickup_structure_management_use_case import ClickUpStructureManagementUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
@@ -470,3 +474,31 @@ def get_synthesize_task_status_use_case(request: Request) -> SynthesizeTaskStatu
     except Exception as e:
         logger.exception("Failed to retrieve task status synthesis use case: %s", str(e))
         raise ServiceUnavailableException("Task status synthesis service is unavailable.") from e
+
+
+def get_check_project_status_use_case(request: Request) -> CheckProjectStatusUseCase:
+    """
+    Retrieve the project status check use case from ProjectStatusContainer.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        CheckProjectStatusUseCase: The initialized project status check use case.
+
+    Raises:
+        ServiceUnavailableException: If the use case is not initialized.
+    """
+    try:
+        use_case = request.app.state.project_status_container.project_status_check_use_case
+
+        if use_case is None:
+            raise ServiceUnavailableException("Project status check use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to retrieve project status check use case: %s", str(e))
+        raise ServiceUnavailableException("Project status check service is unavailable.") from e

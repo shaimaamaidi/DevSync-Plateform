@@ -12,6 +12,7 @@ from typing import List, Dict
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskListFromSummary
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_generation_from_summary.i_task_generator_from_summary import ITaskGeneratorFromSummary
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -19,7 +20,7 @@ from backend.src.infrastructure.external.shared.agents.base_agent import BaseAge
 logger = logging.getLogger(__name__)
 
 
-class ClickUpTaskFromSummaryGeneratorAgent(BaseAgent, ITaskGeneratorFromSummary):
+class ClickUpTaskFromSummaryGeneratorAgent(BaseAgent[GeneratedTaskListFromSummary], ITaskGeneratorFromSummary):
     """
     LLM-based implementation of ITaskGenerator.
 
@@ -28,6 +29,16 @@ class ClickUpTaskFromSummaryGeneratorAgent(BaseAgent, ITaskGeneratorFromSummary)
     - Mapping unstructured text into structured task entities
     - Aligning tasks with available folders, statuses, and priorities
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the ClickUpTaskFromSummaryGeneratorAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def generate_tasks(
         self,

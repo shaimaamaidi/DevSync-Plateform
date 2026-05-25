@@ -14,13 +14,14 @@ from backend.src.domain.entities.backlog.user_story import UserStory
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.ports.services.backlog_generation.agents.itask_generator import ITaskGenerator
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class TaskGeneratorAgent(BaseAgent, ITaskGenerator):
+class TaskGeneratorAgent(BaseAgent[TaskList], ITaskGenerator):
     """
     LLM-based implementation of ITaskGenerator.
 
@@ -29,6 +30,16 @@ class TaskGeneratorAgent(BaseAgent, ITaskGenerator):
     - Enriching tasks using product description and market intelligence
     - Ensuring tasks are granular, actionable, and implementation-ready
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the TaskGeneratorAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def generate_tasks_by_user_story(
         self,

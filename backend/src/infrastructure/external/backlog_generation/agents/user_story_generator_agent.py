@@ -13,13 +13,14 @@ from backend.src.domain.entities.backlog.user_story import UserStoryList
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_strory_generator import IUserStoryGenerator
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
+class UserStoryGeneratorAgent(BaseAgent[UserStoryList], IUserStoryGenerator):
     """
     LLM-based implementation of IUserStoryGenerator.
 
@@ -28,6 +29,16 @@ class UserStoryGeneratorAgent(BaseAgent, IUserStoryGenerator):
     - Ensuring alignment with product goals and market insights
     - Structuring user stories in a consistent domain format
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the UserStoryGeneratorAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def generate_user_stories_by_epic(
         self,

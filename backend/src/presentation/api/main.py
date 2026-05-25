@@ -27,6 +27,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.di.backlog_generation_container import BacklogGenerationContainer
 from backend.src.infrastructure.di.clickup_container import ClickUpContainer
+from backend.src.infrastructure.di.project_status_container import ProjectStatusContainer
 from backend.src.infrastructure.di.task_generation_container import TaskGenerationContainer
 from backend.src.infrastructure.di.task_status_container import TaskStatusContainer
 from backend.src.infrastructure.di.deployment_container import DeploymentContainer
@@ -44,7 +45,7 @@ from backend.src.presentation.api.routers import (
     backlog_tasks_save_router, clickup_structure_metadata_router,
     clickup_structure_management_router, clickup_task_management_router,
     clickup_space_task_reader_router, generation_tasks_from_backlog_router,
-    task_status_check_router
+    task_status_check_router, project_status_check_router
 )
 
 
@@ -81,34 +82,37 @@ async def lifespan(app: FastAPI):
     Raises:
         Exception: If any startup component fails to initialize.
     """
-    # ── Startup ──
+    # Startup
     logger.info("Application starting up.")
     try:
-        # ── Database ──
+        # Database
         app.state.db = MySQLConnector()
 
-        # ── Scheduler ──
+        # Scheduler
         scheduler = TokenCleanupScheduler(db=app.state.db)
         scheduler.start()
         app.state.scheduler = scheduler
 
-        # ── BacklogGenerationContainer ──
+        # BacklogGenerationContainer
         backlog_generation_container = BacklogGenerationContainer()
         await backlog_generation_container.initialize_web_search_tool()
         await backlog_generation_container.initialize_backlog_workflow_orchestrator()
         app.state.backlog_generation_container = backlog_generation_container
 
-        # ── ClickUpContainer ──
+        # ClickUpContainer
         app.state.clickup_container = ClickUpContainer()
 
-        # ── TaskGenerationContainer ──
+        # TaskGenerationContainer
         app.state.task_generation_container = TaskGenerationContainer()
 
-        # ── TaskStatusContainer ──
+        # TaskStatusContainer
         app.state.task_status_container = TaskStatusContainer()
 
-        # ── DeploymentContainer ──
+        # DeploymentContainer
         app.state.deployment_container = DeploymentContainer()
+
+        # ProjectStatusContainer
+        app.state.project_status_container = ProjectStatusContainer()
 
         logger.info("Application started successfully.")
 
@@ -118,7 +122,7 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # ── Shutdown ──
+    # Shutdown
     logger.info("Application shutting down.")
 
     try:
@@ -155,7 +159,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # ── Middleware ──
+    # Middleware
     app.add_middleware(JWTAuthMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -166,12 +170,12 @@ def create_app() -> FastAPI:
     )
     app.middleware("http")(request_id_middleware)
 
-    # ── Exception Handlers ──
+    # Exception Handlers
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
     app.add_exception_handler(Exception, FastAPIExceptionHandler.handle_generic_exception)
 
-    # ── Routers ──
+    # Routers
     app.include_router(health_router.router, prefix="/health", tags=["health"])
     app.include_router(auth_router.router, prefix="/auth", tags=["auth"])
     app.include_router(clickup_router.router, prefix="/clickup", tags=["ClickUp"])
@@ -234,6 +238,11 @@ def create_app() -> FastAPI:
         task_status_check_router.router,
         prefix="/task-status",
         tags=["Task Status Check"],
+    )
+    app.include_router(
+        project_status_check_router.router,
+        prefix="/project-status",
+        tags=["Project Status Check"],
     )
 
     return app

@@ -2,20 +2,39 @@
 Domain DTO for task search responses.
 
 This module defines the TaskSearchResponse DTO used to represent
-the response of a task search operation.
-It encapsulates a user-facing response message and the list
-of matching ClickUp tasks returned from the search process.
+the result of a task search operation.
+
+It encapsulates:
+- The search status (no match, single match, multiple matches, etc.)
+- A user-facing response message
+- The list of ClickUp tasks matching the search criteria
 
 Main classes:
     TaskSearchResponse
 """
 
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel, Field
 
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 
+
+class TaskSearchStatus(str, Enum):
+    """
+    Enumeration of possible task search outcomes.
+
+    Attributes:
+        NO_TASKS_IN_SPACE: The selected ClickUp space contains no tasks.
+        NO_MATCH: No tasks match the user's search query.
+        SINGLE_MATCH: Exactly one task matches the search query.
+        MULTIPLE_MATCHES: Multiple tasks match the search query.
+    """
+    NO_TASKS_IN_SPACE = "no_tasks_in_space"
+    NO_MATCH = "no_match"
+    SINGLE_MATCH = "single_match"
+    MULTIPLE_MATCHES = "multiple_matches"
 
 class TaskSearchResponse(BaseModel):
     """
@@ -32,9 +51,11 @@ class TaskSearchResponse(BaseModel):
     - Inform the user that the selected space does not contain tasks
 
     Attributes:
+        status: Outcome of the search operation.
         response: User-facing message describing the search result.
         task: List of ClickUp tasks matching the search criteria.
     """
+    status: TaskSearchStatus = Field(..., description="Outcome of the task search operation.")
     response: str = Field(
         ...,
         description=(

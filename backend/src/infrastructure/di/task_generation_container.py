@@ -31,17 +31,10 @@ from backend.src.domain.ports.repositories.i_member_repository import IMemberRep
 from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 
-from backend.src.infrastructure.external.clickup.clickup_reader import ClickUpReader
-from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
-from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-from backend.src.infrastructure.external.task_verification.task_from_backlog_verifier_agent import \
-    TaskFromBacklogVerifierAgent
-from backend.src.infrastructure.external.task_verification.task_from_summary_verifier_agent import \
-    TaskFromSummaryVerifierAgent
-from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_from_backlog_agent import \
-    ClickUpTaskGeneratorFromBacklogAgent
-from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_from_summary_agent import \
-    ClickUpTaskFromSummaryGeneratorAgent
+from backend.src.infrastructure.external.task_verification.task_from_backlog_verifier_agent import TaskFromBacklogVerifierAgent
+from backend.src.infrastructure.external.task_verification.task_from_summary_verifier_agent import TaskFromSummaryVerifierAgent
+from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_from_backlog_agent import ClickUpTaskGeneratorFromBacklogAgent
+from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_from_summary_agent import ClickUpTaskFromSummaryGeneratorAgent
 
 
 logger = logging.getLogger(__name__)

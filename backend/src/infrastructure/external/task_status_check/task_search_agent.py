@@ -14,6 +14,7 @@ from typing import List
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.check_task_status.task_search_result import TaskSearchResult
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_status_check.i_task_search import ITaskSearch
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -30,6 +31,16 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
     - Searching relevant ClickUp tasks across folders and lists
     - Using an LLM to match user intent with existing task data
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the TaskSearchAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def search_task(
         self,

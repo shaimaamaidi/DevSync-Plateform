@@ -15,6 +15,7 @@ from backend.src.domain.entities.check_task_status.synthesized_task_status_resul
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.entities.github.deployment import DeploymentDTO
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_status_check.i_task_status_synthesizer import ITaskStatusSynthesizer
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
@@ -37,6 +38,16 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
     activity, and deployment evidence in order to estimate the real
     implementation progress of a task.
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the TaskStatusSynthesizerAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def synthesize_task_status(
         self,

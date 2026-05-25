@@ -15,13 +15,14 @@ from backend.src.domain.entities.backlog.epic import EpicList
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.ports.services.backlog_generation.agents.iepic_generator import IEpicGenerator
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
+class EpicGeneratorAgent(BaseAgent[EpicList], IEpicGenerator):
     """
     LLM-based implementation of IEpicGenerator.
 
@@ -30,6 +31,16 @@ class EpicGeneratorAgent(BaseAgent, IEpicGenerator):
     - Enriching epics using market intelligence context
     - Structuring high-level product capabilities into backlog epics
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the EpicGeneratorAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def generate_epics(
         self,

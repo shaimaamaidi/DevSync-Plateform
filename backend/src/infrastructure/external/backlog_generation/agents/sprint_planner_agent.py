@@ -11,6 +11,7 @@ import logging
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.entities.sprint.planning import SprintPlanning
 from backend.src.domain.ports.services.backlog_generation.agents.isprint_planner import ISprintPlanner
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 
@@ -18,7 +19,7 @@ from backend.src.infrastructure.external.backlog_generation.helpers.backlog_form
 logger = logging.getLogger(__name__)
 
 
-class SprintPlannerAgent(BaseAgent, ISprintPlanner):
+class SprintPlannerAgent(BaseAgent[SprintPlanning], ISprintPlanner):
     """
     LLM-based implementation of ISprintPlanner.
 
@@ -27,6 +28,16 @@ class SprintPlannerAgent(BaseAgent, ISprintPlanner):
     - Distributing epics/user stories into time-boxed iterations
     - Ensuring realistic sprint allocation based on backlog complexity
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the SprintPlannerAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def generate_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
         """

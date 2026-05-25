@@ -14,6 +14,7 @@ Classes:
 
 import logging
 from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.infrastructure.external.github.github_commits import GitHubCommitsAdapter
 from backend.src.infrastructure.external.github.github_deployments import GitHubDeploymentAdapter
 
 
@@ -47,8 +48,9 @@ class BaseGitHubContainer:
         """
         try:
             self.github_deployment_service = GitHubDeploymentAdapter()
+            self.github_commit_service = GitHubCommitsAdapter()
         except Exception as e:
-            logger.exception("Failed to initialize GitHubDeploymentAdapter.")
+            logger.exception("Failed to initialize GitHub container.")
             raise AppException(
                 "GitHub services are currently unavailable. Please try again later.",
                 "GITHUB_ADAPTER_INIT_ERROR",

@@ -10,6 +10,7 @@ import logging
 
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 
@@ -17,7 +18,7 @@ from backend.src.infrastructure.external.backlog_generation.helpers.backlog_form
 logger = logging.getLogger(__name__)
 
 
-class BacklogCleanerAgent(BaseAgent, IBacklogCleaner):
+class BacklogCleanerAgent(BaseAgent[BacklogStructure], IBacklogCleaner):
     """
     LLM-based implementation of IBacklogCleaner.
 
@@ -26,6 +27,16 @@ class BacklogCleanerAgent(BaseAgent, IBacklogCleaner):
     - Ensuring consistency between epics, user stories, and tasks
     - Removing inconsistencies or invalid structures using LLM reasoning
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the BacklogCleanerAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def clean_backlog(self, backlog: BacklogStructure) -> BacklogStructure:
         """

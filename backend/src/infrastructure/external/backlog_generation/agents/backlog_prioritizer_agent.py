@@ -10,6 +10,7 @@ import logging
 
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_prioritizer import IBacklogPrioritizer
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 
@@ -17,7 +18,7 @@ from backend.src.infrastructure.external.backlog_generation.helpers.backlog_form
 logger = logging.getLogger(__name__)
 
 
-class BacklogPrioritizerAgent(BaseAgent, IBacklogPrioritizer):
+class BacklogPrioritizerAgent(BaseAgent[BacklogStructure], IBacklogPrioritizer):
     """
     LLM-based implementation of IBacklogPrioritizer.
 
@@ -26,6 +27,16 @@ class BacklogPrioritizerAgent(BaseAgent, IBacklogPrioritizer):
     - Reordering epics, user stories, and tasks
     - Ensuring alignment with product strategy using LLM reasoning
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the BacklogPrioritizerAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def prioritize(self, backlog: BacklogStructure) -> BacklogStructure:
         """

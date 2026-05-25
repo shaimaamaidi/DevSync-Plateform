@@ -14,13 +14,14 @@ from backend.src.domain.entities.market.refined_intelligence import RefinedMarke
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_validator import \
     IMarketIntelligenceValidator
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
+class MarketIntelligenceValidatorAgent(BaseAgent[RefinedMarketIntelligenceSummary], IMarketIntelligenceValidator):
     """
     LLM-based implementation of IMarketIntelligenceValidator.
 
@@ -29,6 +30,16 @@ class MarketIntelligenceValidatorAgent(BaseAgent, IMarketIntelligenceValidator):
     - Ensuring consistency between product context and market insights
     - Refining and normalizing market intelligence using LLM reasoning
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the MarketIntelligenceValidatorAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def validate_context(
         self,

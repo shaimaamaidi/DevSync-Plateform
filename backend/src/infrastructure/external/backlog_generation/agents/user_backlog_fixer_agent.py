@@ -12,6 +12,7 @@ import logging
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.entities.backlog.validation import BacklogValidation
 from backend.src.domain.ports.services.backlog_generation.agents.iuser_backlog_fixer import IUserBacklogFixer
+from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 
@@ -19,7 +20,7 @@ from backend.src.infrastructure.external.backlog_generation.helpers.backlog_form
 logger = logging.getLogger(__name__)
 
 
-class UserBacklogFixerAgent(BaseAgent, IUserBacklogFixer):
+class UserBacklogFixerAgent(BaseAgent[BacklogValidation], IUserBacklogFixer):
     """
     LLM-based implementation of IUserBacklogFixer.
 
@@ -28,6 +29,16 @@ class UserBacklogFixerAgent(BaseAgent, IUserBacklogFixer):
     - Detecting inconsistencies, missing elements, or structural issues
     - Producing a validated and corrected backlog representation
     """
+
+    def __init__(self, prompt_loader: IPromptLoader):
+        """
+        Initialize the UserBacklogFixerAgent.
+
+        Args:
+            prompt_loader (IPromptLoader): Service responsible for loading
+                prompt templates used by the agent during LLM interactions.
+        """
+        super().__init__(prompt_loader)
 
     def fix_user_backlog(
             self,
