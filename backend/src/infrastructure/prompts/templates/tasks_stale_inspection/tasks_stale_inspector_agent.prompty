@@ -57,7 +57,9 @@ system: |
   {
     "tasks": [
       {
-        "task_id": "string",
+        "task_id": "string — copy exactly from input",
+        "task_name": "string — copy exactly from input",
+        "task_description": "string — copy exactly from input",
         "is_blocked": true or false,
         "reason": "One clear sentence explaining why this task is or is not blocked.",
         "confidence": "high" or "medium" or "low"

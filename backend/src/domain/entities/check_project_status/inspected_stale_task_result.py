@@ -24,12 +24,16 @@ class InspectedStaleTaskResult(BaseModel):
 
     Attributes:
         task_id: Identifier of the ClickUp task.
+        task_name: Name of the ClickUp task.
+        task_description: Description of the ClickUp task.
         is_blocked: Indicates whether the task is considered blocked.
         reason: Explanation of why the task is considered stale or not.
         confidence: Confidence level of the analysis
             ("high", "medium", or "low").
     """
     task_id: str
+    task_name: str
+    task_description: str
     is_blocked: bool
     reason: str
     confidence: str  # "high" | "medium" | "low"
