@@ -27,10 +27,15 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
     LLM-based implementation of ITaskStatusSynthesizer.
 
     This agent is responsible for:
-    - Analyzing ClickUp task information
-    - Evaluating related commits and deployments
-    - Synthesizing task completion status
-    - Producing a structured status summary with evidence
+    - Analyzing ClickUp task metadata and lifecycle information
+    - Evaluating related GitHub commits and deployments
+    - Interpreting derived workflow and activity signals
+    - Synthesizing the current task completion status
+    - Producing a structured status summary with supporting evidence
+
+    The agent leverages an LLM to correlate task state, development
+    activity, and deployment evidence in order to estimate the real
+    implementation progress of a task.
     """
 
     def synthesize_task_status(
@@ -41,22 +46,34 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
         signals: dict
     ) -> SynthesizedTaskStatusResult:
         """
-        Synthesize the status of a ClickUp task using an LLM.
+        Synthesize the implementation status of a ClickUp task using an LLM.
 
         This method:
-        - Serializes task, commit, and deployment data into JSON structures
+        - Serializes task, commit, deployment, and derived signal data
         - Sends the contextual information to the LLM
-        - Parses the LLM response into a structured synthesis result
+        - Interprets the returned analysis into a structured synthesis result
+
+        The synthesis process combines:
+        - Task metadata and status
+        - Git commit activity
+        - Deployment history
+        - Derived workflow signals
+
+        to estimate the actual completion state of the task.
 
         Args:
             task: ClickUp task to analyze.
-            deployments: List of deployments related to the task.
-            commits: List of commits related to the task.
+            deployments: List of GitHub deployments related to the task repository.
+            commits: List of GitHub commits related to the task repository.
+            signals: Derived workflow and activity signals generated from
+                task lifecycle and GitHub context.
 
         Returns:
-            SynthesizedTaskStatusResult: Synthesized task status containing
-                completion state, confidence level, summary,
-                and supporting evidence.
+            SynthesizedTaskStatusResult: Structured synthesis result containing:
+                - Completion state
+                - Confidence level
+                - Summary explanation
+                - Supporting evidence
 
         Raises:
             LLMNetworkException: If a network error occurs while contacting the LLM.

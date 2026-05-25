@@ -36,8 +36,13 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
     This use case orchestrates the full task status analysis flow by:
     - Fetching GitHub deployments linked to a repository (if provided)
     - Fetching GitHub commits linked to a repository (if provided)
+    - Computing temporal analysis windows and derived activity signals
     - Delegating synthesis logic to a task status synthesizer service
     - Returning a structured result representing task completion state
+
+    The analysis strategy dynamically adapts based on the task status
+    (Todo, In Progress, Done, etc.) to optimize GitHub context retrieval
+    and reduce unnecessary API calls.
 
     Attributes:
         _task_status_analyzer (ITaskStatusSynthesizer): Service responsible for synthesizing task status.
@@ -141,32 +146,42 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
     @staticmethod
     def _compute_window(task: ClickUpTask, time_context: dict) -> tuple[datetime | None, datetime, int, int]:
         """
-        Compute the [since, until] fetch window and commit cap from task date signals.
+        Compute the GitHub fetch window and retrieval limits based on task lifecycle signals.
+
+        The computed strategy adapts according to the current task status
+        in order to:
+        - Reduce unnecessary GitHub API calls
+        - Focus analysis on the most relevant activity period
+        - Expand or restrict the analysis window depending on workflow state
 
         Strategy per status:
 
             Todo
-                Light fetch: max(since_current_status, today-30d) → today, cap 30.
-                Returns since=None if since_current_status is unavailable AND
-                task was created more than 30 days ago (confirmed inactive → skip fetch).
+                Light fetch: max(since_current_status, today-30d) → today.
+                Skips GitHub retrieval entirely when the task has been inactive
+                for more than 30 days.
 
             In Progress
-                since_current_status - 2d buffer → today, cap 60.
-                Falls back to date_created if since_current_status is unavailable.
+                since_current_status - 2d buffer → today.
+                Uses a wider activity window to capture ongoing development work.
 
             Done
-                date_created → date_closed + 3d buffer, cap 60.
-                Falls back to today if date_closed is missing.
+                date_created → date_closed + 3d buffer.
+                Includes post-close commits/deployments for validation signals.
 
             Unknown / other
-                Fallback: today-30d → today, cap 60.
+                Fallback: today-30d → today.
 
         Args:
-            time_context: Dict returned by get_task_time_context().
+            task: ClickUp task being analyzed.
+            time_context: Dict returned by get_task_time_context() containing
+                lifecycle timestamps and status transition metadata.
 
         Returns:
-            Tuple (since, until, max_commits).
-            since=None signals "skip GitHub fetch entirely".
+            Tuple (since, until, max_commits, max_deployments).
+
+            - since=None indicates that GitHub retrieval should be skipped.
+            - until always represents the upper bound of the analysis window.
         """
         now = datetime.now(tz=timezone.utc)
 
@@ -245,11 +260,25 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
             deployments: list,
     ) -> dict:
         """
-        Derive human-readable signals from raw time context and GitHub data.
-        These signals are passed to the LLM instead of raw datetime objects.
+        Derive high-level activity signals from task lifecycle and GitHub context.
+
+        This method transforms raw datetime and GitHub activity data into
+        simplified semantic signals suitable for LLM-based reasoning.
+
+        Derived signals include:
+        - Task inactivity duration
+        - Post-close commit activity
+        - Recency of development activity
+        - Production deployment evidence
+        - Presence of commits or deployments
+
+        Args:
+            time_context: Task lifecycle timestamps and status transition metadata.
+            commits: Retrieved GitHub commits associated with the task repository.
+            deployments: Retrieved GitHub deployments associated with the task repository.
 
         Returns:
-            Dict with interpreted signals ready for LLM consumption.
+            Dict containing interpreted signals ready for synthesis and LLM consumption.
         """
         now = datetime.now(tz=timezone.utc)
 
