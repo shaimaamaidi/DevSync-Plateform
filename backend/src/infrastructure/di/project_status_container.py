@@ -1,15 +1,20 @@
 """
 Dependency container for project status workflow.
 
-This module defines the ProjectStatusContainer class, which wires together
-AI agents, ClickUp infrastructure, GitHub services, and application use
-cases required for project status evaluation workflows.
+This module defines the ProjectStatusContainer class, which acts as a composition root
+responsible for wiring all dependencies required for project status evaluation.
 
-It is responsible for initializing all components required for:
-- Project status computation based on ClickUp task data
-- Integration with GitHub commits and deployments
-- Detection of stale tasks using AI-based inspection
-- Orchestration of project health and activity analysis
+It initializes and connects infrastructure, AI agents, and application use cases
+used to compute a unified view of project health and activity.
+
+The container integrates:
+- ClickUp data access layer (task retrieval and workspace structure)
+- GitHub services (commits and deployments)
+- AI-based analysis agents (stale tasks and unverified completed tasks)
+- Application use cases for project status computation
+
+It ensures that all dependencies are properly instantiated and injected
+before being used by the application layer.
 
 Classes:
     ProjectStatusContainer: Application-scoped dependency injection container.
@@ -25,8 +30,9 @@ from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 from backend.src.infrastructure.di.base_github_container import BaseGitHubContainer
 
-from backend.src.infrastructure.external.stale_task_inspect.stale_task_inspector_agent import StaleTaskInspectorAgent
-
+from backend.src.infrastructure.external.project_status_check.stale_task_inspector_agent import StaleTaskInspectorAgent
+from backend.src.infrastructure.external.project_status_check.unverified_done_task_inspector_agent import \
+    UnverifiedDoneTaskInspectorAgent
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +60,9 @@ class ProjectStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubCo
         stale_task_inspector_agent (StaleTaskInspectorAgent):
             LLM-based agent for detecting stale in-progress tasks.
 
+        unverified_done_task_inspector_agent:
+            Validates completed tasks against GitHub activity.
+
         project_status_check_use_case (CheckProjectStatusUseCase):
             Application use case for computing project status.
     """
@@ -80,6 +89,7 @@ class ProjectStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubCo
             BaseClickUpContainer.__init__(self)
             BaseGitHubContainer.__init__(self)
             self._init_stale_task_inspector_agent()
+            self._init_unverified_done_task_inspector_agent()
             self._init_project_status_check_use_cases()
 
             logger.info("Project status container initialized successfully.")
@@ -105,6 +115,18 @@ class ProjectStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubCo
 
         self.stale_task_inspector_agent = StaleTaskInspectorAgent(self.prompt_loader)
 
+    def _init_unverified_done_task_inspector_agent(self):
+        """
+        Initialize LLM-based unverified done task inspector agent.
+
+        This agent is responsible for analyzing recently completed ClickUp tasks
+        and verifying whether each task has a semantically related GitHub commit
+        as evidence that the work was actually performed.
+        """
+        logger.info("Initializing unverified done task inspector agent.")
+
+        self.unverified_done_task_inspector_agent = UnverifiedDoneTaskInspectorAgent(self.prompt_loader)
+
     def _init_project_status_check_use_cases(self):
         """
         Initialize project status application use cases.
@@ -112,7 +134,7 @@ class ProjectStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubCo
         This method wires together:
         - ClickUp infrastructure (reader)
         - GitHub services (commits & deployments)
-        - AI agents (stale task inspection)
+        - AI agents (stale task inspection & unverified done task inspection)
 
         into a fully functional project status use case.
         """
@@ -121,6 +143,7 @@ class ProjectStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubCo
         self.project_status_check_use_case = CheckProjectStatusUseCase(
             self.clickup_reader,
             self.stale_task_inspector_agent,
+            self.unverified_done_task_inspector_agent,
             self.github_deployment_service,
             self.github_commit_service,
         )

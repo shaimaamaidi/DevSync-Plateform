@@ -18,7 +18,7 @@ from backend.src.domain.entities.check_project_status.inspected_stale_task_resul
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
-from backend.src.domain.ports.services.stale_task_inspection.stale_task_inspector import IStaleTaskInspector
+from backend.src.domain.ports.services.project_status_check.stale_task_inspector import IStaleTaskInspector
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 
@@ -81,7 +81,7 @@ class StaleTaskInspectorAgent (BaseAgent[InspectedStaleTaskListResult], IStaleTa
 
         parsed: InspectedStaleTaskListResult = self._call_llm(
             agent_name="StaleTaskInspectorAgent",
-            folder_name="tasks_stale_inspection",
+            folder_name="project_status_check",
             prompt_name="tasks_stale_inspector_agent",
             variables={
                 "tasks": tasks_json,
@@ -96,11 +96,11 @@ class StaleTaskInspectorAgent (BaseAgent[InspectedStaleTaskListResult], IStaleTa
         )
 
         if not parsed or not parsed.tasks:
-            logger.warning("No tasks stales.")
+            logger.warning("All tasks are in a real progress.")
             return []
 
         logger.info(
-            "Task inspecting completed successfully: %d task(s) stales.",
+            "Stale task inspecting completed successfully: %d task(s) stales.",
             len(parsed.tasks)
         )
 

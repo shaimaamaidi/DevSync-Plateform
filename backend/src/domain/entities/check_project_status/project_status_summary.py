@@ -7,18 +7,19 @@ information from ClickUp tasks, GitHub commits, and deployments to
 produce a unified project status view.
 
 Main classes:
-    ProjectStatusCode
-    TaskSummary
-    ProjectStatusSummary
+    ProjectStatusCode, TaskSummary, ProjectStatusSummary
 """
 
 from datetime import datetime
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from backend.src.domain.entities.check_project_status.inspected_stale_task_result import InspectedStaleTaskResult
+from backend.src.domain.entities.check_project_status.inspected_unverified_done_task_result import \
+    InspectedUnverifiedDoneTaskResult
+from backend.src.domain.entities.check_project_status.overdue_todo_task import OverdueTodoTask
 
 
 class ProjectStatusCode(str, Enum):
@@ -59,23 +60,29 @@ class ProjectStatusSummary(BaseModel):
     - ClickUp task progress
     - GitHub commit activity
     - Deployment history
-    - Stale or blocked tasks analysis
+    - Stale or blocked in-progress tasks analysis
+    - Unverified recently completed tasks analysis
+    - Overdue todo tasks analysis
 
     It provides a high-level view of project health.
 
     Attributes:
         status: Global project status code.
         message: Human-readable explanation of the current status.
+        total_tasks: Total number of tasks in the project.
         tasks_summary: Breakdown of task statuses and completion rates.
-        last_commit: Timestamp of the most recent commit.
-        last_deployment: Timestamp of the most recent deployment.
-        stale_tasks: List of detected stale or blocked tasks.
-        has_github_integration: Indicates whether GitHub is linked.
+        last_commit: Timestamp of the most recent GitHub commit, or None if unavailable.
+        last_deployment: Timestamp of the most recent GitHub deployment, or None if unavailable.
+        overdue_todo_tasks: List of Todo tasks waiting for more than 14 days with no progress.
+        stale_tasks: List of in-progress tasks with no related commit activity in the last 7 days.
+        unverified_done_tasks: List of recently completed tasks with no linked commit evidence.
     """
     status: ProjectStatusCode
     message: str
-    tasks_summary: List[TaskSummary]
-    last_commit: datetime
-    last_deployment: datetime
-    stale_tasks: List[InspectedStaleTaskResult]
-    has_github_integration: bool
+    total_tasks: int
+    tasks_summary: List[TaskSummary] = []
+    last_commit: Optional[datetime]
+    last_deployment: Optional[datetime]
+    overdue_todo_tasks: List[OverdueTodoTask] = []
+    stale_tasks: List[InspectedStaleTaskResult] = []
+    unverified_done_tasks: List[InspectedUnverifiedDoneTaskResult] = []

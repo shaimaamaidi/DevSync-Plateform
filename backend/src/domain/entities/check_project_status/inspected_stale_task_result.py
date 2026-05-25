@@ -49,4 +49,4 @@ class InspectedStaleTaskListResult(BaseModel):
     Attributes:
         tasks: List of inspected stale task results.
     """
-    tasks: List[InspectedStaleTaskResult]
+    tasks: List[InspectedStaleTaskResult] = []
