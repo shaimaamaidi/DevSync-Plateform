@@ -163,4 +163,5 @@ class TaskStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubConta
             self.task_status_synthesizer_agent,
             self.github_deployment_service,
             self.github_commit_service,
+            self.clickup_reader,
         )
