@@ -131,8 +131,8 @@ class TaskStatusContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubConta
             self.task_search_agent,
         )
         self.task_status_synthesize_use_case = SynthesizeTaskStatusUseCase(
+            self.clickup_reader,
             self.task_status_synthesizer_agent,
             self.github_deployment_service,
             self.github_commit_service,
-            self.clickup_reader,
         )

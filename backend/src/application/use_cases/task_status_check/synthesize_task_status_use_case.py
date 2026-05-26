@@ -66,24 +66,24 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
     
     def __init__(
         self,
+        clickup_reader: IClickUpReader,
         task_status_analyzer: ITaskStatusSynthesizer,
         github_deployment_service: IGitHubDeploymentService,
         github_commit_service: IGitHubCommitService,
-        clickup_reader: IClickUpReader
     ):
         """
         Initialize the SynthesizeTaskStatusUseCase.
 
         Args:
+            clickup_reader: ClickUp reader port implementation used to retrieve workspace data.
             task_status_analyzer: Service responsible for synthesizing task status.
             github_deployment_service: Service used to retrieve deployment data from GitHub.
             github_commit_service: Service used to retrieve commit history from GitHub.
-            clickup_reader: ClickUp reader port implementation used to retrieve workspace data.
         """
+        self._clickup_reader = clickup_reader
         self._task_status_analyzer = task_status_analyzer
         self._github_deployment_service = github_deployment_service
         self._github_commit_service = github_commit_service
-        self._clickup_reader = clickup_reader
 
     async def analyze_task_status(self, repo_url: Optional[str], task: ClickUpTask) -> SynthesizedTaskStatusResult:
         """

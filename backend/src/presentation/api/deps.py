@@ -48,6 +48,7 @@ from backend.src.application.use_cases.generate_tasks_from_backlog_use_case impo
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
 from backend.src.application.use_cases.save_backlog_tasks_use_case import SaveBacklogTasksInClickUpUseCase
 from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
+from backend.src.application.use_cases.summarize_weekly_project_use_case import SummarizeWeeklyProjectUseCase
 from backend.src.application.use_cases.task_status_check.search_task_use_case import SearchTaskUseCase
 from backend.src.application.use_cases.task_status_check.synthesize_task_status_use_case import \
     SynthesizeTaskStatusUseCase
@@ -502,3 +503,31 @@ def get_check_project_status_use_case(request: Request) -> CheckProjectStatusUse
     except Exception as e:
         logger.exception("Failed to retrieve project status check use case: %s", str(e))
         raise ServiceUnavailableException("Project status check service is unavailable.") from e
+
+
+def get_weekly_project_summary_use_case(request: Request) -> SummarizeWeeklyProjectUseCase:
+    """
+    Retrieve the project status check use case from WeeklyProjectSummaryContainer.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        CheckProjectStatusUseCase: The initialized project status check use case.
+
+    Raises:
+        ServiceUnavailableException: If the use case is not initialized.
+    """
+    try:
+        use_case = request.app.state.weekly_project_summary_container.weekly_project_summarizer_use_case
+
+        if use_case is None:
+            raise ServiceUnavailableException("Weekly project summarizer use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to retrieve weekly project summarizer use case: %s", str(e))
+        raise ServiceUnavailableException("Weekly project summarizer service is unavailable.") from e

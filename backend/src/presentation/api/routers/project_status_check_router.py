@@ -15,8 +15,8 @@ import logging
 
 from fastapi import APIRouter, Depends, status
 
-from backend.src.domain.entities.check_project_status.checked_project_status_request import CheckedProjectStatusRequest
 from backend.src.domain.entities.check_project_status.project_status_summary import ProjectStatusSummary
+from backend.src.domain.entities.shared.project_space_request import ProjectSpaceRequest
 from backend.src.domain.ports.input.i_check_project_status_use_case import ICheckProjectStatusUseCase
 from backend.src.presentation.api.deps import get_check_project_status_use_case
 
@@ -41,7 +41,7 @@ router = APIRouter()
     ),
 )
 async def check_project_status(
-    body: CheckedProjectStatusRequest,
+    body: ProjectSpaceRequest,
     use_case: ICheckProjectStatusUseCase = Depends(get_check_project_status_use_case),
 ) -> ProjectStatusSummary:
     """
@@ -55,7 +55,7 @@ async def check_project_status(
     All domain exceptions are handled globally via the application's exception handler.
 
     Args:
-        body (CheckedProjectStatusRequest):
+        body (ProjectSpaceRequest):
             Request payload containing:
             - space_id: ClickUp space identifier to analyze
             - repo_url: optional GitHub repository URL linked to the project

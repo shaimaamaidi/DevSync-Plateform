@@ -31,6 +31,7 @@ from backend.src.infrastructure.di.project_status_container import ProjectStatus
 from backend.src.infrastructure.di.task_generation_container import TaskGenerationContainer
 from backend.src.infrastructure.di.task_status_container import TaskStatusContainer
 from backend.src.infrastructure.di.deployment_container import DeploymentContainer
+from backend.src.infrastructure.di.weekly_project_summary_container import WeeklyProjectSummaryContainer
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
@@ -45,7 +46,7 @@ from backend.src.presentation.api.routers import (
     backlog_tasks_save_router, clickup_structure_metadata_router,
     clickup_structure_management_router, clickup_task_management_router,
     clickup_space_task_reader_router, generation_tasks_from_backlog_router,
-    task_status_check_router, project_status_check_router
+    task_status_check_router, project_status_check_router, summarization_weekly_project_router
 )
 
 
@@ -113,6 +114,9 @@ async def lifespan(app: FastAPI):
 
         # ProjectStatusContainer
         app.state.project_status_container = ProjectStatusContainer()
+
+        # WeeklyProjectSummaryContainer
+        app.state.weekly_project_summary_container = WeeklyProjectSummaryContainer()
 
         logger.info("Application started successfully.")
 
@@ -244,7 +248,11 @@ def create_app() -> FastAPI:
         prefix="/project-status",
         tags=["Project Status Check"],
     )
-
+    app.include_router(
+        summarization_weekly_project_router.router,
+        prefix="/weekly-summary",
+        tags=["Weekly Project Summary"],
+    )
     return app
 
 

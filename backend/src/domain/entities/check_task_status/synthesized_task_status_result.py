@@ -29,7 +29,6 @@ class SynthesizedTaskStatusResult(BaseModel):
         summary: Synthesized summary describing the task status.
         evidence: List of evidence entries supporting the synthesis result.
     """
-
     is_completed: bool
     confidence: str  # "high" | "medium" | "low"
     summary: str

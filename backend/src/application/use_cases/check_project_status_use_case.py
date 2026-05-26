@@ -23,6 +23,7 @@ import logging
 import datetime
 from typing import List, Optional
 
+from backend.src.application.use_cases.shared.clickup_task_context_fetcher import fetch_task_context
 from backend.src.domain.entities.check_project_status.overdue_todo_task import OverdueTodoTask
 from backend.src.domain.entities.check_project_status.project_status_summary import ProjectStatusSummary, TaskSummary, \
     ProjectStatusCode
@@ -274,7 +275,7 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
         Returns:
             List of OverdueTodoTask for tasks exceeding the overdue threshold.
         """
-        results = await asyncio.gather(*[self._fetch_context(task) for task in todo_tasks])
+        results = await asyncio.gather(*[fetch_task_context(task, self._clickup_reader) for task in todo_tasks])
 
         overdue = []
         for task, context in results:
@@ -313,7 +314,7 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
         Returns:
             List of ClickUpTask closed within the last 6 days.
         """
-        results = await asyncio.gather(*[self._fetch_context(task) for task in done_tasks])
+        results = await asyncio.gather(*[fetch_task_context(task, self._clickup_reader) for task in done_tasks])
 
         recently_done = []
         for task, context in results:
@@ -322,9 +323,3 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
                 recently_done.append(task)
 
         return recently_done
-
-    async def _fetch_context(self, task: ClickUpTask) -> tuple[ClickUpTask, dict]:
-        task_context = await asyncio.to_thread(
-            self._clickup_reader.get_task_time_context, task.id
-        )
-        return task, task_context

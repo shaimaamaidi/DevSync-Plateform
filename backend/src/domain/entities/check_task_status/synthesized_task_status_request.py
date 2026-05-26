@@ -32,7 +32,6 @@ class SynthesizedTaskStatusRequest(BaseModel, ABC):
             and deployments context.
         task: ClickUp task to be analyzed and synthesized.
     """
-
     repo_url: Optional[str] = Field(
         default=None,
         description=(
