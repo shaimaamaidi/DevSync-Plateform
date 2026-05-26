@@ -29,7 +29,7 @@ def test_save_summary_tasks_to_clickup(client: TestClient, container) -> None:
         ignore_mails=True,
     ).model_dump()
 
-    response = client.post("/clickup/save", json=payload)
+    response = client.post("/clickup/tasks/save-summary-tasks", json=payload)
 
     assert response.status_code == 201
     container.save_task_use_case.save_summary_tasks_to_clickup.assert_called_once()

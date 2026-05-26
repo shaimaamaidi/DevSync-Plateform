@@ -17,7 +17,7 @@ def test_create_clickup_space_structure(client: TestClient, container) -> None:
         space_code="PLT",
     )
 
-    response = client.post("/clickup/structure/spaces", json={"space_id": "space-1"})
+    response = client.post("/clickup/structure/spaces", json={"space_name": "Platform"})
 
     assert response.status_code == 201
     assert response.json()["space_code"] == "PLT"

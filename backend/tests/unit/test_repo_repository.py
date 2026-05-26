@@ -28,8 +28,10 @@ def test_repo_save_requires_name_and_url() -> None:
     """
     repo = SqlAlchemyRepoRepository(MagicMock())
 
-    with pytest.raises(InvalidInputException):
-        repo.save(GitRepoCreateDTO(name=None, url=None))
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
+        GitRepoCreateDTO(name=None, url=None)
 
 
 def test_repo_find_by_id_not_found() -> None:

@@ -16,6 +16,7 @@ from backend.src.domain.entities.clickup_space import (
 from backend.src.domain.exceptions.clickup.clickup_persistence_exception import ClickUpPersistenceException
 from backend.src.domain.exceptions.clickup.clickup_space_not_found_exception import ClickUpSpaceNotFoundException
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
+from pydantic import ValidationError
 from backend.src.infrastructure.persistence.repositories.clickup_repository import SqlAlchemyClickUpRepository
 
 
@@ -25,8 +26,8 @@ def test_clickup_save_requires_fields() -> None:
     """
     repo = SqlAlchemyClickUpRepository(MagicMock())
 
-    with pytest.raises(InvalidInputException):
-        repo.save(ClickUpSpaceCreateDTO(name=None, space_code=None))
+    with pytest.raises(ValidationError):
+        ClickUpSpaceCreateDTO(name=None, space_code=None)
 
 
 def test_clickup_update_requires_id() -> None:
@@ -35,8 +36,8 @@ def test_clickup_update_requires_id() -> None:
     """
     repo = SqlAlchemyClickUpRepository(MagicMock())
 
-    with pytest.raises(InvalidInputException):
-        repo.update(ClickUpSpaceUpdateDTO(id=None, name="n"))
+    with pytest.raises(ValidationError):
+        ClickUpSpaceUpdateDTO(id=None, name="n")
 
 
 def test_clickup_find_by_id_not_found() -> None:

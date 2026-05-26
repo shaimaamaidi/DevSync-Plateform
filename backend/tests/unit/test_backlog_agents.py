@@ -56,8 +56,10 @@ def _prompt_loader():
 def _fake_client(parsed):
     completion = SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(parsed=parsed))])
     parse = MagicMock(return_value=completion)
+    chat_ns = SimpleNamespace(completions=SimpleNamespace(parse=parse))
     client = SimpleNamespace(
-        beta=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(parse=parse)))
+        chat=chat_ns,
+        beta=SimpleNamespace(chat=chat_ns),
     )
     return client, parse
 
@@ -71,8 +73,10 @@ def _patch_base_agent(monkeypatch, prompt_loader, parsed=None, raise_exc: Except
                 raise raise_exc
             completion = SimpleNamespace(choices=[])
             parse = MagicMock(side_effect=_raise)
+            chat_ns = SimpleNamespace(completions=SimpleNamespace(parse=parse))
             self.client = SimpleNamespace(
-                beta=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(parse=parse)))
+                chat=chat_ns,
+                beta=SimpleNamespace(chat=chat_ns),
             )
         else:
             self.client, _ = _fake_client(parsed)

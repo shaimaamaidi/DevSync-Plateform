@@ -97,7 +97,7 @@ def test_update_clickup_space(client: TestClient, container) -> None:
         repo=None,
     )
 
-    payload = ClickUpSpaceUpdateDTO(name="Platform", space_code="PLT").model_dump()
+    payload = ClickUpSpaceUpdateDTO(id=7, name="Platform", space_code="PLT").model_dump()
     response = client.put("/clickup/7", json=payload)
 
     assert response.status_code == 200

@@ -80,12 +80,13 @@ def test_remove_members_builds_payload() -> None:
         id=1,
         name="repo",
         url="https://github.com/org/repo",
-        members=[RepoMemberDTO(id=1, username="alice", mail="alice@example.com")],
+        members=[RepoMemberDTO(id=1, username="alice", arabic_name="أليس", mail="alice@example.com")],
         clickup_space=None,
     )
     member_service.get_member_by_mail.return_value = MemberWithReposDTO(
         id=2,
         username="bob",
+        arabic_name="بوب",
         mail="bob@example.com",
         repos=[],
     )

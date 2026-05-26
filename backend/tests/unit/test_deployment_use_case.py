@@ -41,6 +41,6 @@ async def test_list_deployments_delegates_to_github_service():
     result = await use_case.list_deployments(repo_url)
 
     repo_repo.find_by_url.assert_called_once_with(repo_url)
-    github_service.get_deployments.assert_awaited_once_with(repo_url)
+    github_service.get_deployments.assert_awaited_once_with(repo_url, max_deployments=None)
 
     assert result == expected_deployments

@@ -4,6 +4,7 @@ Integration tests for associator routes.
 
 from fastapi.testclient import TestClient
 from backend.src.domain.entities.associator import AssociatorRepoDTO, AssociateClickUpSpaceResponse, AssociateMembersResponse
+from backend.src.domain.entities.clickup_space import ClickUpSpaceDTO
 
 
 def test_associate_space_success(client: TestClient, container) -> None:
@@ -12,10 +13,10 @@ def test_associate_space_success(client: TestClient, container) -> None:
     """
     container.associator_use_case.associate_clickup_space.return_value = AssociateClickUpSpaceResponse(
         repo=AssociatorRepoDTO(id=1, name="repo", url="https://github.com/org/repo"),
-        clickup_space=None
+        clickup_space=ClickUpSpaceDTO(id=0, name="Platform", space_code="PLT")
     )
     response = client.post("/associate/space", json={"repo_url": "https://github.com/org/repo", "space_code": "PLT"})
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
     assert data["repo"]["url"] == "https://github.com/org/repo"
     assert data["repo"]["id"] == 1

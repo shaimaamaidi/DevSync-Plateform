@@ -47,7 +47,7 @@ class WeeklyProjectSummaryResponse(BaseModel):
         last_7_days_commits: GitHub commits made in the last 7 days.
         commits_summary: AI-generated narrative summarizing commit activity.
     """
-    status: ProjectStatusCode
+    status: WeeklyProjectSummaryStatus
     message: str
     created_tasks: List[ClickUpTask] = []
     in_progress_tasks: List[ClickUpTask] = []

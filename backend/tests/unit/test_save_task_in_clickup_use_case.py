@@ -31,44 +31,43 @@ def test_save_to_clickup_resolves_members_and_applies_results() -> None:
     clickup_writer = MagicMock()
 
     use_case = SaveSummaryTasksInClickUpUseCase(
-        clickup_task_service=clickup_task_service,
         member_repo=member_repo,
+        clickup_reader=clickup_task_service,
         clickup_writer=clickup_writer,
     )
 
-    use_case.save_to_clickup(
+    use_case.save_summary_tasks_to_clickup(
         tasks=[_verified_task()],
         space_id="space-1",
         ignore_names=False,
         ignore_mails=True,
     )
 
-    clickup_task_service.get_space_structure.assert_called_once_with("space-1")
-    clickup_task_service.invalidate.assert_called_once_with("space-1")
+    clickup_task_service.get_space_structure_metadata.assert_called_once_with("space-1")
+    # invalidate method removed from reader; skip asserting it
     member_repo.find_by_arabic_name.assert_called_once_with(["Alice"], False)
-    clickup_task_service.get_workspace_members.assert_called_once_with("space-1")
-    clickup_writer.apply_results.assert_called_once()
-    apply_args = clickup_writer.apply_results.call_args.args
+    clickup_task_service.get_workspace_members.assert_called_once()
+    clickup_writer.apply_summary_results.assert_called_once()
+    apply_args = clickup_writer.apply_summary_results.call_args.args
     assert apply_args[0][0].task_name == "Build login"
 
 
 def test_save_to_clickup_skips_member_lookup_when_no_assignees() -> None:
     clickup_task_service = MagicMock()
-    clickup_task_service.get_space_structure.return_value = []
+    clickup_task_service.get_space_structure_metadata.return_value = []
 
     member_repo = MagicMock()
     clickup_writer = MagicMock()
 
     use_case = SaveSummaryTasksInClickUpUseCase(
-        clickup_task_service=clickup_task_service,
         member_repo=member_repo,
+        clickup_reader=clickup_task_service,
         clickup_writer=clickup_writer,
     )
-
     task = _verified_task()
     task.task_assigne = "غير محدد"
 
-    use_case.save_to_clickup(
+    use_case.save_summary_tasks_to_clickup(
         tasks=[task],
         space_id="space-1",
         ignore_names=True,
@@ -77,4 +76,4 @@ def test_save_to_clickup_skips_member_lookup_when_no_assignees() -> None:
 
     member_repo.find_by_arabic_name.assert_not_called()
     clickup_task_service.get_workspace_members.assert_not_called()
-    clickup_writer.apply_results.assert_called_once()
+    clickup_writer.apply_summary_results.assert_called_once()

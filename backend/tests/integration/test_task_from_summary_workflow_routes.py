@@ -5,9 +5,9 @@ Integration tests for ClickUp task generation and verification routes.
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
-from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTask
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary_request import GeneratedTaskFromSummaryRequest
-from backend.src.domain.entities.verified_tasks.verified_task_from_summary_request import VerifyTasksRequest
+from backend.src.domain.entities.verified_tasks.verified_task_from_summary_request import VerifiedTaskFromSummaryRequest
 
 
 def test_generate_tasks_from_summary(client: TestClient, container) -> None:
@@ -32,7 +32,7 @@ def test_generate_tasks_from_summary(client: TestClient, container) -> None:
         space_id="space-1",
     ).model_dump()
 
-    response = client.post("/clickup/generate-tasks-from-summary", json=payload)
+    response = client.post("/clickup/tasks/generate-tasks-from-summary", json=payload)
 
     assert response.status_code == 200
     assert response.json()[0]["task_name"] == "Build login"
@@ -55,7 +55,7 @@ def test_verify_tasks(client: TestClient, container) -> None:
         location="Backend",
     )
 
-    verified_task = VerifiedTask(
+    verified_task = VerifiedTaskFromSummary(
         action="create",
         task_name="Build login",
         task_description="Implement login flow",
@@ -68,12 +68,12 @@ def test_verify_tasks(client: TestClient, container) -> None:
 
     container.verify_task_use_case.verify_tasks.return_value = [verified_task]
 
-    payload = VerifyTasksRequest(
+    payload = VerifiedTaskFromSummaryRequest(
         space_id="space-1",
         tasks=[generated_task],
     ).model_dump()
 
-    response = client.post("/clickup/verify", json=payload)
+    response = client.post("/clickup/tasks/verify-from-summary", json=payload)
 
     assert response.status_code == 200
     assert response.json()["total"] == 1

@@ -4,7 +4,7 @@ Unit tests for ClickUp structure use cases.
 
 from unittest.mock import MagicMock
 
-from backend.src.application.use_cases.manage_clickup_structure_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.manage_clickup_structure_use_case import ManageClickUpStructureUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.domain.entities.clickup.add_status_request import AddStatusRequest
 from backend.src.domain.entities.clickup.create_folder_request import CreateFolderRequest
@@ -18,16 +18,23 @@ from backend.src.domain.entities.clickup_space import ClickUpSpaceCreateDTO, Cli
 
 def test_create_space_delegates_to_writer_and_service() -> None:
     clickup_service = MagicMock()
-    clickup_service.add_space.return_value = ClickUpSpaceDTO(id=1, name="Platform", space_code="PLT")
+    clickup_service = MagicMock()
+    clickup_service.find_by_name.return_value = None
+    clickup_service.save.return_value = ClickUpSpaceDTO(id=1, name="Platform", space_code="PLT")
     clickup_writer = MagicMock()
     clickup_writer.create_space.return_value = ("PLT", "Platform")
 
-    use_case = ClickUpStructureCreationUseCase(clickup_service=clickup_service, clickup_writer=clickup_writer)
+    use_case = ManageClickUpStructureUseCase(
+        clickup_repo=clickup_service,
+        member_repo=MagicMock(),
+        clickup_reader=MagicMock(),
+        clickup_writer=clickup_writer,
+    )
 
-    result = use_case.create_space(CreateSpaceRequest(space_id="space-1"))
+    result = use_case.create_space(CreateSpaceRequest(space_name="Platform"))
 
-    clickup_writer.create_space.assert_called_once_with("space-1")
-    clickup_service.add_space.assert_called_once_with(ClickUpSpaceCreateDTO(name="Platform", space_code="PLT"))
+    clickup_writer.create_space.assert_called_once_with("Platform")
+    clickup_service.save.assert_called_once_with(ClickUpSpaceCreateDTO(name="Platform", space_code="PLT"))
     assert result.space_code == "PLT"
 
 
@@ -36,7 +43,12 @@ def test_create_folder_returns_empty_lists_metadata() -> None:
     clickup_writer = MagicMock()
     clickup_writer.create_folder.return_value = ("folder-1", "Backend")
 
-    use_case = ClickUpStructureCreationUseCase(clickup_service=clickup_service, clickup_writer=clickup_writer)
+    use_case = ManageClickUpStructureUseCase(
+        clickup_repo=clickup_service,
+        member_repo=MagicMock(),
+        clickup_reader=MagicMock(),
+        clickup_writer=clickup_writer,
+    )
 
     result = use_case.create_folder(CreateFolderRequest(space_id="space-1", name="Backend"))
 
@@ -50,7 +62,12 @@ def test_create_list_delegates_to_writer() -> None:
     expected = ClickUpListMetadata(id="list-1", name="Sprint", statuses=["To Do"], priorities=["High"])
     clickup_writer.create_list.return_value = expected
 
-    use_case = ClickUpStructureCreationUseCase(clickup_service=clickup_service, clickup_writer=clickup_writer)
+    use_case = ManageClickUpStructureUseCase(
+        clickup_repo=clickup_service,
+        member_repo=MagicMock(),
+        clickup_reader=MagicMock(),
+        clickup_writer=clickup_writer,
+    )
 
     result = use_case.create_list(CreateListRequest(space_id="space-1", name="Sprint", folder_id="folder-1"))
 
@@ -64,7 +81,12 @@ def test_add_status_builds_clickup_status_and_delegates() -> None:
     expected = ClickUpListMetadata(id="list-1", name="Sprint", statuses=["Review"], priorities=[])
     clickup_writer.add_status_to_list.return_value = expected
 
-    use_case = ClickUpStructureCreationUseCase(clickup_service=clickup_service, clickup_writer=clickup_writer)
+    use_case = ManageClickUpStructureUseCase(
+        clickup_repo=clickup_service,
+        member_repo=MagicMock(),
+        clickup_reader=MagicMock(),
+        clickup_writer=clickup_writer,
+    )
     request = AddStatusRequest(list_id="list-1", status="Review", color="#ff0000", type=StatusType.CUSTOM)
 
     result = use_case.add_status(request)

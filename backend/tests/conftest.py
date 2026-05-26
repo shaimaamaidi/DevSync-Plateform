@@ -35,6 +35,20 @@ from backend.src.presentation.api.routers import (
     member_router,
     repo_router,
     generation_backlog_router,
+    generation_tasks_from_backlog_router,
+    generation_tasks_from_summary_router,
+    generation_backlog_router,
+    verification_tasks_from_summary_router,
+    verification_tasks_from_backlog_router,
+    saving_summary_tasks_router,
+    saving_backlog_tasks_router,
+    management_clickup_structure_router,
+    management_clickup_task_router,
+    reading_clickup_space_task_router,
+    checking_task_status_router,
+    checking_project_status_router,
+    summarization_weekly_project_router,
+    mapping_commit_task_router,
 )
 
 
@@ -80,12 +94,21 @@ def app(container: _Container) -> FastAPI:
     app.include_router(repo_router.router, prefix="/repo", tags=["Repo"])
     app.include_router(member_router.router, prefix="/member", tags=["Member"])
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
-    app.include_router(backlog_router.router, prefix="/backlog", tags=["Backlog"])
-    app.include_router(verification_tasks_router.router, prefix="/clickup", tags=["ClickUp"])
-    app.include_router(generate_tasks_from_summary_router.router, prefix="/clickup", tags=["ClickUp"])
-    app.include_router(clickup_task_save_router.router, prefix="/clickup", tags=["ClickUp"])
+    app.include_router(generation_backlog_router.router, prefix="/backlog", tags=["Backlog"])
+    app.include_router(verification_tasks_from_summary_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
+    app.include_router(verification_tasks_from_backlog_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
+    app.include_router(generation_tasks_from_summary_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
+    app.include_router(generation_tasks_from_backlog_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
+    app.include_router(saving_summary_tasks_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
+    app.include_router(saving_backlog_tasks_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
     app.include_router(clickup_structure_metadata_router.router, prefix="/clickup/structure", tags=["ClickUp Structure Metadata"])
-    app.include_router(clickup_structure_creation_router.router, prefix="/clickup/structure", tags=["ClickUp Structure Creation"])
+    app.include_router(management_clickup_structure_router.router, prefix="/clickup/structure", tags=["ClickUp Structure Creation"])
+    app.include_router(management_clickup_task_router.router, prefix="/clickup/tasks/manage", tags=["ClickUp - Tasks"])
+    app.include_router(reading_clickup_space_task_router.router, prefix="/clickup/tasks/spaces", tags=["ClickUp - Tasks"])
+    app.include_router(checking_task_status_router.router, prefix="/task-status", tags=["Task Status Check"])
+    app.include_router(checking_project_status_router.router, prefix="/project-status", tags=["Project Status Check"])
+    app.include_router(summarization_weekly_project_router.router, prefix="/weekly-summary", tags=["Weekly Project Summary"])
+    app.include_router(mapping_commit_task_router.router, prefix="/commit-traceability", tags=["Commit Traceability"])
 
     app.add_exception_handler(AppException, FastAPIExceptionHandler.handle_app_exception)
     app.add_exception_handler(RequestValidationError, FastAPIExceptionHandler.handle_validation_exception)
@@ -94,17 +117,22 @@ def app(container: _Container) -> FastAPI:
     def override_get_container() -> Generator[_Container, None, None]:
         yield container
 
-    app.dependency_overrides[deps.get_container] = override_get_container
+    app.dependency_overrides[deps.get_persistence_container] = override_get_container
 
     def override_get_backlog_use_case() -> MagicMock:
         return container.backlog_use_case
 
-    app.dependency_overrides[deps.get_backlog_use_case] = override_get_backlog_use_case
+    app.dependency_overrides[deps.get_generate_backlog_use_case] = override_get_backlog_use_case
+
+    def override_get_deployment_use_case() -> MagicMock:
+        return container.deployment_use_case
+
+    app.dependency_overrides[deps.get_deployment_use_case] = override_get_deployment_use_case
 
     def override_get_save_task_use_case() -> MagicMock:
         return container.save_task_use_case
 
-    app.dependency_overrides[deps.get_save_task_use_case] = override_get_save_task_use_case
+    app.dependency_overrides[deps.get_save_summary_tasks_use_case] = override_get_save_task_use_case
 
     def override_get_generate_task_from_summary_use_case() -> MagicMock:
         return container.generate_task_from_summary_use_case
@@ -114,7 +142,7 @@ def app(container: _Container) -> FastAPI:
     def override_get_verify_task_use_case() -> MagicMock:
         return container.verify_task_use_case
 
-    app.dependency_overrides[deps.get_verify_task_use_case] = override_get_verify_task_use_case
+    app.dependency_overrides[deps.get_verify_tasks_from_summary_use_case] = override_get_verify_task_use_case
 
     def override_get_clickup_structure_metadata_use_case() -> MagicMock:
         return container.clickup_structure_metadata_use_case
@@ -124,7 +152,7 @@ def app(container: _Container) -> FastAPI:
     def override_get_clickup_structure_creation_use_case() -> MagicMock:
         return container.clickup_structure_creation_use_case
 
-    app.dependency_overrides[deps.get_clickup_structure_creation_use_case] = override_get_clickup_structure_creation_use_case
+    app.dependency_overrides[deps.get_create_clickup_structure_use_case] = override_get_clickup_structure_creation_use_case
     return app
 
 
@@ -153,7 +181,7 @@ def repo_detail_dto() -> GitRepoDetailDTO:
         id=1,
         name="repo-one",
         url="https://github.com/org/repo-one",
-        members=[RepoMemberDTO(id=10, username="alice", mail="alice@example.com")],
+        members=[RepoMemberDTO(id=10, username="alice", arabic_name="أليس", mail="alice@example.com")],
         clickup_space=None,
     )
 
@@ -163,7 +191,7 @@ def member_dto() -> MemberDTO:
     """
     Sample member DTO for tests.
     """
-    return MemberDTO(id=10, username="alice", mail="alice@example.com")
+    return MemberDTO(id=10, username="alice", arabic_name="أليس", mail="alice@example.com")
 
 
 @pytest.fixture

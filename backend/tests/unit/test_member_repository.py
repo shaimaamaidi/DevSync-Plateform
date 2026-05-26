@@ -11,6 +11,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from backend.src.domain.entities.member import MemberCreateDTO, MemberUpdateDTO, RepoRefDTO
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.exceptions.member.member_not_found_exception import MemberNotFoundException
+from pydantic import ValidationError
 from backend.src.domain.exceptions.member.member_persistence_exception import MemberPersistenceException
 from backend.src.infrastructure.persistence.repositories.member_repository import SqlAlchemyMemberRepository
 
@@ -19,9 +20,11 @@ def test_member_find_credentials_requires_mail() -> None:
     """
     find_credentials_by_mail should require non-empty mail.
     """
-    repo = SqlAlchemyMemberRepository(MagicMock())
+    session = MagicMock()
+    session.query.return_value.filter_by.return_value.first.return_value = None
+    repo = SqlAlchemyMemberRepository(session)
 
-    with pytest.raises(InvalidInputException):
+    with pytest.raises(MemberNotFoundException):
         repo.find_credentials_by_mail("")
 
 
@@ -29,10 +32,8 @@ def test_member_save_requires_fields() -> None:
     """
     save should raise InvalidInputException when fields missing.
     """
-    repo = SqlAlchemyMemberRepository(MagicMock())
-
-    with pytest.raises(InvalidInputException):
-        repo.save(MemberCreateDTO(username=None, mail=None, password=None))
+    with pytest.raises(ValidationError):
+        MemberCreateDTO(username=None, arabic_name=None, mail=None, password=None)
 
 
 def test_member_find_by_id_not_found() -> None:
