@@ -118,6 +118,12 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
 
         if not result:
             logger.warning("No synthesis result returned for task_id=%s.", task.id)
+            return SynthesizedTaskStatusResult(
+                is_completed=task.status in ("complete", "done") if task.status else False,
+                confidence="low",
+                summary=f"No synthesis result returned — based on ClickUp status only: '{task.status}'.",
+                evidence=[f"No GitHub activity found — analysis based on ClickUp status only. Status is '{task.status}'."]
+            )
 
         logger.info("Task status synthesis completed. task_id=%s, is_completed=%s.", task.id, result.is_completed)
 

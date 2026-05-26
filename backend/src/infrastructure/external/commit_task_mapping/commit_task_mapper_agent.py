@@ -103,7 +103,7 @@ class CommitTaskMapperAgent (BaseAgent[CommitTaskMapperResult], ICommitTaskMappe
         matched_task = all_tasks.get(result.id)
 
         if not matched_task:
-            logger.warning("Task id returned by LLM not found in input tasks. id=%s.", result.ids[0])
+            logger.warning("Task id returned by LLM not found in input tasks. id=%s.", result.id or "N/A")
             return None
 
         logger.info(

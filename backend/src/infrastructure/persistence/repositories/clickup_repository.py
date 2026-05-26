@@ -117,7 +117,6 @@ class SqlAlchemyClickUpRepository(IClickUpRepository):
         """
         logger.info(
             "Creating Click up space (name=%s, space_code=%s).",
-        
             space.name,
             space.space_code,
         )

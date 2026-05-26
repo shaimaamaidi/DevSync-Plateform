@@ -94,7 +94,9 @@ def get_persistence_container(request: Request) -> Generator[PersistenceContaine
     Raises:
         AppException: Re-raised if a known application-level exception occurs.
     """
-    logger.info("Creating DI persistence container for request: %s", request.url.path)
+    request_url = getattr(request, "url", None)
+    request_path = request_url.path if request_url is not None and hasattr(request_url, "path") else "N/A"
+    logger.info("Creating DI persistence container for request: %s", request_path)
 
     session = request.app.state.db.get_session()
     try:
@@ -106,7 +108,9 @@ def get_persistence_container(request: Request) -> Generator[PersistenceContaine
         raise
     finally:
         session.close()
-        logger.info("Closed DI container for request: %s", request.url.path)
+        request_url = getattr(request, "url", None)
+        request_path = request_url.path if request_url is not None and hasattr(request_url, "path") else "N/A"
+        logger.info("Closed DI container for request: %s", request_path)
 
 # Singleton use cases — BacklogGenerationContainer
 

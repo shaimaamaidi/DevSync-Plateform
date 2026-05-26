@@ -75,7 +75,7 @@ class RepoService(IRepoService):
         Raises:
             InvalidInputException: If no fields are provided for update.
         """
-        logger.info("Updating repository: id=%s, name=%s.", repo.id, repo.name)
+        logger.info("Updating repository: id=%s, name=%s.", repo.id, repo.name or "N/A")
 
         if (
             not repo.name

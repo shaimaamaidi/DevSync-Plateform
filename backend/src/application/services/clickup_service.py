@@ -85,7 +85,7 @@ class ClickUpService(IClickUpService):
         Raises:
             InvalidInputException: If no fields are provided for update.
         """
-        logger.info("Updating ClickUp space: id=%s, space_code=%s.", space.id, space.space_code)
+        logger.info("Updating ClickUp space: id=%s, space_code=%s.", space.id, space.space_code or "N/A")
 
         if not space.space_code and not space.name and not space.repo:
             logger.warning("Update failed: no fields provided (id=%s).", space.id)

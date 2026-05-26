@@ -126,84 +126,85 @@ class FastAPIExceptionHandler:
         Raises:
             AppException: If a domain-specific error occurs.
         """
-        message = exc.message
-
-        if exc.code in _NOT_FOUND_CODES:
+        # Use safe getters to avoid attribute errors if exc is missing expected fields
+        code = getattr(exc, "code", "UNKNOWN")
+        message = getattr(exc, "message", str(exc))
+        if code in _NOT_FOUND_CODES:
             logger.warning(
                 "Not Found Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc
             )
-        elif exc.code in _PERSISTENCE_CODES:
+        elif code in _PERSISTENCE_CODES:
             logger.error(
                 "Persistence/Database Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc
             )
-        elif exc.code in _VALIDATION_CODES:
+        elif code in _VALIDATION_CODES:
             logger.info(
                 "Validation Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc
             )
-        elif exc.code in _GITHUB_CODES:
+        elif code in _GITHUB_CODES:
             logger.warning(
                 "GitHub API Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc
             )
-        elif exc.code in _AUTH_CODES:
+        elif code in _AUTH_CODES:
             logger.warning(
                 "Auth Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc
             )
-        elif exc.code in _AZURE_CODES:
+        elif code in _AZURE_CODES:
             logger.error(
                 "Azure Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc,
             )
-        elif exc.code in _PROMPT_CODES:
+        elif code in _PROMPT_CODES:
             message = "A server error occurred. Please try again later."
             logger.error(
                 "Prompt Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc,
             )
-        elif exc.code in _LLM_CODES:
+        elif code in _LLM_CODES:
             logger.error(
                 "LLM Error [%s]: %s",
-                exc.code,
-                exc.message,
-                exc_info=exc,
+                code,
+                message,
+                exc_info=exc
             )
-        elif exc.code in _BACKLOG_CODES:
+        elif code in _BACKLOG_CODES:
             logger.error(
                 "Backlog Generation Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc,
             )
-        elif exc.code in _CLICKUP_CODES:
+        elif code in _CLICKUP_CODES:
             logger.error(
                 "ClickUp API Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc,
             )
         else:
             logger.error(
                 "Unknown Application Error [%s]: %s",
-                exc.code,
-                exc.message,
+                code,
+                message,
                 exc_info=exc
             )
 
@@ -229,9 +230,11 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: JSON response with validation error details.
         """
+        request_url = getattr(request, "url", None)
+        request_path = request_url.path if request_url is not None and hasattr(request_url, "path") else "N/A"
         logger.info(
             "Validation Error on request %s: %s.",
-            request.url.path,
+            request_path,
             exc.errors(),
         )
         return JSONResponse(
@@ -257,9 +260,11 @@ class FastAPIExceptionHandler:
         Returns:
             JSONResponse: JSON response with internal server error details.
         """
+        request_url = getattr(request, "url", None)
+        request_path = request_url.path if request_url is not None and hasattr(request_url, "path") else "N/A"
         logger.exception(
             "Unhandled exception on request %s: %s.",
-            request.url.path,
+            request_path,
             str(exc),
         )
         return JSONResponse(

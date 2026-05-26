@@ -160,8 +160,13 @@ def get_me(request: Request, container: PersistenceContainer = Depends(get_persi
     """
     logger.info("Get current member attempt.")
 
-    payload = request.state.current_member
-    member_id = int(payload.get("sub"))
+    payload = getattr(request.state, "current_member", None)
+    member_raw = payload.get("sub") if payload else None
+    if not member_raw:
+        logger.warning("Current member payload missing 'sub' claim.")
+        raise Exception("Session is invalid. Please log in again.")
+
+    member_id = int(member_raw)
     result = container.member_service.get_by_id(member_id)
 
     logger.info("Current member retrieved successfully: id=%s.", member_id)

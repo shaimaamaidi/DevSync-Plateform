@@ -89,7 +89,7 @@ class WeeklyDeploymentsSummarizerAgent(BaseAgent[WeeklySummaryNarrative], IWeekl
             response_format=WeeklySummaryNarrative,
         )
 
-        if not result or result.summary:
+        if not result or not result.summary:
             logger.warning("No summary result returned.")
             return ""
 

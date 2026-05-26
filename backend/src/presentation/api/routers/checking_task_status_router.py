@@ -134,7 +134,7 @@ async def synthesize_task_status(
     """
     logger.info(
         "Synthesizing ClickUp task status: task_id=%s, repo_url=%s.",
-        body.task.id,
+        getattr(body.task, "id", "N/A"),
         body.repo_url or "none",
     )
 
@@ -145,9 +145,9 @@ async def synthesize_task_status(
 
     logger.info(
         "ClickUp task status synthesis completed: task_id=%s, is_completed=%s, confidence=%s.",
-        body.task.id,
-        result.is_completed,
-        result.confidence,
+        getattr(body.task, "id", "N/A"),
+        getattr(result, "is_completed", "N/A"),
+        getattr(result, "confidence", "N/A"),
     )
 
     return result

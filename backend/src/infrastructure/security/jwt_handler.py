@@ -154,7 +154,7 @@ class JWTHandler(IJWTHandler):
                 logger.error("Token missing required claims.")
                 raise InvalidTokenException("Session is invalid. Please log in again.")
 
-            logger.info("Token verified successfully (member_id=%s).", payload.get("sub"))
+            logger.info("Token verified successfully (member_id=%s).", payload.get("sub") or "N/A")
 
             return payload
 
