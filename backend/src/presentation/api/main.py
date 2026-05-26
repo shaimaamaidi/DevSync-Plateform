@@ -42,11 +42,11 @@ from backend.src.presentation.api.routers import (
     associator_router, clickup_router, repo_router, member_router,
     deployment_router, auth_router, backlog_router, health_router,
     verification_tasks_from_summary_router, verification_tasks_from_backlog_router,
-    generation_tasks_from_summary_router, summary_tasks_save_router,
-    backlog_tasks_save_router, clickup_structure_metadata_router,
+    generation_tasks_from_summary_router, save_summary_tasks_router,
+    save_backlog_tasks_router, clickup_structure_metadata_router,
     clickup_structure_management_router, clickup_task_management_router,
     clickup_space_task_reader_router, generation_tasks_from_backlog_router,
-    task_status_check_router, project_status_check_router, summarization_weekly_project_router
+    check_task_status_router, check_project_status_router, summarization_weekly_project_router
 )
 
 
