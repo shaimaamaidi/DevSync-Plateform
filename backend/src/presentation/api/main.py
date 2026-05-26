@@ -27,11 +27,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.di.backlog_generation_container import BacklogGenerationContainer
 from backend.src.infrastructure.di.clickup_container import ClickUpContainer
+from backend.src.infrastructure.di.commit_task_mapping_container import CommitTaskMappingContainer
 from backend.src.infrastructure.di.project_status_container import ProjectStatusContainer
 from backend.src.infrastructure.di.task_generation_container import TaskGenerationContainer
 from backend.src.infrastructure.di.task_status_container import TaskStatusContainer
 from backend.src.infrastructure.di.deployment_container import DeploymentContainer
-from backend.src.infrastructure.di.weekly_project_summary_container import WeeklyProjectSummaryContainer
+from backend.src.infrastructure.di.weekly_project_summary_container import WeeklyProjectSummarizationContainer
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
@@ -40,13 +41,14 @@ from backend.src.presentation.api.middleware.auth_middleware import JWTAuthMiddl
 from backend.src.presentation.api.middleware.request_id_middleware import request_id_middleware
 from backend.src.presentation.api.routers import (
     associator_router, clickup_router, repo_router, member_router,
-    deployment_router, auth_router, backlog_router, health_router,
+    deployment_router, auth_router, generation_backlog_router, health_router,
     verification_tasks_from_summary_router, verification_tasks_from_backlog_router,
-    generation_tasks_from_summary_router, save_summary_tasks_router,
-    save_backlog_tasks_router, clickup_structure_metadata_router,
-    clickup_structure_management_router, clickup_task_management_router,
-    clickup_space_task_reader_router, generation_tasks_from_backlog_router,
-    check_task_status_router, check_project_status_router, summarization_weekly_project_router
+    generation_tasks_from_summary_router, saving_summary_tasks_router,
+    saving_backlog_tasks_router, clickup_structure_metadata_router,
+    management_clickup_structure_router, management_clickup_task_router,
+    reading_clickup_space_task_router, generation_tasks_from_backlog_router,
+    checking_task_status_router, checking_project_status_router, summarization_weekly_project_router,
+    mapping_commit_task_router
 )
 
 
@@ -115,8 +117,11 @@ async def lifespan(app: FastAPI):
         # ProjectStatusContainer
         app.state.project_status_container = ProjectStatusContainer()
 
-        # WeeklyProjectSummaryContainer
-        app.state.weekly_project_summary_container = WeeklyProjectSummaryContainer()
+        # WeeklyProjectSummarizationContainer
+        app.state.weekly_project_summary_container = WeeklyProjectSummarizationContainer()
+
+        # CommitTaskMappingContainer
+        app.state.commit_task_mapping_container = CommitTaskMappingContainer()
 
         logger.info("Application started successfully.")
 
@@ -187,7 +192,7 @@ def create_app() -> FastAPI:
     app.include_router(repo_router.router, prefix="/repo", tags=["Repo"])
     app.include_router(member_router.router, prefix="/member", tags=["Member"])
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
-    app.include_router(backlog_router.router, prefix="/backlog", tags=["Backlog"])
+    app.include_router(generation_backlog_router.router, prefix="/backlog", tags=["Backlog"])
     app.include_router(
         verification_tasks_from_summary_router.router,
         prefix="/clickup/tasks",
@@ -209,12 +214,12 @@ def create_app() -> FastAPI:
         tags=["ClickUp - Tasks"],
     )
     app.include_router(
-        summary_tasks_save_router.router,
+        saving_summary_tasks_router.router,
         prefix="/clickup/tasks",
         tags=["ClickUp - Tasks"],
     )
     app.include_router(
-        backlog_tasks_save_router.router,
+        saving_backlog_tasks_router.router,
         prefix="/clickup/tasks",
         tags=["ClickUp - Tasks"],
     )
@@ -224,27 +229,27 @@ def create_app() -> FastAPI:
         tags=["ClickUp Structure Metadata"],
     )
     app.include_router(
-        clickup_structure_management_router.router,
+        management_clickup_structure_router.router,
         prefix="/clickup/structure",
         tags=["ClickUp Structure Creation"],
     )
     app.include_router(
-        clickup_task_management_router.router,
+        management_clickup_task_router.router,
         prefix="/clickup/tasks/manage",
         tags=["ClickUp - Tasks"],
     )
     app.include_router(
-        clickup_space_task_reader_router.router,
+        reading_clickup_space_task_router.router,
         prefix="/clickup/tasks/spaces",
         tags=["ClickUp - Tasks"],
     )
     app.include_router(
-        task_status_check_router.router,
+        checking_task_status_router.router,
         prefix="/task-status",
         tags=["Task Status Check"],
     )
     app.include_router(
-        project_status_check_router.router,
+        checking_project_status_router.router,
         prefix="/project-status",
         tags=["Project Status Check"],
     )
@@ -252,6 +257,11 @@ def create_app() -> FastAPI:
         summarization_weekly_project_router.router,
         prefix="/weekly-summary",
         tags=["Weekly Project Summary"],
+    )
+    app.include_router(
+        mapping_commit_task_router.router,
+        prefix="/commit-traceability",
+        tags=["Commit Traceability"],
     )
     return app
 

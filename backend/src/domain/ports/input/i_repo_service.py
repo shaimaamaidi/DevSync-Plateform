@@ -24,6 +24,7 @@ from backend.src.domain.entities.git_repo import (
     GitRepoUpdateDTO,
 )
 
+
 class IRepoService(ABC):
     """
     Define repository service behavior required by the application.

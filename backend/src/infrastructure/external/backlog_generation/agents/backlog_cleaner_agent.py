@@ -9,8 +9,8 @@ is consistent, normalized, and compliant with expected domain rules.
 import logging
 
 from backend.src.domain.entities.backlog.structure import BacklogStructure
-from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_cleaner import IBacklogCleaner
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 

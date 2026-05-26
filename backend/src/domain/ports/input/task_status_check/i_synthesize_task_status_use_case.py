@@ -14,7 +14,7 @@ It acts as the application layer orchestration contract for:
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from backend.src.domain.entities.check_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
+from backend.src.domain.entities.checked_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 
 

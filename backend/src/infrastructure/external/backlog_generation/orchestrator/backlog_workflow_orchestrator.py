@@ -29,17 +29,17 @@ from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import I
 from backend.src.domain.exceptions.stream.stream_cancelled_exception import StreamCancelledException
 from backend.src.domain.exceptions.stream.stream_execution_exception import StreamExecutionException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.orchestrator.ibacklog_workflow_orchestrator import \
+from backend.src.domain.ports.services.backlog_generation.orchestrator.i_backlog_workflow_orchestrator import \
     IBacklogWorkflowOrchestrator
-from backend.src.domain.ports.services.backlog_generation.tools.ibacklog_generator_tool import IBacklogGeneratorTool
-from backend.src.domain.ports.services.backlog_generation.tools.idelivery_planner_tool import IDeliveryPlannerTool
-from backend.src.domain.ports.services.backlog_generation.tools.imarket_query_generator_tool import \
+from backend.src.domain.ports.services.backlog_generation.tools.i_backlog_generator_tool import IBacklogGeneratorTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_delivery_planner_tool import IDeliveryPlannerTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_market_query_generator_tool import \
     IMarketQueryGeneratorTool
-from backend.src.domain.ports.services.backlog_generation.tools.imarket_summarizer_tool import IMarketSummarizerTool
-from backend.src.domain.ports.services.backlog_generation.tools.imarket_validator_tool import IMarketValidatorTool
-from backend.src.domain.ports.services.backlog_generation.tools.iproduct_context_builder_tool import IProductContextTool
-from backend.src.domain.ports.services.backlog_generation.tools.iuser_backlog_fixer_tool import IUserBacklogFixerTool
-from backend.src.domain.ports.services.backlog_generation.tools.iweb_search_tool import IWebSearchTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_market_summarizer_tool import IMarketSummarizerTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_market_validator_tool import IMarketValidatorTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_product_context_builder_tool import IProductContextTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_user_backlog_fixer_tool import IUserBacklogFixerTool
+from backend.src.domain.ports.services.backlog_generation.tools.i_web_search_tool import IWebSearchTool
 from backend.src.infrastructure.external.backlog_generation.common.base_azure_project_agent import BaseAzureProjectAgent
 from backend.src.infrastructure.external.backlog_generation.orchestrator.event_handler import EventHandler
 

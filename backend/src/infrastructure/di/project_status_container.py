@@ -30,9 +30,9 @@ from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 from backend.src.infrastructure.di.base_github_container import BaseGitHubContainer
 
-from backend.src.infrastructure.external.project_status_check.stale_task_inspector_agent import StaleTaskInspectorAgent
-from backend.src.infrastructure.external.project_status_check.unverified_done_task_inspector_agent import \
-    UnverifiedDoneTaskInspectorAgent
+from backend.src.infrastructure.external.project_status_checking.stale_task_inspector_agent import StaleTaskInspectorAgent
+from backend.src.infrastructure.external.project_status_checking.unverified_done_task_inspector_agent import UnverifiedDoneTaskInspectorAgent
+
 
 logger = logging.getLogger(__name__)
 

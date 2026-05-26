@@ -29,7 +29,7 @@ from backend.src.domain.exceptions.prompt.prompt_schema_exception import PromptS
 from backend.src.domain.exceptions.prompt.prompt_template_directory_not_found_exception import \
     PromptTemplateDirectoryNotFoundException
 from backend.src.domain.exceptions.prompt.prompt_yaml_exception import PromptYamlException
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.prompts.prompt import Prompt
 
 

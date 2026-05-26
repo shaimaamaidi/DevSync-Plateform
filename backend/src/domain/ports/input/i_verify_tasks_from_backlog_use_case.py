@@ -10,6 +10,7 @@ It acts as a contract for application-level services responsible for:
 - Detecting changes based on task description matching
 - Producing a diff of actions to apply in ClickUp
 """
+
 from abc import ABC, abstractmethod
 from typing import List
 

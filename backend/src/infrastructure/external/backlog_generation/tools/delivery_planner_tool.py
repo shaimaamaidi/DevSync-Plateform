@@ -20,13 +20,13 @@ from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkEx
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_prioritizer import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_prioritizer import (
     IBacklogPrioritizer,
 )
-from backend.src.domain.ports.services.backlog_generation.agents.isprint_planner import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_sprint_planner import (
     ISprintPlanner,
 )
-from backend.src.domain.ports.services.backlog_generation.tools.idelivery_planner_tool import (
+from backend.src.domain.ports.services.backlog_generation.tools.i_delivery_planner_tool import (
     IDeliveryPlannerTool,
 )
 

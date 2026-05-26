@@ -26,8 +26,8 @@ from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 from backend.src.infrastructure.di.base_github_container import BaseGitHubContainer
 
-from backend.src.infrastructure.external.task_status_check.task_search_agent import TaskSearchAgent
-from backend.src.infrastructure.external.task_status_check.task_status_synthesizer_agent import TaskStatusSynthesizerAgent
+from backend.src.infrastructure.external.task_status_checking.task_search_agent import TaskSearchAgent
+from backend.src.infrastructure.external.task_status_checking.task_status_synthesizer_agent import TaskStatusSynthesizerAgent
 
 
 logger = logging.getLogger(__name__)

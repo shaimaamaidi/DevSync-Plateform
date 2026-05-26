@@ -20,16 +20,16 @@ Classes:
 
 import logging
 
-from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
-from backend.src.application.use_cases.clickup_structure_management_use_case import ClickUpStructureManagementUseCase
+from backend.src.application.use_cases.read_clickup_space_task_use_case import ReadClickUpSpaceTaskUseCase
+from backend.src.application.use_cases.manage_clickup_structure_use_case import ManageClickUpStructureUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
-from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
+from backend.src.application.use_cases.manage_clickup_task_use_case import ManageClickUpTaskUseCase
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.domain.ports.repositories.i_clickup_repository import IClickUpRepository
 from backend.src.domain.ports.repositories.i_member_repository import IMemberRepository
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
-
+from backend.src.infrastructure.external.clickup.writer.clickup_workspace_writer import ClickUpWorkSpaceWriter
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +62,9 @@ class ClickUpContainer(BaseClickUpContainer):
 
         clickup_structure_metadata_use_case (ClickUpStructureMetadataUseCase | None):
             Use case for retrieving ClickUp workspace structure metadata.
-        clickup_space_task_reader_use_case (ClickUpSpaceTaskReaderUseCase | None):
+        clickup_space_task_reader_use_case (ReadClickUpSpaceTaskUseCase | None):
             Use case for reading tasks from a ClickUp space.
-        clickup_task_creation_use_case (ClickUpTaskManagementUseCase | None):
+        clickup_task_creation_use_case (ManageClickUpTaskUseCase | None):
             Use case for managing ClickUp tasks lifecycle.
     """
 
@@ -82,8 +82,8 @@ class ClickUpContainer(BaseClickUpContainer):
 
         self.clickup_workspace_writer: ClickUpWorkSpaceWriter | None = None
         self.clickup_structure_metadata_use_case: ClickUpStructureMetadataUseCase | None = None
-        self.clickup_space_task_reader_use_case: ClickUpSpaceTaskReaderUseCase | None = None
-        self.clickup_task_creation_use_case: ClickUpTaskManagementUseCase | None = None
+        self.clickup_space_task_reader_use_case: ReadClickUpSpaceTaskUseCase | None = None
+        self.clickup_task_creation_use_case: ManageClickUpTaskUseCase | None = None
 
         try:
             super().__init__()
@@ -136,7 +136,7 @@ class ClickUpContainer(BaseClickUpContainer):
 
     def _init_clickup_task_creation_use_case(self):
         """
-        Initialize ClickUpTaskManagementUseCase.
+        Initialize ManageClickUpTaskUseCase.
 
         This use case manages ClickUp task lifecycle operations including:
         - Task creation
@@ -147,29 +147,29 @@ class ClickUpContainer(BaseClickUpContainer):
         - ClickUpTaskWriter for write operations
         - ClickUpReader for workspace and context retrieval
         """
-        logger.info("Initializing ClickUpTaskManagementUseCase.")
+        logger.info("Initializing ManageClickUpTaskUseCase.")
 
-        self.clickup_task_creation_use_case = ClickUpTaskManagementUseCase(
+        self.clickup_task_creation_use_case = ManageClickUpTaskUseCase(
             self.clickup_writer,
             self.clickup_reader,
         )
 
     def _init_clickup_space_task_reader_use_case(self):
         """
-        Initialize ClickUpSpaceTaskReaderUseCase.
+        Initialize ReadClickUpSpaceTaskUseCase.
 
         This use case provides read-only access to tasks inside a ClickUp space.
         It retrieves task data without applying business transformations.
         """
-        logger.info("Initializing ClickUpSpaceTaskReaderUseCase.")
+        logger.info("Initializing ReadClickUpSpaceTaskUseCase.")
 
-        self.clickup_space_task_reader_use_case = ClickUpSpaceTaskReaderUseCase(
+        self.clickup_space_task_reader_use_case = ReadClickUpSpaceTaskUseCase(
             self.clickup_reader
         )
 
-    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository, member_repo: IMemberRepository) -> ClickUpStructureManagementUseCase:
+    def create_clickup_structure_creation_use_case(self, clickup_repo: IClickUpRepository, member_repo: IMemberRepository) -> ManageClickUpStructureUseCase:
         """
-        Factory method for ClickUpStructureManagementUseCase.
+        Factory method for ManageClickUpStructureUseCase.
 
         This method builds a use case responsible for creating and managing
         ClickUp workspace structure.
@@ -184,7 +184,7 @@ class ClickUpContainer(BaseClickUpContainer):
             member_repo: Request-scoped member repository abstraction.
 
         Returns:
-            ClickUpStructureManagementUseCase: Fully initialized use case.
+            ManageClickUpStructureUseCase: Fully initialized use case.
 
         Raises:
             ServiceUnavailableException: If ClickUp writer infrastructure is not available.
@@ -192,7 +192,7 @@ class ClickUpContainer(BaseClickUpContainer):
         if self.clickup_writer is None:
             raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
 
-        return ClickUpStructureManagementUseCase(
+        return ManageClickUpStructureUseCase(
             clickup_repo=clickup_repo,
             member_repo=member_repo,
             clickup_reader=self.clickup_reader,

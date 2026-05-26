@@ -17,13 +17,13 @@ import asyncio
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 
-from backend.src.domain.entities.check_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
+from backend.src.domain.entities.checked_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.ports.input.task_status_check.i_synthesize_task_status_use_case import ISynthesizeTaskStatusUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.github.i_github_commit_service import IGitHubCommitService
 from backend.src.domain.ports.output.github.i_github_deployment_service import IGitHubDeploymentService
-from backend.src.domain.ports.services.task_status_check.i_task_status_synthesizer import ITaskStatusSynthesizer
+from backend.src.domain.ports.services.task_status_checking.i_task_status_synthesizer import ITaskStatusSynthesizer
 
 
 logger = logging.getLogger(__name__)

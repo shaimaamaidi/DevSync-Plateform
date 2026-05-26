@@ -12,8 +12,8 @@ import logging
 
 from backend.src.domain.entities.market.query import QueryGeneration
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.ports.services.backlog_generation.agents.imarket_query_generator import IMarketQueryGenerator
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.backlog_generation.agents.i_market_query_generator import IMarketQueryGenerator
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 

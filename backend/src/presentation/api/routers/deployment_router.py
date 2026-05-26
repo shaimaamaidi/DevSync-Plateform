@@ -14,8 +14,8 @@ from fastapi import APIRouter, Depends
 from starlette import status
 
 from backend.src.domain.entities.github.deployment import DeploymentDTO
-from backend.src.infrastructure.di.persistence_container import Container
-from backend.src.presentation.api.deps import get_container
+from backend.src.domain.ports.input.i_deployment_use_case import IDeploymentUseCase
+from backend.src.presentation.api.deps import get_deployment_use_case
 
 
 logger = logging.getLogger(__name__)
@@ -36,14 +36,14 @@ router = APIRouter()
 )
 async def list_deployments(
     repo_url: str,
-    container: Container = Depends(get_container),
+    use_case: IDeploymentUseCase = Depends(get_deployment_use_case),
 ) -> List[DeploymentDTO]:
     """
     List deployments for a repository URL.
 
     Args:
         repo_url (str): The repository URL to fetch deployments for.
-        container (Container): Dependency injection container.
+        use_case (IDeploymentUseCase): Dependency injection container.
 
     Returns:
         List[DeploymentDTO]: List of deployments for the repository.
@@ -53,7 +53,6 @@ async def list_deployments(
         repo_url,
     )
 
-    use_case = container.deployment_use_case
     results = await use_case.list_deployments(repo_url)
 
     logger.info(

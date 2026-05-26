@@ -15,7 +15,7 @@ This DTO is used as the final output of the weekly project summary use case.
 Main classes:
     WeeklyProjectSummaryResponse
 """
-
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel
@@ -24,6 +24,12 @@ from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.entities.github.deployment import DeploymentDTO
 
+
+class WeeklyProjectSummaryStatus(str, Enum):
+    FULL = "FULL"
+    NO_GITHUB = "NO_GITHUB"
+    CLICKUP_EMPTY = "CLICKUP_EMPTY"
+    NO_GITHUB_AND_CLICKUP_EMPTY = "NO_GITHUB_AND_CLICKUP_EMPTY"
 
 class WeeklyProjectSummaryResponse(BaseModel):
     """
@@ -41,6 +47,8 @@ class WeeklyProjectSummaryResponse(BaseModel):
         last_7_days_commits: GitHub commits made in the last 7 days.
         commits_summary: AI-generated narrative summarizing commit activity.
     """
+    status: ProjectStatusCode
+    message: str
     created_tasks: List[ClickUpTask] = []
     in_progress_tasks: List[ClickUpTask] = []
     done_tasks: List[ClickUpTask] = []

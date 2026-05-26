@@ -13,7 +13,7 @@ without sufficient implementation evidence.
 from abc import abstractmethod, ABC
 from typing import List
 
-from backend.src.domain.entities.check_project_status.inspected_unverified_done_task_result import InspectedUnverifiedDoneTaskResult
+from backend.src.domain.entities.checked_project_status.inspected_unverified_done_task_result import InspectedUnverifiedDoneTaskResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 

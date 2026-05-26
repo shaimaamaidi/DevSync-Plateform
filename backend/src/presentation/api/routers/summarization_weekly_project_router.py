@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, status
 from backend.src.domain.entities.shared.project_space_request import ProjectSpaceRequest
 from backend.src.domain.entities.weekly_project_summary.weekly_project_summary_response import WeeklyProjectSummaryResponse
 from backend.src.domain.ports.input.i_summarize_weekly_project_summary_use_case import ISummarizeWeeklyProjectUseCase
-from backend.src.presentation.api.deps import get_weekly_project_summary_use_case
+from backend.src.presentation.api.deps import get_summarize_weekly_project_use_case
 
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ router = APIRouter()
 )
 async def summarize_weekly_project(
     body: ProjectSpaceRequest,
-    use_case: ISummarizeWeeklyProjectUseCase = Depends(get_weekly_project_summary_use_case),
+    use_case: ISummarizeWeeklyProjectUseCase = Depends(get_summarize_weekly_project_use_case),
 ) -> WeeklyProjectSummaryResponse:
     """
     Compute the weekly summary of a project.

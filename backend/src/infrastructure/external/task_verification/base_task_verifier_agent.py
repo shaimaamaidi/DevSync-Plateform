@@ -12,7 +12,7 @@ from abc import abstractmethod, ABC
 from typing import List, Generic, TypeVar
 
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 

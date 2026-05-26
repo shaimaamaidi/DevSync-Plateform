@@ -16,10 +16,10 @@ from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
 from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.agents.iproduct_context_builder import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_product_context_builder import (
     IProductContextBuilder,
 )
-from backend.src.domain.ports.services.backlog_generation.tools.iproduct_context_builder_tool import (
+from backend.src.domain.ports.services.backlog_generation.tools.i_product_context_builder_tool import (
     IProductContextTool,
 )
 

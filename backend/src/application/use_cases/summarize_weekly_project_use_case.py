@@ -28,13 +28,14 @@ from backend.src.application.use_cases.shared.clickup_task_context_fetcher impor
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.entities.github.deployment import DeploymentDTO
-from backend.src.domain.entities.weekly_project_summary.weekly_project_summary_response import WeeklyProjectSummaryResponse
+from backend.src.domain.entities.weekly_project_summary.weekly_project_summary_response import \
+    WeeklyProjectSummaryResponse, WeeklyProjectSummaryStatus
 from backend.src.domain.ports.input.i_summarize_weekly_project_summary_use_case import ISummarizeWeeklyProjectUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.github.i_github_commit_service import IGitHubCommitService
 from backend.src.domain.ports.output.github.i_github_deployment_service import IGitHubDeploymentService
-from backend.src.domain.ports.services.weekly_project_summary.i_weekly_commits_summarizer import IWeeklyCommitsSummarizer
-from backend.src.domain.ports.services.weekly_project_summary.i_weekly_deployments_summarizer import IWeeklyDeploymentsSummarizer
+from backend.src.domain.ports.services.weekly_project_summarization.i_weekly_commits_summarizer import IWeeklyCommitsSummarizer
+from backend.src.domain.ports.services.weekly_project_summarization.i_weekly_deployments_summarizer import IWeeklyDeploymentsSummarizer
 
 
 logger = logging.getLogger(__name__)
@@ -110,6 +111,22 @@ class SummarizeWeeklyProjectUseCase(ISummarizeWeeklyProjectUseCase):
             for task in lst.tasks
         ]
 
+        if not tasks and not repo_url:
+            return WeeklyProjectSummaryResponse(
+                status=WeeklyProjectSummaryStatus.NO_GITHUB_AND_CLICKUP_EMPTY,
+                message=(
+                    "The project has no ClickUp tasks and is not linked to any GitHub repository yet. "
+                    "No weekly project activity is currently available."
+                ),
+                created_tasks=[],
+                in_progress_tasks=[],
+                done_tasks=[],
+                last_7_days_deployments=[],
+                deployments_summary="",
+                last_7_days_commits=[],
+                commits_summary="",
+            )
+
         results = await asyncio.gather(*[fetch_task_context(task, self._clickup_reader) for task in tasks])
 
         tasks_created: List[ClickUpTask] = []
@@ -165,7 +182,30 @@ class SummarizeWeeklyProjectUseCase(ISummarizeWeeklyProjectUseCase):
             len(tasks),
         )
 
+        if not tasks:
+            status = WeeklyProjectSummaryStatus.CLICKUP_EMPTY
+            message = (
+                "The ClickUp workspace does not contain any tasks yet. "
+                "The weekly summary is currently based only on the linked GitHub activity."
+            )
+
+        elif not repo_url:
+            status = WeeklyProjectSummaryStatus.NO_GITHUB
+            message = (
+                "This project is not linked to any GitHub repository. "
+                "The weekly summary below is based solely on ClickUp task activity."
+            )
+
+        else:
+            status = WeeklyProjectSummaryStatus.FULL
+            message = (
+                "The weekly summary was successfully generated using both ClickUp activity "
+                "and GitHub commit and deployment data."
+            )
+
         return WeeklyProjectSummaryResponse(
+            status=status,
+            message=message,
             created_tasks=tasks_created,
             in_progress_tasks=task_to_in_progress,
             done_tasks=tasks_to_done,

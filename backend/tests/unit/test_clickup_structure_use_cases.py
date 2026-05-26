@@ -4,7 +4,7 @@ Unit tests for ClickUp structure use cases.
 
 from unittest.mock import MagicMock
 
-from backend.src.application.use_cases.clickup_structure_management_use_case import ClickUpStructureCreationUseCase
+from backend.src.application.use_cases.manage_clickup_structure_use_case import ClickUpStructureCreationUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
 from backend.src.domain.entities.clickup.add_status_request import AddStatusRequest
 from backend.src.domain.entities.clickup.create_folder_request import CreateFolderRequest

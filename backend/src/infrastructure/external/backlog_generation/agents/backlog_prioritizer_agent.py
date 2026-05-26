@@ -9,8 +9,8 @@ based on business value, dependencies, and product strategy.
 import logging
 
 from backend.src.domain.entities.backlog.structure import BacklogStructure
-from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_prioritizer import IBacklogPrioritizer
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_prioritizer import IBacklogPrioritizer
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 

@@ -19,10 +19,10 @@ from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkEx
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.agents.iuser_backlog_fixer import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_user_backlog_fixer import (
     IUserBacklogFixer,
 )
-from backend.src.domain.ports.services.backlog_generation.tools.iuser_backlog_fixer_tool import (
+from backend.src.domain.ports.services.backlog_generation.tools.i_user_backlog_fixer_tool import (
     IUserBacklogFixerTool,
 )
 

@@ -9,6 +9,7 @@ It acts as a contract for application-level services responsible for:
 - Resolving workspace members and assignees
 - Synchronizing verified domain results with ClickUp
 """
+
 from abc import ABC, abstractmethod
 from typing import List
 

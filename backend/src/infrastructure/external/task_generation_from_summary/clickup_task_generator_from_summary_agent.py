@@ -12,7 +12,7 @@ from typing import List, Dict
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskListFromSummary
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_generation_from_summary.i_task_generator_from_summary import ITaskGeneratorFromSummary
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 

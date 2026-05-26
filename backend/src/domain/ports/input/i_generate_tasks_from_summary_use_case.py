@@ -10,6 +10,7 @@ It acts as a contract for application-level services responsible for:
 - Extracting actionable tasks
 - Mapping tasks into ClickUp-compatible structures
 """
+
 from abc import ABC, abstractmethod
 from typing import List
 

@@ -21,7 +21,7 @@ from backend.src.domain.exceptions.backlog.backlog_reply_exception import Backlo
 from backend.src.domain.exceptions.backlog.backlog_stream_exception import BacklogStreamException
 from backend.src.domain.exceptions.stream.reply_stream_exception import ReplyStreamException
 from backend.src.domain.ports.input.i_generate_backlog_use_case import IGenerateBacklogUseCase
-from backend.src.domain.ports.services.backlog_generation.orchestrator.ibacklog_workflow_orchestrator import \
+from backend.src.domain.ports.services.backlog_generation.orchestrator.i_backlog_workflow_orchestrator import \
     IBacklogWorkflowOrchestrator
 
 

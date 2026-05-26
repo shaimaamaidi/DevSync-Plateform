@@ -21,10 +21,10 @@ from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkEx
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_validator import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_market_intelligence_validator import (
     IMarketIntelligenceValidator,
 )
-from backend.src.domain.ports.services.backlog_generation.tools.imarket_validator_tool import (
+from backend.src.domain.ports.services.backlog_generation.tools.i_market_validator_tool import (
     IMarketValidatorTool,
 )
 

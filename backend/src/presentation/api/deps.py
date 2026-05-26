@@ -8,29 +8,38 @@ the DI container and exposing application use cases initialized at startup.
 Functions:
     get_persistence_container: Provides a request-scoped PersistenceContainer.
 
+    # DeploymentContainer
+    get_deployment_use_case: Provide the deployments fetching use case instance.
+
     # BacklogGenerationContainer
-    get_backlog_use_case: Provides the backlog generation use case instance.
+    get_generate_backlog_use_case: Provides the backlog generation use case instance.
 
     # TaskGenerationContainer
     get_generate_task_from_summary_use_case: Provides the task generation from summary use case instance.
     get_generate_task_from_backlog_use_case: Provides the task generation from backlog use case instance.
-    get_save_summary_tasks_use_case: Builds the save summary tasks use case per request.
-    get_save_backlog_tasks_use_case: Builds the save backlog tasks use case per request.
-    get_verify_tasks_from_summary_use_case: Builds the verify tasks from summary use case per request.
-    get_verify_tasks_from_backlog_use_case: Builds the verify tasks from backlog use case per request.
+    get_save_summary_tasks_use_case: Builds the saving summary tasks use case per request.
+    get_save_backlog_tasks_use_case: Builds the saving backlog tasks use case per request.
+    get_verify_tasks_from_summary_use_case: Builds the verification tasks from summary use case per request.
+    get_verify_tasks_from_backlog_use_case: Builds the verification  tasks from backlog use case per request.
 
     # ClickUpContainer
-    get_clickup_task_creation_use_case: Provides the ClickUp task management use case instance.
-    get_clickup_space_task_reader_use_case: Provides the ClickUp space task reader use case instance.
+    get_create_clickup_task_use_case: Provides the ClickUp task management use case instance.
+    get_read_clickup_space_task_use_case: Provides the ClickUp space task reader use case instance.
     get_clickup_structure_metadata_use_case: Provides the ClickUp structure metadata use case instance.
-    get_clickup_structure_creation_use_case: Builds the ClickUp structure creation use case per request.
+    get_create_clickup_structure_use_case: Builds the ClickUp structure creation use case per request.
 
     # TaskStatusContainer
     get_search_task_use_case: Provides the task search use case instance.
     get_synthesize_task_status_use_case: Provides the task status synthesis use case instance.
 
     # ProjectStatusContainer
-    get_check_project_status_use_case: Provide the project status check use case instance.
+    get_check_project_status_use_case: Provide the project status checking use case instance.
+
+    # WeeklyProjectSummarizationContainer
+    get_summarize_weekly_project_use_case: Provide the weekly project summarization use case instance.
+    
+    # CommitTaskMappingContainer
+    get_map_commit_task_use_case: Provide the commit to task mapping use case instance.
 """
 
 import logging
@@ -39,13 +48,15 @@ from typing import Generator
 from fastapi import Depends, Request
 
 from backend.src.application.use_cases.check_project_status_use_case import CheckProjectStatusUseCase
-from backend.src.application.use_cases.clickup_space_task_reader_use_case import ClickUpSpaceTaskReaderUseCase
-from backend.src.application.use_cases.clickup_structure_management_use_case import ClickUpStructureManagementUseCase
+from backend.src.application.use_cases.read_clickup_space_task_use_case import ReadClickUpSpaceTaskUseCase
+from backend.src.application.use_cases.manage_clickup_structure_use_case import ManageClickUpStructureUseCase
 from backend.src.application.use_cases.clickup_structure_metadata_use_case import ClickUpStructureMetadataUseCase
-from backend.src.application.use_cases.clickup_task_management_use_case import ClickUpTaskManagementUseCase
+from backend.src.application.use_cases.manage_clickup_task_use_case import ManageClickUpTaskUseCase
+from backend.src.application.use_cases.deployment_use_case import DeploymentUseCase
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
+from backend.src.application.use_cases.map_commit_task_use_case import MapCommitTaskUseCase
 from backend.src.application.use_cases.save_backlog_tasks_use_case import SaveBacklogTasksInClickUpUseCase
 from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
 from backend.src.application.use_cases.summarize_weekly_project_use_case import SummarizeWeeklyProjectUseCase
@@ -99,7 +110,7 @@ def get_persistence_container(request: Request) -> Generator[PersistenceContaine
 
 # Singleton use cases — BacklogGenerationContainer
 
-def get_backlog_use_case(request: Request) -> GenerateBacklogUseCase:
+def get_generate_backlog_use_case(request: Request) -> GenerateBacklogUseCase:
     """
     Retrieve the backlog generation use case from BacklogGenerationContainer.
 
@@ -184,7 +195,7 @@ def get_generate_task_from_backlog_use_case(request: Request) -> GenerateTasksFr
 
 # Singleton use cases — ClickUpContainer
 
-def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskManagementUseCase:
+def get_create_clickup_task_use_case(request: Request) -> ManageClickUpTaskUseCase:
     """
     Retrieve the ClickUp task management use case from ClickUpContainer.
 
@@ -192,7 +203,7 @@ def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskManagemen
         request (Request): The incoming FastAPI request object.
 
     Returns:
-        ClickUpTaskManagementUseCase: The initialized use case.
+        ManageClickUpTaskUseCase: The initialized use case.
 
     Raises:
         ServiceUnavailableException: If the use case is not initialized.
@@ -211,7 +222,7 @@ def get_clickup_task_creation_use_case(request: Request) -> ClickUpTaskManagemen
         logger.exception("Failed to retrieve ClickUp task creation use case: %s", str(e))
         raise ServiceUnavailableException("ClickUp task creation service is unavailable.") from e
 
-def get_clickup_space_task_reader_use_case(request: Request) -> ClickUpSpaceTaskReaderUseCase:
+def get_read_clickup_space_task_use_case(request: Request) -> ReadClickUpSpaceTaskUseCase:
     """
     Retrieve the ClickUp space task reader use case from ClickUpContainer.
 
@@ -219,7 +230,7 @@ def get_clickup_space_task_reader_use_case(request: Request) -> ClickUpSpaceTask
         request (Request): The incoming FastAPI request object.
 
     Returns:
-        ClickUpSpaceTaskReaderUseCase: The initialized use case.
+        ReadClickUpSpaceTaskUseCase: The initialized use case.
 
     Raises:
         ServiceUnavailableException: If the use case is not initialized.
@@ -264,6 +275,44 @@ def get_clickup_structure_metadata_use_case(request: Request) -> ClickUpStructur
     except Exception as e:
         logger.exception("Failed to retrieve ClickUp structure metadata use case: %s", str(e))
         raise ServiceUnavailableException("ClickUp structure metadata service is unavailable.") from e
+
+# Request-scoped use cases — DeploymentContainer + PersistenceContainer
+
+def get_deployment_use_case(
+    request: Request,
+    container: PersistenceContainer = Depends(get_persistence_container),
+) -> DeploymentUseCase:
+    """
+    Build the save summary tasks use case for the current request.
+
+    Combines singleton TaskGenerationContainer infrastructure with
+    request-scoped member_repo from PersistenceContainer.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+        container (PersistenceContainer): The request-scoped DI container.
+
+    Returns:
+        SaveSummaryTasksInClickUpUseCase: A fully initialized use case for this request.
+
+    Raises:
+        ServiceUnavailableException: If ClickUp infrastructure is not initialized.
+    """
+    try:
+        use_case = request.app.state.deployment_container.create_deployment_use_case(
+            container.repo_repo
+        )
+
+        if use_case is None:
+            raise ServiceUnavailableException("Backlog use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to retrieve backlog use case: %s", str(e))
+        raise ServiceUnavailableException("Backlog service is unavailable.") from e
 
 # Request-scoped use cases — TaskGenerationContainer + PersistenceContainer
 
@@ -389,10 +438,10 @@ def get_verify_tasks_from_backlog_use_case(
 
 # Request-scoped use cases — ClickUpContainer + PersistenceContainer
 
-def get_clickup_structure_creation_use_case(
+def get_create_clickup_structure_use_case(
     request: Request,
     container: PersistenceContainer = Depends(get_persistence_container),
-) -> ClickUpStructureManagementUseCase:
+) -> ManageClickUpStructureUseCase:
     """
     Build the ClickUp structure creation use case for the current request.
 
@@ -404,7 +453,7 @@ def get_clickup_structure_creation_use_case(
         container (PersistenceContainer): The request-scoped DI container.
 
     Returns:
-        ClickUpStructureManagementUseCase: A fully initialized use case for this request.
+        ManageClickUpStructureUseCase: A fully initialized use case for this request.
 
     Raises:
         ServiceUnavailableException: If ClickUp infrastructure is not initialized.
@@ -476,16 +525,17 @@ def get_synthesize_task_status_use_case(request: Request) -> SynthesizeTaskStatu
         logger.exception("Failed to retrieve task status synthesis use case: %s", str(e))
         raise ServiceUnavailableException("Task status synthesis service is unavailable.") from e
 
+# Singleton use cases — ProjectStatusContainer
 
 def get_check_project_status_use_case(request: Request) -> CheckProjectStatusUseCase:
     """
-    Retrieve the project status check use case from ProjectStatusContainer.
+    Retrieve the project status checking use case from ProjectStatusContainer.
 
     Args:
         request (Request): The incoming FastAPI request object.
 
     Returns:
-        CheckProjectStatusUseCase: The initialized project status check use case.
+        CheckProjectStatusUseCase: The initialized project status checking use case.
 
     Raises:
         ServiceUnavailableException: If the use case is not initialized.
@@ -494,26 +544,27 @@ def get_check_project_status_use_case(request: Request) -> CheckProjectStatusUse
         use_case = request.app.state.project_status_container.project_status_check_use_case
 
         if use_case is None:
-            raise ServiceUnavailableException("Project status check use case is not initialized.")
+            raise ServiceUnavailableException("Project status checking use case is not initialized.")
 
         return use_case
 
     except ServiceUnavailableException:
         raise
     except Exception as e:
-        logger.exception("Failed to retrieve project status check use case: %s", str(e))
-        raise ServiceUnavailableException("Project status check service is unavailable.") from e
+        logger.exception("Failed to retrieve project status checking use case: %s", str(e))
+        raise ServiceUnavailableException("Project status checking service is unavailable.") from e
 
+# Singleton use cases — WeeklyProjectSummarizationContainer
 
-def get_weekly_project_summary_use_case(request: Request) -> SummarizeWeeklyProjectUseCase:
+def get_summarize_weekly_project_use_case(request: Request) -> SummarizeWeeklyProjectUseCase:
     """
-    Retrieve the project status check use case from WeeklyProjectSummaryContainer.
+    Retrieve the weekly project summarization use case from WeeklyProjectSummarizationContainer.
 
     Args:
         request (Request): The incoming FastAPI request object.
 
     Returns:
-        CheckProjectStatusUseCase: The initialized project status check use case.
+        CheckProjectStatusUseCase: The initialized weekly project summarization use case.
 
     Raises:
         ServiceUnavailableException: If the use case is not initialized.
@@ -531,3 +582,32 @@ def get_weekly_project_summary_use_case(request: Request) -> SummarizeWeeklyProj
     except Exception as e:
         logger.exception("Failed to retrieve weekly project summarizer use case: %s", str(e))
         raise ServiceUnavailableException("Weekly project summarizer service is unavailable.") from e
+
+# Singleton use cases — CommitTaskMappingContainer
+
+def get_map_commit_task_use_case(request: Request) -> MapCommitTaskUseCase:
+    """
+    Retrieve the commit task mapping use case from CommitTaskMappingContainer.
+
+    Args:
+        request (Request): The incoming FastAPI request object.
+
+    Returns:
+        CheckProjectStatusUseCase: The initialized commit task mapping use case.
+
+    Raises:
+        ServiceUnavailableException: If the use case is not initialized.
+    """
+    try:
+        use_case = request.app.state.commit_task_mapping_container.commit_task_mapping_use_case
+
+        if use_case is None:
+            raise ServiceUnavailableException("Commit task mapper use case is not initialized.")
+
+        return use_case
+
+    except ServiceUnavailableException:
+        raise
+    except Exception as e:
+        logger.exception("Failed to retrieve Commit task mapper use case: %s", str(e))
+        raise ServiceUnavailableException("Commit task mapper service is unavailable.") from e

@@ -28,8 +28,8 @@ class ClickUpTask(BaseModel):
     """
     id: Optional[str] = Field(None, description="Task identifier.")
     name: str = Field(..., min_length=1, description="Task name or title.")
-    description: str = Field(..., min_length=1, description="Task description.")
-    status: str = Field(..., min_length=1, description="Current task status.")
+    description: Optional[str] = Field(None, description="Task description.")
+    status: Optional[str] = Field(None, description="Current task status.")
     assignee: Optional[str] = Field(None, description="Email of the assignee, if any.")
     priority: Optional[str] = Field(None, description="Priority level of the task, if any.")
 

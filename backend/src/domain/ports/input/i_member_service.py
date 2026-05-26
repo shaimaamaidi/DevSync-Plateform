@@ -18,7 +18,6 @@ from backend.src.domain.entities.member import MemberCreateDTO, MemberDTO, Membe
 from backend.src.domain.entities.git_repo import GitRepoDTO
 
 
-
 class IMemberService(ABC):
     """
     Define member service behavior required by the application.

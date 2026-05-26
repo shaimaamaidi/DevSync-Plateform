@@ -17,12 +17,12 @@ from backend.src.domain.entities.market.refined_intelligence import RefinedMarke
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_cleaner import IBacklogCleaner
-from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_generation_orchestrator import \
+from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_cleaner import IBacklogCleaner
+from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_generation_orchestrator import \
     IBacklogGenerationOrchestrator
-from backend.src.domain.ports.services.backlog_generation.agents.iepic_generator import IEpicGenerator
-from backend.src.domain.ports.services.backlog_generation.agents.itask_generator import ITaskGenerator
-from backend.src.domain.ports.services.backlog_generation.agents.iuser_strory_generator import IUserStoryGenerator
+from backend.src.domain.ports.services.backlog_generation.agents.i_epic_generator import IEpicGenerator
+from backend.src.domain.ports.services.backlog_generation.agents.i_task_generator import ITaskGenerator
+from backend.src.domain.ports.services.backlog_generation.agents.i_user_strory_generator import IUserStoryGenerator
 
 
 logger = logging.getLogger(__name__)

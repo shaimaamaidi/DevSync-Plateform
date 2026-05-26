@@ -9,7 +9,7 @@ stale or blocked based on commit history and external signals.
 from abc import ABC, abstractmethod
 from typing import List
 
-from backend.src.domain.entities.check_project_status.inspected_stale_task_result import InspectedStaleTaskResult
+from backend.src.domain.entities.checked_project_status.inspected_stale_task_result import InspectedStaleTaskResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 

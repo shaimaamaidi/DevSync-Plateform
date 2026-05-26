@@ -17,7 +17,7 @@ from typing import List
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.generated_tasks.generated_task_from_summary import GeneratedTaskFromSummary
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary, VerifiedTaskListFromSummary
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_verification.i_task_from_summary_verifier import ITaskFromSummaryVerifier
 from backend.src.infrastructure.external.task_verification.base_task_verifier_agent import BaseTaskVerifierAgent
 

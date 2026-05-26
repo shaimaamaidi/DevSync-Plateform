@@ -34,7 +34,7 @@ from backend.src.presentation.api.routers import (
     deployment_router,
     member_router,
     repo_router,
-    backlog_router,
+    generation_backlog_router,
 )
 
 

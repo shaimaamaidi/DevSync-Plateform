@@ -80,6 +80,12 @@ class VerifyTasksFromSummaryUseCase(IVerifyTasksFromSummaryUseCase):
 
         folders = self._clickup_reader.get_space_full_structure(space_id)
 
+        has_tasks = any(task for folder in folders for lst in folder.lists for task in lst.tasks)
+
+        if not has_tasks:
+            logger.warning("No tasks found in space. space_id=%s.", space_id)
+            return VerifyTasksFromSummaryUseCase._map_generated_to_verified_task(tasks)
+
         existing_by_location = get_tasks_by_location(folders)
 
         assignee_mails_list: List[str] = list({
@@ -128,3 +134,19 @@ class VerifyTasksFromSummaryUseCase(IVerifyTasksFromSummaryUseCase):
         )
 
         return all_results
+
+    @staticmethod
+    def _map_generated_to_verified_task(generated_tasks: List[GeneratedTaskFromSummary]) -> List[VerifiedTaskFromSummary]:
+        return [
+            VerifiedTaskFromSummary(
+                action="create",
+                task_name=task.task_name,
+                task_description=task.task_description,
+                task_assigne=task.task_assigne,
+                task_status=task.task_status,
+                task_priority=task.task_priority,
+                location=task.location,
+                task_id=None,
+            )
+            for task in generated_tasks
+        ]

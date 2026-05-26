@@ -23,7 +23,7 @@ from backend.src.domain.exceptions.common.missing_env_variable_exception import 
 from backend.src.domain.exceptions.llm.llm_api_exception import LLMApiException
 from backend.src.domain.exceptions.llm.llm_network_exception import LLMNetworkException
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 
 
 logger = logging.getLogger(__name__)

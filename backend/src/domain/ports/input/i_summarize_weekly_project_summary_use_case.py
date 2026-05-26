@@ -15,9 +15,7 @@ It acts as the application layer orchestration contract for:
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from backend.src.domain.entities.weekly_project_summary.weekly_project_summary_response import (
-    WeeklyProjectSummaryResponse,
-)
+from backend.src.domain.entities.weekly_project_summary.weekly_project_summary_response import WeeklyProjectSummaryResponse
 
 
 class ISummarizeWeeklyProjectUseCase(ABC):

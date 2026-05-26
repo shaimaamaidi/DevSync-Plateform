@@ -18,10 +18,10 @@ from backend.src.domain.entities.market.refined_intelligence import RefinedMarke
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.tool.invalid_tool_argument_exception import InvalidToolArgumentException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.agents.ibacklog_generation_orchestrator import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_generation_orchestrator import (
     IBacklogGenerationOrchestrator,
 )
-from backend.src.domain.ports.services.backlog_generation.tools.ibacklog_generator_tool import (
+from backend.src.domain.ports.services.backlog_generation.tools.i_backlog_generator_tool import (
     IBacklogGeneratorTool,
 )
 

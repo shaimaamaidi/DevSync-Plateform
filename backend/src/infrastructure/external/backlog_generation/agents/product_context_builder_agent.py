@@ -12,8 +12,8 @@ target users, business goals, and constraints.
 import logging
 
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.ports.services.backlog_generation.agents.iproduct_context_builder import IProductContextBuilder
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.backlog_generation.agents.i_product_context_builder import IProductContextBuilder
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 

@@ -13,7 +13,7 @@ It acts as the application layer orchestration contract for:
 
 from abc import ABC, abstractmethod
 
-from backend.src.domain.entities.check_task_status.task_search_response import (
+from backend.src.domain.entities.checked_task_status.task_search_response import (
     TaskSearchResponse,
 )
 

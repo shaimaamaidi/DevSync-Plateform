@@ -1,7 +1,7 @@
 """
 Dependency container for weekly project summary workflow.
 
-This module defines the WeeklyProjectSummaryContainer class, which wires together
+This module defines the WeeklyProjectSummarizationContainer class, which wires together
 AI agents, ClickUp infrastructure, GitHub services, and application use cases
 required for weekly project summarization workflows.
 
@@ -13,7 +13,7 @@ It is responsible for initializing all components required for:
 - Orchestration of weekly project health reporting
 
 Classes:
-    WeeklyProjectSummaryContainer: Application-scoped dependency injection container.
+    WeeklyProjectSummarizationContainer: Application-scoped dependency injection container.
 """
 
 import logging
@@ -26,14 +26,14 @@ from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 from backend.src.infrastructure.di.base_github_container import BaseGitHubContainer
 
-from backend.src.infrastructure.external.weekly_project_summary.weekly_commits_summarizer_agent import WeeklyCommitsSummarizerAgent
-from backend.src.infrastructure.external.weekly_project_summary.weekly_deployments_summarizer_agent import WeeklyDeploymentsSummarizerAgent
+from backend.src.infrastructure.external.weekly_project_summarization.weekly_commits_summarizer_agent import WeeklyCommitsSummarizerAgent
+from backend.src.infrastructure.external.weekly_project_summarization.weekly_deployments_summarizer_agent import WeeklyDeploymentsSummarizerAgent
 
 
 logger = logging.getLogger(__name__)
 
 
-class WeeklyProjectSummaryContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubContainer):
+class WeeklyProjectSummarizationContainer(BaseAIContainer, BaseClickUpContainer, BaseGitHubContainer):
     """
     Dependency injection container for weekly project summary workflow.
 
@@ -64,7 +64,7 @@ class WeeklyProjectSummaryContainer(BaseAIContainer, BaseClickUpContainer, BaseG
 
     def __init__(self):
         """
-        Initialize the WeeklyProjectSummaryContainer.
+        Initialize the WeeklyProjectSummarizationContainer.
 
         This constructor initializes all required infrastructure and agents:
         - AI prompt system (BaseAIContainer)

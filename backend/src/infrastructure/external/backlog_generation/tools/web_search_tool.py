@@ -13,10 +13,10 @@ import logging
 
 from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
 from backend.src.domain.exceptions.tool.tool_execution_exception import ToolExecutionException
-from backend.src.domain.ports.services.backlog_generation.agents.iweb_search import (
+from backend.src.domain.ports.services.backlog_generation.agents.i_web_search import (
     IWebSearch,
 )
-from backend.src.domain.ports.services.backlog_generation.tools.iweb_search_tool import (
+from backend.src.domain.ports.services.backlog_generation.tools.i_web_search_tool import (
     IWebSearchTool,
 )
 

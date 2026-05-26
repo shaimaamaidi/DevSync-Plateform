@@ -13,7 +13,7 @@ from typing import List, Dict
 from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog, \
     GeneratedTaskListFromBacklog
 from backend.src.domain.entities.sprint.sprint import Sprint
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_generation_from_backlog.i_task_generator_from_backlog import ITaskGeneratorFromBacklog
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 

@@ -13,8 +13,8 @@ from backend.src.domain.entities.backlog.task import TaskList
 from backend.src.domain.entities.backlog.user_story import UserStory
 from backend.src.domain.entities.market.refined_intelligence import RefinedMarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.ports.services.backlog_generation.agents.itask_generator import ITaskGenerator
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.backlog_generation.agents.i_task_generator import ITaskGenerator
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 

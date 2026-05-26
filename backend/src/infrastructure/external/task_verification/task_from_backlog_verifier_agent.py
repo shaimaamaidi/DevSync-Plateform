@@ -18,7 +18,7 @@ from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog, \
     VerifiedTaskListFromBacklog
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_verification.i_task_from_backlog_verifier import \
     ITaskFromBacklogVerifier
 from backend.src.infrastructure.external.task_verification.base_task_verifier_agent import BaseTaskVerifierAgent

@@ -15,9 +15,9 @@ from typing import Optional
 
 from backend.src.domain.entities.market.intelligence import MarketIntelligenceSummary
 from backend.src.domain.entities.product.initial_description import InitialDescription
-from backend.src.domain.ports.services.backlog_generation.agents.imarket_intelligence_summarizer import \
+from backend.src.domain.ports.services.backlog_generation.agents.i_market_intelligence_summarizer import \
     IMarketIntelligenceSummarizer
-from backend.src.domain.ports.services.iprompt_loader import IPromptLoader
+from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
 
 

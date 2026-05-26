@@ -15,7 +15,7 @@ It acts as the application layer orchestration contract for:
 from abc import abstractmethod, ABC
 from typing import Optional
 
-from backend.src.domain.entities.check_project_status.project_status_summary import ProjectStatusSummary
+from backend.src.domain.entities.checked_project_status.project_status_summary import ProjectStatusSummary
 
 
 class ICheckProjectStatusUseCase(ABC):

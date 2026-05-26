@@ -24,8 +24,8 @@ import datetime
 from typing import List, Optional
 
 from backend.src.application.use_cases.shared.clickup_task_context_fetcher import fetch_task_context
-from backend.src.domain.entities.check_project_status.overdue_todo_task import OverdueTodoTask
-from backend.src.domain.entities.check_project_status.project_status_summary import ProjectStatusSummary, TaskSummary, \
+from backend.src.domain.entities.checked_project_status.overdue_todo_task import OverdueTodoTask
+from backend.src.domain.entities.checked_project_status.project_status_summary import ProjectStatusSummary, TaskSummary, \
     ProjectStatusCode
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
@@ -131,6 +131,22 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
             for task in lst.tasks
         ]
 
+        if not tasks and not repo_url:
+            return ProjectStatusSummary(
+                status=ProjectStatusCode.NO_GITHUB_AND_CLICKUP_EMPTY,
+                message=(
+                    "The project has no ClickUp tasks and is not linked to any GitHub repository yet. "
+                    "No project activity or tracking data is currently available."
+                ),
+                total_tasks=0,
+                tasks_summary=[],
+                last_commit=None,
+                last_deployment=None,
+                overdue_todo_tasks=[],
+                stale_tasks=[],
+                unverified_done_tasks=[],
+            )
+
         status_counts: dict[str, int] = {}
         in_progress_tasks: List[ClickUpTask] = []
         to_do_tasks: List[ClickUpTask] = []
@@ -200,7 +216,13 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
                 if not task.has_commit or (task.has_commit and task.confidence == "low")
             ]
 
-        if not repo_url:
+        if not tasks:
+            status=ProjectStatusCode.CLICKUP_EMPTY
+            message = (
+                "The ClickUp workspace does not contain any tasks yet. "
+                "Project status is currently based only on the linked GitHub activity."
+            )
+        elif not repo_url:
             status = ProjectStatusCode.NO_GITHUB
             message = (
                 "This project is not linked to any GitHub repository. "
