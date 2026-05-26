@@ -72,6 +72,10 @@ class _Container:
         self.verify_task_use_case = MagicMock()
         self.clickup_structure_creation_use_case = MagicMock()
         self.clickup_structure_metadata_use_case = MagicMock()
+        self.task_status_use_case = MagicMock()
+        self.project_status_use_case = MagicMock()
+        self.weekly_project_summarizer_use_case = MagicMock()
+        self.commit_task_mapping_use_case = MagicMock()
 
 
 @pytest.fixture
@@ -153,6 +157,31 @@ def app(container: _Container) -> FastAPI:
         return container.clickup_structure_creation_use_case
 
     app.dependency_overrides[deps.get_create_clickup_structure_use_case] = override_get_clickup_structure_creation_use_case
+
+    def override_get_search_task_use_case() -> MagicMock:
+        return container.task_status_use_case
+
+    app.dependency_overrides[deps.get_search_task_use_case] = override_get_search_task_use_case
+
+    def override_get_synthesize_task_status_use_case() -> MagicMock:
+        return container.task_status_use_case
+
+    app.dependency_overrides[deps.get_synthesize_task_status_use_case] = override_get_synthesize_task_status_use_case
+
+    def override_get_check_project_status_use_case() -> MagicMock:
+        return container.project_status_use_case
+
+    app.dependency_overrides[deps.get_check_project_status_use_case] = override_get_check_project_status_use_case
+
+    def override_get_summarize_weekly_project_use_case() -> MagicMock:
+        return container.weekly_project_summarizer_use_case
+
+    app.dependency_overrides[deps.get_summarize_weekly_project_use_case] = override_get_summarize_weekly_project_use_case
+
+    def override_get_map_commit_task_use_case() -> MagicMock:
+        return container.commit_task_mapping_use_case
+
+    app.dependency_overrides[deps.get_map_commit_task_use_case] = override_get_map_commit_task_use_case
     return app
 
 

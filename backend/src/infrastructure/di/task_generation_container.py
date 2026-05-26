@@ -90,6 +90,7 @@ class TaskGenerationContainer(BaseAIContainer, BaseClickUpContainer):
             BaseAIContainer.__init__(self)
             BaseClickUpContainer.__init__(self)
             self._init_tasks_generation_from_summary()
+            self._init_tasks_generation_from_backlog()
             self._init_tasks_verification_agent()
 
             logger.info("Task generation container initialized successfully.")
