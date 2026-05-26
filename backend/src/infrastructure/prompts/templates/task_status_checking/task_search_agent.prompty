@@ -46,16 +46,12 @@ system: |
   Return JSON only. No explanation. No markdown.
 
   {
-    "tasks": [
-      {
-        "id": "task id",
-        "name": "task name",
-        "description": "task description",
-        "status": "task status",
-        "priority": "task priority or null",
-        "assignee": "assignee email or null"
-      }
-    ]
+    "ids": ["task id — copy exactly from input", "task id — copy exactly from input"]
+  }
+
+  If no tasks match the query, return:
+  {
+    "ids": []
   }
 
 user: |
@@ -64,4 +60,4 @@ user: |
   Available tasks:
   {{tasks_json}}
 
-  Return all tasks that match the user query, sorted from strongest match to weakest.
+  Return the IDs of all tasks that match the user query, sorted from strongest match to weakest.

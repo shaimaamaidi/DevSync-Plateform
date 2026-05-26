@@ -19,6 +19,7 @@ import json
 from typing import List
 
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.mapped_commit_task.mapped_commit_task_result import CommitTaskMapperResult
 from backend.src.domain.ports.services.commit_task_mapping.i_commit_task_mapper import ICommitTaskMapper
 from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -27,7 +28,7 @@ from backend.src.infrastructure.external.shared.agents.base_agent import BaseAge
 logger = logging.getLogger(__name__)
 
 
-class CommitTaskMapperAgent (BaseAgent[ClickUpTask], ICommitTaskMapper):
+class CommitTaskMapperAgent (BaseAgent[CommitTaskMapperResult], ICommitTaskMapper):
     """
     LLM-based implementation of ICommitTaskMapper.
 
@@ -82,7 +83,7 @@ class CommitTaskMapperAgent (BaseAgent[ClickUpTask], ICommitTaskMapper):
             indent=2
         )
 
-        result: ClickUpTask = self._call_llm(
+        result: CommitTaskMapperResult = self._call_llm(
             agent_name="CommitTaskMapperAgent",
             folder_name="commit_task_mapping",
             prompt_name="commit_task_mapper_agent",
@@ -90,16 +91,24 @@ class CommitTaskMapperAgent (BaseAgent[ClickUpTask], ICommitTaskMapper):
                 "commit": commit,
                 "tasks": tasks_json,
             },
-            response_format=ClickUpTask,
+            response_format=CommitTaskMapperResult,
         )
 
         if not result:
             logger.warning("No task found for the commit: %s.", commit)
             return None
 
+        all_tasks = {task.id: task for task in tasks}
+
+        matched_task = all_tasks.get(result.id)
+
+        if not matched_task:
+            logger.warning("Task id returned by LLM not found in input tasks. id=%s.", result.ids[0])
+            return None
+
         logger.info(
             "Commit to task mapping completed successfully: task_id=%s.",
-            result.task_id,
+            matched_task.id,
         )
 
-        return result
+        return matched_task

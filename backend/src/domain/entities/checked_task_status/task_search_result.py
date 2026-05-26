@@ -1,28 +1,33 @@
 """
-Domain DTO for task search results.
+Domain DTO for task search and mapping results.
 
-This module defines the TaskSearchResult DTO used to represent the result of a task search operation.
-It encapsulates a collection of ClickUp tasks matching a given search query or filtering criteria.
+This module defines the TaskSearchResult DTO used to represent
+the result of semantic search or LLM-based mapping of ClickUp tasks.
+
+It aggregates task identifiers returned by AI agents that perform:
+- Semantic task search within ClickUp spaces
+- Commit-to-task mapping based on Git commit messages
 
 Main classes:
     TaskSearchResult
 """
 
 from typing import List
-
 from pydantic import BaseModel
-
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 
 
 class TaskSearchResult(BaseModel):
     """
-    Representation of task search results.
+    Representation of task search/matching results.
 
-    This DTO contains the list of ClickUp tasks returned after performing
-    a search operation within folders, lists, or other task collections.
+    This DTO contains the list of ClickUp task identifiers returned
+    by an LLM-based search or mapping process.
+
+    It is used to represent the output of agents responsible for:
+    - Semantic task search (TaskSearchAgent)
+    - Commit-to-task mapping (CommitTaskMapperAgent)
 
     Attributes:
-        tasks: List of ClickUp tasks matching the search criteria.
+        ids: List of matched ClickUp task identifiers.
     """
-    tasks: List[ClickUpTask]
+    ids: List[str] = []

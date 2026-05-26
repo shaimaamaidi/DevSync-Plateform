@@ -32,14 +32,14 @@ system: |
     "Integrate Stripe payments", "Handle payment callbacks", "Implement checkout flow".
   - Consider task name AND description when matching.
   - Return only ONE task — the strongest, most probable match.
-  - If no task is a reasonable match → return null.
+  - If no task is a reasonable match → return null id.
 
   RANKING RULES
 
   - Prefer tasks whose name AND description directly and clearly match the commit intent.
   - Then: tasks whose name OR description partially matches the commit keywords.
   - Last: tasks loosely related, inferred from context only.
-  - When confidence is low, return null rather than a weak guess.
+  - When confidence is low, return null id rather than a weak guess.
 
   OUTPUT FORMAT
 
@@ -47,16 +47,13 @@ system: |
 
   If a match is found:
   {
-    "task_id": "task id",
-    "name": "task name",
-    "description": "task description",
-    "status": "task status",
-    "priority": "task priority or null",
-    "assignee": "assignee email or null"
+    "id": "task id — copy exactly from input"
   }
 
   If no match is found:
-  null
+  {
+    "id": null
+  }
 
 user: |
   Commit message: {{commit}}
@@ -64,4 +61,4 @@ user: |
   Available tasks:
   {{tasks}}
 
-  Return the single most probable ClickUp task that corresponds to this commit message.
+  Return the single most probable ClickUp task ID that corresponds to this commit message.

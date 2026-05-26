@@ -11,9 +11,9 @@ import logging
 import json
 from typing import List
 
+from backend.src.domain.entities.checked_task_status.task_search_result import TaskSearchResult
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.checked_task_status.task_search_result import TaskSearchResult
 from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_status_checking.i_task_search import ITaskSearch
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -86,13 +86,22 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
             response_format=TaskSearchResult,
         )
 
-        if not parsed or not parsed.tasks:
+        if not parsed or not parsed.ids:
             logger.warning("No tasks extracted from the user question.")
             return []
 
+        all_tasks = {
+            task.id: task
+            for folder in folder_with_tasks
+            for lst in folder.lists
+            for task in lst.tasks
+        }
+
+        matched_tasks = [all_tasks[task_id] for task_id in parsed.ids if task_id in all_tasks]
+
         logger.info(
-            "Task searching from user question completed successfully: %d task(s) generated.",
-            len(parsed.tasks)
+            "Task searching from user question completed successfully: %d task(s) found.",
+            len(matched_tasks)
         )
 
-        return parsed.tasks
+        return matched_tasks
