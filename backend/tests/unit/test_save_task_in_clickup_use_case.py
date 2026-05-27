@@ -44,7 +44,6 @@ def test_save_to_clickup_resolves_members_and_applies_results() -> None:
     )
 
     clickup_task_service.get_space_structure_metadata.assert_called_once_with("space-1")
-    # invalidate method removed from reader; skip asserting it
     member_repo.find_by_arabic_name.assert_called_once_with(["Alice"], False)
     clickup_task_service.get_workspace_members.assert_called_once()
     clickup_writer.apply_summary_results.assert_called_once()

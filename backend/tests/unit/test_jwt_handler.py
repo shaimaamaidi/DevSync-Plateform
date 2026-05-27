@@ -1,17 +1,89 @@
 """
-Unit tests for JWTHandler behaviour: token creation and verification.
+Unit tests for JWTHandler: initialization, token creation and verification.
 """
 
-import os
 from datetime import datetime, timedelta, timezone
 
-import pytest
 from jose import jwt
 
-from backend.src.infrastructure.security.jwt_handler import JWTHandler
-from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 from backend.src.domain.exceptions.base.app_exception import AppException
 
+
+def test_init_raises_when_secret_missing(monkeypatch) -> None:
+    # Prevent loading any real .env from repo
+    monkeypatch.setattr("backend.src.infrastructure.security.jwt_handler.load_dotenv", lambda *a, **k: True)
+    monkeypatch.delenv("JWT_SECRET_KEY", raising=False)
+
+    with pytest.raises(MissingEnvVariableException):
+        JWTHandler()
+
+
+def test_create_and_verify_access_token(monkeypatch) -> None:
+    monkeypatch.setenv("JWT_SECRET_KEY", "secret-test")
+    monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30")
+
+    handler = JWTHandler()
+
+    payload = {"sub": "123", "mail": "a@x.com"}
+    token = handler.create_access_token(payload)
+
+    decoded = handler.verify_token(token)
+
+    assert decoded["sub"] == "123"
+    assert decoded["mail"] == "a@x.com"
+
+
+def test_create_refresh_token_returns_expiry(monkeypatch) -> None:
+    monkeypatch.setenv("JWT_SECRET_KEY", "secret-test")
+    monkeypatch.setenv("REFRESH_TOKEN_EXPIRE_DAYS", "1")
+
+    handler = JWTHandler()
+
+    token, expire_at = handler.create_refresh_token({"sub": "u1", "mail": "b@x.com"})
+    assert isinstance(token, str)
+    assert isinstance(expire_at, datetime)
+    assert expire_at.tzinfo is not None
+
+
+def test_verify_token_raises_on_expired(monkeypatch) -> None:
+    monkeypatch.setenv("JWT_SECRET_KEY", "secret-test")
+    monkeypatch.setenv("ACCESS_TOKEN_EXPIRE_MINUTES", "-1")
+
+    handler = JWTHandler()
+
+    token = handler.create_access_token({"sub": "1", "mail": "c@x.com"})
+
+    with pytest.raises(InvalidTokenException) as exc:
+        handler.verify_token(token)
+
+    assert "expired" in str(exc.value).lower()
+
+
+def test_verify_token_raises_on_missing_claims(monkeypatch) -> None:
+    monkeypatch.setattr("backend.src.infrastructure.security.jwt_handler.load_dotenv", lambda *a, **k: True)
+    monkeypatch.setenv("JWT_SECRET_KEY", "secret-test")
+
+    handler = JWTHandler()
+
+    token = handler.create_access_token({"mail": "d@x.com", "sub": ""})
+
+    from backend.src.domain.exceptions.base.app_exception import AppException
+
+    with pytest.raises(AppException):
+        handler.verify_token(token)
+
+
+def test_verify_token_raises_on_invalid_signature(monkeypatch) -> None:
+    monkeypatch.setenv("JWT_SECRET_KEY", "secret-test")
+
+    handler = JWTHandler()
+
+    token = handler.create_access_token({"sub": "9", "mail": "e@x.com"})
+
+    handler.secret_key = "wrong-secret"
+
+    with pytest.raises(InvalidTokenException):
+        handler.verify_token(token)
 
 def _install_env(monkeypatch):
     monkeypatch.setenv("JWT_SECRET_KEY", "test-secret-key-123")
@@ -40,13 +112,11 @@ def test_verify_token_rejects_missing_claims(monkeypatch) -> None:
 
     secret = os.getenv("JWT_SECRET_KEY")
 
-    # encode a token without the `mail` claim but with an exp in the future
     exp = datetime.now(timezone.utc) + timedelta(minutes=10)
     token = jwt.encode({"sub": "m-2", "exp": exp}, secret, algorithm="HS256")
 
     handler = JWTHandler()
 
-    # The implementation wraps internal InvalidTokenException into AppException
     with pytest.raises(AppException):
         handler.verify_token(token)
 

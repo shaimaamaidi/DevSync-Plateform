@@ -1,5 +1,7 @@
 """
 Unit tests for ClickUpTaskWriter.
+
+These tests validate create/update/delete flows and the bulk apply logic.
 """
 
 from types import SimpleNamespace
@@ -7,14 +9,114 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
-from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_delete_exception import ClickUpTaskDeleteException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
 from backend.src.infrastructure.external.clickup import writer as clickup_writer_pkg
 from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 
+
+class DummyResponse:
+    def __init__(self, status_code=200, payload=None, text="ok"):
+        self.status_code = status_code
+        self._payload = payload or {}
+        self.text = text
+
+    def json(self):
+        return self._payload
+
+
+def test_create_task_by_list_success(monkeypatch) -> None:
+    http = SimpleNamespace()
+    http.post_raw = lambda endpoint, payload: DummyResponse(status_code=200, payload={"id": "t1"})
+
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda p: "low")
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda e, m, i: [123])
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task", lambda p: p)
+
+    writer = ClickUpTaskWriter(http)
+
+    task = SimpleNamespace(name="Do things", description="desc", priority=1, status="todo", assignee="alice@example.com")
+
+    result = writer.create_task_by_list("list-1", task, {"alice@example.com": 123}, ignore_mails=True)
+
+    assert result == {"id": "t1"}
+
+
+def test_create_task_by_list_failure_raises(monkeypatch) -> None:
+    http = SimpleNamespace()
+    http.post_raw = lambda endpoint, payload: DummyResponse(status_code=500, payload={}, text="err")
+
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda p: None)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda e, m, i: [])
+
+    writer = ClickUpTaskWriter(http)
+
+    task = SimpleNamespace(name="Fail", description="desc", priority=None, status=None, assignee=None)
+
+    with pytest.raises(ClickUpTaskCreateException):
+        writer.create_task_by_list("list-1", task, {}, ignore_mails=True)
+
+
+def test_update_task_success_and_failure(monkeypatch) -> None:
+    http = SimpleNamespace()
+    http.put_raw = lambda endpoint, payload: DummyResponse(status_code=200, payload={"id": "u1"})
+
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda p: "high")
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda e, m, i: [5])
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task", lambda p: p)
+
+    writer = ClickUpTaskWriter(http)
+
+    task_content = SimpleNamespace(name="Update me", description="d", priority=2, status="done", assignee="bob@example.com")
+
+    result = writer.update_task("task-123", task_content, old_assignees="bob@example.com", email_to_id={"bob@example.com": 5}, ignore_mails=True)
+
+    assert result == {"id": "u1"}
+
+    http_fail = SimpleNamespace()
+    http_fail.put_raw = lambda endpoint, payload: DummyResponse(status_code=500, payload={}, text="err")
+    writer_fail = ClickUpTaskWriter(http_fail)
+
+    with pytest.raises(ClickUpTaskUpdateException):
+        writer_fail.update_task("task-123", task_content, old_assignees="bob@example.com", email_to_id={"bob@example.com": 5}, ignore_mails=True)
+
+
+def test_delete_task_success_and_failure() -> None:
+    http = SimpleNamespace()
+    http.delete_raw = lambda endpoint: DummyResponse(status_code=204)
+    writer = ClickUpTaskWriter(http)
+
+    assert writer.delete_task("task-1") is True
+
+    http_fail = SimpleNamespace()
+    http_fail.delete_raw = lambda endpoint: DummyResponse(status_code=500, text="bad")
+    writer_fail = ClickUpTaskWriter(http_fail)
+
+    with pytest.raises(ClickUpTaskDeleteException):
+        writer_fail.delete_task("task-1")
+
+
+def test_apply_results_counts() -> None:
+    folder = SimpleNamespace(id="fid", name="FolderA", lists=[SimpleNamespace(id="lid", name="List1")])
+
+    create_called = []
+    def create_fn(list_id, result, name_to_email, email_to_id, ignore_names, ignore_mails):
+        create_called.append((list_id, result.task_name))
+
+    def update_fn(result, name_to_email, email_to_id, ignore_names, ignore_mails):
+        pass
+
+    res_create = SimpleNamespace(action="create", location="FolderA / List1", task_name="CreateMe", task_status=None)
+    res_update = SimpleNamespace(action="update", task_id=None, task_name="UpdateMe")
+
+    created, updated, skipped = ClickUpTaskWriter._apply_results([res_create, res_update], [folder], [], {}, False, True, create_fn, update_fn)
+
+    assert created == 1
+    assert updated == 0
+    assert skipped == 1
 
 def test_create_task_by_list_builds_payload_and_returns_parsed_task(monkeypatch) -> None:
     """

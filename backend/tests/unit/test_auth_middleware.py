@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from starlette.responses import Response
 
-# Ensure the persistence_container import used by the middleware exists during test import
 import sys
 import types
 

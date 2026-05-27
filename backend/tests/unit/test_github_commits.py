@@ -40,7 +40,7 @@ async def test_get_commits_deduplicates_and_sorts_results(monkeypatch) -> None:
 
     adapter = GitHubCommitsAdapter()
 
-    async def fake_github_get(url: str, max_pages: int = 0):
+    async def fake_github_get(url: str, *args, **kwargs):
         if "deployments" in url:
             return [{"ref": "main"}, {"ref": "release"}]
 
@@ -81,7 +81,7 @@ async def test_get_commits_deduplicates_and_sorts_results(monkeypatch) -> None:
 
         raise AssertionError(f"Unexpected GitHub URL: {url}")
 
-    adapter._github_get = fake_github_get  # type: ignore[assignment]
+    adapter._github_get = fake_github_get
 
     commits = await adapter.get_commits("https://github.com/org/repo", max_commits=10)
 
@@ -107,7 +107,7 @@ async def test_get_commits_between_dates_filters_and_caps_results(monkeypatch) -
 
     adapter = GitHubCommitsAdapter()
 
-    async def fake_github_get(url: str, max_pages: int = 0):
+    async def fake_github_get(url: str, *args, **kwargs):
         if "deployments" in url:
             return [{"ref": "main"}]
 
@@ -132,7 +132,7 @@ async def test_get_commits_between_dates_filters_and_caps_results(monkeypatch) -
             },
         ]
 
-    adapter._github_get = fake_github_get  # type: ignore[assignment]
+    adapter._github_get = fake_github_get
 
     commits = await adapter.get_commits_between_dates(
         "https://github.com/org/repo",

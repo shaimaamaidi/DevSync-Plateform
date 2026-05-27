@@ -2,15 +2,11 @@
 Unit tests for BaseGitHubClient.
 """
 
-from datetime import datetime, timezone
-from types import SimpleNamespace
-
 import pytest
 import httpx
 
 from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.exceptions.github.github_api_exception import GitHubApiException
-from backend.src.domain.exceptions.github.github_rate_limit_exception import GitHubRateLimitException
 from backend.src.domain.exceptions.github.github_repo_not_found_exception import GitHubRepoNotFoundException
 from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
 from backend.src.infrastructure.external.github.base_github_client import BaseGitHubClient

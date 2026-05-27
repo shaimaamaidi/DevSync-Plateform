@@ -6,7 +6,6 @@ from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
 
 from backend.src.domain.entities.checked_project_status.inspected_stale_task_result import (
     InspectedStaleTaskListResult,

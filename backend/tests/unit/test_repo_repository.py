@@ -337,8 +337,7 @@ def test_repo_update_clickup_space_by_space_code_already_associated_raises() -> 
     session.query.return_value.filter_by.return_value.first.side_effect = [
         repo_model,
     ]
-    # space.clickup_space.id est None → bloc by id skippé
-    # → un seul appel by space_code qui retourne clickup_model (repo_id=999 != 1)
+
     session.query.return_value.filter.return_value.first.side_effect = [
         clickup_model,
     ]

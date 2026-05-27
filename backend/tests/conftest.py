@@ -34,7 +34,6 @@ from backend.src.presentation.api.routers import (
     deployment_router,
     member_router,
     repo_router,
-    generation_backlog_router,
     generation_tasks_from_backlog_router,
     generation_tasks_from_summary_router,
     generation_backlog_router,
@@ -69,7 +68,10 @@ class _Container:
         self.backlog_use_case = MagicMock()
         self.save_task_use_case = MagicMock()
         self.generate_task_from_summary_use_case = MagicMock()
+        self.generate_task_from_backlog_use_case = MagicMock()
         self.verify_task_use_case = MagicMock()
+        self.verify_task_backlog_use_case = MagicMock()
+        self.clickup_space_task_reader_use_case = MagicMock()
         self.clickup_structure_creation_use_case = MagicMock()
         self.clickup_structure_metadata_use_case = MagicMock()
         self.task_status_use_case = MagicMock()
@@ -148,10 +150,20 @@ def app(container: _Container) -> FastAPI:
 
     app.dependency_overrides[deps.get_verify_tasks_from_summary_use_case] = override_get_verify_task_use_case
 
+    def override_get_verify_task_backlog_use_case() -> MagicMock:
+        return container.verify_task_backlog_use_case
+
+    app.dependency_overrides[deps.get_verify_tasks_from_backlog_use_case] = override_get_verify_task_backlog_use_case
+
     def override_get_clickup_structure_metadata_use_case() -> MagicMock:
         return container.clickup_structure_metadata_use_case
 
     app.dependency_overrides[clickup_structure_metadata_router.get_clickup_structure_metadata_use_case] = override_get_clickup_structure_metadata_use_case
+
+    def override_get_read_clickup_space_task_use_case() -> MagicMock:
+        return container.clickup_space_task_reader_use_case
+
+    app.dependency_overrides[deps.get_read_clickup_space_task_use_case] = override_get_read_clickup_space_task_use_case
 
     def override_get_clickup_structure_creation_use_case() -> MagicMock:
         return container.clickup_structure_creation_use_case
@@ -231,6 +243,7 @@ def member_with_repos_dto() -> MemberWithReposDTO:
     return MemberWithReposDTO(
         id=10,
         username="alice",
+        arabic_name="أليس",
         mail="alice@example.com",
         repos=[RepoSummary(id=1, name="repo-one", url="https://github.com/org/repo-one")],
     )

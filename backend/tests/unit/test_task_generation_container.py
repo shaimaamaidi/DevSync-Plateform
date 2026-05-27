@@ -8,8 +8,6 @@ import pytest
 
 from backend.src.application.use_cases.generate_tasks_from_backlog_use_case import GenerateTasksFromBacklogUseCase
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
-from backend.src.application.use_cases.verify_tasks_from_backlog_use_case import VerifyTasksFromBacklogUseCase
-from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
 from backend.src.infrastructure.di import task_generation_container
 from backend.src.infrastructure.di.task_generation_container import TaskGenerationContainer

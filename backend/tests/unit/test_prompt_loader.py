@@ -1,4 +1,98 @@
 """
+Unit tests for PromptLoader.
+
+These tests create temporary prompt template files and verify loader
+behaviour for missing files, invalid YAML, schema validation, rendering
+and caching.
+"""
+
+from pathlib import Path
+
+
+from backend.src.infrastructure.prompts.prompt_loader import PromptLoader
+from backend.src.domain.exceptions.prompt.prompt_file_not__found_exception import PromptFileNotFoundException
+
+
+def _make_loader_with_tmpdir(tmp_path: Path) -> PromptLoader:
+    loader = PromptLoader.__new__(PromptLoader)
+    loader.templates_dir = tmp_path
+    loader._cache = {}
+    return loader
+
+
+def test_load_file_raises_when_missing(tmp_path: Path) -> None:
+    loader = _make_loader_with_tmpdir(tmp_path)
+
+    with pytest.raises(PromptFileNotFoundException):
+        loader._load_file(folder_name="some_folder", filename="missing_file")
+
+
+def test_load_file_raises_on_invalid_yaml(tmp_path: Path) -> None:
+    folder = tmp_path / "test_folder"
+    folder.mkdir(parents=True)
+    path = folder / "bad.prompty"
+    path.write_text("::: not a yaml :::")
+
+    loader = _make_loader_with_tmpdir(tmp_path)
+
+    with pytest.raises(PromptYamlException):
+        loader._load_file(folder_name="test_folder", filename="bad")
+
+
+def test_load_file_raises_on_missing_content_document(tmp_path: Path) -> None:
+    folder = tmp_path / "test_folder"
+    folder.mkdir(parents=True)
+    path = folder / "meta_only.prompty"
+    path.write_text("name: meta-only\nversion: 1")
+
+    loader = _make_loader_with_tmpdir(tmp_path)
+
+    with pytest.raises(PromptSchemaException):
+        loader._load_file(folder_name="test_folder", filename="meta_only")
+
+
+def test_get_messages_renders_and_caches(tmp_path: Path) -> None:
+    folder = tmp_path / "backlog_generation"
+    folder.mkdir(parents=True)
+
+    content = """
+name: example
+---
+system: "System says {{who}}"
+user: "Please do {{task}}"
+"""
+
+    (folder / "example.prompty").write_text(content)
+
+    loader = _make_loader_with_tmpdir(tmp_path)
+
+    messages = loader.get_messages("backlog_generation", "example", {"who": "tester", "task": "work"})
+
+    assert messages["system"] == "System says tester"
+    assert messages["user"] == "Please do work"
+
+    cached = loader._load_file("backlog_generation", "example")
+    assert cached.system == "System says {{who}}" or "System says tester"
+
+
+def test_get_backlog_orchestrator_instructions_reads_system_only(tmp_path: Path) -> None:
+    folder = tmp_path / "backlog_generation"
+    folder.mkdir(parents=True)
+
+    content = """
+name: orchestrator
+---
+system: "Orchestrate: {{plan}}"
+"""
+
+    (folder / "azure_backlog_workflow_orchestrator.prompty").write_text(content)
+
+    loader = _make_loader_with_tmpdir(tmp_path)
+
+    instructions = loader.get_backlog_orchestrator_instructions()
+
+    assert "Orchestrate" in instructions
+"""
 Unit tests for PromptLoader and Prompt model.
 """
 

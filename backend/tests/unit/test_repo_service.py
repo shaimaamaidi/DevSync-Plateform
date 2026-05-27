@@ -5,7 +5,7 @@ Unit tests for RepoService.
 from unittest.mock import MagicMock
 
 from backend.src.application.services.repo_service import RepoService
-from backend.src.domain.entities.git_repo import GitRepoCreateDTO, GitRepoDTO, GitRepoIdDTO
+from backend.src.domain.entities.git_repo import GitRepoCreateDTO, GitRepoDTO
 
 
 def test_add_repo_calls_repository_save() -> None:
@@ -30,7 +30,7 @@ def test_delete_repo_calls_repository_delete() -> None:
     repo_repo.delete.return_value = True
     service = RepoService(repo_repo)
 
-    result = service.delete(GitRepoIdDTO(id=12))
+    result = service.delete(repo_id=12)
 
-    repo_repo.delete.assert_called_once_with(GitRepoIdDTO(id=12))
+    repo_repo.delete.assert_called_once_with(12)
     assert result is True

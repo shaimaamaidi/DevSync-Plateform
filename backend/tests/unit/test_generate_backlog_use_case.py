@@ -26,7 +26,7 @@ def _async_stream(chunks: list[str]):
 def _async_raise(exc: Exception):
     async def _gen():
         raise exc
-    yield  # pragma: no cover
+    yield
 
     return _gen()
 
