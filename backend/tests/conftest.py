@@ -67,11 +67,13 @@ class _Container:
         self.auth_use_case = MagicMock()
         self.backlog_use_case = MagicMock()
         self.save_task_use_case = MagicMock()
+        self.save_backlog_task_use_case = MagicMock()
         self.generate_task_from_summary_use_case = MagicMock()
         self.generate_task_from_backlog_use_case = MagicMock()
         self.verify_task_use_case = MagicMock()
         self.verify_task_backlog_use_case = MagicMock()
         self.clickup_space_task_reader_use_case = MagicMock()
+        self.clickup_task_creation_use_case = MagicMock()
         self.clickup_structure_creation_use_case = MagicMock()
         self.clickup_structure_metadata_use_case = MagicMock()
         self.task_status_use_case = MagicMock()
@@ -140,6 +142,11 @@ def app(container: _Container) -> FastAPI:
 
     app.dependency_overrides[deps.get_save_summary_tasks_use_case] = override_get_save_task_use_case
 
+    def override_get_save_backlog_task_use_case() -> MagicMock:
+        return container.save_backlog_task_use_case
+
+    app.dependency_overrides[deps.get_save_backlog_tasks_use_case] = override_get_save_backlog_task_use_case
+
     def override_get_generate_task_from_summary_use_case() -> MagicMock:
         return container.generate_task_from_summary_use_case
 
@@ -164,6 +171,11 @@ def app(container: _Container) -> FastAPI:
         return container.clickup_space_task_reader_use_case
 
     app.dependency_overrides[deps.get_read_clickup_space_task_use_case] = override_get_read_clickup_space_task_use_case
+
+    def override_get_create_clickup_task_use_case() -> MagicMock:
+        return container.clickup_task_creation_use_case
+
+    app.dependency_overrides[deps.get_create_clickup_task_use_case] = override_get_create_clickup_task_use_case
 
     def override_get_clickup_structure_creation_use_case() -> MagicMock:
         return container.clickup_structure_creation_use_case

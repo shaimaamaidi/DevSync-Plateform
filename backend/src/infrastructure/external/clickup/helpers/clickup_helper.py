@@ -160,7 +160,7 @@ def resolve_assignee_ids_strict(
     return resolved
 
 
-def priority_to_str(priority: str) -> str | None :
+def priority_to_str(priority: str | None) -> str | None :
     """
     Convert a priority label to a string ranking.
 
