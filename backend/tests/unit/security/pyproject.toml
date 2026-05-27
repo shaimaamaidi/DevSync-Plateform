@@ -1,0 +1,9 @@
+[project]
+name = "backend-tests-unit-security"
+description = "Unit tests for security helpers."
+version = "0.0.0"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = "-q"

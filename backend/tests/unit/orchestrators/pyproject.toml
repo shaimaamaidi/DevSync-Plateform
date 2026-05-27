@@ -1,0 +1,9 @@
+[project]
+name = "backend-tests-unit-orchestrators"
+description = "Unit tests for orchestrators package."
+version = "0.0.0"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = "-q"

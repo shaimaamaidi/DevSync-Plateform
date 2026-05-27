@@ -1,0 +1,9 @@
+[project]
+name = "backend-tests-unit-application"
+description = "Unit tests for application layer (use cases, services)."
+version = "0.0.0"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = "-q"

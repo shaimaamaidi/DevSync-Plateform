@@ -1,0 +1,9 @@
+[project]
+name = "backend-tests-unit-presentation"
+description = "Unit tests for presentation layer (middlewares, deps)."
+version = "0.0.0"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = "-q"

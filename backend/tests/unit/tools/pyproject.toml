@@ -1,0 +1,9 @@
+[project]
+name = "backend-tests-unit-tools"
+description = "Unit tests for the tools package (backlog generation tools)."
+version = "0.0.0"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+addopts = "-q"
