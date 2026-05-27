@@ -153,9 +153,9 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
                     agent_id=self.agent_id,
                 )
 
-                deadline = asyncio.get_event_loop().time() + self._retry.run_timeout
+                deadline = asyncio.get_running_loop().time() + self._retry.run_timeout
                 while run.status in ("queued", "in_progress"):
-                    if asyncio.get_event_loop().time() > deadline:
+                    if asyncio.get_running_loop().time() > deadline:
                         raise ServiceRequestError(
                             f"Run {run.id} timed out after {self._retry.run_timeout}(s)."
                         )
