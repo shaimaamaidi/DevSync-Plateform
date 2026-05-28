@@ -36,8 +36,7 @@ export const taskGenerationService = {
       space_id: spaceId,
     };
 
-    const response =
-      await clickUpTasksApi.generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(payload);
+    const response = await clickUpTasksApi.generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(payload);
     return response.data ?? [];
   },  
 };

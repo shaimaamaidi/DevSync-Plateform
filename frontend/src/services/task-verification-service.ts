@@ -7,6 +7,7 @@ export const taskVerificationService = {
     tasks: GeneratedTaskFromSummary[]
   ): Promise<VerifiedTaskFromSummaryResponse> {
     if (!spaceId?.trim()) throw new Error('Click up space code is required');
+    
     const payload: VerifiedTaskFromSummaryRequest = {
       space_id: spaceId,
       tasks,
@@ -21,6 +22,7 @@ export const taskVerificationService = {
     tasks: GeneratedTaskFromBacklog[]
   ): Promise<VerifiedTaskFromBacklogResponse> {
     if (!spaceId?.trim()) throw new Error('Click up space code is required');
+    
     const payload: VerifiedTaskFromBacklogRequest = {
       space_id: spaceId,
       tasks,

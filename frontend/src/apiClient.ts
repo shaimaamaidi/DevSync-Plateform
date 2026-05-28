@@ -7,7 +7,11 @@ import {
   RepoApi,
   ClickUpTasksApi,
   ClickUpStructureCreationApi,
-  ClickUpStructureMetadataApi
+  ClickUpStructureMetadataApi,
+  TaskStatusCheckApi,
+  ProjectStatusCheckApi,
+  WeeklyProjectSummaryApi,
+  CommitTraceabilityApi,
 } from './api';
 import { setupAxiosInterceptors } from './api/axios-interceptor';
 
@@ -27,3 +31,7 @@ export const repoApi = new RepoApi(apiConfig);
 export const clickUpTasksApi = new ClickUpTasksApi(apiConfig);
 export const clickUpStructureCreationApi = new ClickUpStructureCreationApi(apiConfig);
 export const clickUpStructureMetadataApi = new ClickUpStructureMetadataApi(apiConfig);
+export const taskStatusCheckApi = new TaskStatusCheckApi(apiConfig);
+export const projectStatusCheckApi = new ProjectStatusCheckApi(apiConfig);
+export const weeklyProjectSummaryApi = new WeeklyProjectSummaryApi(apiConfig);
+export const commitTraceabilityApi = new CommitTraceabilityApi(apiConfig);
