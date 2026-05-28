@@ -1,21 +1,21 @@
 import { clickUpTasksApi } from '@/apiClient';
-import type { SaveTasksRequest, VerifiedTask } from '@/api/api';
+import type { SaveSummaryTasksRequest, VerifiedTaskFromSummary } from '@/api/api';
 
 export const saveInClickupService = {
   async saveTasks(
     spaceId: string,
-    tasks: VerifiedTask[],
+    tasks: VerifiedTaskFromSummary[],
     options?: { ignoreNames?: boolean; ignoreMails?: boolean }
   ): Promise<boolean> {
     if (!spaceId?.trim()) throw new Error('Click up space code is required');
-    const payload: SaveTasksRequest = {
+    const payload: SaveSummaryTasksRequest = {
       space_id: spaceId,
       tasks,
       ignore_names: options?.ignoreNames ?? false,
       ignore_mails: options?.ignoreMails ?? false,
     };
 
-    await clickUpTasksApi.saveTasksToClickupClickupTasksSavePost(payload);
+    await clickUpTasksApi.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(payload);
 
     return true;
   },

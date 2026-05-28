@@ -13,7 +13,9 @@ import logging
 
 from backend.src.application.use_cases.auth_use_case import AuthUseCase
 from backend.src.application.services.member_service import MemberService
+from backend.src.application.use_cases.create_github_repository_use_case import CreateGitHubRepositoryUseCase
 from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.infrastructure.external.github.github_repo_validator import GitHubRepoValidator
 from backend.src.infrastructure.persistence.repositories.clickup_repository import SqlAlchemyClickUpRepository
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
 from backend.src.infrastructure.persistence.repositories.repo_repository import SqlAlchemyRepoRepository
@@ -47,7 +49,10 @@ class PersistenceContainer:
         # Technical services
         jwt_handler (JWTHandler)
 
-        # External services
+        # External Adapters
+        github_validator(GitHubRepoValidator)
+
+        # Application Use Cases
         associator_use_case (AssociatorUseCase)
         auth_use_case (AuthUseCase)
 
@@ -74,7 +79,8 @@ class PersistenceContainer:
         try:
             self._init_repositories()
             self._init_technical_services()
-            self._init_external_services()
+            self._init_external_adapters()
+            self._init_use_cases()
             self._init_application_services()
 
             logger.info("Request container initialized successfully.")
@@ -106,10 +112,21 @@ class PersistenceContainer:
         """
         self.jwt_handler = JWTHandler()
 
-    # External services
-    def _init_external_services(self):
+    # External Adapters
+    def _init_external_adapters(self):
         """
-        Initialize external service adapters.
+          Initialize GitHub repository validation service.
+
+          This method instantiates the GitHub repository validator adapter,
+          which is responsible for verifying the existence and accessibility
+          of GitHub repositories through the GitHub API.
+        """
+        self.github_validator = GitHubRepoValidator()
+
+    # Use Cases
+    def _init_use_cases(self):
+        """
+        Initialize application use cases.
 
         This includes integrations with third-party systems such as GitHub.
         """
@@ -120,11 +137,17 @@ class PersistenceContainer:
             clickup_service=self.clickup_repo,
             member_service=self.member_repo,
         )
+
+        self.create_github_repo_use_case = CreateGitHubRepositoryUseCase(
+            self.repo_repo,
+            self.github_validator,
+        )
         self.auth_use_case = AuthUseCase(
             member_repository=self.member_repo,
             jwt_handler=self.jwt_handler,
             refresh_token_repository=self.refresh_token_repo,
         )
+
 
     # Application services
     def _init_application_services(self):

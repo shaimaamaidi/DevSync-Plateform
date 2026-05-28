@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { AlertCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { ClickUpListMetadata, VerifiedTask } from '@/api/api';
-import { VerifiedTaskActionEnum } from '@/api/api';
+import type { ClickUpListMetadata, VerifiedTaskFromSummary } from '@/api/api';
+import { VerifiedTaskFromSummaryActionEnum } from '@/api/api';
 import { EditableField } from './editable-field';
 import { AssigneeField } from './assignee-field';
 import { LocationField } from './location-field';
@@ -13,8 +13,8 @@ import { CreateListForm } from './create-list-form';
 import { AddStatusForm } from './add-status-from';
 import { createPortal } from 'react-dom';
 
-const EMPTY_TASK: VerifiedTask = {
-  action: VerifiedTaskActionEnum.Create,
+const EMPTY_TASK: VerifiedTaskFromSummary = {
+  action: VerifiedTaskFromSummaryActionEnum.Create,
   task_name: '',
   task_description: '',
   task_assigne: '',
@@ -25,7 +25,7 @@ const EMPTY_TASK: VerifiedTask = {
 
 interface Props {
   isOpen: boolean;
-  onAdd: (t: VerifiedTask) => void;
+  onAdd: (t: VerifiedTaskFromSummary) => void;
   onCancel: () => void;
   spaceId: string;
 }
@@ -33,7 +33,7 @@ interface Props {
 export function AddVerifiedTaskForm({ isOpen, onAdd, onCancel, spaceId }: Props) {
   const { structure, loading: structureLoading } = useClickUpStructure(spaceId);
 
-  const [draft, setDraft] = useState<VerifiedTask>(EMPTY_TASK);
+  const [draft, setDraft] = useState<VerifiedTaskFromSummary>(EMPTY_TASK);
   const [currentStatuses, setCurrentStatuses] = useState<string[]>([]);
   const [currentPriorities, setCurrentPriorities] = useState<string[]>([]);
   const locationNotSelected = !draft.location;
@@ -43,7 +43,7 @@ export function AddVerifiedTaskForm({ isOpen, onAdd, onCancel, spaceId }: Props)
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (key: keyof VerifiedTask) => (value: string) =>
+  const set = (key: keyof VerifiedTaskFromSummary) => (value: string) =>
     setDraft(prev => ({ ...prev, [key]: value }));
 
   const validate = (): boolean => {

@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Check } from 'lucide-react';
 import type { 
-  GeneratedTask, 
-  VerifiedTask, 
+  GeneratedTaskFromSummary, 
+  VerifiedTaskFromSummary, 
   FolderWithListsMetadata 
 } from '@/api/api';
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
@@ -13,10 +13,10 @@ import { VerifiedTaskCard } from './ui/verified-task-card';
  
 
 interface Props {
-  tasks: VerifiedTask[];
+  tasks: VerifiedTaskFromSummary[];
   isLoading: boolean;
-  onChange: (tasks: VerifiedTask[]) => void;
-  onDrop: (task: GeneratedTask) => void;
+  onChange: (tasks: VerifiedTaskFromSummary[]) => void;
+  onDrop: (task: GeneratedTaskFromSummary) => void;
   onSave: () => void;
   isSaving: boolean;
   savedOk: boolean;
@@ -58,10 +58,10 @@ export function VerifiedTaskList({
   const handleDelete = (idx: number) =>
     onChange(tasks.filter((_, i) => i !== idx));
 
-  const handleUpdate = (idx: number, updated: VerifiedTask) =>
+  const handleUpdate = (idx: number, updated: VerifiedTaskFromSummary) =>
     onChange(tasks.map((t, i) => (i === idx ? updated : t)));
 
-  const handleAdd = (task: VerifiedTask) => {
+  const handleAdd = (task: VerifiedTaskFromSummary) => {
     if (!task.task_priority)
       task.task_priority = 'normal';
     if(!task.task_status)
@@ -107,7 +107,7 @@ export function VerifiedTaskList({
         )}
       </div>
 
-      {showAddForm && createPortal (
+      {showAddForm && !isStructureEmpty && createPortal (
         <AddVerifiedTaskForm
           isOpen={showAddForm}
           onAdd={handleAdd}
@@ -117,7 +117,7 @@ export function VerifiedTaskList({
         document.body
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="max-h-[480px] overflow-y-auto overflow-x-auto flex flex-col gap-2 pr-1 max-w-full">
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <TaskSkeletonCard key={i} />)
           : tasks.map((task, i) => (
@@ -136,13 +136,14 @@ export function VerifiedTaskList({
 
       {!isLoading && tasks.length === 0 && !showAddForm && !isStructureEmpty && (
         <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
-          No tasks yet — drag or add manually
+          <p>All tasks are already up to date in ClickUp.</p>
+          <p>Nothing to create or update.</p>
         </div>
       )}
 
       {!isLoading && tasks.length === 0 && !showAddForm && isStructureEmpty && (
         <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
-          No tasks yet — add manually
+          <p>No tasks could be extracted from this summary.</p>
         </div>
       )}
 

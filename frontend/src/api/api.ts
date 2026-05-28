@@ -224,17 +224,35 @@ export interface ClickUpTask {
      * Task name or title.
      */
     'name': string;
-    /**
-     * Task description.
-     */
-    'description': string;
-    /**
-     * Current task status.
-     */
-    'status': string;
+    'description'?: string | null;
+    'status'?: string | null;
     'assignee'?: string | null;
     'priority'?: string | null;
 }
+/**
+ * Representation of a GitHub commit.  This DTO encapsulates commit metadata retrieved from GitHub, enabling downstream services to analyze changes, track progress, and correlate commits with task or deployment workflows.  Attributes:     sha: Short commit SHA (7 characters).     message: Full commit message describing the change.     author: GitHub username of the commit author.     date: Timestamp of when the commit was created.     url: Direct URL to the commit on GitHub.     branch: Branch name from which the commit was retrieved, if available.
+ */
+export interface CommitDTO {
+    'sha': string;
+    'message': string;
+    'author': string;
+    'date': string;
+    'url': string;
+    'branch'?: string | null;
+}
+/**
+ * Enumeration of possible commit-to-task mapping outcomes.  Attributes:     FOUND: A matching ClickUp task was successfully identified for the commit.     NOT_FOUND: No ClickUp task matches the given commit.     CLICK_UP_EMPTY: The ClickUp space contains no tasks to compare against.
+ */
+
+export const CommitTaskMappingStatus = {
+    Found: 'FOUND',
+    NotFound: 'NOT_FOUND',
+    ClickUpEmpty: 'CLICK_UP_EMPTY',
+} as const;
+
+export type CommitTaskMappingStatus = typeof CommitTaskMappingStatus[keyof typeof CommitTaskMappingStatus];
+
+
 /**
  * Request model for creating a ClickUp folder.  This DTO represents the payload required to create a new folder in a specific ClickUp space. It contains the target space identifier and the folder name.  Attributes:     space_id: ClickUp space identifier where the folder will be created.     name: Name of the folder to create.
  */
@@ -330,9 +348,45 @@ export interface FolderWithListsMetadata {
     'lists'?: Array<ClickUpListMetadata>;
 }
 /**
- * Representation of a task generation request from meeting notes.  This DTO is used to transform a raw meeting summary into structured ClickUp tasks. The summary can be written in Arabic or French and is processed by an AI-based extraction pipeline.  Attributes:     meeting_summary: Raw meeting notes used to generate tasks (Arabic or French).     space_id: Identifier of the ClickUp workspace where tasks will be created.
+ * Representation of a generated backlog task.  This DTO extends the base generated task model by adding an estimation value representing the expected effort or duration.  Attributes:     estimation: Estimated effort or duration for the task.
  */
-export interface GenerateTasksFromSummaryRequest {
+export interface GeneratedTaskFromBacklog {
+    'task_name': string;
+    'task_description': string;
+    'task_assigne': string;
+    'task_status': string;
+    'task_priority': string;
+    'location': string;
+    'estimation': number;
+}
+/**
+ * Representation of a task generation request from a sprint backlog.  This DTO is used to transform sprint backlog data into structured ClickUp tasks through an AI-based generation pipeline.  Attributes:     sprint_backlog: Sprint backlog data used to generate tasks.     space_id: Identifier of the ClickUp workspace where tasks will be created.
+ */
+export interface GeneratedTaskFromBacklogRequest {
+    /**
+     * Sprint backlog data used to generate tasks.
+     */
+    'sprint_backlog': Sprint;
+    /**
+     * Identifier of the ClickUp workspace.
+     */
+    'space_id': string;
+}
+/**
+ * Representation of a generated task from a meeting summary.  This DTO extends the base generated task model and represents a task inferred from meeting summary content by the AI system.
+ */
+export interface GeneratedTaskFromSummary {
+    'task_name': string;
+    'task_description': string;
+    'task_assigne': string;
+    'task_status': string;
+    'task_priority': string;
+    'location': string;
+}
+/**
+ * Representation of a task generation request from meeting notes.  This DTO is used to transform a raw meeting summary into structured ClickUp tasks. The summary can be written in Arabic or French and is processed by an AI-based extraction pipeline.  Attributes:     meeting_summary: Raw meeting notes used to generate tasks (Arabic).     space_id: Identifier of the ClickUp workspace where tasks will be created.
+ */
+export interface GeneratedTaskFromSummaryRequest {
     /**
      * Raw meeting summary text used for task generation (Arabic).
      */
@@ -341,17 +395,6 @@ export interface GenerateTasksFromSummaryRequest {
      * Identifier of the ClickUp workspace.
      */
     'space_id': string;
-}
-/**
- * Task generated from a meeting summary.  This object represents a task inferred by an LLM, including its metadata such as description, assignment, status, and target location.  Attributes:     task_name: Name or title of the task.     task_description: Detailed description of the task.     task_assigne: Assignee name(s) as a string.     task_status: Target status for the task.     task_priority: Target priority level for the task.     location: Target location where the task should be created.
- */
-export interface GeneratedTask {
-    'task_name': string;
-    'task_description': string;
-    'task_assigne': string;
-    'task_status': string;
-    'task_priority': string;
-    'location': string;
 }
 /**
  * Payload for repository creation.  Attributes:     name: Repository name.     url: Repository URL.
@@ -397,8 +440,59 @@ export interface GitRepoUpdateDTO {
 export interface HTTPValidationError {
     'detail'?: Array<ValidationError>;
 }
+/**
+ * Representation of a single inspected stale task.  This DTO captures the analysis result for a task that may be considered stale or blocked based on heuristic or LLM-based inspection.  Attributes:     task_id: Identifier of the ClickUp task.     task_name: Name of the ClickUp task.     task_description: Description of the ClickUp task.     is_blocked: Indicates whether the task is considered blocked.     reason: Explanation of why the task is considered stale or not.     confidence: Confidence level of the analysis         (\"high\", \"medium\", or \"low\").
+ */
+export interface InspectedStaleTaskResult {
+    'task_id': string;
+    'task_name': string;
+    'task_description': string;
+    'is_blocked': boolean;
+    'reason': string;
+    'confidence': string;
+}
+/**
+ * Representation of an inspected completed task without verified commit activity.  Attributes:     task_id: Unique identifier of the task.     task_name: Human-readable name of the task.     task_description: Detailed description of the task.     has_commit: Indicates whether related commit activity was found.     reason: Explanation describing why the task is considered unverified.     confidence: Confidence level of the inspection result (e.g., \"high\", \"medium\", \"low\").
+ */
+export interface InspectedUnverifiedDoneTaskResult {
+    'task_id': string;
+    'task_name': string;
+    'task_description': string;
+    'has_commit': boolean;
+    'reason': string;
+    'confidence': string;
+}
 export interface LocationInner {
 }
+/**
+ * Representation of a commit-to-task mapping request.  This DTO contains the input data required to associate a GitHub commit with a ClickUp task using semantic analysis.  Attributes:     commit: GitHub commit message or identifier to analyze.     space_id: ClickUp space identifier where tasks are located.
+ */
+export interface MappedCommitTaskRequest {
+    /**
+     * GitHub commit message or identifier to analyze.
+     */
+    'commit': string;
+    /**
+     * ClickUp space identifier where tasks are located.
+     */
+    'space_id': string;
+}
+/**
+ * Representation of a commit-to-task mapping response.  This DTO contains the result of attempting to associate a GitHub commit with a ClickUp task using semantic analysis.  The response message may: - Confirm that a matching task was found - Inform the user that no matching task exists - Indicate that the ClickUp space contains no tasks  Attributes:     status: Outcome of the mapping operation.     message: User-facing message describing the mapping result.     task: The ClickUp task matched with the commit, if any.
+ */
+export interface MappedCommitTaskResponse {
+    /**
+     * Outcome of the commit-to-task mapping operation.
+     */
+    'status': CommitTaskMappingStatus;
+    /**
+     * User-facing message describing the mapping result, such as success confirmation, no match notification, or empty workspace warning.
+     */
+    'message': string;
+    'task'?: ClickUpTask | null;
+}
+
+
 /**
  * Payload for a member authentication request.  Attributes:     mail: Member email address.     password: Member password.
  */
@@ -486,6 +580,59 @@ export interface MemberWithReposDTO {
     'mail': string;
     'repos'?: Array<RepoSummary>;
 }
+/**
+ * Representation of an overdue Todo task.  Attributes:     task_id: Unique identifier of the task.     task_name: Human-readable name of the task.     task_description: Detailed description of the task.     days_waiting: Number of days the task has remained in Todo status.     reason: Explanation describing why the task is considered overdue.
+ */
+export interface OverdueTodoTask {
+    'task_id': string;
+    'task_name': string;
+    'task_description': string;
+    'days_waiting': number;
+    'reason': string;
+}
+/**
+ * Base representation of a request targeting a ClickUp space.  Attributes:     space_id: Identifier of the ClickUp space where tasks are located and analyzed.     repo_url: Optional URL of the source code repository associated with the project.         If not provided, the analysis is based only on ClickUp data.
+ */
+export interface ProjectSpaceRequest {
+    /**
+     * Identifier of the ClickUp space where tasks should be searched.
+     */
+    'space_id': string;
+    'repo_url'?: string | null;
+}
+/**
+ * Enumeration of possible high-level project status states.  Attributes:     FULL: Project has full activity (commits, deployments, tasks).     NO_GITHUB: No GitHub repository is linked to the project.     NO_COMMITS: GitHub repository exists but has no commits.     NO_DEPLOYMENTS: GitHub repository exists but has no deployments.     NO_GITHUB_ACTIVITY: Repository exists but shows no activity.     NO_GITHUB_AND_CLICKUP_EMPTY: No GitHub repository is linked and the click up is empty.
+ */
+
+export const ProjectStatusCode = {
+    Full: 'full',
+    NoGithub: 'no_github',
+    NoCommits: 'no_commits',
+    NoDeployments: 'no_deployments',
+    NoGithubActivity: 'no_github_activity',
+    ClickupEmpty: 'CLICKUP_EMPTY',
+    NoGithibAndClickupEmpty: 'NO_GITHIB_AND_CLICKUP_EMPTY',
+} as const;
+
+export type ProjectStatusCode = typeof ProjectStatusCode[keyof typeof ProjectStatusCode];
+
+
+/**
+ * Representation of a global project status summary.  This DTO aggregates multiple sources of information including: - ClickUp task progress - GitHub commit activity - Deployment history - Stale or blocked in-progress tasks analysis - Unverified recently completed tasks analysis - Overdue todo tasks analysis  It provides a high-level view of project health.  Attributes:     status: Global project status code.     message: Human-readable explanation of the current status.     total_tasks: Total number of tasks in the project.     tasks_summary: Breakdown of task statuses and completion rates.     last_commit: Timestamp of the most recent GitHub commit, or None if unavailable.     last_deployment: Timestamp of the most recent GitHub deployment, or None if unavailable.     overdue_todo_tasks: List of Todo tasks waiting for more than 14 days with no progress.     stale_tasks: List of in-progress tasks with no related commit activity in the last 7 days.     unverified_done_tasks: List of recently completed tasks with no linked commit evidence.
+ */
+export interface ProjectStatusSummary {
+    'status': ProjectStatusCode;
+    'message': string;
+    'total_tasks': number;
+    'tasks_summary'?: Array<TaskSummary>;
+    'last_commit'?: string | null;
+    'last_deployment'?: string | null;
+    'overdue_todo_tasks'?: Array<OverdueTodoTask>;
+    'stale_tasks'?: Array<InspectedStaleTaskResult>;
+    'unverified_done_tasks'?: Array<InspectedUnverifiedDoneTaskResult>;
+}
+
+
 /**
  * Request payload for backlog refinement streaming.  This DTO is used when a user provides feedback on a generated backlog. It allows the system to continue the backlog refinement workflow in a streaming manner using the existing conversation thread.  Attributes:     thread_id: Identifier of the conversation thread.     user_result: User feedback or modifications on the backlog.     tool_result: Previous system/tool generated backlog output.
  */
@@ -577,17 +724,17 @@ export interface RepoSummary {
     'url': string;
 }
 /**
- * Representation of a request to save verified tasks into ClickUp.  This DTO is used to apply verified tasks into a ClickUp workspace. It includes options to control assignee resolution behavior during persistence.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be saved.     tasks: List of verified tasks to be persisted in ClickUp.     ignore_names: If True, ignores assignee names that do not exist in the database.     ignore_mails: If True, ignores unresolved or invalid email-based assignments.
+ * Representation of a request to save verified backlog tasks into ClickUp.  This DTO is used to apply verified backlog tasks into a ClickUp workspace. It includes options to control assignee resolution behavior during persistence.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be saved.     tasks: List of verified tasks to be persisted in ClickUp.     ignore_names: If True, ignores assignee names that do not exist in the database.     ignore_mails: If True, ignores unresolved or invalid email-based assignments.
  */
-export interface SaveTasksRequest {
+export interface SaveBacklogTasksRequest {
     /**
      * Identifier of the ClickUp workspace.
      */
     'space_id': string;
     /**
-     * List of verified tasks to be saved into ClickUp.
+     * List of verified tasks that are generated from a backlog meeting to be saved into ClickUp.
      */
-    'tasks': Array<VerifiedTask>;
+    'tasks': Array<VerifiedTaskFromBacklog>;
     /**
      * If True, ignores assignee names that do not exist in the database.
      */
@@ -596,6 +743,36 @@ export interface SaveTasksRequest {
      * If True, ignores unresolved email assignments.
      */
     'ignore_mails'?: boolean;
+}
+/**
+ * Representation of a request to save verified summary tasks into ClickUp.  This DTO is used to apply verified summary tasks into a ClickUp workspace. It includes options to control assignee resolution behavior during persistence.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be saved.     tasks: List of verified tasks to be persisted in ClickUp.     ignore_names: If True, ignores assignee names that do not exist in the database.     ignore_mails: If True, ignores unresolved or invalid email-based assignments.
+ */
+export interface SaveSummaryTasksRequest {
+    /**
+     * Identifier of the ClickUp workspace.
+     */
+    'space_id': string;
+    /**
+     * List of verified tasks that are generated from a summary meeting to be saved into ClickUp.
+     */
+    'tasks': Array<VerifiedTaskFromSummary>;
+    /**
+     * If True, ignores assignee names that do not exist in the database.
+     */
+    'ignore_names'?: boolean;
+    /**
+     * If True, ignores unresolved email assignments.
+     */
+    'ignore_mails'?: boolean;
+}
+/**
+ * Representation of a sprint in the planning process.  A sprint groups multiple user stories and defines a goal along with the total estimated effort. It is used for sprint planning, capacity estimation, and workload organization.  Attributes:     name: Name of the sprint.     goal: Sprint objective or target outcome.     total_estimated_hours: Total estimated effort in hours for the sprint.     user_stories: List of user stories included in the sprint with task estimations.
+ */
+export interface Sprint {
+    'name': string;
+    'goal': string;
+    'total_estimated_hours': number;
+    'user_stories'?: Array<UserStorySprint>;
 }
 /**
  * Request payload to start backlog generation.  This DTO represents the initial input provided by the user to start the backlog creation process. The description is used as the source input for generating epics, user stories, and tasks.  Attributes:     description: Raw functional or product description used to generate the backlog.
@@ -619,6 +796,92 @@ export const StatusType = {
 export type StatusType = typeof StatusType[keyof typeof StatusType];
 
 
+/**
+ * Representation of a task status synthesis request.  This DTO contains the necessary information to analyze and synthesize the current status of a ClickUp task, potentially using external repository context (e.g., GitHub).  Attributes:     repo_url: Optional URL of the source code repository related         to the task. Used to enrich status analysis with commits         and deployments context.     task: ClickUp task to be analyzed and synthesized.
+ */
+export interface SynthesizedTaskStatusRequest {
+    'repo_url'?: string | null;
+    /**
+     * ClickUp task to be analyzed and synthesized.
+     */
+    'task': ClickUpTask;
+}
+/**
+ * Representation of a synthesized task status result.  This DTO contains the synthesized status information of a task, including whether the task is considered completed, the confidence level of the analysis, a summary describing the task state, and supporting evidence used during the evaluation.  Attributes:     is_completed: Indicates whether the task is considered completed.     confidence: Confidence level of the synthesis result         (\"high\", \"medium\", or \"low\").     summary: Synthesized summary describing the task status.     evidence: List of evidence entries supporting the synthesis result.
+ */
+export interface SynthesizedTaskStatusResult {
+    'is_completed': boolean;
+    'confidence': string;
+    'summary': string;
+    'evidence': Array<string>;
+}
+/**
+ * Representation of a task in the backlog.  A task is a fine-grained unit of work derived from a user story, intended to be actionable and implementable by a developer.  Attributes:     title: Title of the task.     description: Detailed description of the task.
+ */
+export interface Task {
+    'title': string;
+    'description': string;
+}
+/**
+ * Representation of a task with its estimated effort.  This DTO links a task to an estimation value in hours, enabling sprint planning, capacity management, and workload balancing.  Attributes:     task: Task entity to be estimated.     estimated_hours: Estimated effort required to complete the task (in hours).
+ */
+export interface TaskEstimate {
+    'task': Task;
+    'estimated_hours': number;
+}
+/**
+ * Representation of a task search request.  This DTO contains the information required to perform a task search operation within a ClickUp space using a natural language query.  Attributes:     space_id: Identifier of the ClickUp space where tasks         should be searched.     question: User natural language query describing         the search intent.
+ */
+export interface TaskSearchRequest {
+    /**
+     * Identifier of the ClickUp space where tasks should be searched.
+     */
+    'space_id': string;
+    /**
+     * User natural language query describing the search intent.
+     */
+    'question': string;
+}
+/**
+ * Representation of a task search response.  This DTO contains the response message intended to be displayed to the user after a task search operation, along with the list of matching ClickUp tasks.  The response message may: - Ask the user to confirm a task when a single match is found - Ask the user to choose a task when multiple matches are found - Inform the user that no matching tasks were found - Inform the user that the selected space does not contain tasks  Attributes:     status: Outcome of the search operation.     message: User-facing message describing the search result.     task: List of ClickUp tasks matching the search criteria.
+ */
+export interface TaskSearchResponse {
+    /**
+     * Outcome of the task search operation.
+     */
+    'status': TaskSearchStatus;
+    /**
+     * User-facing message describing the search result, such as confirmation requests, task selection prompts, or no-result notifications.
+     */
+    'message': string;
+    /**
+     * List of ClickUp tasks matching the search criteria.
+     */
+    'task'?: Array<ClickUpTask>;
+}
+
+
+/**
+ * Enumeration of possible task search outcomes.  Attributes:     NO_TASKS_IN_SPACE: The selected ClickUp space contains no tasks.     NO_MATCH: No tasks match the user\'s search query.     SINGLE_MATCH: Exactly one task matches the search query.     MULTIPLE_MATCHES: Multiple tasks match the search query.
+ */
+
+export const TaskSearchStatus = {
+    NoTaskInSpace: 'No_TASK_IN_SPACE',
+    NoMatch: 'NO_MATCH',
+    SingleMatch: 'SINGLE_MATCH',
+    MultiplesMatches: 'MULTIPLES_MATCHES',
+} as const;
+
+export type TaskSearchStatus = typeof TaskSearchStatus[keyof typeof TaskSearchStatus];
+
+
+/**
+ * Summary of task completion state.  Attributes:     status: Task status label (e.g., done, in_progress).     percentage: Completion percentage of tasks for this status.
+ */
+export interface TaskSummary {
+    'status': string;
+    'percentage': number;
+}
 /**
  * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     space_id: Identifier of the task\'s space.     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.
  */
@@ -651,16 +914,78 @@ export interface UpdateTaskRequest {
      */
     'ignore_mails'?: boolean;
 }
+/**
+ * Representation of a user story in the backlog.  A user story describes a functional requirement from the end-user perspective and serves as an intermediate level between epics and tasks.  Attributes:     title: Title of the user story.     description: Detailed description of the user story.
+ */
+export interface UserStory {
+    'title': string;
+    'description': string;
+}
+/**
+ * Representation of a user story within a sprint context.  This DTO links a user story with its estimated tasks, allowing sprint-level planning and workload distribution.  Attributes:     user_story: User story included in the sprint.     tasks: List of task estimations associated with the user story.
+ */
+export interface UserStorySprint {
+    'user_story': UserStory;
+    'tasks'?: Array<TaskEstimate>;
+}
 export interface ValidationError {
     'loc': Array<LocationInner>;
     'msg': string;
     'type': string;
 }
 /**
- * Result of a task verification decision.  This object represents the outcome of verifying a task against existing data, indicating whether the task should be created or updated along with its metadata.  Attributes:     action: Action type, either \"create\" or \"update\".     task_name: Name or title of the task.     task_description: Detailed description of the task.     task_assigne: Assignee name(s) as a string.     task_status: Target status for the task.     task_priority: Target priority level for the task.     location: Target location.     task_id: Identifier of the existing task, if action is \"update\".
+ * Representation of a verified backlog task.  This DTO extends the base verified task model by adding an estimation field representing the expected effort or duration for the task.
  */
-export interface VerifiedTask {
-    'action': VerifiedTaskActionEnum;
+export interface VerifiedTaskFromBacklog {
+    'action': VerifiedTaskFromBacklogActionEnum;
+    'task_name': string;
+    'task_description': string;
+    'task_assigne': string;
+    'task_status': string;
+    'task_priority': string;
+    'location': string;
+    'task_id'?: string | null;
+    'estimation': number;
+}
+
+export const VerifiedTaskFromBacklogActionEnum = {
+    Create: 'create',
+    Update: 'update',
+} as const;
+
+export type VerifiedTaskFromBacklogActionEnum = typeof VerifiedTaskFromBacklogActionEnum[keyof typeof VerifiedTaskFromBacklogActionEnum];
+
+/**
+ * Representation of a task verification request from a backlog workflow.  This DTO is used to submit a batch of generated tasks to the verification pipeline. Each task is checked against existing ClickUp tasks to determine whether it should be created or updated.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be verified.     tasks: List of generated tasks to validate against existing ClickUp tasks.
+ */
+export interface VerifiedTaskFromBacklogRequest {
+    /**
+     * Identifier of the ClickUp workspace.
+     */
+    'space_id': string;
+    /**
+     * List of generated tasks from backlog to verify against ClickUp.
+     */
+    'tasks': Array<GeneratedTaskFromBacklog>;
+}
+/**
+ * Representation of the result of task verification against ClickUp.  This DTO encapsulates the outcome of the verification process where generated tasks are compared against existing ClickUp tasks to determine the required action (create or update).  Attributes:     total: Total number of tasks processed during verification.     tasks: List of verified tasks with their corresponding actions (create or update).
+ */
+export interface VerifiedTaskFromBacklogResponse {
+    /**
+     * Total number of tasks processed during verification.
+     */
+    'total': number;
+    /**
+     * List of verified tasks with their corresponding actions (create or update).
+     */
+    'tasks': Array<VerifiedTaskFromBacklog>;
+}
+/**
+ * Representation of a verified task from a meeting summary.  This DTO extends the base verified task model and represents the result of verifying a task generated from a meeting summary (create or update decision).
+ */
+export interface VerifiedTaskFromSummary {
+    'action': VerifiedTaskFromSummaryActionEnum;
     'task_name': string;
     'task_description': string;
     'task_assigne': string;
@@ -670,30 +995,30 @@ export interface VerifiedTask {
     'task_id'?: string | null;
 }
 
-export const VerifiedTaskActionEnum = {
+export const VerifiedTaskFromSummaryActionEnum = {
     Create: 'create',
     Update: 'update',
 } as const;
 
-export type VerifiedTaskActionEnum = typeof VerifiedTaskActionEnum[keyof typeof VerifiedTaskActionEnum];
+export type VerifiedTaskFromSummaryActionEnum = typeof VerifiedTaskFromSummaryActionEnum[keyof typeof VerifiedTaskFromSummaryActionEnum];
 
 /**
- * Representation of a task verification request.  This DTO is used to submit a batch of generated tasks to the verification workflow. Each task is compared against existing ClickUp data to determine whether it should be created or updated.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be verified.     tasks: List of generated tasks to be validated against existing ClickUp tasks.
+ * Representation of a task verification request from summary-based generation.  This DTO is used to submit a batch of generated tasks to the verification workflow. Each task is compared against existing ClickUp tasks to determine whether it should be created or updated.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be verified.     tasks: List of generated tasks to validate against existing ClickUp tasks.
  */
-export interface VerifyTasksRequest {
+export interface VerifiedTaskFromSummaryRequest {
     /**
      * Identifier of the ClickUp workspace.
      */
     'space_id': string;
     /**
-     * List of generated tasks to verify against ClickUp.
+     * List of generated tasks from summary to verify against ClickUp.
      */
-    'tasks': Array<GeneratedTask>;
+    'tasks': Array<GeneratedTaskFromSummary>;
 }
 /**
- * Representation of the result of task verification against ClickUp.  This DTO encapsulates the outcome of the verification process where generated tasks are compared against existing ClickUp tasks to determine the required action (create or update).  Attributes:     total: Total number of verified tasks after processing.     tasks: List of verified tasks with their computed actions (create/update).
+ * Representation of the result of task verification against ClickUp.  This DTO encapsulates the outcome of the verification process where generated tasks are compared against existing ClickUp tasks to determine the required action (create or update).  Attributes:     total: Total number of tasks processed during verification.     tasks: List of verified tasks with their corresponding actions (create or update).
  */
-export interface VerifyTasksResponse {
+export interface VerifiedTaskFromSummaryResponse {
     /**
      * Total number of tasks processed during verification.
      */
@@ -701,8 +1026,35 @@ export interface VerifyTasksResponse {
     /**
      * List of verified tasks with their corresponding actions (create or update).
      */
-    'tasks': Array<VerifiedTask>;
+    'tasks': Array<VerifiedTaskFromSummary>;
 }
+/**
+ * Representation of a complete weekly project activity report.  This model aggregates structured task data from ClickUp and development activity from GitHub, along with AI-generated summaries.  Attributes:     created_tasks: Tasks created during the last 7 days.     in_progress_tasks: Tasks moved to or currently in progress during the last 7 days.     done_tasks: Tasks completed during the last 7 days.     last_7_days_deployments: GitHub deployments executed in the last 7 days.     deployments_summary: AI-generated narrative summarizing deployment activity.     last_7_days_commits: GitHub commits made in the last 7 days.     commits_summary: AI-generated narrative summarizing commit activity.
+ */
+export interface WeeklyProjectSummaryResponse {
+    'status': WeeklyProjectSummaryStatus;
+    'message': string;
+    'created_tasks'?: Array<ClickUpTask>;
+    'in_progress_tasks'?: Array<ClickUpTask>;
+    'done_tasks'?: Array<ClickUpTask>;
+    'last_7_days_deployments'?: Array<DeploymentDTO>;
+    'deployments_summary': string;
+    'last_7_days_commits'?: Array<CommitDTO>;
+    'commits_summary': string;
+}
+
+
+
+export const WeeklyProjectSummaryStatus = {
+    Full: 'FULL',
+    NoGithub: 'NO_GITHUB',
+    ClickupEmpty: 'CLICKUP_EMPTY',
+    NoGithubAndClickupEmpty: 'NO_GITHUB_AND_CLICKUP_EMPTY',
+} as const;
+
+export type WeeklyProjectSummaryStatus = typeof WeeklyProjectSummaryStatus[keyof typeof WeeklyProjectSummaryStatus];
+
+
 
 /**
  * AssociatorApi - axios parameter creator
@@ -2760,15 +3112,50 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
-         * @summary Generate ClickUp tasks from meeting summary
-         * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
+         * Transforms a sprint backlog into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from sprint backlog
+         * @param {GeneratedTaskFromBacklogRequest} generatedTaskFromBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost: async (generateTasksFromSummaryRequest: GenerateTasksFromSummaryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'generateTasksFromSummaryRequest' is not null or undefined
-            assertParamExists('generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost', 'generateTasksFromSummaryRequest', generateTasksFromSummaryRequest)
+        generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost: async (generatedTaskFromBacklogRequest: GeneratedTaskFromBacklogRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'generatedTaskFromBacklogRequest' is not null or undefined
+            assertParamExists('generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost', 'generatedTaskFromBacklogRequest', generatedTaskFromBacklogRequest)
+            const localVarPath = `/clickup/tasks/generate-tasks-from-backlog`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(generatedTaskFromBacklogRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from meeting summary
+         * @param {GeneratedTaskFromSummaryRequest} generatedTaskFromSummaryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost: async (generatedTaskFromSummaryRequest: GeneratedTaskFromSummaryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'generatedTaskFromSummaryRequest' is not null or undefined
+            assertParamExists('generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost', 'generatedTaskFromSummaryRequest', generatedTaskFromSummaryRequest)
             const localVarPath = `/clickup/tasks/generate-tasks-from-summary`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2787,7 +3174,7 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(generateTasksFromSummaryRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(generatedTaskFromSummaryRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2829,16 +3216,16 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
-         * @summary Save verified tasks into ClickUp
-         * @param {SaveTasksRequest} saveTasksRequest 
+         * Receives a list of verified backlog tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+         * @summary Save verified backlog tasks into ClickUp
+         * @param {SaveBacklogTasksRequest} saveBacklogTasksRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        saveTasksToClickupClickupTasksSavePost: async (saveTasksRequest: SaveTasksRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'saveTasksRequest' is not null or undefined
-            assertParamExists('saveTasksToClickupClickupTasksSavePost', 'saveTasksRequest', saveTasksRequest)
-            const localVarPath = `/clickup/tasks/save`;
+        saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost: async (saveBacklogTasksRequest: SaveBacklogTasksRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'saveBacklogTasksRequest' is not null or undefined
+            assertParamExists('saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost', 'saveBacklogTasksRequest', saveBacklogTasksRequest)
+            const localVarPath = `/clickup/tasks/save-backlog-tasks`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2856,7 +3243,42 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(saveTasksRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(saveBacklogTasksRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Receives a list of verified summary tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+         * @summary Save verified summary tasks into ClickUp
+         * @param {SaveSummaryTasksRequest} saveSummaryTasksRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost: async (saveSummaryTasksRequest: SaveSummaryTasksRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'saveSummaryTasksRequest' is not null or undefined
+            assertParamExists('saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost', 'saveSummaryTasksRequest', saveSummaryTasksRequest)
+            const localVarPath = `/clickup/tasks/save-summary-tasks`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(saveSummaryTasksRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2903,16 +3325,16 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Receives a list of generated tasks and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+         * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
          * @summary Verify generated tasks against existing ClickUp tasks
-         * @param {VerifyTasksRequest} verifyTasksRequest 
+         * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        verifyTasksClickupTasksVerifyPost: async (verifyTasksRequest: VerifyTasksRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'verifyTasksRequest' is not null or undefined
-            assertParamExists('verifyTasksClickupTasksVerifyPost', 'verifyTasksRequest', verifyTasksRequest)
-            const localVarPath = `/clickup/tasks/verify`;
+        verifyTasksClickupTasksVerifyFromBacklogPost: async (verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'verifiedTaskFromBacklogRequest' is not null or undefined
+            assertParamExists('verifyTasksClickupTasksVerifyFromBacklogPost', 'verifiedTaskFromBacklogRequest', verifiedTaskFromBacklogRequest)
+            const localVarPath = `/clickup/tasks/verify-from-backlog`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2930,7 +3352,42 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             setSearchParams(localVarUrlObj, localVarQueryParameter);
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(verifyTasksRequest, localVarRequestOptions, configuration)
+            localVarRequestOptions.data = serializeDataIfNeeded(verifiedTaskFromBacklogRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+         * @summary Verify generated tasks against existing ClickUp tasks
+         * @param {VerifiedTaskFromSummaryRequest} verifiedTaskFromSummaryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyTasksClickupTasksVerifyFromSummaryPost: async (verifiedTaskFromSummaryRequest: VerifiedTaskFromSummaryRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'verifiedTaskFromSummaryRequest' is not null or undefined
+            assertParamExists('verifyTasksClickupTasksVerifyFromSummaryPost', 'verifiedTaskFromSummaryRequest', verifiedTaskFromSummaryRequest)
+            const localVarPath = `/clickup/tasks/verify-from-summary`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(verifiedTaskFromSummaryRequest, localVarRequestOptions, configuration)
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2973,14 +3430,27 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
-         * @summary Generate ClickUp tasks from meeting summary
-         * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
+         * Transforms a sprint backlog into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from sprint backlog
+         * @param {GeneratedTaskFromBacklogRequest} generatedTaskFromBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest: GenerateTasksFromSummaryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<GeneratedTask>>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest, options);
+        async generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(generatedTaskFromBacklogRequest: GeneratedTaskFromBacklogRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<GeneratedTaskFromBacklog>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(generatedTaskFromBacklogRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from meeting summary
+         * @param {GeneratedTaskFromSummaryRequest} generatedTaskFromSummaryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generatedTaskFromSummaryRequest: GeneratedTaskFromSummaryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<GeneratedTaskFromSummary>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generatedTaskFromSummaryRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
@@ -2999,16 +3469,29 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
-         * @summary Save verified tasks into ClickUp
-         * @param {SaveTasksRequest} saveTasksRequest 
+         * Receives a list of verified backlog tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+         * @summary Save verified backlog tasks into ClickUp
+         * @param {SaveBacklogTasksRequest} saveBacklogTasksRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options);
+        async saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveTasksToClickupClickupTasksSavePost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Receives a list of verified summary tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+         * @summary Save verified summary tasks into ClickUp
+         * @param {SaveSummaryTasksRequest} saveSummaryTasksRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
@@ -3026,16 +3509,29 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Receives a list of generated tasks and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+         * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
          * @summary Verify generated tasks against existing ClickUp tasks
-         * @param {VerifyTasksRequest} verifyTasksRequest 
+         * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async verifyTasksClickupTasksVerifyPost(verifyTasksRequest: VerifyTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerifyTasksResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyTasksClickupTasksVerifyPost(verifyTasksRequest, options);
+        async verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerifiedTaskFromBacklogResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.verifyTasksClickupTasksVerifyPost']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.verifyTasksClickupTasksVerifyFromBacklogPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+         * @summary Verify generated tasks against existing ClickUp tasks
+         * @param {VerifiedTaskFromSummaryRequest} verifiedTaskFromSummaryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async verifyTasksClickupTasksVerifyFromSummaryPost(verifiedTaskFromSummaryRequest: VerifiedTaskFromSummaryRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerifiedTaskFromSummaryResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyTasksClickupTasksVerifyFromSummaryPost(verifiedTaskFromSummaryRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.verifyTasksClickupTasksVerifyFromSummaryPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -3068,14 +3564,24 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
             return localVarFp.deleteTaskClickupTasksManageTaskIdDelete(taskId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
-         * @summary Generate ClickUp tasks from meeting summary
-         * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
+         * Transforms a sprint backlog into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from sprint backlog
+         * @param {GeneratedTaskFromBacklogRequest} generatedTaskFromBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest: GenerateTasksFromSummaryRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<GeneratedTask>> {
-            return localVarFp.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest, options).then((request) => request(axios, basePath));
+        generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(generatedTaskFromBacklogRequest: GeneratedTaskFromBacklogRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<GeneratedTaskFromBacklog>> {
+            return localVarFp.generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(generatedTaskFromBacklogRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+         * @summary Generate ClickUp tasks from meeting summary
+         * @param {GeneratedTaskFromSummaryRequest} generatedTaskFromSummaryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generatedTaskFromSummaryRequest: GeneratedTaskFromSummaryRequest, options?: RawAxiosRequestConfig): AxiosPromise<Array<GeneratedTaskFromSummary>> {
+            return localVarFp.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generatedTaskFromSummaryRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieve all folders, lists, and tasks for a given ClickUp space.
@@ -3088,14 +3594,24 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
             return localVarFp.getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
-         * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
-         * @summary Save verified tasks into ClickUp
-         * @param {SaveTasksRequest} saveTasksRequest 
+         * Receives a list of verified backlog tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+         * @summary Save verified backlog tasks into ClickUp
+         * @param {SaveBacklogTasksRequest} saveBacklogTasksRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options).then((request) => request(axios, basePath));
+        saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Receives a list of verified summary tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+         * @summary Save verified summary tasks into ClickUp
+         * @param {SaveSummaryTasksRequest} saveSummaryTasksRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Update an existing ClickUp task by its identifier.
@@ -3109,14 +3625,24 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
             return localVarFp.updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options).then((request) => request(axios, basePath));
         },
         /**
-         * Receives a list of generated tasks and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+         * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
          * @summary Verify generated tasks against existing ClickUp tasks
-         * @param {VerifyTasksRequest} verifyTasksRequest 
+         * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        verifyTasksClickupTasksVerifyPost(verifyTasksRequest: VerifyTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerifyTasksResponse> {
-            return localVarFp.verifyTasksClickupTasksVerifyPost(verifyTasksRequest, options).then((request) => request(axios, basePath));
+        verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerifiedTaskFromBacklogResponse> {
+            return localVarFp.verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+         * @summary Verify generated tasks against existing ClickUp tasks
+         * @param {VerifiedTaskFromSummaryRequest} verifiedTaskFromSummaryRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        verifyTasksClickupTasksVerifyFromSummaryPost(verifiedTaskFromSummaryRequest: VerifiedTaskFromSummaryRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerifiedTaskFromSummaryResponse> {
+            return localVarFp.verifyTasksClickupTasksVerifyFromSummaryPost(verifiedTaskFromSummaryRequest, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -3148,14 +3674,25 @@ export class ClickUpTasksApi extends BaseAPI {
     }
 
     /**
-     * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
-     * @summary Generate ClickUp tasks from meeting summary
-     * @param {GenerateTasksFromSummaryRequest} generateTasksFromSummaryRequest 
+     * Transforms a sprint backlog into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+     * @summary Generate ClickUp tasks from sprint backlog
+     * @param {GeneratedTaskFromBacklogRequest} generatedTaskFromBacklogRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest: GenerateTasksFromSummaryRequest, options?: RawAxiosRequestConfig) {
-        return ClickUpTasksApiFp(this.configuration).generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generateTasksFromSummaryRequest, options).then((request) => request(this.axios, this.basePath));
+    public generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(generatedTaskFromBacklogRequest: GeneratedTaskFromBacklogRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).generateTasksFromBacklogClickupTasksGenerateTasksFromBacklogPost(generatedTaskFromBacklogRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Transforms a raw meeting summary into structured ClickUp tasks using AI-based extraction. The generated tasks are formatted for direct integration into ClickUp workflows.
+     * @summary Generate ClickUp tasks from meeting summary
+     * @param {GeneratedTaskFromSummaryRequest} generatedTaskFromSummaryRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generatedTaskFromSummaryRequest: GeneratedTaskFromSummaryRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(generatedTaskFromSummaryRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3170,14 +3707,25 @@ export class ClickUpTasksApi extends BaseAPI {
     }
 
     /**
-     * Receives a list of verified tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
-     * @summary Save verified tasks into ClickUp
-     * @param {SaveTasksRequest} saveTasksRequest 
+     * Receives a list of verified backlog tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+     * @summary Save verified backlog tasks into ClickUp
+     * @param {SaveBacklogTasksRequest} saveBacklogTasksRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public saveTasksToClickupClickupTasksSavePost(saveTasksRequest: SaveTasksRequest, options?: RawAxiosRequestConfig) {
-        return ClickUpTasksApiFp(this.configuration).saveTasksToClickupClickupTasksSavePost(saveTasksRequest, options).then((request) => request(this.axios, this.basePath));
+    public saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Receives a list of verified summary tasks and applies them (create or update) into the specified ClickUp space. Assignees are resolved from Arabic names to ClickUp member IDs when applicable.
+     * @summary Save verified summary tasks into ClickUp
+     * @param {SaveSummaryTasksRequest} saveSummaryTasksRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -3193,14 +3741,127 @@ export class ClickUpTasksApi extends BaseAPI {
     }
 
     /**
-     * Receives a list of generated tasks and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+     * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
      * @summary Verify generated tasks against existing ClickUp tasks
-     * @param {VerifyTasksRequest} verifyTasksRequest 
+     * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public verifyTasksClickupTasksVerifyPost(verifyTasksRequest: VerifyTasksRequest, options?: RawAxiosRequestConfig) {
-        return ClickUpTasksApiFp(this.configuration).verifyTasksClickupTasksVerifyPost(verifyTasksRequest, options).then((request) => request(this.axios, this.basePath));
+    public verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
+     * @summary Verify generated tasks against existing ClickUp tasks
+     * @param {VerifiedTaskFromSummaryRequest} verifiedTaskFromSummaryRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public verifyTasksClickupTasksVerifyFromSummaryPost(verifiedTaskFromSummaryRequest: VerifiedTaskFromSummaryRequest, options?: RawAxiosRequestConfig) {
+        return ClickUpTasksApiFp(this.configuration).verifyTasksClickupTasksVerifyFromSummaryPost(verifiedTaskFromSummaryRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * CommitTraceabilityApi - axios parameter creator
+ */
+export const CommitTraceabilityApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Receives a Git commit message and a ClickUp space ID, then semantically matches the commit to the most probable task within the given space. Returns the match status and task details if found.
+         * @summary Map a Git commit message to a ClickUp task
+         * @param {MappedCommitTaskRequest} mappedCommitTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        findTaskByCommitCommitTraceabilityFindTaskByCommitPost: async (mappedCommitTaskRequest: MappedCommitTaskRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'mappedCommitTaskRequest' is not null or undefined
+            assertParamExists('findTaskByCommitCommitTraceabilityFindTaskByCommitPost', 'mappedCommitTaskRequest', mappedCommitTaskRequest)
+            const localVarPath = `/commit-traceability/find-task-by-commit`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(mappedCommitTaskRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * CommitTraceabilityApi - functional programming interface
+ */
+export const CommitTraceabilityApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = CommitTraceabilityApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Receives a Git commit message and a ClickUp space ID, then semantically matches the commit to the most probable task within the given space. Returns the match status and task details if found.
+         * @summary Map a Git commit message to a ClickUp task
+         * @param {MappedCommitTaskRequest} mappedCommitTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async findTaskByCommitCommitTraceabilityFindTaskByCommitPost(mappedCommitTaskRequest: MappedCommitTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MappedCommitTaskResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.findTaskByCommitCommitTraceabilityFindTaskByCommitPost(mappedCommitTaskRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CommitTraceabilityApi.findTaskByCommitCommitTraceabilityFindTaskByCommitPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * CommitTraceabilityApi - factory interface
+ */
+export const CommitTraceabilityApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = CommitTraceabilityApiFp(configuration)
+    return {
+        /**
+         * Receives a Git commit message and a ClickUp space ID, then semantically matches the commit to the most probable task within the given space. Returns the match status and task details if found.
+         * @summary Map a Git commit message to a ClickUp task
+         * @param {MappedCommitTaskRequest} mappedCommitTaskRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        findTaskByCommitCommitTraceabilityFindTaskByCommitPost(mappedCommitTaskRequest: MappedCommitTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<MappedCommitTaskResponse> {
+            return localVarFp.findTaskByCommitCommitTraceabilityFindTaskByCommitPost(mappedCommitTaskRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * CommitTraceabilityApi - object-oriented interface
+ */
+export class CommitTraceabilityApi extends BaseAPI {
+    /**
+     * Receives a Git commit message and a ClickUp space ID, then semantically matches the commit to the most probable task within the given space. Returns the match status and task details if found.
+     * @summary Map a Git commit message to a ClickUp task
+     * @param {MappedCommitTaskRequest} mappedCommitTaskRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public findTaskByCommitCommitTraceabilityFindTaskByCommitPost(mappedCommitTaskRequest: MappedCommitTaskRequest, options?: RawAxiosRequestConfig) {
+        return CommitTraceabilityApiFp(this.configuration).findTaskByCommitCommitTraceabilityFindTaskByCommitPost(mappedCommitTaskRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -3780,6 +4441,108 @@ export class MemberApi extends BaseAPI {
 
 
 /**
+ * ProjectStatusCheckApi - axios parameter creator
+ */
+export const ProjectStatusCheckApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task distribution and progress metrics from ClickUp, and optionally enriches the analysis with GitHub commit and deployment activity. Returns a structured project status summary including a global status code, a human-readable message, task distribution, last activity dates, and any stale tasks detected.
+         * @summary Compute the overall status of a project
+         * @param {ProjectSpaceRequest} projectSpaceRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkProjectStatusProjectStatusStatusPost: async (projectSpaceRequest: ProjectSpaceRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'projectSpaceRequest' is not null or undefined
+            assertParamExists('checkProjectStatusProjectStatusStatusPost', 'projectSpaceRequest', projectSpaceRequest)
+            const localVarPath = `/project-status/status`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(projectSpaceRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * ProjectStatusCheckApi - functional programming interface
+ */
+export const ProjectStatusCheckApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = ProjectStatusCheckApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task distribution and progress metrics from ClickUp, and optionally enriches the analysis with GitHub commit and deployment activity. Returns a structured project status summary including a global status code, a human-readable message, task distribution, last activity dates, and any stale tasks detected.
+         * @summary Compute the overall status of a project
+         * @param {ProjectSpaceRequest} projectSpaceRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async checkProjectStatusProjectStatusStatusPost(projectSpaceRequest: ProjectSpaceRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectStatusSummary>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.checkProjectStatusProjectStatusStatusPost(projectSpaceRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ProjectStatusCheckApi.checkProjectStatusProjectStatusStatusPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * ProjectStatusCheckApi - factory interface
+ */
+export const ProjectStatusCheckApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = ProjectStatusCheckApiFp(configuration)
+    return {
+        /**
+         * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task distribution and progress metrics from ClickUp, and optionally enriches the analysis with GitHub commit and deployment activity. Returns a structured project status summary including a global status code, a human-readable message, task distribution, last activity dates, and any stale tasks detected.
+         * @summary Compute the overall status of a project
+         * @param {ProjectSpaceRequest} projectSpaceRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        checkProjectStatusProjectStatusStatusPost(projectSpaceRequest: ProjectSpaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<ProjectStatusSummary> {
+            return localVarFp.checkProjectStatusProjectStatusStatusPost(projectSpaceRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * ProjectStatusCheckApi - object-oriented interface
+ */
+export class ProjectStatusCheckApi extends BaseAPI {
+    /**
+     * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task distribution and progress metrics from ClickUp, and optionally enriches the analysis with GitHub commit and deployment activity. Returns a structured project status summary including a global status code, a human-readable message, task distribution, last activity dates, and any stale tasks detected.
+     * @summary Compute the overall status of a project
+     * @param {ProjectSpaceRequest} projectSpaceRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public checkProjectStatusProjectStatusStatusPost(projectSpaceRequest: ProjectSpaceRequest, options?: RawAxiosRequestConfig) {
+        return ProjectStatusCheckApiFp(this.configuration).checkProjectStatusProjectStatusStatusPost(projectSpaceRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
  * RepoApi - axios parameter creator
  */
 export const RepoApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -4278,6 +5041,279 @@ export class RepoApi extends BaseAPI {
      */
     public updateRepoRepoRepoIdPut(repoId: number, gitRepoUpdateDTO: GitRepoUpdateDTO, options?: RawAxiosRequestConfig) {
         return RepoApiFp(this.configuration).updateRepoRepoRepoIdPut(repoId, gitRepoUpdateDTO, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * TaskStatusCheckApi - axios parameter creator
+ */
+export const TaskStatusCheckApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Receives a user question and a ClickUp space identifier. Searches semantically for matching tasks and returns a message with 0, 1, or up to 3 candidates. The frontend uses the result to ask for confirmation, prompt the user to choose, or ask to rephrase.
+         * @summary Search for ClickUp tasks matching a user question
+         * @param {TaskSearchRequest} taskSearchRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        searchTaskTaskStatusSearchPost: async (taskSearchRequest: TaskSearchRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'taskSearchRequest' is not null or undefined
+            assertParamExists('searchTaskTaskStatusSearchPost', 'taskSearchRequest', taskSearchRequest)
+            const localVarPath = `/task-status/search`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(taskSearchRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Receives a ClickUp task and an optional GitHub repository URL. Cross-references the task details with GitHub commits and deployments to determine whether the task is truly completed. If no repository URL is provided, the analysis is based solely on the ClickUp status.
+         * @summary Synthesize the completion status of a ClickUp task
+         * @param {SynthesizedTaskStatusRequest} synthesizedTaskStatusRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        synthesizeTaskStatusTaskStatusSynthesizePost: async (synthesizedTaskStatusRequest: SynthesizedTaskStatusRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'synthesizedTaskStatusRequest' is not null or undefined
+            assertParamExists('synthesizeTaskStatusTaskStatusSynthesizePost', 'synthesizedTaskStatusRequest', synthesizedTaskStatusRequest)
+            const localVarPath = `/task-status/synthesize`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(synthesizedTaskStatusRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * TaskStatusCheckApi - functional programming interface
+ */
+export const TaskStatusCheckApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = TaskStatusCheckApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Receives a user question and a ClickUp space identifier. Searches semantically for matching tasks and returns a message with 0, 1, or up to 3 candidates. The frontend uses the result to ask for confirmation, prompt the user to choose, or ask to rephrase.
+         * @summary Search for ClickUp tasks matching a user question
+         * @param {TaskSearchRequest} taskSearchRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async searchTaskTaskStatusSearchPost(taskSearchRequest: TaskSearchRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskSearchResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.searchTaskTaskStatusSearchPost(taskSearchRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TaskStatusCheckApi.searchTaskTaskStatusSearchPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Receives a ClickUp task and an optional GitHub repository URL. Cross-references the task details with GitHub commits and deployments to determine whether the task is truly completed. If no repository URL is provided, the analysis is based solely on the ClickUp status.
+         * @summary Synthesize the completion status of a ClickUp task
+         * @param {SynthesizedTaskStatusRequest} synthesizedTaskStatusRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async synthesizeTaskStatusTaskStatusSynthesizePost(synthesizedTaskStatusRequest: SynthesizedTaskStatusRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SynthesizedTaskStatusResult>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.synthesizeTaskStatusTaskStatusSynthesizePost(synthesizedTaskStatusRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['TaskStatusCheckApi.synthesizeTaskStatusTaskStatusSynthesizePost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * TaskStatusCheckApi - factory interface
+ */
+export const TaskStatusCheckApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = TaskStatusCheckApiFp(configuration)
+    return {
+        /**
+         * Receives a user question and a ClickUp space identifier. Searches semantically for matching tasks and returns a message with 0, 1, or up to 3 candidates. The frontend uses the result to ask for confirmation, prompt the user to choose, or ask to rephrase.
+         * @summary Search for ClickUp tasks matching a user question
+         * @param {TaskSearchRequest} taskSearchRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        searchTaskTaskStatusSearchPost(taskSearchRequest: TaskSearchRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskSearchResponse> {
+            return localVarFp.searchTaskTaskStatusSearchPost(taskSearchRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Receives a ClickUp task and an optional GitHub repository URL. Cross-references the task details with GitHub commits and deployments to determine whether the task is truly completed. If no repository URL is provided, the analysis is based solely on the ClickUp status.
+         * @summary Synthesize the completion status of a ClickUp task
+         * @param {SynthesizedTaskStatusRequest} synthesizedTaskStatusRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        synthesizeTaskStatusTaskStatusSynthesizePost(synthesizedTaskStatusRequest: SynthesizedTaskStatusRequest, options?: RawAxiosRequestConfig): AxiosPromise<SynthesizedTaskStatusResult> {
+            return localVarFp.synthesizeTaskStatusTaskStatusSynthesizePost(synthesizedTaskStatusRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * TaskStatusCheckApi - object-oriented interface
+ */
+export class TaskStatusCheckApi extends BaseAPI {
+    /**
+     * Receives a user question and a ClickUp space identifier. Searches semantically for matching tasks and returns a message with 0, 1, or up to 3 candidates. The frontend uses the result to ask for confirmation, prompt the user to choose, or ask to rephrase.
+     * @summary Search for ClickUp tasks matching a user question
+     * @param {TaskSearchRequest} taskSearchRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public searchTaskTaskStatusSearchPost(taskSearchRequest: TaskSearchRequest, options?: RawAxiosRequestConfig) {
+        return TaskStatusCheckApiFp(this.configuration).searchTaskTaskStatusSearchPost(taskSearchRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Receives a ClickUp task and an optional GitHub repository URL. Cross-references the task details with GitHub commits and deployments to determine whether the task is truly completed. If no repository URL is provided, the analysis is based solely on the ClickUp status.
+     * @summary Synthesize the completion status of a ClickUp task
+     * @param {SynthesizedTaskStatusRequest} synthesizedTaskStatusRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public synthesizeTaskStatusTaskStatusSynthesizePost(synthesizedTaskStatusRequest: SynthesizedTaskStatusRequest, options?: RawAxiosRequestConfig) {
+        return TaskStatusCheckApiFp(this.configuration).synthesizeTaskStatusTaskStatusSynthesizePost(synthesizedTaskStatusRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * WeeklyProjectSummaryApi - axios parameter creator
+ */
+export const WeeklyProjectSummaryApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task activity from the last 7 days including created, in-progress, and completed tasks. Optionally enriches the summary with GitHub commit and deployment activity. Returns a structured weekly summary including task movements, commit and deployment history, and AI-generated narratives for commits and deployments when a repository is linked.
+         * @summary Compute the weekly summary of a project
+         * @param {ProjectSpaceRequest} projectSpaceRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        summarizeWeeklyProjectWeeklySummarySummaryPost: async (projectSpaceRequest: ProjectSpaceRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'projectSpaceRequest' is not null or undefined
+            assertParamExists('summarizeWeeklyProjectWeeklySummarySummaryPost', 'projectSpaceRequest', projectSpaceRequest)
+            const localVarPath = `/weekly-summary/summary`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(projectSpaceRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * WeeklyProjectSummaryApi - functional programming interface
+ */
+export const WeeklyProjectSummaryApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = WeeklyProjectSummaryApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task activity from the last 7 days including created, in-progress, and completed tasks. Optionally enriches the summary with GitHub commit and deployment activity. Returns a structured weekly summary including task movements, commit and deployment history, and AI-generated narratives for commits and deployments when a repository is linked.
+         * @summary Compute the weekly summary of a project
+         * @param {ProjectSpaceRequest} projectSpaceRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async summarizeWeeklyProjectWeeklySummarySummaryPost(projectSpaceRequest: ProjectSpaceRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<WeeklyProjectSummaryResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.summarizeWeeklyProjectWeeklySummarySummaryPost(projectSpaceRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['WeeklyProjectSummaryApi.summarizeWeeklyProjectWeeklySummarySummaryPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * WeeklyProjectSummaryApi - factory interface
+ */
+export const WeeklyProjectSummaryApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = WeeklyProjectSummaryApiFp(configuration)
+    return {
+        /**
+         * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task activity from the last 7 days including created, in-progress, and completed tasks. Optionally enriches the summary with GitHub commit and deployment activity. Returns a structured weekly summary including task movements, commit and deployment history, and AI-generated narratives for commits and deployments when a repository is linked.
+         * @summary Compute the weekly summary of a project
+         * @param {ProjectSpaceRequest} projectSpaceRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        summarizeWeeklyProjectWeeklySummarySummaryPost(projectSpaceRequest: ProjectSpaceRequest, options?: RawAxiosRequestConfig): AxiosPromise<WeeklyProjectSummaryResponse> {
+            return localVarFp.summarizeWeeklyProjectWeeklySummarySummaryPost(projectSpaceRequest, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * WeeklyProjectSummaryApi - object-oriented interface
+ */
+export class WeeklyProjectSummaryApi extends BaseAPI {
+    /**
+     * Receives a ClickUp space identifier and an optional GitHub repository URL. Aggregates task activity from the last 7 days including created, in-progress, and completed tasks. Optionally enriches the summary with GitHub commit and deployment activity. Returns a structured weekly summary including task movements, commit and deployment history, and AI-generated narratives for commits and deployments when a repository is linked.
+     * @summary Compute the weekly summary of a project
+     * @param {ProjectSpaceRequest} projectSpaceRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public summarizeWeeklyProjectWeeklySummarySummaryPost(projectSpaceRequest: ProjectSpaceRequest, options?: RawAxiosRequestConfig) {
+        return WeeklyProjectSummaryApiFp(this.configuration).summarizeWeeklyProjectWeeklySummarySummaryPost(projectSpaceRequest, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

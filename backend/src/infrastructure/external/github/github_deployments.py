@@ -27,6 +27,7 @@ from backend.src.domain.exceptions.common.missing_env_variable_exception import 
 from backend.src.domain.ports.output.github.i_github_deployment_service import IGitHubDeploymentService
 from backend.src.infrastructure.external.github.base_github_client import BaseGitHubClient
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -61,7 +62,6 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             MissingEnvVariableException: If the GITHUB_TOKEN environment variable is not set.
         """
         BaseGitHubClient.__init__(self)
-        IGitHubDeploymentService.__init__(self)
         loaded = load_dotenv(_DOTENV_PATH, override=False)
 
         if not loaded:

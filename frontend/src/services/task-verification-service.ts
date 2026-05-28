@@ -1,18 +1,18 @@
 import { clickUpTasksApi } from '@/apiClient';
-import type { GeneratedTask, VerifyTasksRequest, VerifyTasksResponse } from '@/api/api';
+import type { GeneratedTaskFromSummary, VerifiedTaskFromSummaryRequest, VerifiedTaskFromSummaryResponse } from '@/api/api';
 
 export const taskVerificationService = {
   async verifyTasks(
     spaceId: string,
-    tasks: GeneratedTask[]
-  ): Promise<VerifyTasksResponse> {
+    tasks: GeneratedTaskFromSummary[]
+  ): Promise<VerifiedTaskFromSummaryResponse> {
     if (!spaceId?.trim()) throw new Error('Click up space code is required');
-    const payload: VerifyTasksRequest = {
+    const payload: VerifiedTaskFromSummaryRequest = {
       space_id: spaceId,
       tasks,
     };
 
-    const response = await clickUpTasksApi.verifyTasksClickupTasksVerifyPost(payload);
+    const response = await clickUpTasksApi.verifyTasksClickupTasksVerifyFromSummaryPost(payload);
     return response.data ?? { total: 0, tasks: [] };
   },
 };

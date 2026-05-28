@@ -88,9 +88,9 @@ export function ClickUpSpacesTable({
         </Button>
       </div>
 
-      <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">
+      <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[480px] border border-border rounded-lg">
         {isLoading ? (
-          <table className="w-full min-w-[500px]">
+          <table className="w-full min-w-[640px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
@@ -115,7 +115,7 @@ export function ClickUpSpacesTable({
             </tbody>
           </table>
         ) : error ? (
-          <table className="w-full min-w-[480px]">
+          <table className="w-full min-w-[640px]">
             <tbody>
               <tr>
                 <td colSpan={4} className="px-6 py-12 text-center">
@@ -136,8 +136,8 @@ export function ClickUpSpacesTable({
             </tbody>
           </table>
         ) : (
-          <table className="w-full min-w-[500px]">
-            <thead>
+          <table className="w-full min-w-[640px]">
+            <thead className="sticky top-0 z-10">
               <tr className="border-b border-border bg-muted">
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Space Name</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Space ID</th>
@@ -230,7 +230,7 @@ export function ClickUpSpacesTable({
         )}
       </div>
 
-      <div className="sm:hidden space-y-3">
+      <div className="sm:hidden space-y-3 max-h-[60vh] overflow-y-auto overflow-x-auto pr-1 max-w-full">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-border p-4 space-y-2 animate-pulse">

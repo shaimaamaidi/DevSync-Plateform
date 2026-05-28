@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
-from backend.src.infrastructure.di.persistence_container import Container
+from backend.src.infrastructure.di.persistence_container import PersistenceContainer
 
 logger = logging.getLogger(__name__)
 
@@ -72,13 +72,13 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
         try:
             with request.app.state.db.get_session() as session:
-                container = Container(session)
+                persistence_container = PersistenceContainer(session)
 
                 if not token:
                     logger.error("Token cannot be empty for verification.")
                     raise InvalidTokenException("Session is invalid. Please log in again.")
 
-                payload = container.jwt_handler.verify_token(token)
+                payload = persistence_container.jwt_handler.verify_token(token)
                 request.state.current_member = payload
 
                 logger.info("Token verified (member_id=%s).", payload.get("sub") or "N/A")

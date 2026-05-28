@@ -52,7 +52,6 @@ export function MembersTable({
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<ClickUpMemberRole>(ClickUpMemberRole.NUMBER_4);
   const [deleteFromDBConfirmId, setDeleteFromDBConfirmId] = useState<number | null>(null);
-  
 
   const handleAddClick = () => {
     setEditingMember(null);
@@ -94,9 +93,9 @@ export function MembersTable({
         </Button>
       </div>
 
-      <div className="hidden sm:block overflow-x-auto border border-border rounded-lg">
+      <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[480px] border border-border rounded-lg">
         {isLoading ? (
-          <table className="w-full min-w-[480px]">
+          <table className="w-full min-w-[560px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
@@ -120,7 +119,7 @@ export function MembersTable({
             </tbody>
           </table>
         ) : error ? (
-          <table className="w-full min-w-[480px]">
+          <table className="w-full min-w-[560px]">
             <tbody>
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center">
@@ -139,8 +138,8 @@ export function MembersTable({
             </tbody>
           </table>
         ) : (
-          <table className="w-full min-w-[480px]">
-            <thead>
+          <table className="w-full min-w-[560px]">
+            <thead className="sticky top-0 z-10">
               <tr className="border-b border-border bg-muted">
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Member</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Mail</th>
@@ -208,7 +207,7 @@ export function MembersTable({
         )}
       </div>
 
-      <div className="sm:hidden space-y-3">
+      <div className="sm:hidden space-y-3 max-h-[60vh] overflow-y-auto overflow-x-auto pr-1 max-w-full">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-border p-4 space-y-2 animate-pulse">
@@ -295,87 +294,85 @@ export function MembersTable({
           </DialogHeader>
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setDeleteConfirmMemberId(null)}>No</Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteClickUp}
-            >
-              Yes
-            </Button>
+            <Button variant="destructive" onClick={handleDeleteClickUp}>Yes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
       <Dialog open={inviteToClickUpMemberDialog} onOpenChange={setInviteToClickUpMemberDialog}>
-      <DialogContent
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Invite to ClickUp?</DialogTitle>
-          <DialogDescription>Member added successfully. Do you want to also invite them to ClickUp?</DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-          <Button variant="outline" onClick={() => setInviteToClickUpMemberDialog(false)}>No</Button>
-          <Button onClick={() => { setInviteToClickUpMemberDialog(false); setRoleDialogOpen(true); }}>Yes</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-      <DialogContent
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Select ClickUp Role</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-2 py-2">
-          {[
-            { label: 'Member', value: ClickUpMemberRole.NUMBER_4 },
-            { label: 'Admin', value: ClickUpMemberRole.NUMBER_3 },
-            { label: 'Owner', value: ClickUpMemberRole.NUMBER_2 },
-            { label: 'Guest', value: ClickUpMemberRole.NUMBER_5 },
-          ].map(r => (
-            <Button
-              key={r.value}
-              variant={selectedRole === r.value ? 'default' : 'outline'}
-              className="w-full"
-              onClick={() => setSelectedRole(r.value)}
-            >
-              {r.label}
-            </Button>
-          ))}
-        </div>
-        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-          <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>Cancel</Button>
-          <Button onClick={async () => {
-            if (memeberMail) {
-              await onInviteToClickUp(memeberMail, selectedRole);
-            }
-            setRoleDialogOpen(false);
-            setMemberMail(null);
-          }}>Invite</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-    <Dialog open={deleteFromDBConfirmId !== null} onOpenChange={(open) => { if (!open) setDeleteFromDBConfirmId(null); }}>
-      <DialogContent
-        onInteractOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Remove from database too?</DialogTitle>
-          <DialogDescription>Member removed from ClickUp. Do you also want to delete them from the database?</DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-          <Button variant="outline" onClick={() => setDeleteFromDBConfirmId(null)}>No</Button>
-          <Button variant="destructive" onClick={async () => {
-            if (deleteFromDBConfirmId !== null) {
-              await onDelete(deleteFromDBConfirmId);
-              setDeleteFromDBConfirmId(null);
-            }
-          }}>Yes, delete</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Invite to ClickUp?</DialogTitle>
+            <DialogDescription>Member added successfully. Do you want to also invite them to ClickUp?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setInviteToClickUpMemberDialog(false)}>No</Button>
+            <Button onClick={() => { setInviteToClickUpMemberDialog(false); setRoleDialogOpen(true); }}>Yes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Select ClickUp Role</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            {[
+              { label: 'Member', value: ClickUpMemberRole.NUMBER_4 },
+              { label: 'Admin', value: ClickUpMemberRole.NUMBER_3 },
+              { label: 'Owner', value: ClickUpMemberRole.NUMBER_2 },
+              { label: 'Guest', value: ClickUpMemberRole.NUMBER_5 },
+            ].map(r => (
+              <Button
+                key={r.value}
+                variant={selectedRole === r.value ? 'default' : 'outline'}
+                className="w-full"
+                onClick={() => setSelectedRole(r.value)}
+              >
+                {r.label}
+              </Button>
+            ))}
+          </div>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setRoleDialogOpen(false)}>Cancel</Button>
+            <Button onClick={async () => {
+              if (memeberMail) {
+                await onInviteToClickUp(memeberMail, selectedRole);
+              }
+              setRoleDialogOpen(false);
+              setMemberMail(null);
+            }}>Invite</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteFromDBConfirmId !== null} onOpenChange={(open) => { if (!open) setDeleteFromDBConfirmId(null); }}>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Remove from database too?</DialogTitle>
+            <DialogDescription>Member removed from ClickUp. Do you also want to delete them from the database?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setDeleteFromDBConfirmId(null)}>No</Button>
+            <Button variant="destructive" onClick={async () => {
+              if (deleteFromDBConfirmId !== null) {
+                await onDelete(deleteFromDBConfirmId);
+                setDeleteFromDBConfirmId(null);
+              }
+            }}>Yes, delete</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

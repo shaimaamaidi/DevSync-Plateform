@@ -10,7 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { CheckCircle2, Loader2, X, List, FolderOpen, FolderPlus, AlertCircle } from 'lucide-react';
+import { 
+  CheckCircle2, 
+  Loader2, 
+  X, 
+  List, 
+  FolderOpen, 
+  FolderPlus, 
+  AlertCircle 
+} from 'lucide-react';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
 import { useCreateList } from '@/hooks/clickup-structure-hooks/use-create-list';
 import { useCreateFolder } from '@/hooks/clickup-structure-hooks/use-create-folder';

@@ -1,4 +1,10 @@
-import type { ClickUpListMetadata, ClickUpTask, FolderWithListsMetadata, MemberDTO, UpdateTaskRequest } from "@/api/api";
+import type { 
+  ClickUpListMetadata, 
+  ClickUpTask, 
+  FolderWithListsMetadata, 
+  MemberDTO, 
+  UpdateTaskRequest 
+} from "@/api/api";
 import { AddStatusForm } from "./add-status-from";
 import { Loader2, Pen, Trash2 } from "lucide-react";
 import { Button } from "./button";
@@ -35,16 +41,16 @@ interface TaskCardProps {
   busy: boolean;
 }
 
-export function parseAssignees(raw: string | null | undefined): string[] {
+function parseAssignees(raw: string | null | undefined): string[] {
   return raw ? raw.split(',').map((s) => s.trim()).filter(Boolean) : [];
 }
 
 function buildInitialDraft(task: ClickUpTask): TaskDraft {
   return {
     name: task.name,
-    description: task.description,
-    status: task.status,
-    priority: task.priority ?? '',
+    description: task.description ?? "",
+    status: task.status ?? "",
+    priority: task.priority ?? "",
     assignees: parseAssignees(task.assignee),
   };
 }
@@ -78,9 +84,11 @@ export function TaskCard({
   const [showAddStatus, setShowAddStatus] = useState(false);
   const [localStatuses, setLocalStatuses] = useState<string[]>(statuses);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string }>({});
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; description?: string; form?: string }>({});
 
   const [draft, setDraft] = useState<TaskDraft>(() => buildInitialDraft(task));
+  const isDirty = isDraftDirty(draft, task);
+  const canSave = !saving && !busy;
 
   useEffect(() => setLocalStatuses(statuses), [statuses]);
 
@@ -98,7 +106,12 @@ export function TaskCard({
     };
 
   const validate = (): boolean => {
-    const errors: { name?: string; description?: string } = {};
+    setFieldErrors({});
+    const errors: { name?: string; description?: string; form?: string } = {};
+
+    if (editing && isDirty){
+      errors.form = 'No changes to update';
+    }
     if (!draft.name?.trim()) {
       errors.name = 'Task name cannot be empty.';
     }
@@ -109,12 +122,12 @@ export function TaskCard({
     return Object.keys(errors).length === 0;
   };
 
-  const dirty = isDraftDirty(draft, task);
-  const canSave = dirty && !saving && !busy;
-
   const handleSave = async () => {
-    if (!validate()) return;
+    if (!validate()) 
+      return;
+
     setSaving(true);
+
     await onSave({
       name: draft.name,
       description: draft.description,
@@ -123,6 +136,7 @@ export function TaskCard({
       assignees: draft.assignees.length > 0 ? draft.assignees.join(',') : null,
       old_assignees: task.assignee ?? null,
     });
+
     setSaving(false);
     setEditing(false);
   };
@@ -214,25 +228,30 @@ export function TaskCard({
               </div>
             </div>
 
-            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-1">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-                disabled={saving || busy}
-                className="w-full sm:w-auto"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={!canSave}
-                className="w-full sm:w-auto"
-              >
-                {saving && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
-                Save
-              </Button>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 pt-1">
+              {fieldErrors.form ? (
+                <div className="text-destructive text-sm self-center">{fieldErrors.form}</div>
+              ) : <div />}
+              <div className="flex flex-col-reverse sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                  disabled={saving || busy}
+                  className="w-full sm:w-auto"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={!canSave}
+                  className="w-full sm:w-auto"
+                >
+                  {saving && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+                  Save
+                </Button>
+              </div>
             </div>
           </div>
         ) : (

@@ -29,7 +29,7 @@ import {
   extractAssigneeListFromError
 } from '@/utils/error-handler';
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
-import type { GeneratedTask, VerifiedTask } from '@/api/api';
+import type { GeneratedTaskFromSummary, VerifiedTaskFromSummary } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
 import { taskGenerationService } from '@/services/task-generation-from-summary-service';
@@ -58,9 +58,9 @@ export function MeetingTaskManager() {
   const { structure, loading: structureLoading, isStructureEmpty, isFetching} = useClickUpStructure(selectedSpaceId);
   const [realIsStructureEmpty, setRealIsStructureEmpty] = useState(true);
 
-  const [generatedTasks, setGeneratedTasks] = useState<GeneratedTask[]>([]);
+  const [generatedTasks, setGeneratedTasks] = useState<GeneratedTaskFromSummary[]>([]);
   const pendingGenerateRef = useRef(false);
-  const [verifiedTasks, setVerifiedTasks] = useState<VerifiedTask[]>([]);
+  const [verifiedTasks, setVerifiedTasks] = useState<VerifiedTaskFromSummary[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -84,7 +84,7 @@ export function MeetingTaskManager() {
   const hasStarted = generatedTasks.length > 0 || verifiedTasks.length > 0 || isGenerating || isVerifying;
 
 
-  const allTasksHaveLocation = (tasks: GeneratedTask[] | VerifiedTask[]) =>
+  const allTasksHaveLocation = (tasks: GeneratedTaskFromSummary[] | VerifiedTaskFromSummary[]) =>
     tasks.every(t => t.location?.trim().length > 0);
 
   const resetProcess = () => {
@@ -250,7 +250,7 @@ export function MeetingTaskManager() {
       setIsVerificationFinished(true);
       showSuccessToast('Click up task verified successfully');
       if (result?.tasks) {
-        setVerifiedTasks(result.tasks as unknown as VerifiedTask[]);
+        setVerifiedTasks(result.tasks as unknown as VerifiedTaskFromSummary[]);
       }
     }
     setIsVerifying(false);
@@ -264,7 +264,7 @@ export function MeetingTaskManager() {
     try {
       const result = await saveInClickupService.saveTasks(
         selectedSpaceId,
-        verifiedTasks as unknown as VerifiedTask[],
+        verifiedTasks as unknown as VerifiedTaskFromSummary[],
         { ignoreNames, ignoreMails },
       );
 
@@ -296,7 +296,7 @@ export function MeetingTaskManager() {
   const handleIgnoreNames = () => { setAssigneeDialog({ open: false }); executeSave(true, false); };
   const handleIgnoreMails = () => { setAssigneeDialog({ open: false }); executeSave(true, true); };
 
-  const handleDropFromGenerated = (task: GeneratedTask) => {
+  const handleDropFromGenerated = (task: GeneratedTaskFromSummary) => {
     if (realIsStructureEmpty)
       return;
     if (!isVerificationFinished) 

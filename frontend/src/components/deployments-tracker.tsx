@@ -120,7 +120,7 @@ export function DeploymentsTracker({
         </div>
       </div>
       {isLoading ? (
-        <Card className="p-6 border-border overflow-x-auto">
+        <Card className="p-6 border-border overflow-x-auto overflow-y-auto max-h-[480px] max-w-full">
           <table className="w-full min-w-[500px]">
             <tbody>
               {Array.from({ length: 4 }).map((_, i) => (

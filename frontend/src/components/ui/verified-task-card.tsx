@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Trash2, Pen, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { VerifiedTask, FolderWithListsMetadata, ClickUpListMetadata } from '@/api/api';
+import type { VerifiedTaskFromSummary, FolderWithListsMetadata, ClickUpListMetadata } from '@/api/api';
 import { EditableField } from './editable-field';
 import { AssigneeField } from './assignee-field';
 import { LocationField } from './location-field';
@@ -17,9 +17,9 @@ import { priorityConfig } from '@/lib/priority';
 
 
 interface Props {
-  task: VerifiedTask;
+  task: VerifiedTaskFromSummary;
   onDelete: () => void;
-  onUpdate: (updated: VerifiedTask) => void;
+  onUpdate: (updated: VerifiedTaskFromSummary) => void;
   structure: FolderWithListsMetadata[];
   structureLoading: boolean;
   spaceId: string;
@@ -37,7 +37,7 @@ export function VerifiedTaskCard({
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<VerifiedTask>(task);
+  const [draft, setDraft] = useState<VerifiedTaskFromSummary>(task);
   const [currentStatuses, setCurrentStatuses] = useState<string[]>([]);
   const [currentPriorities, setCurrentPriorities] = useState<string[]>([]);
   const [showAddStatus, setShowAddStatus] = useState(false);
@@ -58,7 +58,7 @@ export function VerifiedTaskCard({
 
   const cfg = priorityConfig(task.task_priority);
 
-  const set = (key: keyof VerifiedTask) => (value: string) =>
+  const set = (key: keyof VerifiedTaskFromSummary) => (value: string) =>
     setDraft(prev => ({ ...prev, [key]: value }));
 
   const handleLocationChange = (

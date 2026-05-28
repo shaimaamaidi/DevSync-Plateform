@@ -1,13 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
-import type { FolderWithListsMetadata, GeneratedTask } from '@/api/api';
+import type { FolderWithListsMetadata, GeneratedTaskFromSummary } from '@/api/api';
 import { GeneratedTaskCard } from './ui/generated-task-card';
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 
 interface Props {
-  tasks: GeneratedTask[];
+  tasks: GeneratedTaskFromSummary[];
   isLoading: boolean;
-  onUpdate: (index: number, updated: GeneratedTask) => void;
+  onUpdate: (index: number, updated: GeneratedTaskFromSummary) => void;
   onDelete: (index: number) => void;
   onVerify: () => void;
   isVerifying: boolean;
@@ -45,7 +45,7 @@ export function GeneratedTaskList({
         )}
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="max-h-[480px] overflow-y-auto overflow-x-auto flex flex-col gap-2 pr-1 max-w-full">
         {isLoading
           ?  Array.from({ length: 3 }).map((_, i) => <TaskSkeletonCard key={i} />)
           : tasks.map((task, i) => (
@@ -63,6 +63,12 @@ export function GeneratedTaskList({
               />
             ))}
       </div>
+
+      {!isLoading && tasks.length === 0 &&(
+        <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
+          <p>No tasks could be extracted from this summary.</p>
+        </div>
+      )}
 
       {!isLoading && tasks.length > 0 && (
         <div className="flex flex-wrap items-center justify-end gap-2 pt-1">

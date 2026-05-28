@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Trash2, GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { FolderWithListsMetadata, GeneratedTask } from '@/api/api';
+import type { FolderWithListsMetadata, GeneratedTaskFromSummary } from '@/api/api';
 import { AssigneeAvatars } from '../ui/assignees-avatar';
 import { CreateListForm } from './create-list-form';
 import { buildLocationWithMetadataOptions } from '@/lib/location';
@@ -10,9 +10,9 @@ import { priorityConfig } from '@/lib/priority';
 
 
 interface Props {
-  task: GeneratedTask;
+  task: GeneratedTaskFromSummary;
   onDelete: () => void;
-  onUpdate: (updated: GeneratedTask) => void; 
+  onUpdate: (updated: GeneratedTaskFromSummary) => void; 
   structure: FolderWithListsMetadata[];        
   structureLoading: boolean;                   
   spaceId: string;    

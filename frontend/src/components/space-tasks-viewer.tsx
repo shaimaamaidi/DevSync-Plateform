@@ -132,6 +132,7 @@ export function SpaceTasksViewer() {
 
   const handleDelete = async (taskId: string) => {
     setBusy(true);
+
     const result = await withErrorHandling(
       () => clickupTaskManagementService.deleteTask(taskId),
       'Delete click up task',
@@ -144,6 +145,7 @@ export function SpaceTasksViewer() {
       }));
       showSuccessToast('Click up task deleted successfully');
     }
+
     setBusy(false);
   };
 
@@ -154,6 +156,7 @@ export function SpaceTasksViewer() {
       ignoreMails = false,
     ) => {
       setBusy(true);
+
       try {
         const updated = await clickupTaskManagementService.updateTask(spaceId!, {
           ...req,
@@ -335,40 +338,41 @@ export function SpaceTasksViewer() {
                     />,
                     document.body
                   )}
+                  <div className="max-h-[480px] overflow-y-auto overflow-x-auto space-y-3 pr-1 max-w-full">
+                    {currentTasks.length === 0 && !showAddForm ? (
+                      <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
+                        No tasks yet — add manually
+                      </div>
+                    ) : (
+                      currentTasks.map((task) =>
+                        task.id ? (
+                          <TaskCard
+                            key={task.id}
+                            task={task}
+                            statuses={statuses}
+                            priorities={priorities}
+                            structureForFields={emptyStructureForFields}
+                            structureLoading={false}
+                            listId={selectedListId}
+                            spaceId={spaceId!}
+                            members={members}
+                            membersLoading={membersLoading}
+                            busy={busy}
+                            onDelete={() => task.id && handleDelete(task.id)}
+                            onSave={(req) =>
+                              task.id ? handleUpdate(task.id, req) : Promise.resolve()
+                            }
+                          />
+                        ) : null,
+                      )
+                    )}
 
-                  {currentTasks.length === 0 && !showAddForm ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">
-                      No tasks yet — add manually
-                    </div>
-                  ) : (
-                    currentTasks.map((task) =>
-                      task.id ? (
-                        <TaskCard
-                          key={task.id}
-                          task={task}
-                          statuses={statuses}
-                          priorities={priorities}
-                          structureForFields={emptyStructureForFields}
-                          structureLoading={false}
-                          listId={selectedListId}
-                          spaceId={spaceId!}
-                          members={members}
-                          membersLoading={membersLoading}
-                          busy={busy}
-                          onDelete={() => task.id && handleDelete(task.id)}
-                          onSave={(req) =>
-                            task.id ? handleUpdate(task.id, req) : Promise.resolve()
-                          }
-                        />
-                      ) : null,
-                    )
-                  )}
-
-                  {!dataLoading && selectedListId && (
-                    <p className="text-xs text-muted-foreground pt-2">
-                      {currentTasks.length} task{currentTasks.length !== 1 ? 's' : ''}
-                    </p>
-                  )}
+                    {!dataLoading && selectedListId && (
+                      <p className="text-xs text-muted-foreground pt-2">
+                        {currentTasks.length} task{currentTasks.length !== 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </>

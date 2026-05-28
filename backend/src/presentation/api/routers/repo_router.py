@@ -111,7 +111,7 @@ def add_repo(repo: GitRepoCreateDTO, container: PersistenceContainer = Depends(g
         repo.url,
     )
 
-    result = container.repo_service.add_repo(repo)
+    result = container.create_github_repo_use_case.execute(repo)
 
     logger.info(
         "Repository successfully saved: id=%s, url=%s.",

@@ -103,7 +103,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         if priority is not None:
             payload["priority"] = priority
 
-        if task.status:
+        if task.status is not None:
             payload["status"] = task.status
 
         assignee_ids = []
@@ -184,7 +184,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         if priority is not None:
             payload["priority"] = priority
 
-        if task_content.status:
+        if task_content.status is not None:
             payload["status"] = task_content.status
 
         added_ids = []
@@ -702,7 +702,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             payload["name"] = result.task_name
             payload["description"] = result.task_description
 
-        if result.task_status:
+        if result.task_status is not None:
             payload["status"] = result.task_status
 
         priority = priority_to_str(result.task_priority)

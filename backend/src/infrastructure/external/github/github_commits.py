@@ -32,15 +32,6 @@ class GitHubCommitsAdapter(BaseGitHubClient, IGitHubCommitService):
     - Supporting task/status analysis based on Git history
     """
 
-    def __init__(self):
-        """
-        Initialize the GitHubCommitsAdapter.
-
-        Inherits configuration and GitHub client setup from BaseGitHubClient.
-        """
-        BaseGitHubClient.__init__(self)
-        IGitHubCommitService.__init__(self)
-
     async def get_commits_between_dates(
             self,
             repo_url: str,
