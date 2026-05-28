@@ -9,6 +9,8 @@ interface ChatMessageProps {
   streamingText?: string;
   onMarketSubmit?: (data: any) => void;
   onBacklogSubmit?: (data: any) => void;
+  onClickUpYes?: (data: any) => void;
+  onClickUpNo?: (data: any) => void;
 }
 
 export function ChatMessage({
@@ -16,6 +18,8 @@ export function ChatMessage({
   streamingText = "",
   onMarketSubmit,
   onBacklogSubmit,
+  onClickUpYes,
+  onClickUpNo,
 }: ChatMessageProps) {
   const isUser = message.role === "user";
   const isRejection = message.isRejection;
@@ -72,6 +76,8 @@ export function ChatMessage({
               attachment={message.attachment}
               onMarketSubmit={onMarketSubmit}
               onBacklogSubmit={onBacklogSubmit}
+              onClickUpYes={onClickUpYes}
+              onClickUpNo={onClickUpNo}
             />
           )}
         </div>

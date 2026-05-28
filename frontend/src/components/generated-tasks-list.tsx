@@ -1,13 +1,14 @@
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
-import type { FolderWithListsMetadata, GeneratedTaskFromSummary } from '@/api/api';
+import type { FolderWithListsMetadata } from '@/api/api';
 import { GeneratedTaskCard } from './ui/generated-task-card';
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
+import type { TaskGenerationDTO } from '@/types/clickup';
 
 interface Props {
-  tasks: GeneratedTaskFromSummary[];
+  tasks: TaskGenerationDTO[];
   isLoading: boolean;
-  onUpdate: (index: number, updated: GeneratedTaskFromSummary) => void;
+  onUpdate: (index: number, updated: TaskGenerationDTO) => void;
   onDelete: (index: number) => void;
   onVerify: () => void;
   isVerifying: boolean;
@@ -17,6 +18,7 @@ interface Props {
   spaceId: string;
   isVerificationFinished: boolean;
   disabled: boolean;
+  showEstimation?: boolean;
 }
 
 export function GeneratedTaskList({
@@ -32,6 +34,7 @@ export function GeneratedTaskList({
   spaceId,
   isVerificationFinished,
   disabled,
+  showEstimation = false,
 }: Props) {
   return (
     <div className="space-y-3">
@@ -60,6 +63,7 @@ export function GeneratedTaskList({
                 isVerificationFinished={isVerificationFinished}
                 disabled ={disabled}
                 isVerifying={isVerifying}
+                showEstimation={showEstimation}
               />
             ))}
       </div>

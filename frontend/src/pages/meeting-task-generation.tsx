@@ -32,7 +32,7 @@ import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { GeneratedTaskFromSummary, VerifiedTaskFromSummary } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
-import { taskGenerationService } from '@/services/task-generation-from-summary-service';
+import { taskGenerationService } from '@/services/task-generation-service';
 import { taskVerificationService } from '@/services/task-verification-service';
 import { saveInClickupService } from '@/services/save-in-clickup-service';
 import { GeneratedTaskList } from '@/components/generated-tasks-list';
@@ -40,6 +40,7 @@ import { VerifiedTaskList } from '@/components/verified-tasks-list';
 import { SpaceSetupForm } from '@/components/ui/space-setup-form';
 import { StepHeader } from '@/components/ui/step-header';
 import { createPortal } from 'react-dom';
+import type { TaskGenerationDTO } from '@/types/clickup';
 
 type AssigneeDialogState =
   | { open: false }
@@ -242,15 +243,26 @@ export function MeetingTaskManager() {
     setSavedOk(false);
 
     const result = await withErrorHandling(
-      () => taskVerificationService.verifyTasks(selectedSpaceId, generatedTasks),
+      () => taskVerificationService.verifyTasksFromSummary(selectedSpaceId, generatedTasks as GeneratedTaskFromSummary[]),
       'Verify tasks generated from summary',
       onError(),
     );
     if (result){
       setIsVerificationFinished(true);
       showSuccessToast('Click up task verified successfully');
-      if (result?.tasks) {
-        setVerifiedTasks(result.tasks as unknown as VerifiedTaskFromSummary[]);
+      if (result.tasks) {
+        setVerifiedTasks(
+          result.tasks.map(t => ({
+          action: t.action,
+          task_name: t.task_name,
+          task_description: t.task_description,
+          task_assigne: t.task_assigne,
+          task_status: t.task_status,
+          task_priority: t.task_priority,
+          location: t.location,
+          task_id: t.task_id,
+          })),  
+        );
       }
     }
     setIsVerifying(false);
@@ -262,9 +274,9 @@ export function MeetingTaskManager() {
     setIsSaving(true);
 
     try {
-      const result = await saveInClickupService.saveTasks(
+      const result = await saveInClickupService.saveTasksFromSummary(
         selectedSpaceId,
-        verifiedTasks as unknown as VerifiedTaskFromSummary[],
+        verifiedTasks as VerifiedTaskFromSummary[],
         { ignoreNames, ignoreMails },
       );
 
@@ -296,14 +308,16 @@ export function MeetingTaskManager() {
   const handleIgnoreNames = () => { setAssigneeDialog({ open: false }); executeSave(true, false); };
   const handleIgnoreMails = () => { setAssigneeDialog({ open: false }); executeSave(true, true); };
 
-  const handleDropFromGenerated = (task: GeneratedTaskFromSummary) => {
+  const handleDropFromGenerated = (task: TaskGenerationDTO) => {
+    const t = task as GeneratedTaskFromSummary;
+    
     if (realIsStructureEmpty)
       return;
     if (!isVerificationFinished) 
       return;
 
     const sameTitle = verifiedTasks.find(
-      v => v.task_name.trim().toLowerCase() === task.task_name.trim().toLowerCase(),
+      v => v.task_name.trim().toLowerCase() === t.task_name.trim().toLowerCase(),
     );
 
     if (sameTitle) {
@@ -315,12 +329,12 @@ export function MeetingTaskManager() {
       ...prev,
       {
         action: 'create',
-        task_name: task.task_name,
-        task_description: task.task_description,
-        task_assigne: task.task_assigne,
-        task_status: task.task_status,
-        task_priority: task.task_priority,
-        location: task.location,
+        task_name: t.task_name,
+        task_description: t.task_description,
+        task_assigne: t.task_assigne,
+        task_status: t.task_status,
+        task_priority: t.task_priority,
+        location: t.location,
       },
     ]);
   };
@@ -497,6 +511,7 @@ export function MeetingTaskManager() {
                       spaceId={selectedSpaceId}
                       isVerificationFinished={isVerificationFinished}
                       disabled={disabledAll}
+                      showEstimation={false}
                     />
                   )}
                 </div>
@@ -532,6 +547,7 @@ export function MeetingTaskManager() {
                       isStructureEmpty={isStructureEmpty}
                       canSave={allTasksHaveLocation(verifiedTasks)}
                       disabled={disabledAll}
+                      showEstimation={false}
                     />
                   )}
                 </div>
@@ -570,6 +586,7 @@ export function MeetingTaskManager() {
                         isStructureEmpty={isStructureEmpty}
                         canSave={allTasksHaveLocation(verifiedTasks)}
                         disabled={disabledAll}
+                        showEstimation={false}
                       />
                     )}
                   </div>

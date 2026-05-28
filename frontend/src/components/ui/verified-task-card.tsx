@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Trash2, Pen, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { VerifiedTaskFromSummary, FolderWithListsMetadata, ClickUpListMetadata } from '@/api/api';
+import type { FolderWithListsMetadata, ClickUpListMetadata } from '@/api/api';
 import { EditableField } from './editable-field';
 import { AssigneeField } from './assignee-field';
 import { LocationField } from './location-field';
@@ -14,16 +14,18 @@ import { AssigneeAvatars } from './assignees-avatar';
 import { ActionBadge } from './action-badge';
 import { buildLocationWithMetadataOptions } from '@/lib/location';
 import { priorityConfig } from '@/lib/priority';
+import type { TaskVerificationDTO } from '@/types/clickup';
 
 
 interface Props {
-  task: VerifiedTaskFromSummary;
+  task: TaskVerificationDTO;
   onDelete: () => void;
-  onUpdate: (updated: VerifiedTaskFromSummary) => void;
+  onUpdate: (updated: TaskVerificationDTO) => void;
   structure: FolderWithListsMetadata[];
   structureLoading: boolean;
   spaceId: string;
   disabled: boolean;
+  showEstimation?: boolean;
 }
 
 export function VerifiedTaskCard({
@@ -34,10 +36,11 @@ export function VerifiedTaskCard({
   structureLoading,
   spaceId,
   disabled,
+  showEstimation = false,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<VerifiedTaskFromSummary>(task);
+  const [draft, setDraft] = useState<TaskVerificationDTO>(task);
   const [currentStatuses, setCurrentStatuses] = useState<string[]>([]);
   const [currentPriorities, setCurrentPriorities] = useState<string[]>([]);
   const [showAddStatus, setShowAddStatus] = useState(false);
@@ -58,7 +61,7 @@ export function VerifiedTaskCard({
 
   const cfg = priorityConfig(task.task_priority);
 
-  const set = (key: keyof VerifiedTaskFromSummary) => (value: string) =>
+  const set = (key: keyof TaskVerificationDTO) => (value: string) =>
     setDraft(prev => ({ ...prev, [key]: value }));
 
   const handleLocationChange = (
@@ -116,6 +119,20 @@ export function VerifiedTaskCard({
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {showEstimation && 'estimation' in draft && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Estimation</p>
+                  <input
+                    type="number"
+                    min={0}
+                    value={draft.estimation}
+                    onChange={e => setDraft(prev => ({ ...prev, estimation: Number(e.target.value) }))}
+                    disabled={disabled}
+                    className="w-full text-sm border border-border rounded-md px-2 py-1 bg-background"
+                  />
+                </div>
+              )}
+              
               <div className="col-span-1 sm:col-span-2">
                 <p className="text-xs text-muted-foreground mb-1">Assignees</p>
                 <AssigneeField

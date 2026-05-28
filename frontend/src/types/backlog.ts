@@ -83,8 +83,8 @@ export interface ChatMessage {
 }
 
 export interface ChatAttachment {
-  type: "market" | "submitted" | "backlog" | "sprint";
-  data?: MarketSummary | UiEpic[] | UiSprint[] | undefined;
+  type: "market" | "submitted" | "backlog" | "sprint" | "clickup_prompt";
+  data?: MarketSummary | UiEpic[] | UiSprint[] | any | undefined;
   editable?: boolean;
   mode?: "validation" | "backlog_generation" | "backlog_refinement" | "backlog_finishing";
 }

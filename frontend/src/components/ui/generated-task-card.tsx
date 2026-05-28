@@ -2,23 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Trash2, GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { FolderWithListsMetadata, GeneratedTaskFromSummary } from '@/api/api';
+import type { FolderWithListsMetadata } from '@/api/api';
 import { AssigneeAvatars } from '../ui/assignees-avatar';
 import { CreateListForm } from './create-list-form';
 import { buildLocationWithMetadataOptions } from '@/lib/location';
 import { priorityConfig } from '@/lib/priority';
+import type { TaskGenerationDTO } from '@/types/clickup';
 
 
 interface Props {
-  task: GeneratedTaskFromSummary;
+  task: TaskGenerationDTO;
   onDelete: () => void;
-  onUpdate: (updated: GeneratedTaskFromSummary) => void; 
+  onUpdate: (updated: TaskGenerationDTO) => void; 
   structure: FolderWithListsMetadata[];        
   structureLoading: boolean;                   
   spaceId: string;    
   isVerificationFinished: boolean; 
   disabled: boolean; 
   isVerifying: boolean;
+  showEstimation?: boolean;
 }
 
 export function GeneratedTaskCard({
@@ -31,6 +33,7 @@ export function GeneratedTaskCard({
   isVerificationFinished,
   disabled,
   isVerifying,
+  showEstimation = false,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -69,7 +72,6 @@ export function GeneratedTaskCard({
 
           <div className="flex-1 min-w-0" onClick={() => setExpanded(p => !p)}>
             <p className="text-sm font-medium break-words">{task.task_name}</p>
-
             <p
               className={`text-sm text-muted-foreground mt-1 break-words ${
                 expanded ? '' : 'line-clamp-2'
@@ -79,6 +81,12 @@ export function GeneratedTaskCard({
             </p>
 
             <div className="flex items-center gap-2 mt-3 flex-wrap">
+              {showEstimation && 'estimation' in task && (
+                <span className="text-xs px-2 py-0.5 rounded-md border bg-blue-50 text-blue-700 border-blue-200 shrink-0">
+                  {task.estimation} pts
+                </span>
+              )}
+
               <AssigneeAvatars value={task.task_assigne} />
 
               <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${

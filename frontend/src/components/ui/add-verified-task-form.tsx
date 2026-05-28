@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { AlertCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { ClickUpListMetadata, VerifiedTaskFromSummary } from '@/api/api';
-import { VerifiedTaskFromSummaryActionEnum } from '@/api/api';
+import type { ClickUpListMetadata } from '@/api/api';
+import { 
+  VerifiedTaskFromBacklogActionEnum, 
+  VerifiedTaskFromSummaryActionEnum 
+} from '@/api/api';
 import { EditableField } from './editable-field';
 import { AssigneeField } from './assignee-field';
 import { LocationField } from './location-field';
@@ -12,28 +15,48 @@ import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup
 import { CreateListForm } from './create-list-form';
 import { AddStatusForm } from './add-status-from';
 import { createPortal } from 'react-dom';
+import type { TaskVerificationDTO } from '@/types/clickup';
 
-const EMPTY_TASK: VerifiedTaskFromSummary = {
-  action: VerifiedTaskFromSummaryActionEnum.Create,
-  task_name: '',
-  task_description: '',
-  task_assigne: '',
-  task_status: '',
-  task_priority: '',
-  location: '',
-};
+const makeEmptyTask = (withEstimation: boolean): TaskVerificationDTO =>
+  withEstimation
+    ? {
+        action: VerifiedTaskFromBacklogActionEnum.Create,
+        task_name: '',
+        task_description: '',
+        task_assigne: '',
+        task_status: '',
+        task_priority: '',
+        location: '',
+        estimation: 0,
+      }
+    : {
+        action: VerifiedTaskFromSummaryActionEnum.Create,
+        task_name: '',
+        task_description: '',
+        task_assigne: '',
+        task_status: '',
+        task_priority: '',
+        location: '',
+      };
 
 interface Props {
   isOpen: boolean;
-  onAdd: (t: VerifiedTaskFromSummary) => void;
+  onAdd: (t: TaskVerificationDTO) => void;
   onCancel: () => void;
   spaceId: string;
+  showEstimation?: boolean;
 }
 
-export function AddVerifiedTaskForm({ isOpen, onAdd, onCancel, spaceId }: Props) {
+export function AddVerifiedTaskForm({ 
+  isOpen, 
+  onAdd, 
+  onCancel, 
+  spaceId,
+  showEstimation = false,
+}: Props) {
   const { structure, loading: structureLoading } = useClickUpStructure(spaceId);
 
-  const [draft, setDraft] = useState<VerifiedTaskFromSummary>(EMPTY_TASK);
+  const [draft, setDraft] = useState<TaskVerificationDTO>(makeEmptyTask(showEstimation));
   const [currentStatuses, setCurrentStatuses] = useState<string[]>([]);
   const [currentPriorities, setCurrentPriorities] = useState<string[]>([]);
   const locationNotSelected = !draft.location;
@@ -43,7 +66,7 @@ export function AddVerifiedTaskForm({ isOpen, onAdd, onCancel, spaceId }: Props)
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const set = (key: keyof VerifiedTaskFromSummary) => (value: string) =>
+  const set = (key: keyof TaskVerificationDTO) => (value: string) =>
     setDraft(prev => ({ ...prev, [key]: value }));
 
   const validate = (): boolean => {
@@ -119,6 +142,19 @@ export function AddVerifiedTaskForm({ isOpen, onAdd, onCancel, spaceId }: Props)
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {showEstimation && 'estimation' in draft && (
+              <div className="col-span-1 sm:col-span-2">
+                <p className="text-xs text-muted-foreground mb-1">Estimation</p>
+                <input
+                  type="number"
+                  min={0}
+                  value={draft.estimation}
+                  onChange={e => setDraft(prev => ({ ...prev, estimation: Number(e.target.value) }))}
+                  className="w-full text-sm border border-border rounded-md px-2 py-1 bg-background"
+                />
+              </div>
+            )}
+            
             <div className="col-span-1 sm:col-span-2">
               <p className="text-xs text-muted-foreground mb-1">Assignees</p>
               <AssigneeField

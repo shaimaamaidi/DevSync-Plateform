@@ -330,7 +330,14 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
           content: agentText || "Sprint planning generated.",
           ...(sprintData ? { attachment: { type: "sprint", data: sprintData } } : {}),
         });
-        if (!sprintData) {
+
+        if (sprintData) {
+          addMsg({
+            role: "agent",
+            content: "",
+            attachment: { type: "clickup_prompt", data: sprintData },
+          });
+        } else {
           onNavigate?.("/backlog", { state: { epics: backlogToUi(lastBacklogPayloadRef.current!) } });
         }
       } else if (correctedBacklogPayload) {
@@ -360,6 +367,18 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     }
   };
 
+  const handleClickUpYes = (sprintData: any) => {
+    localStorage.setItem('sprint_backlog', JSON.stringify(sprintData));
+    onNavigate?.('/backlog-tasks');
+  };
+
+  const handleClickUpNo = () => {
+    addMsg({
+      role: "agent",
+      content: "This chat session has ended. If you'd like to create a new backlog, click the button at the top right of the conversation.",
+    });
+  };
+
   return {
     messages,
     input,
@@ -373,6 +392,8 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     handleSend,
     handleMarketSubmit,
     handleBacklogSubmit,
+    handleClickUpYes,
+    handleClickUpNo,
   };
 }
 

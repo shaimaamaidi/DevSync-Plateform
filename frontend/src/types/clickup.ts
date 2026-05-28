@@ -1,4 +1,10 @@
-import type { ClickUpList } from "@/api/api";
+import type { ClickUpList, GeneratedTaskFromBacklog, GeneratedTaskFromSummary, VerifiedTaskFromBacklog, VerifiedTaskFromSummary } from "@/api/api";
+
+
+export type TaskGenerationDTO = GeneratedTaskFromSummary | GeneratedTaskFromBacklog;
+
+export type TaskVerificationDTO = VerifiedTaskFromSummary | VerifiedTaskFromBacklog;
+
 
 export interface TaskDraft {
   name: string;

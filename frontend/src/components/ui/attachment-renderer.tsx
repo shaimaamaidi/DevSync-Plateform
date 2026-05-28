@@ -4,7 +4,13 @@ import { BacklogCard } from "./backlog-card";
 import { SprintCard } from "./sprint-card";
 import type { UiSprint } from "@/types/backlog";
 
-export function AttachmentRenderer({ attachment, onMarketSubmit, onBacklogSubmit }: any) {
+export function AttachmentRenderer({ 
+  attachment, 
+  onMarketSubmit, 
+  onBacklogSubmit ,
+  onClickUpYes,
+  onClickUpNo,
+}: any) {
   if (!attachment) return null;
 
   if (attachment.type === "market") {
@@ -46,6 +52,30 @@ export function AttachmentRenderer({ attachment, onMarketSubmit, onBacklogSubmit
 
   if (attachment.type === "sprint") {
     return <SprintCard data={attachment.data as UiSprint[]} />;
+  }
+
+  if (attachment.type === "clickup_prompt") {
+    return (
+      <div className="mt-3 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-3">
+        <p className="text-[13px] text-slate-700 leading-relaxed">
+          Would you like to save this sprint backlog as tasks in your ClickUp space?
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onClickUpYes?.(attachment.data)}
+            className="px-4 py-1.5 text-[12px] font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+          >
+            Yes
+          </button>
+          <button
+            onClick={() => onClickUpNo?.()}
+            className="px-4 py-1.5 text-[12px] font-medium bg-white text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            No
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return null;

@@ -18,6 +18,8 @@ export function BacklogGenerationChat() {
     handleSend,
     handleMarketSubmit,
     handleBacklogSubmit,
+    handleClickUpYes,
+    handleClickUpNo,
   } = useChatLogic();
 
   const isMobile = useIsMobile();
@@ -68,6 +70,8 @@ export function BacklogGenerationChat() {
                 streamingText={streamingText}
                 onMarketSubmit={handleMarketSubmit}
                 onBacklogSubmit={handleBacklogSubmit}
+                onClickUpYes={handleClickUpYes}
+                onClickUpNo={handleClickUpNo}
               />
             ))
           )}

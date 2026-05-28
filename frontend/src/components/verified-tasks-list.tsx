@@ -2,21 +2,20 @@ import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Plus, Save, Check } from 'lucide-react';
-import type { 
-  GeneratedTaskFromSummary, 
-  VerifiedTaskFromSummary, 
+import type {  
   FolderWithListsMetadata 
 } from '@/api/api';
 import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
 import { AddVerifiedTaskForm } from './ui/add-verified-task-form';
 import { VerifiedTaskCard } from './ui/verified-task-card';
+import type { TaskGenerationDTO, TaskVerificationDTO } from '@/types/clickup';
  
 
 interface Props {
-  tasks: VerifiedTaskFromSummary[];
+  tasks: TaskVerificationDTO[];
   isLoading: boolean;
-  onChange: (tasks: VerifiedTaskFromSummary[]) => void;
-  onDrop: (task: GeneratedTaskFromSummary) => void;
+  onChange: (tasks: TaskVerificationDTO[]) => void;
+  onDrop: (task: TaskGenerationDTO) => void;
   onSave: () => void;
   isSaving: boolean;
   savedOk: boolean;
@@ -26,6 +25,7 @@ interface Props {
   structureLoading: boolean;
   isStructureEmpty: boolean;
   disabled: boolean;
+  showEstimation?: boolean;
 }
 
 export function VerifiedTaskList({
@@ -42,6 +42,7 @@ export function VerifiedTaskList({
   structureLoading,
   isStructureEmpty,
   disabled,
+  showEstimation = false,
 }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -58,10 +59,10 @@ export function VerifiedTaskList({
   const handleDelete = (idx: number) =>
     onChange(tasks.filter((_, i) => i !== idx));
 
-  const handleUpdate = (idx: number, updated: VerifiedTaskFromSummary) =>
+  const handleUpdate = (idx: number, updated: TaskVerificationDTO) =>
     onChange(tasks.map((t, i) => (i === idx ? updated : t)));
 
-  const handleAdd = (task: VerifiedTaskFromSummary) => {
+  const handleAdd = (task: TaskVerificationDTO) => {
     if (!task.task_priority)
       task.task_priority = 'normal';
     if(!task.task_status)
@@ -130,6 +131,7 @@ export function VerifiedTaskList({
                 structureLoading={structureLoading}
                 spaceId={spaceId}
                 disabled={disabled}
+                showEstimation={showEstimation}
               />
             ))}
       </div>
