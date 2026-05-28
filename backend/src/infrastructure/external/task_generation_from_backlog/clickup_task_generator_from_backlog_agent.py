@@ -76,7 +76,7 @@ class ClickUpTaskGeneratorFromBacklogAgent(BaseAgent[GeneratedTaskListFromBacklo
 
         parsed: GeneratedTaskListFromBacklog = self._call_llm(
             agent_name="ClickUpTaskGeneratorFromBacklogAgent",
-            folder_name="task_generation_backlog",
+            folder_name="task_generation_from_backlog",
             prompt_name="clickup_task_generator_agent",
             variables={
                 "backlog": ClickUpTaskGeneratorFromBacklogAgent._format_sprints(sprint_backlog),
