@@ -41,6 +41,7 @@ import { SpaceSetupForm } from '@/components/ui/space-setup-form';
 import { StepHeader } from '@/components/ui/step-header';
 import { createPortal } from 'react-dom';
 import type { TaskGenerationDTO } from '@/types/clickup';
+import { SaveSummaryBanner } from '@/components/ui/save-summary-banner';
 
 type AssigneeDialogState =
   | { open: false }
@@ -84,9 +85,12 @@ export function MeetingTaskManager() {
   
   const hasStarted = generatedTasks.length > 0 || verifiedTasks.length > 0 || isGenerating || isVerifying;
 
-
   const allTasksHaveLocation = (tasks: GeneratedTaskFromSummary[] | VerifiedTaskFromSummary[]) =>
     tasks.every(t => t.location?.trim().length > 0);
+
+  const [saveSummary, setSaveSummary] = useState<{
+    created: number; updated: number; total: number;
+  } | null>(null);
 
   const resetProcess = () => {
     setGeneratedTasks([]);
@@ -94,6 +98,7 @@ export function MeetingTaskManager() {
     setIsGenerating(false);
     setIsVerifying(false);
     setIsSaving(false);
+    setSaveSummary(null);
     setSavedOk(false);
     setIsVerificationFinished(false);
     setDisabledAll(false);
@@ -281,6 +286,11 @@ export function MeetingTaskManager() {
       );
 
       if (result) {
+        setSaveSummary({
+          created: verifiedTasks.filter(t => t.action === 'create').length,
+          updated: verifiedTasks.filter(t => t.action === 'update').length,
+          total: verifiedTasks.length,
+        });
         setSavedOk(true);
         setDisabledAll(true);
         setAssigneeDialog({ open: false });
@@ -339,10 +349,14 @@ export function MeetingTaskManager() {
     ]);
   };
 
+  const navigateToConsultationSpace = () => {
+    navigate(`/spaces/${selectedSpaceId}/tasks`);
+  };
+
   return (
     <div className="w-full space-y-8 py-2">
       <div className={`flex justify-end overflow-hidden transition-all duration-500 ease-out ${
-        hasStarted ? 'opacity-100 max-h-20 translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
+        hasStarted && !savedOk && !saveSummary ? 'opacity-100 max-h-20 translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
       }`}>
         <Button
           variant="outline"
@@ -352,7 +366,7 @@ export function MeetingTaskManager() {
           className={`gap-2 ${isGenerating || isVerifying || isSaving ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         >
           <Plus className="w-3.5 h-3.5" />
-          New summary
+          New meeting summary
         </Button>
       </div>
       <div className="w-full space-y-8">
@@ -593,6 +607,27 @@ export function MeetingTaskManager() {
                 </section>
             </div>
           </>
+        )}
+        {savedOk && saveSummary && (
+          <div className="overflow-hidden transition-all duration-500 ease-out opacity-100 max-h-[1000px] translate-y-0">
+            <section>
+              <StepHeader
+                number={!realIsStructureEmpty ? 4 : 3}
+                title="Saved successfully"
+                subtitle="Tasks have been applied to your ClickUp space."
+              />
+              <div className="mt-3 border border-gray-300 rounded-lg p-3">
+                <SaveSummaryBanner
+                  total={saveSummary.total}
+                  created={saveSummary.created}
+                  updated={saveSummary.updated}
+                  name="meeting summary"
+                  navigateToNewAction={handleNewSummary}
+                  navigateToConsultationSpace={navigateToConsultationSpace}
+                />
+              </div>
+            </section>
+          </div>
         )}
       </div>
       <Dialog

@@ -45,6 +45,7 @@ import { SpaceSetupForm } from '@/components/ui/space-setup-form';
 import { StepHeader } from '@/components/ui/step-header';
 import { createPortal } from 'react-dom';
 import type { TaskGenerationDTO, TaskVerificationDTO } from '@/types/clickup';
+import { SaveSummaryBanner } from '@/components/ui/save-summary-banner';
 
 type AssigneeDialogState =
   | { open: false }
@@ -92,9 +93,9 @@ export function BacklogTaskManager() {
   const allTasksHaveLocation = (tasks: TaskGenerationDTO[] | TaskVerificationDTO[]) =>
     tasks.every(t => t.location?.trim().length > 0);
 
-  const handleSave = () => executeSave(false, false);
-  const handleIgnoreNames = () => { setAssigneeDialog({ open: false }); executeSave(true, false); };
-  const handleIgnoreMails = () => { setAssigneeDialog({ open: false }); executeSave(true, true); };
+  const [saveSummary, setSaveSummary] = useState<{
+    created: number; updated: number; total: number;
+  } | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem('sprint_backlog');
@@ -117,6 +118,7 @@ export function BacklogTaskManager() {
     setIsGenerating(false);
     setIsVerifying(false);
     setIsSaving(false);
+    setSaveSummary(null);
     setSavedOk(false);
     setIsVerificationFinished(false);
     setDisabledAll(false);
@@ -300,6 +302,11 @@ export function BacklogTaskManager() {
       );
 
       if (result) {
+        setSaveSummary({
+          created: verifiedTasks.filter(t => t.action === 'create').length,
+          updated: verifiedTasks.filter(t => t.action === 'update').length,
+          total: verifiedTasks.length,
+        });
         setSavedOk(true);
         setDisabledAll(true);
         setAssigneeDialog({ open: false });
@@ -323,6 +330,10 @@ export function BacklogTaskManager() {
       setIsSaving(false);
     }
   };
+
+  const handleSave = () => executeSave(false, false);
+  const handleIgnoreNames = () => { setAssigneeDialog({ open: false }); executeSave(true, false); };
+  const handleIgnoreMails = () => { setAssigneeDialog({ open: false }); executeSave(true, true); };
 
   const handleDropFromGenerated = (task: TaskGenerationDTO) => {
     const t = task as GeneratedTaskFromBacklog;
@@ -356,6 +367,14 @@ export function BacklogTaskManager() {
     ]);
   };
 
+  const navigateToNewBacklog = () => {
+    navigate('/backlog-generation-chat');
+  };
+
+  const navigateToConsultationSpace = () => {
+    navigate(`/spaces/${selectedSpaceId}/tasks`);
+  };
+  
   return (
     <div className="w-full space-y-8 py-2">
       <div className="w-full space-y-8">
@@ -581,6 +600,27 @@ export function BacklogTaskManager() {
                 </section>
             </div>
           </>
+        )}
+        {savedOk && saveSummary && (
+          <div className="overflow-hidden transition-all duration-500 ease-out opacity-100 max-h-[1000px] translate-y-0">
+            <section>
+              <StepHeader
+                number={!realIsStructureEmpty ? 4 : 3}
+                title="Saved successfully"
+                subtitle="Tasks have been applied to your ClickUp space."
+              />
+              <div className="mt-3 border border-gray-300 rounded-lg p-3">
+                <SaveSummaryBanner
+                  total={saveSummary.total}
+                  created={saveSummary.created}
+                  updated={saveSummary.updated}
+                  name="backlog"
+                  navigateToNewAction={navigateToNewBacklog}
+                  navigateToConsultationSpace={navigateToConsultationSpace}
+                />
+              </div>
+            </section>
+          </div>
         )}
       </div>
       <Dialog
