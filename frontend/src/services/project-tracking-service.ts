@@ -16,7 +16,7 @@ import type {
   MappedCommitTaskResponse,
 } from '@/api/api';
 
-export const projectIntelligenceService = {
+export const projectTracingService = {
 
   // Use case 1: "Is this task really completed?"
 
