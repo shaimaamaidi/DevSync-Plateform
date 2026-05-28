@@ -28,10 +28,7 @@ import { showSuccessToast } from '../global-toaster';
 import { defaultOnError } from '@/services/api-error';
 import { resolveErrorAction, extractStatusCode, normalizeErrorMessage, extractErrorCode, extractAssigneeListFromError } from '@/utils/error-handler';
 import { createPortal } from 'react-dom';
-
-export type AssigneeDialogState =
-  | { open: false }
-  | { open: true; type: 'mails'; items: string[] };
+import type { AssigneeDialogStateForConsultation } from '@/types/assignee-dialog';
 
 const EMPTY_DRAFT: TaskDraft = {
   name: '',
@@ -77,7 +74,7 @@ export function AddTaskForm({
   const [showAddStatus, setShowAddStatus] = useState(false);
   const [localStatuses, setLocalStatuses] = useState<string[]>(statuses);
 
-  const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
+  const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogStateForConsultation>({ open: false });
   const [pendingReq, setPendingReq] = useState<CreateTaskRequest | null>(null);
   const canSubmit = !saving;
 

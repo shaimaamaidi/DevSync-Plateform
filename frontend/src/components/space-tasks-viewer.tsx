@@ -42,10 +42,7 @@ import {
 import { CreateListForm } from './ui/create-list-form'; 
 import { extractAssigneeListFromError, extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
 import { createPortal } from 'react-dom';
-
-export type AssigneeDialogState =
-  | { open: false }
-  | { open: true; type: 'mails'; items: string[] };
+import type { AssigneeDialogStateForConsultation } from '@/types/assignee-dialog';
 
 type PendingUpdate = {
   taskId: string;
@@ -69,7 +66,7 @@ export function SpaceTasksViewer() {
   const [showCreateListForm, setShowCreateListForm] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
+  const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogStateForConsultation>({ open: false });
   const [pendingUpdate, setPendingUpdate] = useState<PendingUpdate | null>(null);
 
   const locationOptions = useMemo(() => {

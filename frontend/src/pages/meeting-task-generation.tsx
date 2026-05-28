@@ -42,12 +42,7 @@ import { StepHeader } from '@/components/ui/step-header';
 import { createPortal } from 'react-dom';
 import type { TaskGenerationDTO } from '@/types/clickup';
 import { SaveSummaryBanner } from '@/components/ui/save-summary-banner';
-
-type AssigneeDialogState =
-  | { open: false }
-  | { open: true; type: 'names'; items: string[] }
-  | { open: true; type: 'mails'; items: string[] };
-
+import type { AssigneeDialogStateForGeneration } from '@/types/assignee-dialog';
 
 export function MeetingTaskManager() {
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
@@ -73,7 +68,7 @@ export function MeetingTaskManager() {
 
   const [showSpaceChangeDialog, setShowSpaceChangeDialog] = useState(false);
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false);
-  const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogState>({ open: false });
+  const [assigneeDialog, setAssigneeDialog] = useState<AssigneeDialogStateForGeneration>({ open: false });
   
   const [showSpaceSetup, setShowSpaceSetup] = useState(false);
   const [isNewSpace, setIsNewSpace] = useState(false);
