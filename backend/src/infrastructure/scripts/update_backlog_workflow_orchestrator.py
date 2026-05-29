@@ -33,7 +33,7 @@ Usage:
 import asyncio
 import logging
 
-from backend.src.infrastructure.di.workflow_container import WorkflowContainer
+from backend.src.infrastructure.di.backlog_generation_container import BacklogGenerationContainer
 from backend.src.infrastructure.logging.logger_config import setup_logger
 
 
@@ -57,16 +57,16 @@ async def main():
     """
     logger.info("Starting backlog agents update script.")
 
-    container = WorkflowContainer()
+    container = BacklogGenerationContainer()
 
-    # ── Web Search Agent ──
+    # Web Search Agent
     await container.initialize_web_search_tool()
 
     logger.info("Updating web search agent tools and instructions on Azure.")
 
     await container.web_search_agent.update_agent_tools()
 
-    # ── Backlog Workflow Orchestrator ──
+    # Backlog Workflow Orchestrator
     instructions = container.prompt_loader.get_backlog_orchestrator_instructions()
     orchestrator = await container.backlog_workflow_orchestrator_factory()
 

@@ -13,7 +13,7 @@ interface ChatMessageProps {
   onClickUpNo?: (data: any) => void;
 }
 
-export function ChatMessage({
+export function BacklogChatMessage({
   message,
   streamingText = "",
   onMarketSubmit,

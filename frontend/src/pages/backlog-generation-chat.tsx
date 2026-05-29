@@ -2,7 +2,7 @@ import { useChatLogic } from "@/hooks/use-chat-logic";
 import { useEffect, useRef } from "react";
 import { ChatHeader } from "@/components/ui/chat-header";
 import { EmptyState } from "@/components/ui/empty-state";
-import { ChatMessage } from "@/components/ui/chat-message";
+import { BacklogChatMessage } from "@/components/ui/backlog-chat-message";
 import { ChatInput } from "@/components/ui/chat-input";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -64,7 +64,7 @@ export function BacklogGenerationChat() {
             <EmptyState />
           ) : (
             messages.map((message) => (
-              <ChatMessage
+              <BacklogChatMessage
                 key={message.id}
                 message={message}
                 streamingText={streamingText}

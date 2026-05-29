@@ -31,8 +31,7 @@ export function ChatHeader({ step, onReset }: ChatHeaderProps) {
           <div className="flex items-center gap-1 mt-[2px]">
             <span className="w-[6px] h-[6px] rounded-full bg-green-500 animate-pulse shrink-0" />
             <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
-              <span className="hidden sm:inline">Market intelligence · </span>
-              Agile backlog generation
+              <span className="hidden sm:inline">Agile backlog generation</span>
             </p>
           </div>
         </div>

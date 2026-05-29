@@ -11,6 +11,7 @@ import { BacklogGenerationChat } from './pages/backlog-generation-chat';
 import { MeetingTaskManager } from './pages/meeting-task-generation';
 import { AxiosErrorBoundary } from './components/axios-error-boundary';
 import { BacklogTaskManager } from './pages/backlog-task-generation';
+import { ProjectInsights } from './pages/project-insights';
 
 export default function App() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/meeting-tasks" element={<MeetingTaskManager />} />
             <Route path="/backlog-tasks" element={<BacklogTaskManager />} />
+            <Route path="/project-insights" element={<ProjectInsights />} />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />

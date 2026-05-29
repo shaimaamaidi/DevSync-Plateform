@@ -17,6 +17,8 @@ from backend.src.domain.entities.clickup.folder_with_list_metadata import Folder
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.exceptions.clickup.clickup_api_exception import ClickUpApiException
+from backend.src.domain.exceptions.clickup.clickup_authentication_exception import ClickUpAuthenticationException
 from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
 from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception import ClickUpResourceNotFoundException
 from backend.src.domain.exceptions.clickup.clickup_workspace_members_exception import ClickUpWorkspaceMembersException
@@ -375,11 +377,18 @@ class ClickUpReader(IClickUpReader):
                 "time_in_status fetched. task_id=%s, since=%s.",
                 task_id, since_current_status,
             )
-        except ClickUpClientException:
+        except (ClickUpClientException, ClickUpAuthenticationException, ClickUpApiException):
             logger.warning(
                 "time_in_status unavailable for task_id=%s. "
                 "'Total time in Status' ClickApp may be disabled. "
                 "Falling back to None.",
+                task_id,
+            )
+
+        if not since_current_status:
+            since_current_status = date_updated
+            logger.info(
+                "Falling back to date_updated for since_current_status. task_id=%s.",
                 task_id,
             )
 
@@ -634,7 +643,7 @@ class ClickUpReader(IClickUpReader):
         """
         logger.info("Fetching tasks. list_id=%s.", list_id)
 
-        return  self._http.get(f"/list/{list_id}/task").get("tasks", [])
+        return  self._http.get(f"/list/{list_id}/task?include_closed=true").get("tasks", [])
 
     def _get_list_details(self, list_id: str) -> dict:
         """

@@ -23,6 +23,10 @@ export function useCurrentUser() {
         const code = extractErrorCode(err);
         const status = extractStatusCode(err);
 
+        if (status === 401) {
+          throw err;
+        }
+        
         await onError()(action, message, { code, status: status ?? undefined });
 
         throw err;

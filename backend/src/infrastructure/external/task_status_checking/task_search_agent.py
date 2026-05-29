@@ -74,13 +74,14 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
             ensure_ascii=False,
             indent=2
         )
-
+        logger.info("chaima")
+        logger.info(tasks_json)
         parsed: TaskSearchResult = self._call_llm(
             agent_name="TaskSearchAgent",
             folder_name="task_status_checking",
             prompt_name="task_search_agent",
             variables={
-                "user_query": question,
+                "user_description": question,
                 "tasks_json": tasks_json
             },
             response_format=TaskSearchResult,

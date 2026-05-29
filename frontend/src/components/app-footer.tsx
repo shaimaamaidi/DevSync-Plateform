@@ -37,10 +37,9 @@ export function AppFooter() {
             <ul className="space-y-3">
               {[
                 'Repository Management',
-                'Team Member Tracking',
+                'Team Member Management',
                 'Deployment Monitoring',
-                'Branch & PR Oversight',
-                'ClickUp Spaces',
+                'ClickUp Spaces Management',
                 'Task CRUD & Sync',
               ].map((label) => (
                 <li key={label} className="group flex items-start gap-2">
@@ -84,7 +83,7 @@ export function AppFooter() {
                 'Create & Update Tasks',
                 'Manage Spaces & Lists',
                 'Assign Members',
-                'Priorities & Deadlines',
+                'Priorities & Estimations',
                 'Completion Status',
                 'Two-way Sync',
               ].map((label) => (

@@ -33,9 +33,20 @@ function emitError(event: AxiosErrorEvent) {
 }
 
 let isRefreshing = false;
-let pendingRequests: Array<() => void> = [];
+let pendingRequests: Array<{
+  resolve: (value: any) => void;
+  reject: (reason: any) => void;
+  config: any; 
+}> = [];
 const retryCountMap = new Map<string, number>();
 let requestIdCounter = 0;
+
+const REFRESH_SKIP_URLS = ["/auth/refresh", "/auth/login", "/auth/logout"];
+
+function shouldSkipRefresh(url?: string): boolean {
+  if (!url) return false;
+  return REFRESH_SKIP_URLS.some((skip) => url.includes(skip));
+}
 
 function getRetryKey(config: any): string {
   if (!config._retryId) {
@@ -55,32 +66,50 @@ export function setupAxiosInterceptors() {
     async (error) => {
       const originalRequest = error.config;
       const status = error.response?.status;
-      const isAuthRequest = originalRequest?.url?.includes("/auth/");
 
-      if (status === 401 && !originalRequest._retry && !isAuthRequest) {
+      if (shouldSkipRefresh(originalRequest?.url)) {
+        return Promise.reject(error);
+      }
+
+      if (status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
         if (isRefreshing) {
-          return new Promise((resolve) => {
-            pendingRequests.push(() => resolve(axios(originalRequest)));
+          return new Promise((resolve, reject) => {
+            pendingRequests.push({ resolve, reject, config: originalRequest });
           });
         }
 
         isRefreshing = true;
+
         try {
           await authService.refresh();
-          pendingRequests.forEach((cb) => cb());
+
+          const pending = [...pendingRequests];
           pendingRequests = [];
+          pending.forEach(({ resolve, reject, config }) => {
+            axios(config).then(resolve).catch(reject);
+          });
+
           return axios(originalRequest);
         } catch (refreshError) {
+          const pending = [...pendingRequests];
           pendingRequests = [];
-          try { await authService.logout(); } catch { /* ignored */ }
+          pending.forEach(({ reject }) => reject(refreshError));
+
+          try {
+            await authService.logout();
+          } catch {
+            /* ignored */
+          }
+
           emitError({
             action: "LOGOUT",
             message: "Session expired",
             code: "INVALID_TOKEN",
             status: 401,
           });
+
           return Promise.reject(refreshError);
         } finally {
           isRefreshing = false;

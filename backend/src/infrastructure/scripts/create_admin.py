@@ -9,7 +9,7 @@ import logging
 
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
-from backend.src.infrastructure.di.persistence_container import Container
+from backend.src.infrastructure.di.persistence_container import PersistenceContainer
 from backend.src.domain.entities.member import MemberCreateDTO
 
 
@@ -28,7 +28,7 @@ def create_admin():
     engine, Session = db.connect()
 
     with Session() as session:
-        container = Container(session)
+        container = PersistenceContainer(session)
         member_service = container.member_service
 
         logger.info("Creating admin member.")

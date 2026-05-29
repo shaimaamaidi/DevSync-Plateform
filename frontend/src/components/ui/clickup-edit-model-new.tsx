@@ -556,7 +556,7 @@ export function ClickUpEditModal({
           <DialogHeader>
             <DialogTitle>Space not found in ClickUp</DialogTitle>
             <DialogDescription>
-              The space <span className="font-semibold">{formData.space_code}</span> does not exist
+              The space <span className="font-semibold">{formData.name}</span> does not exist
               in ClickUp yet. Would you like to create it in ClickUp and save it to the database?
             </DialogDescription>
           </DialogHeader>

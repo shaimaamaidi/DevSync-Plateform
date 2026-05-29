@@ -11,13 +11,14 @@ import {
   FlaskConical, 
   Menu, 
   X, 
-  ClipboardList 
+  ClipboardList, 
+  BarChart2
 } from 'lucide-react';
 import { authService } from '@/services/auth-service';
 import { useIsMobile } from '@/hooks/use-mobile';
 import logo from '@/assets/rido-logo.jpeg';
 
-type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation' | 'meeting-tasks';
+type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation' | 'meeting-tasks' | 'project-insights';
 
 interface NavigationProps {
   activeTab?: HomeTab;
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { path: '/spaces', tab: 'spaces' as HomeTab, icon: Boxes, label: 'Spaces' },
   { path: '/backlog-generation-chat', tab: 'backlog-generation' as HomeTab, icon: FlaskConical, label: 'Backlog Generation' },
   { path: '/meeting-tasks', tab: 'meeting-tasks' as HomeTab, icon: ClipboardList, label: 'Meeting Tasks' },
+  { path: '/project-insights', tab: 'project-insights' as HomeTab, icon: BarChart2, label: 'Project Insights' },
 ];
 
 export function Navigation({ onTabChange }: NavigationProps) {
