@@ -840,7 +840,7 @@ export interface TaskSearchRequest {
     /**
      * User natural language query describing the search intent.
      */
-    'question': string;
+    'description': string;
 }
 /**
  * Representation of a task search response.  This DTO contains the response message intended to be displayed to the user after a task search operation, along with the list of matching ClickUp tasks.  The response message may: - Ask the user to confirm a task when a single match is found - Ask the user to choose a task when multiple matches are found - Inform the user that no matching tasks were found - Inform the user that the selected space does not contain tasks  Attributes:     status: Outcome of the search operation.     message: User-facing message describing the search result.     task: List of ClickUp tasks matching the search criteria.

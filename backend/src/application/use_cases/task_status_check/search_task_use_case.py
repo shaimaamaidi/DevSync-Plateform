@@ -53,7 +53,7 @@ class SearchTaskUseCase(ISearchTaskUseCase):
         self._clickup_reader = clickup_reader
         self._task_search = task_search
 
-    def search_task(self, question: str, space_id: str) -> TaskSearchResponse:
+    def search_task(self, description: str, space_id: str) -> TaskSearchResponse:
         """
         Search ClickUp tasks based on a natural language question.
 
@@ -67,7 +67,7 @@ class SearchTaskUseCase(ISearchTaskUseCase):
             - multiple tasks: asks user to choose from top results
 
         Args:
-            question: Natural language query describing the search intent.
+            description: Natural language phrase describing the search intent.
             space_id: Identifier of the ClickUp space to search within.
 
         Returns:
@@ -76,9 +76,9 @@ class SearchTaskUseCase(ISearchTaskUseCase):
                 - A list of matched ClickUp tasks (if any)
         """
         logger.info(
-            "Search task in ClickUp: space_id=%s question=%s.",
+            "Search task in ClickUp: space_id=%s description=%s.",
             space_id,
-            question,
+            description,
         )
 
         folders = self._clickup_reader.get_space_full_structure(space_id)
@@ -93,7 +93,7 @@ class SearchTaskUseCase(ISearchTaskUseCase):
                 task=[]
             )
 
-        results =  self._task_search.search_task(question, folders)
+        results =  self._task_search.search_task(description, folders)
 
         logger.info(
             "Task search completed successfully: space_id=%s tasks_result=%d.",

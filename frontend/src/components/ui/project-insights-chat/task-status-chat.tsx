@@ -20,7 +20,7 @@ function userMsg(content: string): InsightsChatMessageType {
   return { id: newId(), ts: new Date(), role: "user", content };
 }
  
-type Step = "select_space" | "enter_query" | "awaiting_confirm" | "done" | "finished";
+type Step = "select_space" | "enter_description" | "awaiting_confirm" | "done" | "finished";
  
 interface Props { onReset: () => void; }
  
@@ -58,18 +58,18 @@ export function TaskStatusChat({ onReset }: Props) {
     setSelectedSpace(space);
     push(userMsg(`Space: ${space.name}`));
     push(agentMsg(`Great! Space "${space.name}" selected.\n\nNow describe the task you want to check — you can use its name or any description you remember.`));
-    setStep("enter_query");
+    setStep("enter_description");
   };
  
-  const handleSearch = async (query: string) => {
-    if (!selectedSpace || !query.trim()) return;
-    push(userMsg(query));
+  const handleSearch = async (description: string) => {
+    if (!selectedSpace || !description.trim()) return;
+    push(userMsg(description));
     setInput("");
     push({ ...agentMsg("Searching…"), _streaming: true });
     setLoading(true);
  
     const result = await withErrorHandling(
-      () => projectTracingService.searchTask({ space_id: selectedSpace.space_code, question: query }),
+      () => projectTracingService.searchTask({ space_id: selectedSpace.space_code, description: description }),
       "Search task",
       onError(),
     );
@@ -87,7 +87,7 @@ export function TaskStatusChat({ onReset }: Props) {
  
     if (status === "NO_MATCH") {
       push(agentMsg(result.message));
-      setStep("enter_query");
+      setStep("enter_description");
       return;
     }
  
@@ -114,7 +114,7 @@ export function TaskStatusChat({ onReset }: Props) {
     if (action === "confirm_no") {
       push(userMsg("No, that's not the task I'm looking for."));
       push(agentMsg("No problem. Please rephrase your desc and I'll search again."));
-      setStep("enter_query");
+      setStep("enter_description");
       return;
     }
  
@@ -149,7 +149,7 @@ export function TaskStatusChat({ onReset }: Props) {
     }
   };
  
-  const canSend = input.trim() && !loading && step === "enter_query";
+  const canSend = input.trim() && !loading && step === "enter_description";
  
   return (
     <div className="flex flex-col h-full">
@@ -196,7 +196,7 @@ export function TaskStatusChat({ onReset }: Props) {
         <div ref={bottomRef} />
       </div>
  
-      {step === "enter_query" ? (
+      {step === "enter_description" ? (
         <div className="border-t border-slate-100 px-3 pt-3 pb-4 bg-white shrink-0">
           <div className="flex items-end gap-2">
             <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-slate-400 transition">

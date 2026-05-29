@@ -59,7 +59,7 @@ def search_task(
     Args:
         body (TaskSearchRequest):
             Request payload containing:
-            - question: user question describing the task
+            - description: user phrase describing the task
             - space_id: ClickUp space identifier
 
         use_case (ISearchTaskUseCase): Application use case responsible for task search logic.
@@ -77,7 +77,7 @@ def search_task(
     )
 
     result = use_case.search_task(
-        question=body.question,
+        description=body.description,
         space_id=body.space_id,
     )
 

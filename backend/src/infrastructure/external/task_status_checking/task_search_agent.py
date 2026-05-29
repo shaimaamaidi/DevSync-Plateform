@@ -44,7 +44,7 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
 
     def search_task(
         self,
-        question: str,
+        description: str,
         folder_with_tasks: List[FolderWithLists]
     ) -> List[ClickUpTask]:
         """
@@ -56,7 +56,7 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
         - Parses the LLM response into structured task search results
 
         Args:
-            question: User natural language query describing the search intent.
+            description: User natural language phrase describing the search intent.
             folder_with_tasks: List of folders containing ClickUp lists and tasks.
 
         Returns:
@@ -67,21 +67,20 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
             LLMApiException: If the LLM API returns an error response.
             LLMParsingException: If the LLM response cannot be parsed correctly.
         """
-        logger.info("Searching task process from a user question.")
+        logger.info("Searching task process from a user description.")
 
         tasks_json = json.dumps(
             [task.to_dict() for folder in folder_with_tasks for lst in folder.lists for task in lst.tasks],
             ensure_ascii=False,
             indent=2
         )
-        logger.info("chaima")
-        logger.info(tasks_json)
+
         parsed: TaskSearchResult = self._call_llm(
             agent_name="TaskSearchAgent",
             folder_name="task_status_checking",
             prompt_name="task_search_agent",
             variables={
-                "user_description": question,
+                "user_description": description,
                 "tasks_json": tasks_json
             },
             response_format=TaskSearchResult,

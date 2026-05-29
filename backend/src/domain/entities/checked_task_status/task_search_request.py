@@ -24,8 +24,8 @@ class TaskSearchRequest(BaseModel):
     Attributes:
         space_id: Identifier of the ClickUp space where tasks
             should be searched.
-        question: User natural language query describing
+        description: User natural language phrase describing
             the search intent.
     """
     space_id: str = Field(..., min_length=1, description="Identifier of the ClickUp space where tasks should be searched.")
-    question: str = Field(..., min_length=1, description="User natural language query describing the search intent.")
+    description: str = Field(..., min_length=1, description="User natural language phrase describing the search intent.")

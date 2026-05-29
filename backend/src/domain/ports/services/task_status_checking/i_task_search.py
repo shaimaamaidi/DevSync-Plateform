@@ -24,14 +24,14 @@ class ITaskSearch(ABC):
     @abstractmethod
     def search_task(
         self,
-        question: str,
+        description: str,
         folder_with_tasks: List[FolderWithLists]
     ) -> List[ClickUpTask]:
         """
         Search for relevant tasks based on a user question.
 
         Args:
-            question: User query or search request.
+            description: User description or search request.
             folder_with_tasks: List of folders containing ClickUp lists and tasks.
 
         Returns:

@@ -22,7 +22,7 @@ export const projectTracingService = {
 
   async searchTask(request: TaskSearchRequest): Promise<TaskSearchResponse | null> {
     if (!request.space_id?.trim()) throw new Error('ClickUp space ID is required');
-    if (!request.question?.trim()) throw new Error('Search question is required');
+    if (!request.description?.trim()) throw new Error('Search description is required');
 
     const response = await taskStatusCheckApi.searchTaskTaskStatusSearchPost(request);
     return response.data ?? null;
