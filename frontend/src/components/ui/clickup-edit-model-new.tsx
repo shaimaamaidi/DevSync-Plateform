@@ -7,16 +7,16 @@ import type {
   GitRepoDetailDTO,
   AssociateClickUpSpaceRequest,
 } from '@/api/api';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/shared-primitives/button';
+import { Card } from '@/components/ui/shared-primitives/card';
+import { Label } from '@/components/ui/shared-primitives/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/shared-primitives/select';
 import { AlertCircle, CheckCircle2, Database, Loader2, Plus, X } from 'lucide-react';
 import {
   Dialog,
@@ -25,7 +25,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from './dialog';
+} from './shared-primitives/dialog';
 
 export interface ClickUpEditModalProps {
   isOpen: boolean;

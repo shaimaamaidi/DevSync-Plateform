@@ -6,14 +6,14 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/components/ui/shared-primitives/dialog';
 import { 
   ClickUpMemberRole, 
   type MemberCreateDTO, 
   type MemberDTO, 
   type MemberUpdateDTO 
 } from '@/api/api';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/shared-primitives/button';
 import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
 import { MemberEditModal } from './ui/member-edit-model-new';
 import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';

@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/components/ui/shared-primitives/dialog';
 import type { 
   ClickUpSpaceLightDTO, 
   ClickUpSpaceUpdateDTO, 
@@ -15,7 +15,7 @@ import type {
   GitRepoDetailDTO, 
   AssociateClickUpSpaceRequest 
 } from '@/api/api';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/shared-primitives/button';
 import { Plus, Edit2, Trash2, Eye, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import { ClickUpEditModal } from './ui/clickup-edit-model-new';
 import { useNavigate } from 'react-router-dom';

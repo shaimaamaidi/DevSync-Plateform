@@ -1,17 +1,17 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import { RequireAuth } from './components/RequireAuth';
-import NotFoundPage from './pages/NotFound';
-import LoginPage from './pages/Login';
-import SettingsPage from './pages/Settings';
-import ProfilePage from './pages/Profile';
+import { AxiosErrorBoundary } from './components/axios-error-boundary';
 import { GlobalToaster } from './components/global-toaster';
 import { RootLayout } from './components/root-layout';
-import Dashboard from './pages/dashboard';
-import { BacklogGenerationChat } from './pages/backlog-generation-chat';
-import { MeetingTaskManager } from './pages/meeting-task-generation';
-import { AxiosErrorBoundary } from './components/axios-error-boundary';
-import { BacklogTaskManager } from './pages/backlog-task-generation';
-import { ProjectInsights } from './pages/project-insights';
+import NotFoundPage from './pages/not-found-page';
+import SettingsPage from './pages/settings-page';
+import ProfilePage from './pages/profile-page';
+import Dashboard from './pages/dashboard-page';
+import BacklogGenerationChatPage from './pages/backlog-generation-chat-page';
+import MeetingTaskGenerationPage from './pages/meeting-task-generation-page';
+import BacklogTaskGenerationPage from './pages/backlog-task-generation-page';
+import ProjectInsightsPage from './pages/project-insights-page';
+import LoginPage from './pages/Login-page';
 
 export default function App() {
   return (
@@ -27,12 +27,12 @@ export default function App() {
             <Route path="/members" element={<Dashboard activeTab="members" />} />
             <Route path="/spaces" element={<Dashboard activeTab="spaces" />} />
             <Route path="/spaces/:spaceId/tasks" element={<Dashboard activeTab="space-tasks" />} />
-            <Route path="/backlog-generation-chat" element={<BacklogGenerationChat />} />
+            <Route path="/backlog-generation-chat" element={<BacklogGenerationChatPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/meeting-tasks" element={<MeetingTaskManager />} />
-            <Route path="/backlog-tasks" element={<BacklogTaskManager />} />
-            <Route path="/project-insights" element={<ProjectInsights />} />
+            <Route path="/meeting-tasks" element={<MeetingTaskGenerationPage />} />
+            <Route path="/backlog-tasks" element={<BacklogTaskGenerationPage />} />
+            <Route path="/project-insights" element={<ProjectInsightsPage />} />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />

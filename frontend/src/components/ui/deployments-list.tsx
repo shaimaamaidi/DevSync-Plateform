@@ -1,7 +1,7 @@
 ﻿import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/shared-primitives/card';
+import { Badge } from '@/components/ui/shared-primitives/badge';
+import { Button } from '@/components/ui/shared-primitives/button';
 import { ExternalLink, Filter, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { DeploymentDTO } from '@/api/api';

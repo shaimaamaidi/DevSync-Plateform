@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/shared-primitives/button';
 import { ShieldCheck } from 'lucide-react';
 import type { FolderWithListsMetadata } from '@/api/api';
-import { GeneratedTaskCard } from './ui/generated-task-card';
-import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
+import { GeneratedTaskCard } from './ui/task-cards/generated-task-card';
+import { TaskSkeletonCard } from './ui/loading-and-feedback/tasks-skeleton-card';
 import type { TaskGenerationDTO } from '@/types/clickup';
 
 interface Props {

@@ -11,17 +11,17 @@ import type {
   RepoMemberDTO,
   RepoMemberRefDTO,
 } from '@/api/api';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/shared-primitives/button';
+import { Label } from '@/components/ui/shared-primitives/label';
+import { Card } from '@/components/ui/shared-primitives/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+} from '@/components/ui/shared-primitives/select';
+import { Badge } from '@/components/ui/shared-primitives/badge';
 import { X, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 interface RepoEditModalNewProps {

@@ -1,15 +1,15 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import type { DeploymentDTO, GitRepoDetailDTO } from '@/api/api';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/shared-primitives/button';
+import { Input } from '@/components/ui/shared-primitives/input';
+import { Card } from '@/components/ui/shared-primitives/card';
 import { 
   Select, 
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from '@/components/ui/select';
+} from '@/components/ui/shared-primitives/select';
 import { AlertCircle, Search } from 'lucide-react';
 import { DeploymentsList } from './ui/deployments-list';
 

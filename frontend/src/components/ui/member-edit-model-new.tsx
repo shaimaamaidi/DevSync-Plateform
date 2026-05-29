@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO } from '@/api/api';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/shared-primitives/button';
+import { Card } from '@/components/ui/shared-primitives/card';
+import { Label } from '@/components/ui/shared-primitives/label';
 import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 
 export interface MemberEditModalProps {

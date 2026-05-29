@@ -1,7 +1,7 @@
 ﻿import type { DeploymentDTO, GitRepoDetailDTO, MemberDTO } from '@/api/api';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/components/ui/shared-primitives/card';
 import { GitBranch, Zap, Users, CheckCircle } from 'lucide-react';
-import { StatCardSkeleton } from './ui/stat-card-skeleton';
+import { StatCardSkeleton } from './ui/loading-and-feedback/stat-card-skeleton';
 
 interface DashboardStatsProps {
   repos: GitRepoDetailDTO[];

@@ -5,7 +5,7 @@ import {
   ChevronDown,
   ArrowLeft,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/shared-primitives/button';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from '@/components/ui/shared-primitives/dialog';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { withErrorHandling, defaultOnError } from '@/services/api-error';
@@ -26,9 +26,8 @@ import type {
 } from '@/api/api';
 import { clickupTaskManagementService } from '@/services/clickup-task-management-sevice';
 import { useMembers } from '@/hooks/member-hooks/use-members';
-import { ViewerSkeleton } from './ui/viewer-skeletion-card';
-import { AddTaskForm } from './ui/add-task-form';
-import { TaskCard } from './ui/task-card';
+import { ViewerSkeleton } from './ui/loading-and-feedback/viewer-skeletion-card';
+import { AddTaskForm } from './ui/clickup-creation-forms/add-task-form';
 import { buildLocationWithTasksOptions } from '@/lib/location';
 import { useSpaceTasks } from '@/hooks/clickup-space-hooks/use-clickup-space-tasks';
 import { showSuccessToast } from './global-toaster';
@@ -38,11 +37,12 @@ import {
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from '@/components/ui/select';
-import { CreateListForm } from './ui/create-list-form'; 
+} from '@/components/ui/shared-primitives/select';
+import { CreateListForm } from './ui/clickup-creation-forms/create-list-form'; 
 import { extractAssigneeListFromError, extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
 import { createPortal } from 'react-dom';
 import type { AssigneeDialogStateForConsultation } from '@/types/assignee-dialog';
+import { TaskCard } from './ui/task-cards/task-card';
 
 type PendingUpdate = {
   taskId: string;

@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/shared-primitives/button';
 import { Plus, Save, Check } from 'lucide-react';
 import type {  
   FolderWithListsMetadata 
 } from '@/api/api';
-import { TaskSkeletonCard } from './ui/tasks-skeleton-card';
-import { AddVerifiedTaskForm } from './ui/add-verified-task-form';
-import { VerifiedTaskCard } from './ui/verified-task-card';
+import { TaskSkeletonCard } from './ui/loading-and-feedback/tasks-skeleton-card';
+import { AddVerifiedTaskForm } from './ui/clickup-creation-forms/add-verified-task-form';
+import { VerifiedTaskCard } from './ui/task-cards/verified-task-card';
 import type { TaskGenerationDTO, TaskVerificationDTO } from '@/types/clickup';
  
 

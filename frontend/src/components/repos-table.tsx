@@ -7,7 +7,7 @@ import type {
   GitRepoUpdateDTO, 
   MemberDTO 
 } from '@/api/api';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/shared-primitives/button';
 import { 
   Edit2, 
   Trash2, 
@@ -17,8 +17,8 @@ import {
   Link as LinkIcon, 
   AlertCircle
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/shared-primitives/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/shared-primitives/avatar';
 import { RepoEditModalNew } from './ui/repo-edit-modal-new';
 import {
   Dialog,
@@ -27,7 +27,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from '@/components/ui/shared-primitives/dialog';
 
 interface ReposTableProps {
   repos: GitRepoDetailDTO[];
