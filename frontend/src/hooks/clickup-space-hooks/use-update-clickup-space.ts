@@ -28,6 +28,7 @@ export function useUpdateClickUpSpace() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clickup-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['clickup-spaces-light'] });
     },
   });
 }

@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DashboardStats } from '@/components/dashboard-stats';
 import { DeploymentsTracker } from '@/components/deployments-tracker';
 import { ReposTable } from '@/components/repos-table';
 import type {
   AssociateClickUpSpaceRequest,
   ClickUpMemberRole,
-  ClickUpSpaceLightDTO,
   ClickUpSpaceRegisterDTO,
   ClickUpSpaceUpdateDTO,
   CreateSpaceRequest,
@@ -15,7 +14,6 @@ import type {
   MemberCreateDTO,
   MemberUpdateDTO,
 } from '@/api/api';
-import { clickUpService } from '@/services/clickup-service';
 import { deploymentService } from '@/services/deployment-service';
 import { useNavigate } from 'react-router-dom';
 import { MembersTable } from '@/components/members-table';
@@ -38,6 +36,7 @@ import { useAssociateRepoWithClickUpSpace } from '@/hooks/use-association-github
 import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
 import { useRemoveClickUpSpace } from '@/hooks/clickup-space-hooks/use-remove-clickup-sapce';
 import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
+import { useClickUpSpacesLight } from '@/hooks/clickup-space-hooks/use-clickup-sapce-light';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';
@@ -55,9 +54,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
   const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
   const [lastRepoUrl, setLastRepoUrl] = useState<string>('');
 
-  const [clickUpSpaces, setClickUpSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
-  const [clickupError, setClickupError] = useState<string | null>(null);
-  const [clickupLoading, setClickupLoading] = useState(true);
+  const { spaces: clickUpSpaces, loading: clickupLoading, error: clickupError, refetch: refreshClickUpData } = useClickUpSpacesLight();
 
   const { repos, loading: reposLoading, error: errorRepos, refetch: refetchRepos } = useRepos();
   const { mutateAsync: updateRepo } = useUpdateRepo();
@@ -78,31 +75,6 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
   const { mutateAsync: associateClickUpSpace } = useAssociateRepoWithClickUpSpace();
   const [showNotFoundDialog, setShowNotFoundDialog] = useState(false);
   const [showNameMismatchDialog, setShowNameMismatchDialog] = useState(false);
-
-  const refreshClickUpData = useCallback(async () => {
-    setClickupLoading(true);
-    setClickupError(null);  
-
-    const [spacesData] = await Promise.all([
-      withErrorHandling(() => 
-        clickUpService.getAllSpacesLight(), 
-        'Load click up spaces', 
-        onError(),
-    ),
-    ]);
-
-    if (spacesData){ 
-      setClickUpSpaces(spacesData);
-    }else{
-      setClickupError('Failed to load ClickUp spaces.');
-    }
-
-    setClickupLoading(false);
-  }, []);
-
-  useEffect(() => {
-    refreshClickUpData();
-  }, [refreshClickUpData]);
 
   const handleUpdateRepo = useCallback(async (updatedRepo: GitRepoUpdateDTO) => {
     const result = await updateRepo(updatedRepo);
@@ -295,7 +267,6 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             onAdd={handleAddRepo}
             isLoading={reposLoading || clickupLoading || membersLoading}
             onAssociate={handleAssociateClickUpSpace}
-            refreshSpaces={refreshClickUpData}
             error={errorRepos}
             refreshRepos={refetchRepos}
           />
@@ -347,7 +318,6 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             onNameMismatchDialogChange={setShowNameMismatchDialog}
             repositories={repos}
             onAssociate={handleAssociateClickUpSpace}
-            refreshSpaces={refreshClickUpData}
             error={clickupError}
             refetchSpaces={refreshClickUpData}
           />

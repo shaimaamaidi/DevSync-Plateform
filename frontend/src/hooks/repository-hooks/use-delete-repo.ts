@@ -28,6 +28,7 @@ export function useDeleteRepo() {
       if (!result) 
         return;
       queryClient.invalidateQueries({ queryKey: ['repos'] });
+      queryClient.invalidateQueries({ queryKey: ['clickup-spaces-light'] });
     },
   });
 }

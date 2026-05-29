@@ -33,7 +33,6 @@ interface RepoEditModalNewProps {
   clickUpSpaces: ClickUpSpaceLightDTO[];
   availableMembers: MemberDTO[];
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
-  refreshSpaces?: () => void;
 }
 
 export function RepoEditModalNew({
@@ -45,7 +44,6 @@ export function RepoEditModalNew({
   clickUpSpaces,
   availableMembers,
   onAssociate,
-  refreshSpaces,
 }: RepoEditModalNewProps) {
   const [isSaving, setIsSaving] = useState(false);
   const initialFormData: GitRepoDetailDTO = {
@@ -229,9 +227,6 @@ export function RepoEditModalNew({
           members: members,
           clickup_space: clickupSpace,
         } as GitRepoUpdateDTO);
-        if (success && clickupSpace !== null){
-          refreshSpaces?.();
-        }
       }else{
         success = await onSave({
           name: updatedRepo.name ?? null,
@@ -247,7 +242,6 @@ export function RepoEditModalNew({
       }
       if (success) {
         onClose();
-        refreshSpaces?.();
       }
       
     } finally {

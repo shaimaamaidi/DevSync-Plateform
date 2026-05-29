@@ -3,11 +3,11 @@ import { CheckCircle, RotateCcw, Send } from "lucide-react";
 import type { ClickUpSpaceLightDTO, ClickUpTask, TaskSearchStatus } from "@/api/api";
 import { withErrorHandling, defaultOnError } from "@/services/api-error";
 import { useNavigate } from "react-router-dom";
-import { clickUpService } from "@/services/clickup-service";
 import { projectTracingService } from "@/services/project-tracking-service";
 import { InsightsChatMessage } from "./insights-chat-message";
 import { SpaceSelect } from "./space-select";
 import type { InsightsChatMessageType } from "@/types/insights-chat";
+import { useClickUpSpacesLight } from "@/hooks/clickup-space-hooks/use-clickup-sapce-light";
 
 
 let _msgId = 0;
@@ -33,20 +33,14 @@ export function TaskStatusChat({ onReset }: Props) {
       "I'll help you check whether a ClickUp task is truly completed — by cross-referencing its status with linked GitHub commits and deployments.\n\nPlease start by selecting a ClickUp space below."
     ),
   ]);
-  const [spaces, setSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
-  const [spacesLoading, setSpacesLoading] = useState(true);
+
+  const { spaces, loading: spacesLoading} = useClickUpSpacesLight();
+  
   const [selectedSpace, setSelectedSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [step, setStep] = useState<Step>("select_space");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
- 
-  useEffect(() => {
-    clickUpService.getAllSpacesLight()
-      .then(setSpaces)
-      .catch(() => {})
-      .finally(() => setSpacesLoading(false));
-  }, []);
  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });

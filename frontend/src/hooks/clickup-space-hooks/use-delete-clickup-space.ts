@@ -27,6 +27,7 @@ export function useDeleteClickUpSpace() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clickup-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['clickup-spaces-light'] });
     },
   });
 }

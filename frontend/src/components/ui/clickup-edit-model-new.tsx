@@ -40,7 +40,6 @@ export interface ClickUpEditModalProps {
   showNameMismatchDialog?: boolean;
   onNameMismatchDialogChange?: (show: boolean) => void;
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
-  refreshSpaces?: () => void;
 }
 
 export type CreationMode = 'create' | 'register';
@@ -58,7 +57,6 @@ export function ClickUpEditModal({
   showNameMismatchDialog,
   onNameMismatchDialogChange,
   onAssociate,
-  refreshSpaces,
 }: ClickUpEditModalProps) {
   const [formData, setFormData] = useState<Partial<ClickUpSpaceLightDTO>>({});
   const [errors, setErrors]     = useState<Record<string, string>>({});
@@ -165,7 +163,6 @@ export function ClickUpEditModal({
 
       if (success) {
         onClose();
-        refreshSpaces?.();
       }
     } finally {
       setIsSaving(false);
@@ -187,7 +184,6 @@ export function ClickUpEditModal({
       }
       if (success) {
         onClose();
-        refreshSpaces?.();
       }
     } finally {
       setIsSaving(false);
@@ -218,7 +214,6 @@ export function ClickUpEditModal({
       }
       if (success) {
         onClose();
-        refreshSpaces?.();
       }
     } finally {
       setIsSaving(false);

@@ -34,7 +34,6 @@ export interface ClickUpSpacesTableProps {
   onNameMismatchDialogChange?: (show: boolean) => void;
   repositories: GitRepoDetailDTO[];
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
-  refreshSpaces?: () => void;
   error?: string | null;
   refetchSpaces?: () => void;
 }
@@ -53,7 +52,6 @@ export function ClickUpSpacesTable({
   onNameMismatchDialogChange,
   repositories,
   onAssociate,
-  refreshSpaces,
   error,
   refetchSpaces
 }: ClickUpSpacesTableProps) {
@@ -304,7 +302,6 @@ export function ClickUpSpacesTable({
         showNameMismatchDialog={showNameMismatchDialog}
         onNameMismatchDialogChange={onNameMismatchDialogChange}
         onAssociate={onAssociate}
-        refreshSpaces={refreshSpaces}
       />
 
       <Dialog
@@ -358,11 +355,10 @@ export function ClickUpSpacesTable({
               variant="outline"
               onClick={async () => {
                 if (deleteConfirmSpaceId !== null) {
-                  const result = await onDelete(deleteConfirmSpaceId);
+                  await onDelete(deleteConfirmSpaceId);
                   setShowDeleteModeDialog(false);
                   setDeleteConfirmSpaceId(null);
-                  if (result) 
-                    refreshSpaces?.();
+                 
                 }
               }}
             >
@@ -372,11 +368,9 @@ export function ClickUpSpacesTable({
               variant="destructive"
               onClick={async () => {
                 if (deleteConfirmSpaceId !== null) {
-                  const result = await onRemove(deleteConfirmSpaceId);
+                  await onRemove(deleteConfirmSpaceId);
                   setShowDeleteModeDialog(false);
                   setDeleteConfirmSpaceId(null);
-                  if (result) 
-                    refreshSpaces?.();
                 }
               }}
             >

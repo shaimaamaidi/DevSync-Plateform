@@ -5,10 +5,10 @@ import { CommitTaskMappingStatus } from "@/api/api";
 import { withErrorHandling, defaultOnError } from "@/services/api-error";
 import { useNavigate } from "react-router-dom";
 import { InsightsChatMessage } from "./insights-chat-message";
-import { clickUpService } from "@/services/clickup-service";
 import { projectTracingService } from "@/services/project-tracking-service";
 import { SpaceSelect } from "./space-select";
 import type { InsightsChatMessageType } from "@/types/insights-chat";
+import { useClickUpSpacesLight } from "@/hooks/clickup-space-hooks/use-clickup-sapce-light";
 
 let _msgId = 300;
 const newId = () => ++_msgId;
@@ -34,20 +34,13 @@ export function CommitTracerChat({ onReset }: Props) {
     ),
   ]);
   
-  const [spaces, setSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
-  const [spacesLoading, setSpacesLoading] = useState(true);
+  const { spaces, loading: spacesLoading} = useClickUpSpacesLight();
+  
   const [selectedSpace, setSelectedSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [step, setStep] = useState<Step>("select_space");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    clickUpService.getAllSpacesLight()
-      .then(setSpaces)
-      .catch(() => {})
-      .finally(() => setSpacesLoading(false));
-  }, []);
  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "center"});

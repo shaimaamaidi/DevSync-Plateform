@@ -28,6 +28,7 @@ export function useAssociateRepoWithClickUpSpace() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['repos'] });
       queryClient.invalidateQueries({ queryKey: ['clickup-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['clickup-spaces-light'] });
     },
   });
 }

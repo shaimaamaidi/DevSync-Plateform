@@ -4,10 +4,10 @@ import type { ClickUpSpaceLightDTO } from "@/api/api";
 import { withErrorHandling, defaultOnError } from "@/services/api-error";
 import { useNavigate } from "react-router-dom";
 import { InsightsChatMessage } from "./insights-chat-message";
-import { clickUpService } from "@/services/clickup-service";
 import { projectTracingService } from "@/services/project-tracking-service";
 import { SpaceSelect } from "./space-select";
 import type { InsightsChatMessageType } from "@/types/insights-chat";
+import { useClickUpSpacesLight } from "@/hooks/clickup-space-hooks/use-clickup-sapce-light";
 
 let _msgId = 100;
 const newId = () => ++_msgId;
@@ -30,18 +30,12 @@ export function ProjectStatusChat({ onReset }: Props) {
       "I'll give you a complete overview of your project — task distribution, last GitHub activity, stale tasks, and unverified completions.\n\nSelect a ClickUp space to get started."
     ),
   ]);
-  const [spaces, setSpaces] = useState<ClickUpSpaceLightDTO[]>([]);
-  const [spacesLoading, setSpacesLoading] = useState(true);
+
+  const { spaces, loading: spacesLoading} = useClickUpSpacesLight();
+  
   const [step, setStep] = useState<"select_space" | "done">("select_space");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
- 
-  useEffect(() => {
-    clickUpService.getAllSpacesLight()
-      .then(setSpaces)
-      .catch(() => {})
-      .finally(() => setSpacesLoading(false));
-  }, []);
  
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });

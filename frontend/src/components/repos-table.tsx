@@ -38,7 +38,6 @@ interface ReposTableProps {
   onAdd: (repo: GitRepoCreateDTO) => Promise<boolean>;
   isLoading?: boolean;
   onAssociate: (association: AssociateClickUpSpaceRequest) => Promise<boolean>;
-  refreshSpaces?: () => void;
   error?: string | null;
   refreshRepos?: () => void;
 }
@@ -52,7 +51,6 @@ export function ReposTable({
   onAdd, 
   isLoading, 
   onAssociate, 
-  refreshSpaces, 
   error,
   refreshRepos 
 }: ReposTableProps) {
@@ -362,7 +360,6 @@ export function ReposTable({
         clickUpSpaces={clickUpSpaces}
         availableMembers={availableMembers}
         onAssociate={onAssociate}
-        refreshSpaces={refreshSpaces}
       />
 
       <Dialog open={deleteConfirmRepoId !== null} onOpenChange={(open) => { if (!open) setDeleteConfirmRepoId(null); }}>
@@ -384,12 +381,8 @@ export function ReposTable({
               variant="destructive"
               onClick={async () => {
                 if (deleteConfirmRepoId !== null) {
-                  const repo = repos.find((r) => r.id === deleteConfirmRepoId);
                   await onDelete(deleteConfirmRepoId);
                   setDeleteConfirmRepoId(null);
-                  if (repo && repo.clickup_space) {
-                    refreshSpaces?.();
-                  }
                 }
               }}
             >
