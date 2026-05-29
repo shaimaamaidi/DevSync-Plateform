@@ -1,3 +1,4 @@
+import { Link } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -58,8 +59,9 @@ export function SpaceSelect({ spaces, spacesLoading, disabled, showRepoBadge, on
                       </span>
                     )}
                     {s.repo && (
-                      <span className="text-[10px] text-muted-foreground">
-                        🔗 {s.repo.name}
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Link className="w-3 h-3" />
+                        {s.repo.name}
                       </span>
                     )}
                   </div>
