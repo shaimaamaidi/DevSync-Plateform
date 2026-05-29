@@ -59,7 +59,11 @@ export function WeeklySummaryChat({ onReset }: Props) {
     setLoading(false);
     setMessages(prev => prev.filter(m => !m._streaming));
  
-    if (!result) return;
+    if (!result){
+      push({ ...agentMsg("Something went wrong. Please try again."), isRejection: true });
+      setStep("done");
+      return
+    };
  
     push(agentMsg("Here is your weekly project summary", {
       type: "weekly_summary_result",

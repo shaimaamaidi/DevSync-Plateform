@@ -59,7 +59,11 @@ export function ProjectStatusChat({ onReset }: Props) {
     setLoading(false);
     setMessages(prev => prev.filter(m => !m._streaming));
  
-    if (!result) return;
+    if (!result){
+      push({ ...agentMsg("Something went wrong. Please try again."), isRejection: true });
+      setStep("done");
+      return
+    };
  
     push(agentMsg("Here is the current status of your project", {
       type: "project_status_result",

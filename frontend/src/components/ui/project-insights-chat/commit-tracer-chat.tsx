@@ -81,7 +81,11 @@ export function CommitTracerChat({ onReset }: Props) {
     setLoading(false);
     setMessages(prev => prev.filter(m => !m._streaming));
  
-    if (!result) return;
+    if (!result){
+      push({ ...agentMsg("Something went wrong. Please try again."), isRejection: true });
+      setStep("finished");
+      return
+    };
  
     if (result.status === CommitTaskMappingStatus.ClickUpEmpty) {
       push({ ...agentMsg(result.message), isRejection: true });
