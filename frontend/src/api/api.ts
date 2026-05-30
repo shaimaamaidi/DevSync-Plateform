@@ -91,21 +91,21 @@ export interface AssociatorRepoDTO {
     'url': string;
 }
 /**
- * ClickUp list containing tasks and configuration metadata.  This object represents a complete ClickUp list, including its tasks and configuration data such as available statuses and priority options.  Attributes:     id: ClickUp list identifier.     name: List name.     tasks: List of tasks contained in the list.     statuses: List of available task statuses in the list.     priorities: List of available task priority levels.
- */
-export interface ClickUpList {
-    'id': string;
-    'name': string;
-    'tasks'?: Array<ClickUpTask>;
-    'statuses'?: Array<string>;
-    'priorities'?: Array<string>;
-}
-/**
  * ClickUp list containing configuration metadata.  This object represents a ClickUp list along with its available statuses and priority options.  Attributes:     id: ClickUp list identifier.     name: List name.     statuses: List of available task statuses in the list.     priorities: List of available task priority levels.
  */
 export interface ClickUpListMetadata {
     'id': string;
     'name': string;
+    'statuses'?: Array<string>;
+    'priorities'?: Array<string>;
+}
+/**
+ * ClickUp list containing tasks with estimation data.  Extends ClickUpList by typing the tasks list as ClickUpTaskWithEstimation.  Attributes:     tasks: List of tasks with estimation contained in the list.
+ */
+export interface ClickUpListWithEstimation {
+    'id': string;
+    'name': string;
+    'tasks'?: Array<ClickUpTaskWithEstimation>;
     'statuses'?: Array<string>;
     'priorities'?: Array<string>;
 }
@@ -230,6 +230,21 @@ export interface ClickUpTask {
     'priority'?: string | null;
 }
 /**
+ * Task representation within a ClickUp list, including time estimation.  Extends ClickUpTask with an estimation field representing the estimated duration of the task in hours.  Attributes:     estimation: Estimated duration in hours, if any.
+ */
+export interface ClickUpTaskWithEstimation {
+    'id'?: string | null;
+    /**
+     * Task name or title.
+     */
+    'name': string;
+    'description'?: string | null;
+    'status'?: string | null;
+    'assignee'?: string | null;
+    'priority'?: string | null;
+    'estimation'?: number | null;
+}
+/**
  * Representation of a GitHub commit.  This DTO encapsulates commit metadata retrieved from GitHub, enabling downstream services to analyze changes, track progress, and correlate commits with task or deployment workflows.  Attributes:     sha: Short commit SHA (7 characters).     message: Full commit message describing the change.     author: GitHub username of the commit author.     date: Timestamp of when the commit was created.     url: Direct URL to the commit on GitHub.     branch: Branch name from which the commit was retrieved, if available.
  */
 export interface CommitDTO {
@@ -290,7 +305,7 @@ export interface CreateSpaceRequest {
     'space_name': string;
 }
 /**
- * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     space_id: Identifier of the ClickUp space containing the list.     list_id: Identifier of the ClickUp list where the task will be created.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.
+ * Request payload used to create a ClickUp task.  This DTO contains all necessary information to create a new task within a specific list and space, including metadata, assignment details, and notification control.  Attributes:     space_id: Identifier of the ClickUp space containing the list.     list_id: Identifier of the ClickUp list where the task will be created.     name: Task name.     description: Task description.     status: Initial task status.     priority: Task priority level (optional).     assignees: Assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during creation.     estimation: Estimated duration in hours.
  */
 export interface CreateTaskRequest {
     /**
@@ -316,6 +331,7 @@ export interface CreateTaskRequest {
      * If True, email notifications will be ignored during creation.
      */
     'ignore_mails'?: boolean;
+    'estimation'?: number | null;
 }
 /**
  * Deployment information returned by GitHub.  Attributes:     dep_id: Deployment identifier.     environment: Deployment environment.     ref: Git reference.     sha: Commit SHA.     creator: Creator username.     created_at: Creation timestamp.     description: Deployment description.     state: Deployment state.     log_url: URL to deployment logs.
@@ -332,12 +348,12 @@ export interface DeploymentDTO {
     'log_url': string;
 }
 /**
- * ClickUp folder containing multiple lists with tasks.  This object represents a complete ClickUp folder, including its lists and their associated tasks, forming a hierarchical structure within a ClickUp space.  Attributes:     id: ClickUp folder identifier.     name: Folder name.     lists: List of ClickUp lists (with tasks) contained in the folder.
+ * ClickUp folder containing multiple lists with tasks and estimations.  Extends the base folder structure to include estimation data on each task.  Attributes:     id: ClickUp folder identifier.     name: Folder name.     lists: List of ClickUp lists (with tasks and estimations).
  */
-export interface FolderWithLists {
+export interface FolderWithListsAndEstimation {
     'id': string;
     'name': string;
-    'lists'?: Array<ClickUpList>;
+    'lists'?: Array<ClickUpListWithEstimation>;
 }
 /**
  * ClickUp folder containing multiple lists metadata.  This object represents a ClickUp folder and its associated lists metadata, forming a hierarchical configuration structure within a ClickUp space.  Attributes:     id: ClickUp folder identifier.     name: Folder name.     lists: List of ClickUp lists metadata contained in the folder.
@@ -830,7 +846,7 @@ export interface TaskEstimate {
     'estimated_hours': number;
 }
 /**
- * Representation of a task search request.  This DTO contains the information required to perform a task search operation within a ClickUp space using a natural language query.  Attributes:     space_id: Identifier of the ClickUp space where tasks         should be searched.     question: User natural language query describing         the search intent.
+ * Representation of a task search request.  This DTO contains the information required to perform a task search operation within a ClickUp space using a natural language query.  Attributes:     space_id: Identifier of the ClickUp space where tasks         should be searched.     description: User natural language phrase describing         the search intent.
  */
 export interface TaskSearchRequest {
     /**
@@ -838,7 +854,7 @@ export interface TaskSearchRequest {
      */
     'space_id': string;
     /**
-     * User natural language query describing the search intent.
+     * User natural language phrase describing the search intent.
      */
     'description': string;
 }
@@ -883,7 +899,7 @@ export interface TaskSummary {
     'percentage': number;
 }
 /**
- * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     space_id: Identifier of the task\'s space.     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.
+ * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     space_id: Identifier of the task\'s space.     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.     estimation: Estimated duration in hours.
  */
 export interface UpdateTaskRequest {
     /**
@@ -913,6 +929,7 @@ export interface UpdateTaskRequest {
      * If True, email notifications will be ignored during update.
      */
     'ignore_mails'?: boolean;
+    'estimation'?: number | null;
 }
 /**
  * Representation of a user story in the backlog.  A user story describes a functional requirement from the end-user perspective and serves as an intermediate level between epics and tasks.  Attributes:     title: Title of the user story.     description: Detailed description of the user story.
@@ -3410,7 +3427,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpTask>> {
+        async createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpTaskWithEstimation>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.createTaskClickupTasksManagePost(createTaskRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.createTaskClickupTasksManagePost']?.[localVarOperationServerIndex]?.url;
@@ -3462,7 +3479,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<FolderWithLists>>> {
+        async getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<FolderWithListsAndEstimation>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.getTasksBySpaceClickupTasksSpacesSpaceIdGet']?.[localVarOperationServerIndex]?.url;
@@ -3502,7 +3519,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpTask>> {
+        async updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClickUpTaskWithEstimation>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.updateTaskClickupTasksManageSpaceIdPut']?.[localVarOperationServerIndex]?.url;
@@ -3550,7 +3567,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTask> {
+        createTaskClickupTasksManagePost(createTaskRequest: CreateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTaskWithEstimation> {
             return localVarFp.createTaskClickupTasksManagePost(createTaskRequest, options).then((request) => request(axios, basePath));
         },
         /**
@@ -3590,7 +3607,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<FolderWithLists>> {
+        getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId: string, options?: RawAxiosRequestConfig): AxiosPromise<Array<FolderWithListsAndEstimation>> {
             return localVarFp.getTasksBySpaceClickupTasksSpacesSpaceIdGet(spaceId, options).then((request) => request(axios, basePath));
         },
         /**
@@ -3621,7 +3638,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTask> {
+        updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTaskWithEstimation> {
             return localVarFp.updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options).then((request) => request(axios, basePath));
         },
         /**

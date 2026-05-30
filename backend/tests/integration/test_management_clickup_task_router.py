@@ -5,7 +5,7 @@ Integration tests for ClickUp task management routes.
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTaskWithEstimation
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
 
 
@@ -13,13 +13,14 @@ def test_create_clickup_task(client: TestClient, container) -> None:
     """
     Test creating a ClickUp task through the API.
     """
-    container.clickup_task_creation_use_case.create_task.return_value = ClickUpTask(
+    container.clickup_task_creation_use_case.create_task.return_value = ClickUpTaskWithEstimation(
         id="task-1",
         name="Build login",
         description="Implement login flow",
         status="to do",
         assignee="alice@example.com",
         priority="high",
+        estimation=None
     )
 
     payload = CreateTaskRequest(
@@ -31,6 +32,7 @@ def test_create_clickup_task(client: TestClient, container) -> None:
         priority="high",
         assignees="alice@example.com",
         ignore_mails=True,
+        estimation=None
     ).model_dump()
 
     response = client.post("/clickup/tasks/manage/", json=payload)
@@ -44,13 +46,14 @@ def test_update_clickup_task(client: TestClient, container) -> None:
     """
     Test updating a ClickUp task through the API.
     """
-    container.clickup_task_creation_use_case.update_task.return_value = ClickUpTask(
+    container.clickup_task_creation_use_case.update_task.return_value = ClickUpTaskWithEstimation(
         id="task-1",
         name="Build login v2",
         description="Implement login flow v2",
         status="in progress",
         assignee="alice@example.com",
         priority="high",
+        estimation=None
     )
 
     payload = UpdateTaskRequest(
@@ -63,6 +66,7 @@ def test_update_clickup_task(client: TestClient, container) -> None:
         assignees="alice@example.com",
         old_assignees="bob@example.com",
         ignore_mails=False,
+        estimation=None
     ).model_dump()
 
     response = client.put("/clickup/tasks/manage/space-1", json=payload)

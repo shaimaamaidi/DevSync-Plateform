@@ -1,9 +1,9 @@
-import type { FolderWithLists, FolderWithListsMetadata } from "@/api/api";
+import type { FolderWithListsAndEstimation, FolderWithListsMetadata } from "@/api/api";
 import {  type LocationWithMetadataOption, type LocationWithTasksOption } from "../types/clickup";
 
 export const FOLDERLESS_MARKER = '__folderless__';
 
-export function buildLocationWithTasksOptions(folders: FolderWithLists[]): LocationWithTasksOption[] {
+export function buildLocationWithTasksOptions(folders: FolderWithListsAndEstimation[]): LocationWithTasksOption[] {
   const options: LocationWithTasksOption[] = [];
   for (const folder of folders) {
     for (const list of folder.lists ?? []) {

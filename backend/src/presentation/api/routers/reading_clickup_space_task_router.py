@@ -14,7 +14,7 @@ from typing import List
 from fastapi import APIRouter, Depends, status
 
 from backend.src.application.use_cases.read_clickup_space_task_use_case import ReadClickUpSpaceTaskUseCase
-from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithListsAndEstimation
 from backend.src.presentation.api.deps import get_read_clickup_space_task_use_case
 
 
@@ -26,7 +26,7 @@ router = APIRouter()
 
 @router.get(
     "/{space_id}",
-    response_model=List[FolderWithLists],
+    response_model=List[FolderWithListsAndEstimation],
     status_code=status.HTTP_200_OK,
     summary="Get ClickUp space tasks",
     description="Retrieve all folders, lists, and tasks for a given ClickUp space.",
@@ -34,7 +34,7 @@ router = APIRouter()
 def get_tasks_by_space(
     space_id: str,
     use_case: ReadClickUpSpaceTaskUseCase = Depends(get_read_clickup_space_task_use_case),
-) -> List[FolderWithLists]:
+) -> List[FolderWithListsAndEstimation]:
     """
     Retrieve the complete task structure of a ClickUp space.
 
@@ -43,7 +43,7 @@ def get_tasks_by_space(
         use_case (ReadClickUpSpaceTaskUseCase): Injected use case.
 
     Returns:
-        List[FolderWithLists]: Folders with their lists and tasks.
+        List[FolderWithListsAndEstimation]: Folders with their lists and tasks.
     """
     logger.info("Fetching ClickUp space tasks: space_id=%s.", space_id)
 

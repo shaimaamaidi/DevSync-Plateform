@@ -9,7 +9,7 @@ from abc import abstractmethod, ABC
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask, ClickUpTaskWithEstimation
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
@@ -30,7 +30,7 @@ class IClickUpTaskWriter(ABC):
         task: ClickUpTask,
         email_to_id: dict[str, int],
         ignore_mails:bool
-    ) -> ClickUpTask:
+    ) -> ClickUpTaskWithEstimation:
         """
         Create a task directly in a ClickUp list.
 
@@ -47,7 +47,7 @@ class IClickUpTaskWriter(ABC):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            ClickUpTask: created task.
+            ClickUpTaskWithEstimation: created task.
 
         Raises:
             ClickUpTaskCreateException: Raised when the ClickUp API task creation request fails.
@@ -62,7 +62,7 @@ class IClickUpTaskWriter(ABC):
         old_assignees: str,
         email_to_id: dict[str, int],
         ignore_mails: bool
-    ) -> ClickUpTask:
+    ) -> ClickUpTaskWithEstimation:
         """
         Update an existing ClickUp task.
 
@@ -80,7 +80,7 @@ class IClickUpTaskWriter(ABC):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            ClickUpTask: updated task.
+            ClickUpTaskWithEstimation: updated task.
 
         Raises:
             ClickUpTaskUpdateException:

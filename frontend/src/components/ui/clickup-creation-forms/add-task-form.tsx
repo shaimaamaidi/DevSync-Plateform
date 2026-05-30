@@ -1,6 +1,6 @@
 import type {
   ClickUpListMetadata,
-  ClickUpTask,
+  ClickUpTaskWithEstimation,
   CreateTaskRequest,
   FolderWithListsMetadata,
   MemberDTO,
@@ -36,6 +36,7 @@ const EMPTY_DRAFT: TaskDraft = {
   status: '',
   priority: '',
   assignees: [],
+  estimation: null,
 };
 
 interface AddTaskFormProps {
@@ -48,7 +49,7 @@ interface AddTaskFormProps {
   structureLoading: boolean;
   members: MemberDTO[];
   membersLoading: boolean;
-  onCreated: (task: ClickUpTask) => void;
+  onCreated: (task: ClickUpTaskWithEstimation) => void;
   onCancel: () => void;
 }
 
@@ -148,6 +149,7 @@ export function AddTaskForm({
       priority: draft.priority || null,
       assignees: draft.assignees.length > 0 ? draft.assignees.join(',') : null,
       ignore_mails: false,
+      estimation: draft.estimation ?? null, 
     };
 
     await callCreate(req);
@@ -243,6 +245,18 @@ export function AddTaskForm({
                 structureLoading={structureLoading}
               />
             </div>
+          </div>
+
+          <div className="col-span-1 sm:col-span-2">
+            <p className="text-xs text-muted-foreground mb-1">Estimation (hours)</p>
+            <EditableField
+              value={draft.estimation != null ? String(draft.estimation) : ''}
+              onChange={(v) => {
+                const parsed = parseFloat(v);
+                set('estimation')(!v.trim() || isNaN(parsed) ? null : parsed);
+              }}
+              placeholder="Optional (e.g. 2.5)"
+            />
           </div>
         </div>
 

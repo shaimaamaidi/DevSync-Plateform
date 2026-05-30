@@ -4,13 +4,13 @@ import { defaultOnError } from '@/services/api-error';
 import { resolveErrorAction, normalizeErrorMessage, extractErrorCode, extractStatusCode } from '@/utils/error-handler';
 import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
-import type { FolderWithLists } from '@/api/api';
+import type { FolderWithListsAndEstimation } from '@/api/api';
 
 export function useSpaceTasks(spaceId: string) {
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError, refetch } = useQuery<FolderWithLists[]>({
+  const { data, isLoading, isError, refetch } = useQuery<FolderWithListsAndEstimation[]>({
     queryKey: ['space-tasks', spaceId],
     retry: false,
     enabled: !!spaceId,

@@ -6,14 +6,14 @@ along with their associated lists and tasks. It provides a structured way to tra
 complete hierarchical ClickUp data between layers of the application.
 
 Main classes:
-    FolderWithLists
+    FolderWithLists, FolderWithListsAndEstimation
 """
 
 from typing import List
 
 from pydantic import BaseModel
 
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpListWithEstimation
 
 
 class FolderWithLists(BaseModel):
@@ -31,3 +31,19 @@ class FolderWithLists(BaseModel):
     id: str
     name: str
     lists: List[ClickUpList] = []
+
+class FolderWithListsAndEstimation(BaseModel):
+    """
+    ClickUp folder containing multiple lists with tasks and estimations.
+
+    Extends the base folder structure to include estimation data
+    on each task.
+
+    Attributes:
+        id: ClickUp folder identifier.
+        name: Folder name.
+        lists: List of ClickUp lists (with tasks and estimations).
+    """
+    id: str
+    name: str
+    lists: List[ClickUpListWithEstimation] = []

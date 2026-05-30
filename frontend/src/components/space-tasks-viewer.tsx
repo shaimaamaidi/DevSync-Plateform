@@ -18,8 +18,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { withErrorHandling, defaultOnError } from '@/services/api-error';
 import type {
-  ClickUpTask,
-  ClickUpList,
+  ClickUpTaskWithEstimation,
+  ClickUpListWithEstimation,
   UpdateTaskRequest,
   FolderWithListsMetadata,
   ClickUpListMetadata,
@@ -60,7 +60,7 @@ export function SpaceTasksViewer() {
   const { members, loading: membersLoading } = useMembers();
   const { folders, loading: dataLoading, error: dataError, refetch: refetchTasks } = useSpaceTasks(spaceId ?? '');
   const [extraLists, setExtraLists] = useState<ClickUpListMetadata[]>([]);
-  const [tasksByList, setTasksByList] = useState<Record<string, ClickUpTask[]>>({});
+  const [tasksByList, setTasksByList] = useState<Record<string, ClickUpTaskWithEstimation[]>>({});
 
   const [showAddForm, setShowAddForm] = useState(false);
   const [showCreateListForm, setShowCreateListForm] = useState(false);
@@ -81,23 +81,23 @@ export function SpaceTasksViewer() {
           name: l.name, 
           statuses: l.statuses ?? [],
           priorities: l.priorities ?? [] 
-        } as ClickUpList,
+        } as ClickUpListWithEstimation,
       }));
     return [...base, ...extra];
   }, [folders, extraLists]);
 
   const selectedOption = locationOptions.find((o) => o.listId === selectedListId);
-  const selectedList: ClickUpList | null = selectedOption?.list ?? null;
+  const selectedList: ClickUpListWithEstimation | null = selectedOption?.list ?? null;
   const statuses: string[] = selectedList?.statuses ?? [];
   const priorities: string[] = selectedList?.priorities ?? [];
-  const currentTasks: ClickUpTask[] = tasksByList[selectedListId] ?? [];
+  const currentTasks: ClickUpTaskWithEstimation[] = tasksByList[selectedListId] ?? [];
   const emptyStructureForFields: FolderWithListsMetadata[] = [];
   
   useEffect(() => {
     if (folders.length === 0) 
       return;
 
-    const map: Record<string, ClickUpTask[]> = {};
+    const map: Record<string, ClickUpTaskWithEstimation[]> = {};
     for (const folder of folders) {
       for (const list of folder.lists ?? []) {
         map[list.id] = list.tasks ?? [];
@@ -111,7 +111,7 @@ export function SpaceTasksViewer() {
   }, [selectedListId]);
 
 
-  const handleCreated = useCallback((task: ClickUpTask) => {
+  const handleCreated = useCallback((task: ClickUpTaskWithEstimation) => {
     setTasksByList((prev) => ({
       ...prev,
       [selectedListId]: [task, ...(prev[selectedListId] ?? [])],

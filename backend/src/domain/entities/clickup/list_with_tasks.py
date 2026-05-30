@@ -6,7 +6,7 @@ along with their associated tasks and configuration metadata. It provides a
 structured way to transfer complete ClickUp list data between layers of the application.
 
 Main classes:
-    ClickUpTask, ClickUpList
+    ClickUpTask, ClickUpList, ClickUpTaskWithEstimation, ClickUpListWithEstimation
 """
 
 from typing import List, Optional
@@ -66,3 +66,35 @@ class ClickUpList(BaseModel):
     tasks: List[ClickUpTask] = []
     statuses: List[str] = []
     priorities: List[str] = []
+
+class ClickUpTaskWithEstimation(ClickUpTask):
+    """
+    Task representation within a ClickUp list, including time estimation.
+
+    Extends ClickUpTask with an estimation field representing the estimated
+    duration of the task in hours.
+
+    Attributes:
+        estimation: Estimated duration in hours, if any.
+    """
+    estimation: Optional[float] = Field(None, description="Estimated duration in hours, if any.")
+
+    def to_dict(self) -> dict:
+        """
+        Serialize task fields for LLM consumption, including estimation.
+        """
+        base = super().to_dict()
+        base["estimation"] = self.estimation
+        return base
+
+
+class ClickUpListWithEstimation(ClickUpList):
+    """
+    ClickUp list containing tasks with estimation data.
+
+    Extends ClickUpList by typing the tasks list as ClickUpTaskWithEstimation.
+
+    Attributes:
+        tasks: List of tasks with estimation contained in the list.
+    """
+    tasks: List[ClickUpTaskWithEstimation] = []

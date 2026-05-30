@@ -30,6 +30,7 @@ class CreateTaskRequest(BaseModel):
         priority: Task priority level (optional).
         assignees: Assignees (emails separated by commas).
         ignore_mails: If True, email notifications will be ignored during creation.
+        estimation: Estimated duration in hours.
     """
     space_id: str = Field(..., min_length=1, description="Identifier of the ClickUp space containing the list.")
     list_id: str = Field(..., min_length=1, description="Identifier of the ClickUp list where the task will be created.")
@@ -39,3 +40,4 @@ class CreateTaskRequest(BaseModel):
     priority: Optional[str] = Field(None, description="Task priority level (optional).")
     assignees: Optional[str] = Field(None, description="Assignees (emails separated by commas).")
     ignore_mails: bool = Field(False, description="If True, email notifications will be ignored during creation.")
+    estimation: Optional[float] = Field(None, description="Estimated duration in hours, if any.")

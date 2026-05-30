@@ -21,7 +21,7 @@ import logging
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask, ClickUpTaskWithEstimation
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
@@ -30,7 +30,8 @@ from backend.src.domain.exceptions.clickup.clickup_task_update_exception import 
 from backend.src.domain.ports.output.clickup.i_clickup_task_writer import IClickUpTaskWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
 from backend.src.infrastructure.external.clickup.helpers.clickup_helper import resolve_assignee_ids_strict, \
-    priority_to_str, resolve_assignee_ids_from_mails, parse_task
+    priority_to_str, resolve_assignee_ids_from_mails, parse_task_with_estimation
+
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         task: ClickUpTask,
         email_to_id: dict[str, int],
         ignore_mails:bool
-    ) -> ClickUpTask:
+    ) -> ClickUpTaskWithEstimation:
         """
         Create a task directly in a ClickUp list.
 
@@ -81,7 +82,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            ClickUpTask: created task.
+            ClickUpTaskWithEstimation: created task.
 
         Raises:
             ClickUpTaskCreateException: Raised when the ClickUp API task creation request fails.
@@ -106,6 +107,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         if task.status is not None:
             payload["status"] = task.status
 
+        if task.estimation is not None:
+            payload["time_estimate"] = task.estimation * 3_600_000
+
         assignee_ids = []
 
         if task.assignee:
@@ -124,7 +128,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 task.status,
                 response.status_code,
             )
-            return parse_task(response.json())
+            return parse_task_with_estimation(response.json())
+
         else:
             logger.error(
                 "Task creation failed. task_name=%s status_code=%d response=%s.",
@@ -143,7 +148,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         old_assignees: str,
         email_to_id: dict[str, int],
         ignore_mails: bool
-    ) -> ClickUpTask:
+    ) -> ClickUpTaskWithEstimation:
         """
         Update an existing ClickUp task.
 
@@ -161,7 +166,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised for unresolved emails.
 
         Returns:
-            ClickUpTask: updated task.
+            ClickUpTaskWithEstimation: updated task.
 
         Raises:
             ClickUpTaskUpdateException:
@@ -186,6 +191,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         if task_content.status is not None:
             payload["status"] = task_content.status
+
+        if task_content.estimation is not None:
+            payload["time_estimate"] = task_content.estimation * 3_600_000
 
         added_ids = []
         rem_ids = []
@@ -216,7 +224,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 task_content.name,
                 response.status_code,
             )
-            return parse_task(response.json())
+            return parse_task_with_estimation(response.json())
+
         else:
             logger.error(
                 "Task update failed. task_id=%s task_name=%s status_code=%d response=%s.",

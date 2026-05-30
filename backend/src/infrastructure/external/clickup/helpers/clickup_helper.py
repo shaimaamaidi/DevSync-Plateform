@@ -9,7 +9,7 @@ between assignee identifiers and ClickUp workspace members.
 import logging
 from typing import List, Dict, Optional
 
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask, ClickUpTaskWithEstimation
 from backend.src.domain.exceptions.clickup.clickup_assignee_email_not_found_exception import \
     AssigneeEmailNotInClickUpException
 from backend.src.domain.exceptions.clickup.clickup_assignee_name_not_found_exception import \
@@ -220,3 +220,41 @@ def parse_task(task: dict) -> ClickUpTask:
         assignee=assignee,
         priority=priority,
     )
+
+def parse_task_with_estimation(task: dict) -> ClickUpTaskWithEstimation:
+    """
+    Parse a raw ClickUp task API response into a ClickUpTaskWithEstimation entity.
+
+    Converts the time_estimate field from milliseconds to hours.
+
+    Args:
+        task: Raw task dictionary from the ClickUp API.
+
+    Returns:
+        ClickUpTaskWithEstimation domain entity.
+    """
+    assignees_raw = task.get("assignees") or []
+    assignee: Optional[str] = (
+            ", ".join(
+                m.get("email", "")
+                for m in assignees_raw
+                if m.get("email")
+            ) or None
+    )
+
+    priority_raw = task.get("priority") or {}
+    priority = priority_raw.get("priority") if isinstance(priority_raw, dict) else None
+
+    time_estimate_ms = task.get("time_estimate")
+    estimation = (time_estimate_ms / 3_600_000) if time_estimate_ms else None
+
+    return ClickUpTaskWithEstimation(
+        id=task.get("id"),
+        name=task.get("name", ""),
+        description=task.get("description"),
+        status=(task.get("status") or {}).get("status"),
+        assignee=assignee,
+        priority=priority,
+        estimation=estimation,
+    )
+

@@ -15,8 +15,8 @@ from typing import List, Optional
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
-from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask, ClickUpListWithEstimation
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists, FolderWithListsAndEstimation
 from backend.src.domain.exceptions.clickup.clickup_api_exception import ClickUpApiException
 from backend.src.domain.exceptions.clickup.clickup_authentication_exception import ClickUpAuthenticationException
 from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
@@ -24,8 +24,7 @@ from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception 
 from backend.src.domain.exceptions.clickup.clickup_workspace_members_exception import ClickUpWorkspaceMembersException
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
-from backend.src.infrastructure.external.clickup.helpers.clickup_helper import parse_task
-
+from backend.src.infrastructure.external.clickup.helpers.clickup_helper import parse_task, parse_task_with_estimation
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +133,70 @@ class ClickUpReader(IClickUpReader):
 
         logger.info(
             "Space structure completed. space_id=%s folders=%d.",
+            space_id,
+            len(folders),
+        )
+
+        return folders
+
+    def get_space_full_structure_with_estimation(
+            self, space_id: str
+    ) -> List[FolderWithListsAndEstimation]:
+        """
+        Retrieve full ClickUp space structure including task estimations.
+
+        Identical to get_space_full_structure but maps each task to
+        ClickUpTaskWithEstimation, preserving the time_estimate field
+        converted to hours.
+
+        Args:
+            space_id: ClickUp space identifier.
+
+        Returns:
+            List of FolderWithListsAndEstimation containing lists and tasks
+            with their estimation data.
+        """
+        logger.info(
+            "Fetching space structure with estimation. space_id=%s.", space_id
+        )
+
+        folders_data = self._get_folders(space_id)
+        folderless_lists_data = self._get_folderless_lists(space_id)
+
+        if not folders_data and not folderless_lists_data:
+            logger.warning("Empty ClickUp space. space_id=%s.", space_id)
+            return []
+
+        folders: List[FolderWithListsAndEstimation] = []
+
+        if folders_data:
+            logger.info(
+                "%d folder(s) found directly in space '%s'.",
+                len(folders_data),
+                space_id,
+            )
+            for folder_data in folders_data:
+                folder = self._build_folder_with_lists_and_estimation(folder_data)
+                folders.append(folder)
+
+        if folderless_lists_data:
+            logger.info(
+                "%d folderless list(s) found directly in space '%s'.",
+                len(folderless_lists_data),
+                space_id,
+            )
+            for list_data in folderless_lists_data:
+                clickup_list = self._build_list_with_tasks_and_estimation(list_data)
+                folders.append(
+                    FolderWithListsAndEstimation(
+                        id=list_data["id"],
+                        name="__folderless__",
+                        lists=[clickup_list],
+                    )
+                )
+
+        logger.info(
+            "Space structure with estimation completed. space_id=%s folders=%d.",
             space_id,
             len(folders),
         )
@@ -494,6 +557,37 @@ class ClickUpReader(IClickUpReader):
 
         return FolderWithListsMetadata(id=folder_id, name=folder_name, lists=lists)
 
+    def _build_folder_with_lists_and_estimation(
+            self, folder_data: dict
+    ) -> FolderWithListsAndEstimation:
+        """
+        Build a FolderWithListsAndEstimation domain entity from a raw API folder dict.
+
+        Args:
+            folder_data: Raw folder dictionary from ClickUp API.
+
+        Returns:
+            FolderWithListsAndEstimation domain entity.
+        """
+        folder_id = folder_data.get("id", "<unknown>")
+        folder_name = folder_data.get("name", "<unknown>")
+
+        logger.info(
+            "Processing folder with estimation '%s'. folder_id=%s.",
+            folder_name,
+            folder_id,
+        )
+
+        lists_data = self._get_lists(folder_id)
+        lists = [
+            self._build_list_with_tasks_and_estimation(list_data)
+            for list_data in lists_data
+        ]
+
+        return FolderWithListsAndEstimation(
+            id=folder_id, name=folder_name, lists=lists
+        )
+
     def _build_list_with_tasks(self, list_data: dict) -> ClickUpList:
         """
         Build a ClickUpList domain entity from a raw API list dict.
@@ -565,6 +659,51 @@ class ClickUpReader(IClickUpReader):
         return ClickUpListMetadata(
             id=list_id,
             name=list_name,
+            statuses=statuses,
+            priorities=PRIORITIES,
+        )
+
+    def _build_list_with_tasks_and_estimation(
+            self, list_data: dict
+    ) -> ClickUpListWithEstimation:
+        """
+        Build a ClickUpListWithEstimation domain entity from a raw API list dict.
+
+        Parses each task using parse_task_with_estimation to capture
+        the time_estimate field converted from milliseconds to hours.
+
+        Args:
+            list_data: Raw list dictionary from ClickUp API.
+
+        Returns:
+            ClickUpListWithEstimation domain entity.
+        """
+        list_id = list_data.get("id", "<unknown>")
+        list_name = list_data.get("name", "<unknown>")
+
+        list_details = self._get_list_details(list_id)
+        tasks_data = self._get_tasks(list_id)
+
+        tasks = [parse_task_with_estimation(task) for task in tasks_data]
+
+        statuses = [
+            s["status"]
+            for s in list_details.get("statuses", [])
+            if s.get("status")
+        ]
+
+        logger.info(
+            "List with estimation '%s' built. list_id=%s tasks=%d statuses=%d.",
+            list_name,
+            list_id,
+            len(tasks),
+            len(statuses),
+        )
+
+        return ClickUpListWithEstimation(
+            id=list_id,
+            name=list_name,
+            tasks=tasks,
             statuses=statuses,
             priorities=PRIORITIES,
         )

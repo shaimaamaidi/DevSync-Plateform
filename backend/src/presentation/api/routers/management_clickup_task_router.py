@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, status
 
 from backend.src.application.use_cases.manage_clickup_task_use_case import ManageClickUpTaskUseCase
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTaskWithEstimation
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
 from backend.src.presentation.api.deps import get_create_clickup_task_use_case
 
@@ -30,14 +30,14 @@ router = APIRouter()
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
-    response_model=ClickUpTask,
+    response_model=ClickUpTaskWithEstimation,
     summary="Create a ClickUp task",
     description="Create a new task inside a ClickUp list.",
 )
 def create_task(
     body: CreateTaskRequest,
     use_case: ManageClickUpTaskUseCase = Depends(get_create_clickup_task_use_case),
-) -> ClickUpTask:
+) -> ClickUpTaskWithEstimation:
     """
     Create a ClickUp task.
 
@@ -46,7 +46,7 @@ def create_task(
         use_case (ManageClickUpTaskUseCase): Injected use case.
 
     Returns:
-        ClickUpTask: The created ClickUp task entity containing task metadata returned by the ClickUp API.
+        ClickUpTaskWithEstimation: The created ClickUp task entity containing task metadata returned by the ClickUp API.
     """
     logger.info(
         "Creating ClickUp task: list_id=%s, name=%s.",
@@ -67,7 +67,7 @@ def create_task(
 @router.put(
     "/{space_id}",
     status_code=status.HTTP_200_OK,
-    response_model=ClickUpTask,
+    response_model=ClickUpTaskWithEstimation,
     summary="Update a ClickUp task",
     description="Update an existing ClickUp task by its identifier.",
 )
@@ -75,7 +75,7 @@ def update_task(
     space_id: str,
     body: UpdateTaskRequest,
     use_case: ManageClickUpTaskUseCase = Depends(get_create_clickup_task_use_case),
-) -> ClickUpTask:
+) -> ClickUpTaskWithEstimation:
     """
     Update a ClickUp task.
 
@@ -85,7 +85,7 @@ def update_task(
         use_case (ManageClickUpTaskUseCase): Injected use case.
 
     Returns:
-        ClickUpTask: The updated ClickUp task entity reflecting the latest state returned by
+        ClickUpTaskWithEstimation: The updated ClickUp task entity reflecting the latest state returned by
             the ClickUp API.
     """
     logger.info(

@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTaskWithEstimation
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_delete_exception import ClickUpTaskDeleteException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
@@ -131,13 +131,14 @@ def test_create_task_by_list_builds_payload_and_returns_parsed_task(monkeypatch)
     monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "parse_task", lambda payload: payload)
 
     writer = ClickUpTaskWriter(http_client)
-    task = ClickUpTask(
+    task = ClickUpTaskWithEstimation(
         id=None,
         name="Task 1",
         description="Do work",
         status="open",
         assignee="alice@example.com, bob@example.com",
         priority="high",
+        estimation=None
     )
 
     result = writer.create_task_by_list("list-1", task, {"alice@example.com": 11, "bob@example.com": 22}, False)
@@ -169,7 +170,7 @@ def test_create_task_by_list_raises_when_api_fails(monkeypatch) -> None:
     with pytest.raises(ClickUpTaskCreateException):
         writer.create_task_by_list(
             "list-1",
-            ClickUpTask(id=None, name="Task 1", description=None, status=None, assignee=None, priority=None),
+            ClickUpTaskWithEstimation(id=None, name="Task 1", description=None, status=None, assignee=None, priority=None, estimation=None),
             {},
             False,
         )
@@ -186,13 +187,14 @@ def test_update_task_builds_assignee_delta(monkeypatch) -> None:
     monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "parse_task", lambda payload: payload)
 
     writer = ClickUpTaskWriter(http_client)
-    task = ClickUpTask(
+    task = ClickUpTaskWithEstimation(
         id="task-1",
         name="Task 1",
         description="Do work",
         status="open",
         assignee="alice@example.com",
         priority=None,
+        estimation=None
     )
 
     result = writer.update_task("task-1", task, "bob@example.com", {"alice@example.com": 11, "bob@example.com": 22}, False)

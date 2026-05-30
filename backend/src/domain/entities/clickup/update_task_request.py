@@ -30,6 +30,7 @@ class UpdateTaskRequest(BaseModel):
         assignees: New assignees (emails separated by commas).
         old_assignees: Previous assignees (emails separated by commas).
         ignore_mails: If True, email notifications will be ignored during update.
+        estimation: Estimated duration in hours.
     """
     space_id: str = Field(..., min_length=1, description="Identifier of the task's space.")
     task_id: str = Field(..., min_length=1, description="Identifier of the task to update.")
@@ -40,3 +41,4 @@ class UpdateTaskRequest(BaseModel):
     assignees: Optional[str] = Field(None, description="New assignees (emails separated by commas).")
     old_assignees: Optional[str] = Field(None, description="Previous assignees (emails separated by commas).")
     ignore_mails: bool = Field(False, description="If True, email notifications will be ignored during update.")
+    estimation: Optional[float] = Field(None, description="Estimated duration in hours, if any.")

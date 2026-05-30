@@ -1,4 +1,4 @@
-import type { ClickUpList, GeneratedTaskFromBacklog, GeneratedTaskFromSummary, VerifiedTaskFromBacklog, VerifiedTaskFromSummary } from "@/api/api";
+import type { ClickUpListWithEstimation, GeneratedTaskFromBacklog, GeneratedTaskFromSummary, VerifiedTaskFromBacklog, VerifiedTaskFromSummary } from "@/api/api";
 
 
 export type TaskGenerationDTO = GeneratedTaskFromSummary | GeneratedTaskFromBacklog;
@@ -12,12 +12,13 @@ export interface TaskDraft {
   status: string;
   priority: string;
   assignees: string[];
+  estimation: number | null;
 };
 
 export interface LocationWithTasksOption {
   label: string;
   listId: string;
-  list: ClickUpList;
+  list: ClickUpListWithEstimation;
 };
 
 export interface LocationWithMetadataOption {

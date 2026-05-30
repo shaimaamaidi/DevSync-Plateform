@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
-from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists, FolderWithListsAndEstimation
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 
 
@@ -50,6 +50,26 @@ class IClickUpReader(ABC):
         pass
 
     @abstractmethod
+    def get_space_full_structure_with_estimation(
+            self, space_id: str
+    ) -> List[FolderWithListsAndEstimation]:
+        """
+        Retrieve full ClickUp space structure including task estimations.
+
+        Identical to get_space_full_structure but maps each task to
+        ClickUpTaskWithEstimation, preserving the time_estimate field
+        converted to hours.
+
+        Args:
+            space_id: ClickUp space identifier.
+
+        Returns:
+            List of FolderWithListsAndEstimation containing lists and tasks
+            with their estimation data.
+        """
+        pass
+
+    @abstractmethod
     def get_space_structure_metadata(self, space_id: str) -> List[FolderWithListsMetadata]:
         """
         Retrieve ClickUp space structure (metadata only).
@@ -63,6 +83,7 @@ class IClickUpReader(ABC):
         Returns:
             List of FolderWithListsMetadata containing lists metadata.
         """
+        pass
 
     @abstractmethod
     def get_workspace_members(self) -> List[dict]:

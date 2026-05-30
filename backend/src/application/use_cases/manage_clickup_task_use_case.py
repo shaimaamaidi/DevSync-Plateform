@@ -15,7 +15,7 @@ Classes:
 import logging
 
 from backend.src.domain.entities.clickup.create_task_request import CreateTaskRequest
-from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTaskWithEstimation
 from backend.src.domain.entities.clickup.update_task_request import UpdateTaskRequest
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_manage_clickup_task_use_case import IManageClickUpTaskUseCase
@@ -50,7 +50,7 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
         self._clickup_reader = clickup_reader
         self._click_writer = clickup_writer
 
-    def create_task(self, request: CreateTaskRequest) -> ClickUpTask:
+    def create_task(self, request: CreateTaskRequest) -> ClickUpTaskWithEstimation:
         """
         Create a new ClickUp task.
 
@@ -58,7 +58,7 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
             request (CreateTaskRequest): Task creation payload.
 
         Returns:
-            ClickUpTask: The created ClickUp task entity containing task metadata returned by the ClickUp API.
+            ClickUpTaskWithEstimation: The created ClickUp task entity containing task metadata returned by the ClickUp API.
         """
         logger.info(
             "Creating ClickUp task. list_id=%s space_id=%s name=%s",
@@ -67,13 +67,14 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
             request.name,
         )
 
-        task = ClickUpTask(
+        task = ClickUpTaskWithEstimation(
             id=None,
             name=request.name,
             description=request.description,
             status=request.status,
             priority=request.priority,
             assignee=request.assignees,
+            estimation=request.estimation,
         )
 
         email_to_id = {}
@@ -105,7 +106,7 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
 
         return result
 
-    def update_task(self, request: UpdateTaskRequest) -> ClickUpTask:
+    def update_task(self, request: UpdateTaskRequest) -> ClickUpTaskWithEstimation:
         """
         Update an existing ClickUp task.
 
@@ -113,7 +114,7 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
             request (UpdateTaskRequest): Task update payload.
 
         Returns:
-            ClickUpTask: The updated ClickUp task entity reflecting the latest state returned by
+            ClickUpTaskWithEstimation: The updated ClickUp task entity reflecting the latest state returned by
                 the ClickUp API.
         """
         logger.info(
@@ -122,13 +123,14 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
             request.name,
         )
 
-        task = ClickUpTask(
+        task = ClickUpTaskWithEstimation(
             id=None,
             name=request.name,
             description=request.description,
             status=request.status,
             priority=request.priority,
             assignee=request.assignees,
+            estimation=request.estimation
         )
 
         email_to_id = {}

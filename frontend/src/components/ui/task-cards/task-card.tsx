@@ -1,6 +1,6 @@
 import type { 
   ClickUpListMetadata, 
-  ClickUpTask, 
+  ClickUpTaskWithEstimation, 
   FolderWithListsMetadata, 
   MemberDTO, 
   UpdateTaskRequest 
@@ -14,7 +14,7 @@ import { AssigneeSelect } from "../task-detail-controls/assignee-select";
 import { StatusField } from "../task-detail-controls/status-field";
 import { PriorityField } from "../task-detail-controls/priority-field";
 import { Button } from "../shared-primitives/button";
-import { Loader2, Pen, Trash2 } from "lucide-react";
+import { Clock, Loader2, Pen, Trash2 } from "lucide-react";
 import { AssigneeBadges } from "../task-detail-controls/assignee-badge";
 import { 
   Dialog, 
@@ -27,7 +27,7 @@ import {
 import { AddStatusForm } from "../clickup-creation-forms/add-status-from";
 
 interface TaskCardProps {
-  task: ClickUpTask;
+  task: ClickUpTaskWithEstimation;
   statuses: string[];
   priorities: string[];
   structureForFields: FolderWithListsMetadata[];
@@ -45,23 +45,25 @@ function parseAssignees(raw: string | null | undefined): string[] {
   return raw ? raw.split(',').map((s) => s.trim()).filter(Boolean) : [];
 }
 
-function buildInitialDraft(task: ClickUpTask): TaskDraft {
+function buildInitialDraft(task: ClickUpTaskWithEstimation): TaskDraft {
   return {
     name: task.name,
     description: task.description ?? "",
     status: task.status ?? "",
     priority: task.priority ?? "",
     assignees: parseAssignees(task.assignee),
+    estimation: task.estimation ?? null,
   };
 }
 
-function isDraftDirty(draft: TaskDraft, task: ClickUpTask): boolean {
+function isDraftDirty(draft: TaskDraft, task: ClickUpTaskWithEstimation): boolean {
   return (
     draft.name !== task.name ||
     draft.description !== task.description ||
     draft.status !== task.status ||
     draft.priority !== (task.priority ?? '') ||
-    draft.assignees.join(',') !== parseAssignees(task.assignee).join(',')
+    draft.assignees.join(',') !== parseAssignees(task.assignee).join(',') ||
+    (draft.estimation ?? null) !== (task.estimation ?? null)
   );
 }
 
@@ -135,6 +137,7 @@ export function TaskCard({
       priority: draft.priority || null,
       assignees: draft.assignees.length > 0 ? draft.assignees.join(',') : null,
       old_assignees: task.assignee ?? null,
+      estimation: draft.estimation ?? null,
     });
 
     setSaving(false);
@@ -226,6 +229,18 @@ export function TaskCard({
                   structureLoading={structureLoading}
                 />
               </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Estimation (hours)</p>
+                <EditableField
+                  value={draft.estimation != null ? String(draft.estimation) : ''}
+                  onChange={(v) => {
+                    const parsed = parseFloat(v);
+                    set('estimation')(!v.trim() || isNaN(parsed) ? null : parsed);
+                  }}
+                  placeholder="Optional (e.g. 2.5)"
+                />
+              </div>
             </div>
 
             <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 pt-1">
@@ -290,6 +305,12 @@ export function TaskCard({
                     No status
                   </span>
                 )}
+                {task.estimation != null ? (
+                  <span className="text-xs px-2 py-0.5 rounded-md border bg-muted text-muted-foreground shrink-0 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {task.estimation}h
+                  </span>
+                ) : null}
               </div>
             </div>
 

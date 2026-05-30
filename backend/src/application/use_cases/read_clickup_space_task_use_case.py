@@ -18,7 +18,7 @@ Classes:
 import logging
 from typing import List
 
-from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
+from backend.src.domain.entities.clickup.folder_with_lists import FolderWithListsAndEstimation
 from backend.src.domain.exceptions.common.invalid_input_exception import InvalidInputException
 from backend.src.domain.ports.input.i_read_clickup_space_task_use_case import IReadClickUpSpaceTaskUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
@@ -52,7 +52,7 @@ class ReadClickUpSpaceTaskUseCase(IReadClickUpSpaceTaskUseCase):
         """
         self._clickup_reader = clickup_reader
 
-    def get_tasks_by_space(self, space_id) -> List[FolderWithLists]:
+    def get_tasks_by_space(self, space_id) -> List[FolderWithListsAndEstimation]:
         """
         Retrieve the complete task structure of a ClickUp space.
 
@@ -64,7 +64,8 @@ class ReadClickUpSpaceTaskUseCase(IReadClickUpSpaceTaskUseCase):
             space_id (str): ClickUp space identifier.
 
         Returns:
-            List[FolderWithLists]: List of folders containing their associated lists and tasks.
+            List[FolderWithListsAndEstimation]: List of folders containing
+                their associated lists and tasks.
 
         Raises:
             InvalidInputException: If space_id is empty.
@@ -83,7 +84,7 @@ class ReadClickUpSpaceTaskUseCase(IReadClickUpSpaceTaskUseCase):
                 "Click up space must have a valid SPACE ID for fetch tasks."
             )
 
-        results = self._clickup_reader.get_space_full_structure(space_id)
+        results = self._clickup_reader.get_space_full_structure_with_estimation(space_id)
 
         logger.info(
             "ClickUp tasks fetched successfully. space_id=%s folders=%d.",
