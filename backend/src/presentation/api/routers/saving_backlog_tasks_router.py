@@ -15,9 +15,10 @@ Routes:
 
 import logging
 
-from fastapi import APIRouter, Depends, status, Response
+from fastapi import APIRouter, Depends, status
 
 from backend.src.domain.entities.saved_tasks_request.save_backlog_tasks_request import SaveBacklogTasksRequest
+from backend.src.domain.entities.saved_tasks_request.task_sync_result import TaskSyncResult
 from backend.src.domain.ports.input.i_save_backlog_tasks_use_case import ISaveBacklogTasksInClickUpUseCase
 from backend.src.presentation.api.deps import get_save_backlog_tasks_use_case
 
@@ -30,7 +31,7 @@ router = APIRouter()
 
 @router.post(
     "/save-backlog-tasks",
-    response_class=Response,
+    response_model=TaskSyncResult,
     status_code=status.HTTP_201_CREATED,
     summary="Save verified backlog tasks into ClickUp",
     description=(
@@ -42,7 +43,7 @@ router = APIRouter()
 def save_backlog_tasks_to_clickup(
     request: SaveBacklogTasksRequest,
     use_case: ISaveBacklogTasksInClickUpUseCase = Depends(get_save_backlog_tasks_use_case),
-) -> Response:
+) -> TaskSyncResult:
     """
     Save verified tasks into ClickUp.
 
@@ -63,9 +64,8 @@ def save_backlog_tasks_to_clickup(
         use_case (ISaveBacklogTasksInClickUpUseCase): Application use case responsible for ClickUp persistence logic.
 
     Returns:
-        None:
-            This endpoint does not return any response body.
-            It only confirms successful execution via HTTP 201 Created status.
+        TaskSyncResult: Summary of synchronization results, including created, updated,
+            skipped, and failed tasks.
     """
     logger.info(
         "Saving verified backlog tasks into ClickUp: space_id=%s, total_tasks=%d.",
@@ -73,7 +73,7 @@ def save_backlog_tasks_to_clickup(
         len(request.tasks),
     )
 
-    use_case.save_backlog_tasks_to_clickup(
+    result = use_case.save_backlog_tasks_to_clickup(
         tasks=request.tasks,
         space_id=request.space_id,
         ignore_names=request.ignore_names,
@@ -86,4 +86,4 @@ def save_backlog_tasks_to_clickup(
         len(request.tasks),
     )
 
-    return Response(status_code=status.HTTP_201_CREATED)
+    return result

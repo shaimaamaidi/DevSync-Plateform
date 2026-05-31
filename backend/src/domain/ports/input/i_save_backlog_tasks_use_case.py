@@ -13,6 +13,7 @@ It acts as a contract for application-level services responsible for:
 from abc import ABC, abstractmethod
 from typing import List
 
+from backend.src.domain.entities.saved_tasks_request.task_sync_result import TaskSyncResult
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
 
 
@@ -32,7 +33,7 @@ class ISaveBacklogTasksInClickUpUseCase(ABC):
             space_id,
             ignore_names: bool,
             ignore_mails: bool
-    ) -> None:
+    ) -> TaskSyncResult:
         """
         Apply verified backlog tasks into ClickUp.
 
@@ -43,6 +44,7 @@ class ISaveBacklogTasksInClickUpUseCase(ABC):
             ignore_mails (bool): Whether to ignore email-based assignment.
 
         Returns:
-            None
+            TaskSyncResult: Summary of synchronization results, including created, updated,
+                skipped, and failed tasks.
         """
         pass

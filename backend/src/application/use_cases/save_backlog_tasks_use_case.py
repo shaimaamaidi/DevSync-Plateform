@@ -13,6 +13,7 @@ Classes:
 import logging
 from typing import List
 
+from backend.src.domain.entities.saved_tasks_request.task_sync_result import TaskSyncResult
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
 from backend.src.domain.ports.input.i_save_backlog_tasks_use_case import ISaveBacklogTasksInClickUpUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
@@ -60,7 +61,7 @@ class SaveBacklogTasksInClickUpUseCase(ISaveBacklogTasksInClickUpUseCase):
             space_id: str,
             ignore_names: bool,
             ignore_mails: bool
-    ) -> None:
+    ) -> TaskSyncResult:
         """
         Apply verified backlog tasks into ClickUp.
 
@@ -73,6 +74,10 @@ class SaveBacklogTasksInClickUpUseCase(ISaveBacklogTasksInClickUpUseCase):
             space_id (str): ClickUp space identifier.
             ignore_names (bool): Whether to ignore name-based resolution.
             ignore_mails (bool): Whether to ignore email-based assignment.
+
+        Returns:
+            TaskSyncResult: Summary of synchronization results, including created, updated,
+                skipped, and failed tasks.
         """
         logger.info(
                 "Saving tasks to ClickUp: space_id=%s total_tasks=%d.",
@@ -100,10 +105,12 @@ class SaveBacklogTasksInClickUpUseCase(ISaveBacklogTasksInClickUpUseCase):
         if name_to_email :
             members = self._clickup_reader.get_workspace_members()
 
-        self._clickup_writer.apply_backlog_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
+        result = self._clickup_writer.apply_backlog_results(tasks, folders, members, name_to_email, ignore_names, ignore_mails)
 
         logger.info(
             "Tasks saved to ClickUp successfully: space_id=%s created_tasks=%d.",
             space_id,
             len(tasks),
         )
+
+        return result

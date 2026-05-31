@@ -22,6 +22,7 @@ from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask, ClickUpTaskWithEstimation
+from backend.src.domain.entities.saved_tasks_request.task_sync_result import FailedTask, TaskSyncResult
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
@@ -282,7 +283,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             name_to_email: dict[str, str],
             ignore_names: bool,
             ignore_mails: bool
-    ) -> None:
+    ) -> TaskSyncResult:
         """
         Apply verified summary task results to ClickUp.
 
@@ -303,11 +304,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised when resolution fails.
 
         Returns:
-            None
-
-        Raises:
-            ClickUpTaskCreateException: If task creation fails.
-            ClickUpTaskUpdateException: If task update fails.
+            TaskSyncResult: Summary of synchronization results, including created, updated,
+                skipped, and failed tasks.
         """
         logger.info(
             "Starting summary task synchronization. total_results=%d, folders=%d, members=%d.",
@@ -316,10 +314,19 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(members),
         )
 
-        created_count, updated_count, skipped_count =ClickUpTaskWriter._apply_results(
+        created_count, updated_count, skipped_count, failed_count, failed_tasks =ClickUpTaskWriter._apply_results(
             results, folders, members, name_to_email, ignore_names, ignore_mails,
             create_fn=self._create_summary_task,
             update_fn=self._update_summary_task,
+        )
+
+        result = TaskSyncResult(
+            total=len(results),
+            created=created_count,
+            updated=updated_count,
+            skipped=skipped_count,
+            failed=failed_count,
+            failed_tasks=failed_tasks,
         )
 
         logger.info(
@@ -330,6 +337,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(results),
         )
 
+        return result
+
     def apply_backlog_results(
             self,
             results: List[VerifiedTaskFromBacklog],
@@ -338,7 +347,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             name_to_email: dict[str, str],
             ignore_names: bool,
             ignore_mails: bool
-    ) -> None:
+    ) -> TaskSyncResult:
         """
         Apply verified backlog task results to ClickUp.
 
@@ -359,11 +368,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised when resolution fails.
 
         Returns:
-            None
-
-        Raises:
-            ClickUpTaskCreateException: If task creation fails.
-            ClickUpTaskUpdateException: If task update fails.
+            TaskSyncResult: Summary of synchronization results, including created, updated,
+                skipped, and failed tasks.
         """
         logger.info(
             "Starting backlog task synchronization. total_results=%d, folders=%d, members=%d.",
@@ -372,10 +378,19 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(members),
         )
 
-        created_count, updated_count, skipped_count = ClickUpTaskWriter._apply_results(
+        created_count, updated_count, skipped_count, failed_count, failed_tasks = ClickUpTaskWriter._apply_results(
             results, folders, members, name_to_email, ignore_names, ignore_mails,
             create_fn=self._create_backlog_task,
             update_fn=self._update_backlog_task,
+        )
+
+        result = TaskSyncResult(
+            total=len(results),
+            created=created_count,
+            updated=updated_count,
+            skipped=skipped_count,
+            failed=failed_count,
+            failed_tasks=failed_tasks,
         )
 
         logger.info(
@@ -385,6 +400,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             skipped_count,
             len(results),
         )
+
+        return result
 
     @staticmethod
     def _apply_results(
@@ -396,7 +413,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         ignore_mails: bool,
         create_fn,
         update_fn,
-    ) -> tuple[int, int, int]:
+    ) -> tuple[int, int, int, int, List[FailedTask]]:
         """
         Apply verified task results to ClickUp.
 
@@ -417,17 +434,20 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                 If False, an exception is raised when resolution fails.
 
         Returns:
-            tuple[int, int, int] : created_count, updated_count, skipped_count
-
-        Raises:
-            ClickUpTaskCreateException: If task creation fails.
-            ClickUpTaskUpdateException: If task update fails.
+            tuple[int, int, int, int, List[FailedTask]]: A tuple containing:
+                - number of created tasks,
+                - number of updated tasks,
+                - number of skipped tasks,
+                - number of failed tasks,
+                - list of failed task details.
         """
         email_to_id = {}
 
         created_count = 0
         updated_count = 0
         skipped_count = 0
+        failed_count = 0
+        failed_tasks: List[FailedTask] = []
 
         if members:
             email_to_id = {m["email"].lower(): m["id"] for m in members}
@@ -456,7 +476,13 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                         result.location,
                         str(e),
                     )
-                    raise
+                    failed_count += 1
+                    created_count -= 1
+                    failed_tasks.append(FailedTask(
+                        task_name=result.task_name,
+                        action="create",
+                        reason=e.message,
+                    ))
 
             elif result.action == "update":
                 if not result.task_id:
@@ -477,8 +503,15 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                         result.task_name,
                         str(e),
                     )
-                    raise
-        return created_count, updated_count, skipped_count
+                    failed_count += 1
+                    updated_count -= 1
+                    failed_tasks.append(FailedTask(
+                        task_name=result.task_name,
+                        action="update",
+                        reason=e.message,
+                    ))
+
+        return created_count, updated_count, skipped_count, failed_count, failed_tasks
 
     def _create_summary_task(
             self,
@@ -801,9 +834,9 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         else:
             logger.error("Task creation failed. task_name=%s location=%s status_code=%d response=%s.",
                          task_name, location, response.status_code, response.text)
-            raise ClickUpTaskCreateException(
-                f"The task \"{task_name}\" could not be created in ClickUp. Please try again or contact support."
-            )
+
+            reason = ClickUpTaskWriter._extract_user_reason(response, action="create", task_name=task_name)
+            raise ClickUpTaskCreateException(reason)
 
     def _put_task(self, endpoint: str, payload: dict, task_id: str, task_name: str) -> None:
         """
@@ -832,6 +865,56 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         else:
             logger.error("Task update failed. task_id=%s task_name=%s status_code=%d response=%s.",
                          task_id, task_name, response.status_code, response.text)
-            raise ClickUpTaskUpdateException(
-                f"The task \"{task_name}\" could not be updated in ClickUp. Please try again or contact support."
-            )
+
+            reason = ClickUpTaskWriter._extract_user_reason(response, action="update", task_name=task_name)
+            raise ClickUpTaskUpdateException(reason)
+
+    @staticmethod
+    def _extract_user_reason(response, action: str, task_name: str) -> str:
+        """
+        Build a human-readable error message from a failed ClickUp API response.
+
+        Args:
+            response: HTTP response from ClickUp API.
+            action: "create" or "update".
+            task_name: Name of the task that failed.
+
+        Returns:
+            str: User-friendly error message.
+        """
+        action_label = "created" if action == "create" else "updated"
+        status = response.status_code
+
+        # Essaye d'extraire le message ClickUp depuis le JSON
+        api_message = None
+        try:
+            body = response.json()
+            api_message = body.get("err") or body.get("error") or body.get("message")
+        except Exception:
+            pass
+
+        # Messages clairs par status code
+        if status == 400:
+            detail = f": {api_message}" if api_message else " (invalid data sent)"
+            return f'Task "{task_name}" could not be {action_label} — invalid request{detail}.'
+
+        if status == 401:
+            return f'Task "{task_name}" could not be {action_label} — ClickUp access is unauthorized. Please reconnect your account.'
+
+        if status == 403:
+            return f'Task "{task_name}" could not be {action_label} — you do not have permission to perform this action in ClickUp.'
+
+        if status == 404:
+            return f'Task "{task_name}" could not be {action_label} — the target list or task was not found in ClickUp.'
+
+        if status == 429:
+            return f'Task "{task_name}" could not be {action_label} — ClickUp rate limit reached. Please try again in a few moments.'
+
+        if status >= 500:
+            return f'Task "{task_name}" could not be {action_label} — ClickUp is temporarily unavailable (server error {status}). Please try again later.'
+
+        # Fallback générique avec message API si disponible
+        if api_message:
+            return f'Task "{task_name}" could not be {action_label} — {api_message}.'
+
+        return f'Task "{task_name}" could not be {action_label} — unexpected error (HTTP {status}). Please try again or contact support.'

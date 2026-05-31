@@ -10,6 +10,7 @@ from typing import List
 
 from backend.src.domain.entities.clickup.folder_with_list_metadata import FolderWithListsMetadata
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask, ClickUpTaskWithEstimation
+from backend.src.domain.entities.saved_tasks_request.task_sync_result import TaskSyncResult
 from backend.src.domain.entities.verified_tasks.verified_task_from_backlog import VerifiedTaskFromBacklog
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
@@ -117,7 +118,7 @@ class IClickUpTaskWriter(ABC):
             name_to_email: dict[str, str],
             ignore_names: bool,
             ignore_mails: bool
-    ) -> None:
+    ) -> TaskSyncResult:
         """
         Apply verified summary task results to ClickUp.
 
@@ -135,7 +136,8 @@ class IClickUpTaskWriter(ABC):
                 be ignored.
 
         Returns:
-            None
+            TaskSyncResult: Summary of synchronization results, including created, updated,
+                skipped, and failed tasks.
         """
         pass
 
@@ -148,7 +150,7 @@ class IClickUpTaskWriter(ABC):
             name_to_email: dict[str, str],
             ignore_names: bool,
             ignore_mails: bool
-    ) -> None:
+    ) -> TaskSyncResult:
         """
         Apply verified backlog task results to ClickUp.
 
@@ -166,6 +168,7 @@ class IClickUpTaskWriter(ABC):
                 be ignored.
 
         Returns:
-            None
+            TaskSyncResult: Summary of synchronization results, including created, updated,
+                skipped, and failed tasks.
         """
         pass
