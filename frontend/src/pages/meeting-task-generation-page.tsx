@@ -29,7 +29,11 @@ import {
   extractAssigneeListFromError
 } from '@/utils/error-handler';
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
-import type { GeneratedTaskFromSummary, VerifiedTaskFromSummary } from '@/api/api';
+import type { 
+  FailedTask,
+  GeneratedTaskFromSummary, 
+  VerifiedTaskFromSummary 
+} from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
 import { taskGenerationService } from '@/services/task-generation-service';
@@ -84,7 +88,7 @@ export default function MeetingTaskGenerationPage() {
     tasks.every(t => t.location?.trim().length > 0);
 
   const [saveSummary, setSaveSummary] = useState<{
-    created: number; updated: number; total: number;
+    total: number; created: number; updated: number; failed: number; failedTasks: FailedTask[]
   } | null>(null);
 
   const resetProcess = () => {
@@ -282,9 +286,11 @@ export default function MeetingTaskGenerationPage() {
 
       if (result) {
         setSaveSummary({
-          created: verifiedTasks.filter(t => t.action === 'create').length,
-          updated: verifiedTasks.filter(t => t.action === 'update').length,
-          total: verifiedTasks.length,
+          total: result.total,
+          created: result.created,
+          updated: result.updated,
+          failed: result.failed,
+          failedTasks: result.failed_tasks ?? [],
         });
         setSavedOk(true);
         setDisabledAll(true);
@@ -616,6 +622,8 @@ export default function MeetingTaskGenerationPage() {
                   total={saveSummary.total}
                   created={saveSummary.created}
                   updated={saveSummary.updated}
+                  failed={saveSummary.failed}        
+                  failedTasks={saveSummary.failedTasks} 
                   name="meeting summary"
                   navigateToNewAction={handleNewSummary}
                   navigateToConsultationSpace={navigateToConsultationSpace}

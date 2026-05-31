@@ -33,7 +33,6 @@ class FailedTask(BaseModel):
     action: str
     reason: str
 
-
 class TaskSyncResult(BaseModel):
     """
     Summary of a task synchronization operation.
@@ -45,13 +44,11 @@ class TaskSyncResult(BaseModel):
         total: Total number of tasks processed.
         created: Number of tasks successfully created.
         updated: Number of tasks successfully updated.
-        skipped: Number of tasks skipped during synchronization.
         failed: Number of tasks that failed to synchronize.
         failed_tasks: List of task synchronization failures.
     """
     total: int
     created: int
     updated: int
-    skipped: int
     failed: int
     failed_tasks: List[FailedTask] = field(default_factory=list)

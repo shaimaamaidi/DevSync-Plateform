@@ -314,7 +314,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(members),
         )
 
-        created_count, updated_count, skipped_count, failed_count, failed_tasks =ClickUpTaskWriter._apply_results(
+        created_count, updated_count, failed_count, failed_tasks =ClickUpTaskWriter._apply_results(
             results, folders, members, name_to_email, ignore_names, ignore_mails,
             create_fn=self._create_summary_task,
             update_fn=self._update_summary_task,
@@ -324,16 +324,15 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             total=len(results),
             created=created_count,
             updated=updated_count,
-            skipped=skipped_count,
             failed=failed_count,
             failed_tasks=failed_tasks,
         )
 
         logger.info(
-            "ClickUp synchronization completed. created=%d updated=%d skipped=%d total=%d.",
+            "ClickUp synchronization completed. created=%d updated=%d failed=%d total=%d.",
             created_count,
             updated_count,
-            skipped_count,
+            failed_count,
             len(results),
         )
 
@@ -378,7 +377,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             len(members),
         )
 
-        created_count, updated_count, skipped_count, failed_count, failed_tasks = ClickUpTaskWriter._apply_results(
+        created_count, updated_count, failed_count, failed_tasks = ClickUpTaskWriter._apply_results(
             results, folders, members, name_to_email, ignore_names, ignore_mails,
             create_fn=self._create_backlog_task,
             update_fn=self._update_backlog_task,
@@ -388,16 +387,15 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             total=len(results),
             created=created_count,
             updated=updated_count,
-            skipped=skipped_count,
             failed=failed_count,
             failed_tasks=failed_tasks,
         )
 
         logger.info(
-            "ClickUp synchronization completed. created=%d updated=%d skipped=%d total=%d.",
+            "ClickUp synchronization completed. created=%d updated=%d failed=%d total=%d.",
             created_count,
             updated_count,
-            skipped_count,
+            failed_count,
             len(results),
         )
 
@@ -413,7 +411,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
         ignore_mails: bool,
         create_fn,
         update_fn,
-    ) -> tuple[int, int, int, int, List[FailedTask]]:
+    ) -> tuple[int, int, int, List[FailedTask]]:
         """
         Apply verified task results to ClickUp.
 
@@ -437,7 +435,6 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             tuple[int, int, int, int, List[FailedTask]]: A tuple containing:
                 - number of created tasks,
                 - number of updated tasks,
-                - number of skipped tasks,
                 - number of failed tasks,
                 - list of failed task details.
         """
@@ -445,7 +442,6 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
 
         created_count = 0
         updated_count = 0
-        skipped_count = 0
         failed_count = 0
         failed_tasks: List[FailedTask] = []
 
@@ -463,7 +459,12 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                         result.location,
                         result.task_name,
                     )
-                    skipped_count += 1
+                    failed_count += 1
+                    failed_tasks.append(FailedTask(
+                        task_name=result.task_name,
+                        action="create",
+                        reason=f'Task "{result.task_name}" was skipped — the location "{result.location}" could not be found in your ClickUp space.',
+                    ))
                     continue
 
                 try:
@@ -490,7 +491,12 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                         "Update requested but no task_id provided for '%s' — skipping.",
                         result.task_name,
                     )
-                    skipped_count += 1
+                    failed_count += 1
+                    failed_tasks.append(FailedTask(
+                        task_name=result.task_name,
+                        action="update",
+                        reason=f'Task "{result.task_name}" was skipped — the location "{result.location}" could not be found in your ClickUp space.',
+                    ))
                     continue
 
                 try:
@@ -511,7 +517,7 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
                         reason=e.message,
                     ))
 
-        return created_count, updated_count, skipped_count, failed_count, failed_tasks
+        return created_count, updated_count, failed_count, failed_tasks
 
     def _create_summary_task(
             self,

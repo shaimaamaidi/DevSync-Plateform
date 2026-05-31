@@ -30,9 +30,10 @@ import {
 } from '@/utils/error-handler';
 import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
 import type { 
-    GeneratedTaskFromBacklog, 
-    Sprint, 
-    VerifiedTaskFromBacklog 
+  FailedTask,
+  GeneratedTaskFromBacklog, 
+  Sprint, 
+  VerifiedTaskFromBacklog 
 } from '@/api/api';
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
@@ -89,8 +90,8 @@ export default function BacklogTaskGenerationPage() {
     tasks.every(t => t.location?.trim().length > 0);
 
   const [saveSummary, setSaveSummary] = useState<{
-    created: number; updated: number; total: number;
-  } | null>(null);
+      total: number; created: number; updated: number; failed: number; failedTasks: FailedTask[]
+    } | null>(null);
 
   useEffect(() => {
     const raw = localStorage.getItem('sprint_backlog');
@@ -298,9 +299,11 @@ export default function BacklogTaskGenerationPage() {
 
       if (result) {
         setSaveSummary({
-          created: verifiedTasks.filter(t => t.action === 'create').length,
-          updated: verifiedTasks.filter(t => t.action === 'update').length,
-          total: verifiedTasks.length,
+          total: result.total,
+          created: result.created,
+          updated: result.updated,
+          failed: result.failed,
+          failedTasks: result.failed_tasks ?? [],
         });
         setSavedOk(true);
         setDisabledAll(true);
@@ -609,6 +612,8 @@ export default function BacklogTaskGenerationPage() {
                   total={saveSummary.total}
                   created={saveSummary.created}
                   updated={saveSummary.updated}
+                  failed={saveSummary.failed}        
+                  failedTasks={saveSummary.failedTasks} 
                   name="backlog"
                   navigateToNewAction={navigateToNewBacklog}
                   navigateToConsultationSpace={navigateToConsultationSpace}

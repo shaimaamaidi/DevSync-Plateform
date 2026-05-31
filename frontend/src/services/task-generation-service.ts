@@ -20,8 +20,7 @@ export const taskGenerationService = {
       space_id: spaceId,
     };
 
-    const response =
-      await clickUpTasksApi.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(payload);
+    const response = await clickUpTasksApi.generateTasksFromSummaryClickupTasksGenerateTasksFromSummaryPost(payload);
     return response.data ?? [];
   },
 

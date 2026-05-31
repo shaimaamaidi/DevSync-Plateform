@@ -348,6 +348,14 @@ export interface DeploymentDTO {
     'log_url': string;
 }
 /**
+ * Representation of a task synchronization failure.  This DTO contains information about a task that could not be created or updated during a synchronization operation, along with the reason for the failure.  Attributes:     task_name: Name of the task that failed to synchronize.     action: Synchronization action that failed (\"create\" or \"update\").     reason: Description of the failure cause.
+ */
+export interface FailedTask {
+    'task_name': string;
+    'action': string;
+    'reason': string;
+}
+/**
  * ClickUp folder containing multiple lists with tasks and estimations.  Extends the base folder structure to include estimation data on each task.  Attributes:     id: ClickUp folder identifier.     name: Folder name.     lists: List of ClickUp lists (with tasks and estimations).
  */
 export interface FolderWithListsAndEstimation {
@@ -897,6 +905,16 @@ export type TaskSearchStatus = typeof TaskSearchStatus[keyof typeof TaskSearchSt
 export interface TaskSummary {
     'status': string;
     'percentage': number;
+}
+/**
+ * Summary of a task synchronization operation.  This DTO aggregates synchronization statistics and provides details about tasks that could not be processed successfully.  Attributes:     total: Total number of tasks processed.     created: Number of tasks successfully created.     updated: Number of tasks successfully updated.     skipped: Number of tasks skipped during synchronization.     failed: Number of tasks that failed to synchronize.     failed_tasks: List of task synchronization failures.
+ */
+export interface TaskSyncResult {
+    'total': number;
+    'created': number;
+    'updated': number;
+    'failed': number;
+    'failed_tasks'?: Array<FailedTask>;
 }
 /**
  * Request payload used to update a ClickUp task.  This DTO contains all information required to modify an existing task, including metadata updates, assignment changes, and control flags.  Attributes:     space_id: Identifier of the task\'s space.     task_id: Identifier of the task to update.     name: Updated task name.     description: Updated task description.     status: New task status.     priority: Task priority level (optional).     assignees: New assignees (emails separated by commas).     old_assignees: Previous assignees (emails separated by commas).     ignore_mails: If True, email notifications will be ignored during update.     estimation: Estimated duration in hours.
@@ -3492,7 +3510,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskSyncResult>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost']?.[localVarOperationServerIndex]?.url;
@@ -3505,7 +3523,7 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+        async saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TaskSyncResult>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost']?.[localVarOperationServerIndex]?.url;
@@ -3617,7 +3635,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest: SaveBacklogTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskSyncResult> {
             return localVarFp.saveBacklogTasksToClickupClickupTasksSaveBacklogTasksPost(saveBacklogTasksRequest, options).then((request) => request(axios, basePath));
         },
         /**
@@ -3627,7 +3645,7 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+        saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest: SaveSummaryTasksRequest, options?: RawAxiosRequestConfig): AxiosPromise<TaskSyncResult> {
             return localVarFp.saveSummaryTasksToClickupClickupTasksSaveSummaryTasksPost(saveSummaryTasksRequest, options).then((request) => request(axios, basePath));
         },
         /**
