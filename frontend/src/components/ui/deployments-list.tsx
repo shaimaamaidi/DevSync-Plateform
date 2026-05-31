@@ -1,26 +1,40 @@
-﻿import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/shared-primitives/card';
 import { Badge } from '@/components/ui/shared-primitives/badge';
 import { Button } from '@/components/ui/shared-primitives/button';
-import { ExternalLink, Filter, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink, Filter, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { DeploymentDTO } from '@/api/api';
 import type { DeploymentStatus } from '@/types/deployment';
 
+const PER_PAGE = 10;
 interface DeploymentsListProps {
   deployments: DeploymentDTO[];
 }
 
 export function DeploymentsList({ deployments }: DeploymentsListProps) {
   const [statusFilter, setStatusFilter] = useState<DeploymentStatus>('all');
-
   const getStatus = (deployment: DeploymentDTO) => deployment.state ?? 'unknown';
+    
+  const [page, setPage] = useState(1);
 
   const filteredDeployments =
     statusFilter === 'all'
       ? deployments
       : deployments.filter((d) => getStatus(d) === statusFilter);
 
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter]);
+  
+  const paginatedDeployments = filteredDeployments.slice(
+    (page - 1) * PER_PAGE,
+    page * PER_PAGE
+  );
+
+  const hasNext = page * PER_PAGE < filteredDeployments.length;
+  const hasPrev = page > 1;
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'success':
@@ -81,12 +95,7 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
           ))}
         </div>
         {statusFilter !== 'all' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setStatusFilter('all')}
-            className="gap-1"
-          >
+          <Button variant="ghost" size="sm" onClick={() => setStatusFilter('all')} className="gap-1">
             <X className="w-3 h-3" />
             Clear
           </Button>
@@ -100,9 +109,9 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
           <div>Author</div>
           <div>Deployed</div>
         </div>
-        <div className="max-h-[480px] overflow-y-auto overflow-x-auto space-y-3 pr-1 max-w-full">
-          {filteredDeployments.length > 0 ? (
-            filteredDeployments.map((deployment, index) => {
+        <div className="space-y-3 pr-1">
+          {paginatedDeployments.length > 0 ? (
+            paginatedDeployments.map((deployment, index) => {
               const status = getStatus(deployment);
               const createdAt = deployment.created_at ? new Date(deployment.created_at) : null;
               const deploymentName = deployment.description || deployment.environment || 'Deployment';
@@ -138,7 +147,6 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
                         </div>
                       </div>
                     </div>
-
                     {deployment.log_url && (
                       <a
                         href={deployment.log_url}
@@ -157,13 +165,39 @@ export function DeploymentsList({ deployments }: DeploymentsListProps) {
           ) : (
             <Card className="p-8 text-center border-dashed">
               <p className="text-muted-foreground">
-                {statusFilter === 'all'
-                  ? 'No deployments available'
-                  : `No ${statusFilter} deployments found`}
+                {statusFilter === 'all' ? 'No deployments available' : `No ${statusFilter} deployments found`}
               </p>
             </Card>
           )}
         </div>
+
+        {filteredDeployments.length > PER_PAGE && (
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p - 1)}
+              disabled={!hasPrev}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {Math.ceil(filteredDeployments.length / PER_PAGE)}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => p + 1)}
+              disabled={!hasNext}
+              className="gap-1"
+            >
+              Next
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {deployments.length > 0 && (
