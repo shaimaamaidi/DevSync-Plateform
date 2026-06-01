@@ -1,6 +1,6 @@
 import type { InsightsChatMessageType } from "@/types/insights-chat";
 import { BotMessageSquare, CircleUser, RefreshCcw } from "lucide-react";
-import { TypingIndicator } from "../loading-and-feedback/typing-indicator";
+import { TypingIndicator } from "./typing-indicator";
 import { MessageBubble } from "./message-bubble";
 import { AttachmentRenderer } from "./attachmnent-renderer";
 

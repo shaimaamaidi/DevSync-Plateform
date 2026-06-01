@@ -2,11 +2,12 @@ import type { ChatMessage as ChatMessageType } from "@/types/backlog";
 import { BotMessageSquare, CircleUser, RefreshCcw } from "lucide-react";
 import { MessageBubble } from "./message-bubble";
 import { AttachmentRenderer } from "./attachment-renderer";
-import { TypingIndicator } from "../loading-and-feedback/typing-indicator";
+import { BacklogTypingIndicator } from "./backlog-typing-indicator";
 
 interface ChatMessageProps {
   message: ChatMessageType;
   streamingText?: string;
+  currentToolName?: string | null;
   onMarketSubmit?: (data: any) => void;
   onBacklogSubmit?: (data: any) => void;
   onClickUpYes?: (data: any) => void;
@@ -16,6 +17,7 @@ interface ChatMessageProps {
 export function BacklogChatMessage({
   message,
   streamingText = "",
+  currentToolName,
   onMarketSubmit,
   onBacklogSubmit,
   onClickUpYes,
@@ -49,7 +51,7 @@ export function BacklogChatMessage({
         <div className="flex-1 min-w-0">
           {isStreaming ? (
             <div className="px-3 sm:px-3.5 py-2.5 text-[13px] leading-[1.7] rounded-xl bg-slate-50 text-slate-800 border border-slate-100 rounded-tl-[3px]">
-              {streamingText || <TypingIndicator />}
+              {streamingText || <BacklogTypingIndicator toolName={currentToolName} />}
             </div>
           ) : (
             <MessageBubble

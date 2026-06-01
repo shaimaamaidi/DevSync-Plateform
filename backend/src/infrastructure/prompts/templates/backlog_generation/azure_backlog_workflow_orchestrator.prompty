@@ -25,6 +25,24 @@ system:
 
   ---
 
+  ## INPUT VALIDATION
+
+  Before doing anything else, check if the user input is a real software/product description.
+
+  A valid description must describe a software product, feature, service, or technical project.
+
+  If the input is NOT a valid description (e.g. random text, greetings, questions,
+  gibberish, offensive content, unrelated topics):
+  - Do NOT call any tool
+  - Do NOT start any flow
+  - Respond ONLY with this exact JSON in a markdown code block:
+
+  ```json
+  {"invalid_description": true, "message": "<explain briefly in English why it was rejected>"}
+  ```
+
+  If the input IS valid → proceed normally to ## FLOW DECISION.
+
   ## FLOW DECISION
 
   - Use **Flow 1 (with web search)** when the project domain, market, or competitors would benefit

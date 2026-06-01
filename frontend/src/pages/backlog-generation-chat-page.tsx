@@ -20,6 +20,7 @@ export default function BacklogGenerationChatPage() {
     handleBacklogSubmit,
     handleClickUpYes,
     handleClickUpNo,
+    currentToolName,
   } = useChatLogic();
 
   const isMobile = useIsMobile();
@@ -68,6 +69,7 @@ export default function BacklogGenerationChatPage() {
                 key={message.id}
                 message={message}
                 streamingText={streamingText}
+                currentToolName={currentToolName} 
                 onMarketSubmit={handleMarketSubmit}
                 onBacklogSubmit={handleBacklogSubmit}
                 onClickUpYes={handleClickUpYes}

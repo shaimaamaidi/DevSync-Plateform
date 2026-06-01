@@ -207,7 +207,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                 thread.id,
                 tool_choice={"type": "function", "function": {"name": "build_product_context"}},
         ):
-            yield f"data: {json.dumps({'text': chunk})}\n\n"
+            yield chunk
 
     async def reply_stream(
         self,
@@ -283,7 +283,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             raise StreamExecutionException(message="Your response could not be processed. Please try again.") from e
 
         async for chunk in self._run_stream(thread_id):
-            yield f"data: {json.dumps({'text': chunk})}\n\n"
+            yield chunk
 
     async def reply_backlog_stream(
         self,
@@ -366,7 +366,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             ) from e
 
         async for chunk in self._run_stream(thread_id):
-            yield f"data: {json.dumps({'text': chunk})}\n\n"
+            yield chunk
 
     async def _run_stream(self, thread_id: str, tool_choice=None) -> AsyncGenerator[str, None]:
         """
@@ -445,6 +445,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
 
                         for tool_call in tool_calls:
                             function_name = tool_call.function.name
+                            yield f"data: {json.dumps({'tool_call': {'name': function_name}})}\n\n"
                             try:
                                 function_args = json.loads(tool_call.function.arguments or "{}")
                             except json.JSONDecodeError as e:
@@ -580,7 +581,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                         )
 
                 for chunk in event_handler.get_stream_chunks():
-                    yield chunk
+                    yield f"data: {json.dumps({'text': chunk})}\n\n"
 
             except asyncio.CancelledError:
                 logger.warning(

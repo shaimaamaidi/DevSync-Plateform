@@ -5,6 +5,7 @@ export interface StreamResult {
   threadId: string | null;
   text: string;
   json: unknown;
+  invalidDescription?: { message: string } | null;
 }
 
 class SseBusinessError extends Error {
@@ -17,12 +18,15 @@ class SseBusinessError extends Error {
 export async function readSseStream(
   stream: ReadableStream<Uint8Array>,
   onChunk?: (chunk: string) => void,
+  onToolCall?: (name: string) => void,
+  onInvalidDescription?: (message: string) => void,
 ): Promise<StreamResult> {
   const reader  = stream.getReader();
   const decoder = new TextDecoder();
   let buffer    = "";
   let threadId: string | null = null;
   const textChunks: string[]  = [];
+  let invalidDescription: { message: string } | null = null;
 
   const consumeFrame = (frame: string) => {
     const lines = frame
@@ -55,9 +59,16 @@ export async function readSseStream(
         }
 
         if (payload?.thread_id) threadId = payload.thread_id;
+        if (payload?.tool_call?.name) {
+          onToolCall?.(payload.tool_call.name);
+        }
         if (typeof payload?.text === 'string') {
           textChunks.push(payload.text);
           onChunk?.(payload.text);
+        }
+        if (payload?.invalid_description === true && payload?.message) {
+          invalidDescription = { message: payload.message };
+          onInvalidDescription?.(payload.message); 
         }
       } catch (err) {
         if (err instanceof SseBusinessError) {
@@ -106,7 +117,7 @@ export async function readSseStream(
 
   const rawText = textChunks.join("").trim();
   const { text, json } = parseResponse(rawText);
-  return { threadId, text, json };
+  return { threadId, text, json, invalidDescription };
 }
 
 function parseResponse(raw: string): { text: string; json: unknown } {

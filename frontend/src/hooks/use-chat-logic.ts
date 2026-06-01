@@ -48,6 +48,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
   const lastBacklogPayloadRef = useRef<BacklogPayload | null>(null);
   const lastSubmittedMarketRef = useRef<MarketSummary | null>(null);
   const streamingMsgIdRef = useRef<number | null>(null);
+  const [currentToolName, setCurrentToolName] = useState<string | null>(null);
 
   const addMsg = useCallback((msg: Omit<ChatMessage, "id" | "ts">) => {
     const id = Date.now() + Math.random();
@@ -81,13 +82,18 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     try {
       const stream = await streamPromise;
       setStreamingText("");
-      const result = await readSseStream(stream, (chunk) => {
-        setStreamingText((prev) => prev + chunk);
-      });
+      setCurrentToolName(null);
+      const result = await readSseStream(
+        stream,
+        (chunk) => { setStreamingText((prev) => prev + chunk); },
+        (name) => { setCurrentToolName(name); }, 
+      );
       setStreamingText("");
+      setCurrentToolName(null);
       return result;
     } catch {
       setStreamingText("");
+      setCurrentToolName(null);
       return streamFailed(lastEmittedAction.current ?? "NOTIFY");
     }
   };
@@ -124,7 +130,16 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         return;
       }
 
-      const { threadId, text: agentText, json } = result;
+      const { threadId, text: agentText, json, invalidDescription  } = result;
+      
+      if (invalidDescription) {
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: invalidDescription.message,
+        });
+        setStep("done");
+        return;
+      }
 
       if (!threadId || !isRefinedMarketIntelligence(json)) {
         emitUnexpectedError("The agent returned an unexpected response.");
@@ -394,6 +409,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     handleBacklogSubmit,
     handleClickUpYes,
     handleClickUpNo,
+    currentToolName
   };
 }
 
