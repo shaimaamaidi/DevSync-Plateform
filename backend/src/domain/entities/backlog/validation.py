@@ -6,14 +6,27 @@ It includes the corrected backlog structure, a list of detected corrections, and
 whether the backlog is valid or requires improvements.
 
 Main classes:
-    BacklogValidation
+    EpicValidation, BacklogValidation
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 
-from backend.src.domain.entities.backlog.structure import BacklogStructure
+from backend.src.domain.entities.backlog.structure import BacklogStructure, EpicBacklog
 
+
+class EpicValidation(BaseModel):
+    """
+    Validation result for a single epic reconciliation.
+
+    Attributes:
+        corrected_epic: The fully corrected epic with all user stories and tasks.
+        corrections: List of human-readable sentences describing substantive changes.
+        is_valid: True only if no substantive correction was applied to this epic.
+    """
+    corrected_epic: EpicBacklog
+    corrections: List[str] = Field(default_factory=list)
+    is_valid: bool
 
 class BacklogValidation(BaseModel):
     """

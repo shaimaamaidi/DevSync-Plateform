@@ -152,6 +152,8 @@ class BaseAgent(Generic[T]):
                 messages=messages,
                 temperature=0,
                 response_format=response_format,
+                max_tokens=16000
+
             )
             return response.choices[0].message.parsed
 

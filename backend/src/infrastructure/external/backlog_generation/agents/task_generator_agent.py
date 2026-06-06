@@ -35,6 +35,14 @@ class TaskGeneratorAgent(BaseAgent[TaskList], ITaskGenerator):
         """
         Initialize the TaskGeneratorAgent.
 
+        This constructor sets up the agent with the prompt loading service
+        used to retrieve LLM templates for task generation.
+
+        The prompt loader is responsible for:
+        - Loading task generation prompts
+        - Providing structured LLM templates
+        - Ensuring consistent task decomposition across user stories
+
         Args:
             prompt_loader (IPromptLoader): Service responsible for loading
                 prompt templates used by the agent during LLM interactions.

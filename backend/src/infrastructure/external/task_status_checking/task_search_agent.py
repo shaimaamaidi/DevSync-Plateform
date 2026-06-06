@@ -2,11 +2,14 @@
 ClickUp task search agent.
 
 This module defines the TaskSearchAgent, responsible for searching
-ClickUp tasks based on a natural language question using an LLM.
-It transforms a user query and existing workspace structure into
-relevant task matches.
+ClickUp tasks based on a natural language query using an LLM.
+
+It transforms a user description and a list of candidate tasks into
+the most relevant matching tasks by applying semantic similarity
+through an LLM.
 """
 
+import asyncio
 import logging
 import json
 from typing import List
@@ -17,7 +20,7 @@ from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_status_checking.i_task_search import ITaskSearch
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
-
+from backend.src.infrastructure.prompts.prompt_loader import PromptLoader
 
 logger = logging.getLogger(__name__)
 
@@ -27,10 +30,12 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
     LLM-based implementation of ITaskSearch.
 
     This agent is responsible for:
-    - Interpreting a natural language question
-    - Searching relevant ClickUp tasks across folders and lists
-    - Using an LLM to match user intent with existing task data
+    - Interpreting a natural language search query
+    - Matching it against a list of ClickUp tasks
+    - Using an LLM to compute semantic relevance scores
+    - Returning the most relevant tasks above a confidence threshold
     """
+    _POOL_SIZE = 20
 
     def __init__(self, prompt_loader: IPromptLoader):
         """
@@ -42,25 +47,30 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
         """
         super().__init__(prompt_loader)
 
-    def search_task(
+    async def search_task(
         self,
         description: str,
-        folder_with_tasks: List[FolderWithLists]
+        tasks: List[ClickUpTask]
     ) -> List[ClickUpTask]:
         """
-        Search ClickUp tasks based on a user question using an LLM.
+        Search and rank ClickUp tasks based on a natural language query.
 
-        This method:
-        - Flattens all tasks from folders and lists into a JSON structure
-        - Sends the user query and task dataset to the LLM
-        - Parses the LLM response into structured task search results
+        This method performs semantic task search using an LLM by:
+        - Splitting tasks into smaller batches (pooling)
+        - Running parallel LLM evaluations on each batch
+        - Collecting candidate matches with confidence scores
+        - Filtering low-confidence results
+        - Selecting the top-ranked tasks (top-3)
+
+        The final result is a small set of tasks that best match
+        the user description.
 
         Args:
-            description: User natural language phrase describing the search intent.
-            folder_with_tasks: List of folders containing ClickUp lists and tasks.
+            description: Natural language query describing the user's intent.
+            tasks: List of ClickUp tasks to evaluate.
 
         Returns:
-            List[ClickUpTask]: Tasks that match the user query.
+            List[ClickUpTask]: The top matching tasks ranked by confidence.
 
         Raises:
             LLMNetworkException: If a network error occurs while contacting the LLM.
@@ -69,39 +79,64 @@ class TaskSearchAgent(BaseAgent[TaskSearchResult], ITaskSearch):
         """
         logger.info("Searching task process from a user description.")
 
-        tasks_json = json.dumps(
-            [task.to_dict() for folder in folder_with_tasks for lst in folder.lists for task in lst.tasks],
-            ensure_ascii=False,
-            indent=2
-        )
+        pools = [tasks[i:i + self._POOL_SIZE] for i in range(0, len(tasks), TaskSearchAgent._POOL_SIZE)]
 
-        parsed: TaskSearchResult = self._call_llm(
-            agent_name="TaskSearchAgent",
-            folder_name="task_status_checking",
-            prompt_name="task_search_agent",
-            variables={
-                "user_description": description,
-                "tasks_json": tasks_json
-            },
-            response_format=TaskSearchResult,
-        )
+        results = await asyncio.gather(*[
+            self._find_tasks_by_description(description, pool)
+            for pool in pools
+        ])
 
-        if not parsed or not parsed.ids:
-            logger.warning("No tasks extracted from the user question.")
+        all_candidates = [
+            candidate
+            for pool_result in results
+            if pool_result and pool_result.candidates
+            for candidate in pool_result.candidates
+            if candidate.confidence >= 0.65
+        ]
+
+        all_candidates.sort(key=lambda x: x.confidence, reverse=True)
+        top_candidates = all_candidates[:3]
+
+        if not top_candidates:
             return []
 
-        all_tasks = {
-            task.id: task
-            for folder in folder_with_tasks
-            for lst in folder.lists
-            for task in lst.tasks
-        }
-
-        matched_tasks = [all_tasks[task_id] for task_id in parsed.ids if task_id in all_tasks]
+        task_map = {task.id: task for task in tasks}
 
         logger.info(
             "Task searching from user question completed successfully: %d task(s) found.",
-            len(matched_tasks)
+            len(top_candidates)
         )
 
-        return matched_tasks
+        return [task_map[c.id] for c in top_candidates if c.id in task_map]
+
+    async def _find_tasks_by_description(self, description: str, pool: List[ClickUpTask]) -> TaskSearchResult:
+        """
+        Evaluate a batch of tasks against a natural language query using an LLM.
+
+        This method:
+        - Serializes a subset (pool) of tasks into JSON
+        - Sends the user description and task batch to the LLM
+        - Uses a structured prompt to compute task relevance
+        - Returns a structured TaskSearchResult containing candidates
+
+        Args:
+            description: Natural language query describing the search intent.
+            pool: Subset of ClickUp tasks to evaluate.
+
+        Returns:
+            TaskSearchResult: LLM-generated result containing candidate tasks
+            with associated confidence scores.
+        """
+        tasks_json = json.dumps(
+            [task.to_dict() for task in pool],
+            ensure_ascii=False,
+            indent=2
+        )
+        return await asyncio.to_thread(
+            self._call_llm,
+            agent_name="TaskSearchAgent",
+            folder_name="task_status_checking",
+            prompt_name="task_search_agent",
+            variables={"user_description": description, "tasks_json": tasks_json},
+            response_format=TaskSearchResult,
+        )

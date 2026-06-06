@@ -40,6 +40,7 @@ class IPromptLoader(ABC):
         """
         pass
 
+    @abstractmethod
     def get_backlog_orchestrator_instructions(self) -> str:
         """
         Retrieve the global system instructions for an LLM agent.

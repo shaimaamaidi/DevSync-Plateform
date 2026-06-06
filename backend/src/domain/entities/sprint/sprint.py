@@ -6,14 +6,14 @@ A sprint groups user stories and their estimated tasks, along with a global spri
 and total estimated effort.
 
 Main classes:
-    UserStorySprint, Sprint
+    UserStorySprint, UserStoriesList, Sprint
 """
 
 from pydantic import BaseModel
 from typing import List
 
 from backend.src.domain.entities.backlog.user_story import UserStory
-from backend.src.domain.entities.sprint.estimation import TaskEstimate
+from backend.src.domain.entities.sprint.estimation import EstimatedTask
 
 
 class UserStorySprint(BaseModel):
@@ -28,7 +28,19 @@ class UserStorySprint(BaseModel):
         tasks: List of task estimations associated with the user story.
     """
     user_story: UserStory
-    tasks: List[TaskEstimate] = []
+    tasks: List[EstimatedTask] = []
+
+class UserStoriesList(BaseModel):
+    """
+    Representation of a user story within a sprint context.
+
+    This DTO links a user story with its estimated tasks, allowing sprint-level planning
+    and workload distribution.
+
+    Attributes:
+        user_stories: User story included in the sprint.
+    """
+    user_stories: List[UserStorySprint]
 
 class Sprint(BaseModel):
     """

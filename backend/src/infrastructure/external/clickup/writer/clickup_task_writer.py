@@ -783,8 +783,8 @@ class ClickUpTaskWriter(IClickUpTaskWriter):
             list: List of resolved ClickUp member IDs.
         """
         assignee_names = []
-        if result.task_assigne:
-            assignee_names = [a.strip() for a in result.task_assigne.split(",")]
+        if result.task_assignee:
+            assignee_names = [a.strip() for a in result.task_assignee.split(",")]
 
         assignee_ids = resolve_assignee_ids_strict(name_to_email, email_to_id, assignee_names, ignore_names,ignore_mails)
 

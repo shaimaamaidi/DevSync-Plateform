@@ -24,7 +24,7 @@ import logging
 import datetime
 from typing import List, Optional
 
-from backend.src.application.use_cases.shared.clickup_task_context_fetcher import fetch_task_context
+from backend.src.application.use_cases.shared.clickup_task_context import fetch_task_context
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.entities.github.deployment import DeploymentDTO
@@ -163,18 +163,16 @@ class SummarizeWeeklyProjectUseCase(ISummarizeWeeklyProjectUseCase):
                 max_deployments=20,
             )
 
-            if last_7_days_deployments:
-                deployments_summary = self._weekly_deployments_summarizer.summarize_deployments(last_7_days_deployments)
+            deployments_summary = self._weekly_deployments_summarizer.summarize_deployments(last_7_days_deployments)
 
             last_7_days_commits = await self._github_commit_service.get_commits_between_dates(
                 repo_url,
                 since=since,
                 until=now,
-                max_commits=70,
+                max_commits=40,
             )
 
-            if last_7_days_commits:
-                commits_summary = self._weekly_commits_summarizer.summarize_commits(last_7_days_commits)
+            commits_summary = self._weekly_commits_summarizer.summarize_commits(last_7_days_commits)
 
         logger.info(
             "Weekly project summary computation completed successfully: space_id=%s tasks=%d.",

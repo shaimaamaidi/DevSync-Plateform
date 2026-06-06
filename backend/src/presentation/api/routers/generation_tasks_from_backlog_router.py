@@ -38,7 +38,7 @@ router = APIRouter()
         "The generated tasks are formatted for direct integration into ClickUp workflows."
     )
 )
-def generate_tasks_from_backlog(
+async def generate_tasks_from_backlog(
     request: GeneratedTaskFromBacklogRequest,
     use_case: IGenerateTasksFromBacklogUseCase = Depends(get_generate_task_from_backlog_use_case),
 ):
@@ -64,7 +64,7 @@ def generate_tasks_from_backlog(
         request.space_id,
     )
 
-    tasks = use_case.generate_tasks_from_backlog(
+    tasks = await use_case.generate_tasks_from_backlog(
         sprint_backlog=request.sprint_backlog,
         space_id=request.space_id,
     )

@@ -22,7 +22,6 @@ from backend.src.application.use_cases.generate_tasks_from_backlog_use_case impo
 from backend.src.application.use_cases.generate_tasks_from_summary_use_case import GenerateTasksFromSummaryUseCase
 from backend.src.application.use_cases.save_backlog_tasks_use_case import SaveBacklogTasksInClickUpUseCase
 from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
-from backend.src.application.use_cases.verify_tasks_from_backlog_use_case import VerifyTasksFromBacklogUseCase
 from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 
 from backend.src.domain.exceptions.base.app_exception import AppException
@@ -31,7 +30,6 @@ from backend.src.domain.ports.repositories.i_member_repository import IMemberRep
 from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 from backend.src.infrastructure.di.base_clickup_container import BaseClickUpContainer
 
-from backend.src.infrastructure.external.task_verification.task_from_backlog_verifier_agent import TaskFromBacklogVerifierAgent
 from backend.src.infrastructure.external.task_verification.task_from_summary_verifier_agent import TaskFromSummaryVerifierAgent
 from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_from_backlog_agent import ClickUpTaskGeneratorFromBacklogAgent
 from backend.src.infrastructure.external.task_generation_from_summary.clickup_task_generator_from_summary_agent import ClickUpTaskFromSummaryGeneratorAgent
@@ -147,7 +145,6 @@ class TaskGenerationContainer(BaseAIContainer, BaseClickUpContainer):
         logger.info("Initializing task verification agent.")
 
         self.task_from_summary_verifier_agent = TaskFromSummaryVerifierAgent(self.prompt_loader)
-        self.task_from_backlog_verifier_agent = TaskFromBacklogVerifierAgent(self.prompt_loader)
 
 
     def create_save_summary_tasks_use_case(self, member_repo: IMemberRepository) -> SaveSummaryTasksInClickUpUseCase:
@@ -235,38 +232,5 @@ class TaskGenerationContainer(BaseAIContainer, BaseClickUpContainer):
         return VerifyTasksFromSummaryUseCase(
             clickup_reader=self.clickup_reader,
             task_verifier=self.task_from_summary_verifier_agent,
-            member_repo=member_repo,
-        )
-
-    def create_tasks_from_backlog_verification_use_case(self, member_repo: IMemberRepository) -> VerifyTasksFromBacklogUseCase:
-        """
-        Factory method for VerifyTasksFromBacklogUseCase.
-
-        This method creates a use case responsible for verifying generated ClickUp.
-
-        It combines:
-            - The external member service (repository abstraction)
-            - The ClickUp workspace reader infrastructure component
-            - the agent who verify the tasks
-
-        Args:
-            member_repo (IMemberRepository): Request-scoped member repository.
-
-        Returns:
-            VerifyTasksFromBacklogUseCase: Fully initialized use case ready to verify generated ClickUp.
-
-        Raises:
-            ServiceUnavailableException: If required ClickUp writer infrastructure is not initialized.
-        """
-        if self.clickup_reader is None:
-            raise ServiceUnavailableException("ClickUp service is currently unavailable. Please try again later.")
-
-        if self.task_from_backlog_verifier_agent is None:
-            raise ServiceUnavailableException(
-                "Task verification service is currently unavailable. Please try again later.")
-
-        return VerifyTasksFromBacklogUseCase(
-            clickup_reader=self.clickup_reader,
-            task_verifier=self.task_from_backlog_verifier_agent,
             member_repo=member_repo,
         )

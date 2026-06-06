@@ -112,7 +112,7 @@ class DeliveryPlannerTool(IDeliveryPlannerTool):
 
             logger.info("Backlog prioritization completed.")
 
-            result = self.sprint_planner.generate_sprints(result)
+            result = self.sprint_planner.plan_sprints(result)
 
             logger.info("Sprint planning generated successfully.")
 

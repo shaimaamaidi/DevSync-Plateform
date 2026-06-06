@@ -6,12 +6,12 @@ GitHub commit messages and mapping them to the most relevant ClickUp tasks.
 
 It uses LLM-based reasoning to:
 - Interpret commit semantics and intent
-- Compare commits against available ClickUp tasks
-- Identify the best matching task for a given commit
-- Support traceability between GitHub activity and task management systems
+- Compare commit messages against available ClickUp tasks
+- Identify the most relevant ClickUp task for a given commit
+- Ensure traceability between GitHub commits and ClickUp task execution
 
-This component is part of the project status tracking pipeline, enabling
-cross-referencing between development activity and task execution in ClickUp.
+This component is part of the project tracking pipeline, enabling
+cross-referencing between development activity and task management systems.
 """
 
 import logging
@@ -32,12 +32,16 @@ class CommitTaskMapperAgent (BaseAgent[CommitTaskMapperResult], ICommitTaskMappe
     """
     LLM-based implementation of ICommitTaskMapper.
 
-    This agent is responsible for:
-    - Mapping a GitHub commit to the most relevant ClickUp task
-    - Analyzing semantic relationships between commit messages and tasks
-    - Using LLM reasoning to identify the best matching task
-    - Returning a structured ClickUpTask if a match is found
+    This agent maps GitHub commit messages to ClickUp tasks using LLM-based semantic matching.
+
+    Responsibilities:
+    - Analyze commit messages using LLM reasoning
+    - Compare commits with a pool of ClickUp tasks
+    - Select the most relevant task based on confidence scoring
+    - Ensure traceability between source code changes and project management tasks
     """
+
+    _POOL_SIZE = 15
 
     def __init__(self, prompt_loader: IPromptLoader):
         """
@@ -55,28 +59,94 @@ class CommitTaskMapperAgent (BaseAgent[CommitTaskMapperResult], ICommitTaskMappe
         tasks: List[ClickUpTask],
     ) -> ClickUpTask | None:
         """
-        Map a GitHub commit to its corresponding ClickUp task.
+        Map a GitHub commit message to the most relevant ClickUp task.
 
-        This method:
-        - Serializes available ClickUp tasks into JSON
-        - Sends the commit and tasks to an LLM for matching
-        - Returns the most relevant task if found
+        The process works as follows:
+        - Tasks are split into smaller pools to improve LLM context handling
+        - Each pool is evaluated independently using an LLM call
+        - The agent selects the best candidate based on confidence thresholds
+        - A final task is returned if a valid match is found
+
+        Confidence rules:
+        - Ignore results with confidence < 0.75
+        - Immediately accept results with confidence ≥ 0.9
+        - Otherwise, keep the highest confidence candidate across pools
 
         Args:
-            commit: The GitHub commit message or identifier to analyze.
-            tasks: List of ClickUp tasks available for matching.
+            commit (str): GitHub commit message or identifier describing a code change.
+            tasks (List[ClickUpTask]): List of available ClickUp tasks to match against.
 
         Returns:
-            Optional[ClickUpTask]: The matched task if found, otherwise None.
+            ClickUpTask | None: The most relevant matched task if found, otherwise None.
 
         Raises:
-            LLMNetworkException: If a network error occurs while contacting the LLM.
+            LLMNetworkException: If a network error occurs during LLM communication.
             LLMApiException: If the LLM API returns an error response.
-            LLMParsingException: If the LLM response cannot be parsed correctly.
+            LLMParsingException: If the LLM response cannot be parsed into the expected format.
         """
-
         logger.info("Mapping commit to task process.")
 
+        pools = CommitTaskMapperAgent.build_pools(tasks)
+
+        best_candidate = None
+
+        for pool in pools:
+            result = self._find_task_by_commit(commit, pool)
+
+            if not result or not result.id or not result.confidence:
+                continue
+
+            if result.confidence < 0.75:
+                continue
+
+            if result and result.confidence and result.confidence >= 0.9:
+                best_candidate = result
+                break
+
+            if best_candidate is None or (result.confidence and result.confidence > best_candidate.confidence):
+                best_candidate = result
+
+        if not best_candidate:
+            logger.warning("No task found for the commit: %s.", commit)
+            return None
+
+        all_tasks = {task.id: task for task in tasks}
+
+        matched_task = all_tasks.get(best_candidate.id)
+
+        if not matched_task:
+            logger.warning("Task id returned by LLM not found in input tasks. id=%s.", best_candidate.id or "N/A")
+            return None
+
+        logger.info(
+            "Commit to task mapping completed successfully: task_id=%s.",
+            matched_task.id,
+        )
+
+        return matched_task
+
+    def _find_task_by_commit(
+        self,
+        commit: str,
+        tasks: List[ClickUpTask],
+    ) -> CommitTaskMapperResult:
+        """
+        Use an LLM to identify the most relevant ClickUp task for a given commit
+        within a limited pool of tasks.
+
+        This method:
+        - Serializes the task pool into JSON format
+        - Sends commit + task context to the LLM
+        - Parses the LLM response into a structured CommitTaskMapperResult
+
+        Args:
+            commit (str): The commit message to analyze.
+            tasks (List[ClickUpTask]): A subset (pool) of ClickUp tasks to evaluate.
+
+        Returns:
+            CommitTaskMapperResult: Structured LLM result containing the best matched task ID
+                and confidence score.
+        """
         tasks_json = json.dumps(
             [task.to_dict() for task in tasks],
             ensure_ascii=False,
@@ -94,21 +164,20 @@ class CommitTaskMapperAgent (BaseAgent[CommitTaskMapperResult], ICommitTaskMappe
             response_format=CommitTaskMapperResult,
         )
 
-        if not result:
-            logger.warning("No task found for the commit: %s.", commit)
-            return None
+        return result
 
-        all_tasks = {task.id: task for task in tasks}
+    @staticmethod
+    def build_pools(tasks: List[ClickUpTask]) -> List[List[ClickUpTask]]:
+        """
+        Split a list of ClickUp tasks into fixed-size pools for LLM processing.
 
-        matched_task = all_tasks.get(result.id)
+        This is used to avoid sending too many tasks in a single LLM request,
+        improving performance and reducing token usage.
 
-        if not matched_task:
-            logger.warning("Task id returned by LLM not found in input tasks. id=%s.", result.id or "N/A")
-            return None
+        Args:
+            tasks (List[ClickUpTask]): Full list of ClickUp tasks to be split into smaller batches.
 
-        logger.info(
-            "Commit to task mapping completed successfully: task_id=%s.",
-            matched_task.id,
-        )
-
-        return matched_task
+        Returns:
+            List[List[ClickUpTask]]: A list of task pools, each containing at most `_POOL_SIZE` tasks.
+        """
+        return [tasks[i:i + CommitTaskMapperAgent._POOL_SIZE] for i in range(0, len(tasks), CommitTaskMapperAgent._POOL_SIZE)]

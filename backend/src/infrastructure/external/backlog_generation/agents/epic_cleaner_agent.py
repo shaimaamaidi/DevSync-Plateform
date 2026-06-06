@@ -1,36 +1,36 @@
 """
-Backlog cleaner agent.
+Epic cleaner agent.
 
-This module defines the BacklogCleanerAgent, responsible for validating and
-cleaning a generated backlog using an LLM. It ensures that the backlog structure
+This module defines the EpicCleanerAgent, responsible for validating and
+cleaning a generated epic using an LLM. It ensures that the epic structure
 is consistent, normalized, and compliant with expected domain rules.
 """
 
 import logging
 
-from backend.src.domain.entities.backlog.structure import BacklogStructure
-from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_cleaner import IBacklogCleaner
+from backend.src.domain.entities.backlog.structure import EpicBacklog
+from backend.src.domain.ports.services.backlog_generation.agents.i_epic_cleaner import IEpicCleaner
 from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
+from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_epic
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
-from backend.src.infrastructure.external.backlog_generation.helpers.backlog_formatter import format_backlog
 
 
 logger = logging.getLogger(__name__)
 
 
-class BacklogCleanerAgent(BaseAgent[BacklogStructure], IBacklogCleaner):
+class EpicCleanerAgent(BaseAgent[EpicBacklog], IEpicCleaner):
     """
-    LLM-based implementation of IBacklogCleaner.
+    LLM-based implementation of IEpicCleaner.
 
     This agent is responsible for:
-    - Cleaning and normalizing generated backlog structures
+    - Cleaning and normalizing generated epic structures
     - Ensuring consistency between epics, user stories, and tasks
     - Removing inconsistencies or invalid structures using LLM reasoning
     """
 
     def __init__(self, prompt_loader: IPromptLoader):
         """
-        Initialize the BacklogCleanerAgent.
+        Initialize the EpicCleanerAgent.
 
         Args:
             prompt_loader (IPromptLoader): Service responsible for loading
@@ -38,36 +38,36 @@ class BacklogCleanerAgent(BaseAgent[BacklogStructure], IBacklogCleaner):
         """
         super().__init__(prompt_loader)
 
-    def clean_backlog(self, backlog: BacklogStructure) -> BacklogStructure:
+    def clean_epic(self, epic: EpicBacklog) -> EpicBacklog:
         """
-        Clean and validate a backlog using an LLM.
+        Clean and validate an epic using an LLM.
 
-        The method sends the current backlog to the prompt-based LLM pipeline,
-        which returns a structured and cleaned version of the backlog.
+        The method sends the current epic to the prompt-based LLM pipeline,
+        which returns a structured and cleaned version of the epic.
 
         Args:
-            backlog (BacklogStructure): The raw or partially generated backlog.
+            epic (EpicBacklog): The raw or partially generated epic.
 
         Returns:
-            BacklogStructure: The cleaned and normalized backlog.
+            EpicBacklog: The cleaned and normalized epic.
 
         Raises:
             LLMNetworkException: If a network error occurs while contacting the LLM.
             LLMApiException: If the LLM API returns an error response.
             LLMParsingException: May raise underlying LLM or parsing errors from OpenAI client.
         """
-        logger.info("Starting backlog cleaning process.")
+        logger.info("Starting epic cleaning process.")
 
         result = self._call_llm(
-            agent_name="BacklogCleanerAgent",
+            agent_name="EpicCleanerAgent",
             folder_name="backlog_generation",
-            prompt_name="backlog_cleaner_agent",
+            prompt_name="epic_cleaner_agent",
             variables={
-                "backlog": format_backlog(backlog)
+                "epic": format_epic(epic)
             },
-            response_format=BacklogStructure,
+            response_format=EpicBacklog,
         )
 
-        logger.info("Backlog cleaning completed successfully.")
+        logger.info("Epic cleaning completed successfully.")
 
         return result

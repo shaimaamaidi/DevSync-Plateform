@@ -24,14 +24,14 @@ class BaseGeneratedTask(BaseModel):
     Attributes:
         task_name: Name or title of the task.
         task_description: Detailed description of the task.
-        task_assigne: Name of the task assignee.
+        task_assignee: Name of the task assignee.
         task_status: Status assigned to the task.
         task_priority: Priority level assigned to the task.
         location: Target location where the task should be created.
     """
     task_name: str
     task_description: str
-    task_assigne: str
+    task_assignee: str
     task_status: str
     task_priority: str
     location: str

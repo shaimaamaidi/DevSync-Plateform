@@ -14,7 +14,6 @@ from typing import List
 from backend.src.domain.entities.checked_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
-from backend.src.domain.entities.github.deployment import DeploymentDTO
 from backend.src.domain.ports.services.prompt_loading.i_prompt_loader import IPromptLoader
 from backend.src.domain.ports.services.task_status_checking.i_task_status_synthesizer import ITaskStatusSynthesizer
 from backend.src.infrastructure.external.shared.agents.base_agent import BaseAgent
@@ -52,7 +51,6 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
     def synthesize_task_status(
         self,
         task: ClickUpTask,
-        deployments: List[DeploymentDTO],
         commits: List[CommitDTO],
         signals: dict
     ) -> SynthesizedTaskStatusResult:
@@ -74,7 +72,6 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
 
         Args:
             task: ClickUp task to analyze.
-            deployments: List of GitHub deployments related to the task repository.
             commits: List of GitHub commits related to the task repository.
             signals: Derived workflow and activity signals generated from
                 task lifecycle and GitHub context.
@@ -100,18 +97,11 @@ class TaskStatusSynthesizerAgent(BaseAgent[SynthesizedTaskStatusResult], ITaskSt
             variables={
                 "task": json.dumps(task.to_dict(), ensure_ascii=False, indent=2),
                 "signals": json.dumps(signals, ensure_ascii=False, indent=2),
-                "commits": json.dumps(
-                    [c.to_dict() for c in commits],
-                    ensure_ascii=False,
-                    default=str,
-                    indent=2
-                ),
-                "deployments": json.dumps(
-                    [d.model_dump() for d in deployments],
-                    ensure_ascii=False,
-                    default=str,
-                    indent=2
-                ),
+                "commits": [{
+                    "message": c.message[:1000],
+                    "date": c.date.isoformat() if c.date else None,
+                    "branch": c.branch
+                } for c in commits],
             },
             response_format=SynthesizedTaskStatusResult,
         )

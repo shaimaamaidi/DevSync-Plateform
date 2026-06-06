@@ -348,6 +348,14 @@ export interface DeploymentDTO {
     'log_url': string;
 }
 /**
+ * Task enriched with effort estimation.  This DTO extends the base Task model by adding an estimation field representing the expected effort required to complete the task.  Attributes:     estimated_hours: Estimated effort required to complete the task (in hours).
+ */
+export interface EstimatedTask {
+    'title': string;
+    'description': string;
+    'estimated_hours': number;
+}
+/**
  * Representation of a task synchronization failure.  This DTO contains information about a task that could not be created or updated during a synchronization operation, along with the reason for the failure.  Attributes:     task_name: Name of the task that failed to synchronize.     action: Synchronization action that failed (\"create\" or \"update\").     reason: Description of the failure cause.
  */
 export interface FailedTask {
@@ -377,7 +385,7 @@ export interface FolderWithListsMetadata {
 export interface GeneratedTaskFromBacklog {
     'task_name': string;
     'task_description': string;
-    'task_assigne': string;
+    'task_assignee': string;
     'task_status': string;
     'task_priority': string;
     'location': string;
@@ -402,7 +410,7 @@ export interface GeneratedTaskFromBacklogRequest {
 export interface GeneratedTaskFromSummary {
     'task_name': string;
     'task_description': string;
-    'task_assigne': string;
+    'task_assignee': string;
     'task_status': string;
     'task_priority': string;
     'location': string;
@@ -840,20 +848,6 @@ export interface SynthesizedTaskStatusResult {
     'evidence': Array<string>;
 }
 /**
- * Representation of a task in the backlog.  A task is a fine-grained unit of work derived from a user story, intended to be actionable and implementable by a developer.  Attributes:     title: Title of the task.     description: Detailed description of the task.
- */
-export interface Task {
-    'title': string;
-    'description': string;
-}
-/**
- * Representation of a task with its estimated effort.  This DTO links a task to an estimation value in hours, enabling sprint planning, capacity management, and workload balancing.  Attributes:     task: Task entity to be estimated.     estimated_hours: Estimated effort required to complete the task (in hours).
- */
-export interface TaskEstimate {
-    'task': Task;
-    'estimated_hours': number;
-}
-/**
  * Representation of a task search request.  This DTO contains the information required to perform a task search operation within a ClickUp space using a natural language query.  Attributes:     space_id: Identifier of the ClickUp space where tasks         should be searched.     description: User natural language phrase describing         the search intent.
  */
 export interface TaskSearchRequest {
@@ -907,7 +901,7 @@ export interface TaskSummary {
     'percentage': number;
 }
 /**
- * Summary of a task synchronization operation.  This DTO aggregates synchronization statistics and provides details about tasks that could not be processed successfully.  Attributes:     total: Total number of tasks processed.     created: Number of tasks successfully created.     updated: Number of tasks successfully updated.     skipped: Number of tasks skipped during synchronization.     failed: Number of tasks that failed to synchronize.     failed_tasks: List of task synchronization failures.
+ * Summary of a task synchronization operation.  This DTO aggregates synchronization statistics and provides details about tasks that could not be processed successfully.  Attributes:     total: Total number of tasks processed.     created: Number of tasks successfully created.     updated: Number of tasks successfully updated.     failed: Number of tasks that failed to synchronize.     failed_tasks: List of task synchronization failures.
  */
 export interface TaskSyncResult {
     'total': number;
@@ -961,7 +955,7 @@ export interface UserStory {
  */
 export interface UserStorySprint {
     'user_story': UserStory;
-    'tasks'?: Array<TaskEstimate>;
+    'tasks'?: Array<EstimatedTask>;
 }
 export interface ValidationError {
     'loc': Array<LocationInner>;
@@ -975,7 +969,7 @@ export interface VerifiedTaskFromBacklog {
     'action': VerifiedTaskFromBacklogActionEnum;
     'task_name': string;
     'task_description': string;
-    'task_assigne': string;
+    'task_assignee': string;
     'task_status': string;
     'task_priority': string;
     'location': string;
@@ -991,39 +985,13 @@ export const VerifiedTaskFromBacklogActionEnum = {
 export type VerifiedTaskFromBacklogActionEnum = typeof VerifiedTaskFromBacklogActionEnum[keyof typeof VerifiedTaskFromBacklogActionEnum];
 
 /**
- * Representation of a task verification request from a backlog workflow.  This DTO is used to submit a batch of generated tasks to the verification pipeline. Each task is checked against existing ClickUp tasks to determine whether it should be created or updated.  Attributes:     space_id: Identifier of the ClickUp workspace where tasks will be verified.     tasks: List of generated tasks to validate against existing ClickUp tasks.
- */
-export interface VerifiedTaskFromBacklogRequest {
-    /**
-     * Identifier of the ClickUp workspace.
-     */
-    'space_id': string;
-    /**
-     * List of generated tasks from backlog to verify against ClickUp.
-     */
-    'tasks': Array<GeneratedTaskFromBacklog>;
-}
-/**
- * Representation of the result of task verification against ClickUp.  This DTO encapsulates the outcome of the verification process where generated tasks are compared against existing ClickUp tasks to determine the required action (create or update).  Attributes:     total: Total number of tasks processed during verification.     tasks: List of verified tasks with their corresponding actions (create or update).
- */
-export interface VerifiedTaskFromBacklogResponse {
-    /**
-     * Total number of tasks processed during verification.
-     */
-    'total': number;
-    /**
-     * List of verified tasks with their corresponding actions (create or update).
-     */
-    'tasks': Array<VerifiedTaskFromBacklog>;
-}
-/**
  * Representation of a verified task from a meeting summary.  This DTO extends the base verified task model and represents the result of verifying a task generated from a meeting summary (create or update decision).
  */
 export interface VerifiedTaskFromSummary {
     'action': VerifiedTaskFromSummaryActionEnum;
     'task_name': string;
     'task_description': string;
-    'task_assigne': string;
+    'task_assignee': string;
     'task_status': string;
     'task_priority': string;
     'location': string;
@@ -3360,41 +3328,6 @@ export const ClickUpTasksApiAxiosParamCreator = function (configuration?: Config
             };
         },
         /**
-         * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
-         * @summary Verify generated tasks against existing ClickUp tasks
-         * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        verifyTasksClickupTasksVerifyFromBacklogPost: async (verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'verifiedTaskFromBacklogRequest' is not null or undefined
-            assertParamExists('verifyTasksClickupTasksVerifyFromBacklogPost', 'verifiedTaskFromBacklogRequest', verifiedTaskFromBacklogRequest)
-            const localVarPath = `/clickup/tasks/verify-from-backlog`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            localVarHeaderParameter['Accept'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(verifiedTaskFromBacklogRequest, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
          * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
          * @summary Verify generated tasks against existing ClickUp tasks
          * @param {VerifiedTaskFromSummaryRequest} verifiedTaskFromSummaryRequest 
@@ -3544,19 +3477,6 @@ export const ClickUpTasksApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
-         * @summary Verify generated tasks against existing ClickUp tasks
-         * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<VerifiedTaskFromBacklogResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ClickUpTasksApi.verifyTasksClickupTasksVerifyFromBacklogPost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
          * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
          * @summary Verify generated tasks against existing ClickUp tasks
          * @param {VerifiedTaskFromSummaryRequest} verifiedTaskFromSummaryRequest 
@@ -3658,16 +3578,6 @@ export const ClickUpTasksApiFactory = function (configuration?: Configuration, b
          */
         updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig): AxiosPromise<ClickUpTaskWithEstimation> {
             return localVarFp.updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
-         * @summary Verify generated tasks against existing ClickUp tasks
-         * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options?: RawAxiosRequestConfig): AxiosPromise<VerifiedTaskFromBacklogResponse> {
-            return localVarFp.verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest, options).then((request) => request(axios, basePath));
         },
         /**
          * Receives a list of generated tasks from a summary meeting and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
@@ -3773,17 +3683,6 @@ export class ClickUpTasksApi extends BaseAPI {
      */
     public updateTaskClickupTasksManageSpaceIdPut(spaceId: string, updateTaskRequest: UpdateTaskRequest, options?: RawAxiosRequestConfig) {
         return ClickUpTasksApiFp(this.configuration).updateTaskClickupTasksManageSpaceIdPut(spaceId, updateTaskRequest, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Receives a list of generated tasks from a backlog and a ClickUp space identifier. Compares them folder by folder against existing tasks and returns a list of verified tasks with create or update actions.
-     * @summary Verify generated tasks against existing ClickUp tasks
-     * @param {VerifiedTaskFromBacklogRequest} verifiedTaskFromBacklogRequest 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest: VerifiedTaskFromBacklogRequest, options?: RawAxiosRequestConfig) {
-        return ClickUpTasksApiFp(this.configuration).verifyTasksClickupTasksVerifyFromBacklogPost(verifiedTaskFromBacklogRequest, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

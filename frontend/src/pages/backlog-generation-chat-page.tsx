@@ -13,11 +13,13 @@ export default function BacklogGenerationChatPage() {
     setInput,
     loading,
     step,
+    clarifyingMode,
     streamingText,
     resetChat,
     handleSend,
     handleMarketSubmit,
     handleBacklogSubmit,
+    handleClarificationReply,
     handleClickUpYes,
     handleClickUpNo,
     currentToolName,
@@ -58,7 +60,7 @@ export default function BacklogGenerationChatPage() {
             : "h-[calc(100vh-16rem)] max-h-[800px] min-h-[550px] rounded-2xl border border-slate-200 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]",
         ].join(" ")}
       >
-        <ChatHeader step={step} onReset={resetChat} />
+        <ChatHeader step={step} clarifyingMode={clarifyingMode} onReset={resetChat} />
 
         <div className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 sm:py-6 flex flex-col gap-4 sm:gap-5 [scrollbar-width:thin] [scrollbar-color:#e2e8f0_transparent]">
           {messages.length === 0 ? (
@@ -80,13 +82,21 @@ export default function BacklogGenerationChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        {step === "idle" ? (
+        {step === "idle" || step === "clarifying" ? (
           <ChatInput
             value={input}
             onChange={setInput}
-            onSend={() => handleSend(input)}
+            onSend={() =>
+              step === "clarifying"
+                ? handleClarificationReply(input)
+                : handleSend(input)
+            }
             disabled={loading}
-            placeholder="Describe the product you want to build…"
+            placeholder={
+                  step === "clarifying"
+                    ? "Answer the agent's question…"
+                    : "Describe the product you want to build…"
+                }
           />
         ) : (
           <div className="border-t border-slate-100 px-4 py-3 sm:py-4 bg-white text-center">

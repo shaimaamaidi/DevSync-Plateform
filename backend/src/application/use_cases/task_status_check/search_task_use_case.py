@@ -53,7 +53,7 @@ class SearchTaskUseCase(ISearchTaskUseCase):
         self._clickup_reader = clickup_reader
         self._task_search = task_search
 
-    def search_task(self, description: str, space_id: str) -> TaskSearchResponse:
+    async def search_task(self, description: str, space_id: str) -> TaskSearchResponse:
         """
         Search ClickUp tasks based on a natural language question.
 
@@ -81,11 +81,16 @@ class SearchTaskUseCase(ISearchTaskUseCase):
             description,
         )
 
-        folders = self._clickup_reader.get_space_full_structure(space_id)
+        folder_with_tasks = self._clickup_reader.get_space_full_structure(space_id)
 
-        has_tasks = any(task for folder in folders for lst in folder.lists for task in lst.tasks)
+        tasks = [
+            task
+            for folder in folder_with_tasks
+            for lst in folder.lists
+            for task in lst.tasks
+        ]
 
-        if not has_tasks:
+        if not tasks:
             logger.warning("No tasks found in space. space_id=%s.", space_id)
             return TaskSearchResponse(
                 status=TaskSearchStatus.NO_TASKS_IN_SPACE,
@@ -93,7 +98,7 @@ class SearchTaskUseCase(ISearchTaskUseCase):
                 task=[]
             )
 
-        results =  self._task_search.search_task(description, folders)
+        results =  await self._task_search.search_task(description, tasks)
 
         logger.info(
             "Task search completed successfully: space_id=%s tasks_result=%d.",

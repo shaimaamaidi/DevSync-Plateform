@@ -24,7 +24,7 @@ class IStaleTaskInspector(ABC):
     """
 
     @abstractmethod
-    def inspect_stale_tasks(
+    async def inspect_stale_tasks(
         self,
         tasks: List[ClickUpTask],
         commits: List[CommitDTO]

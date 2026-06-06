@@ -25,7 +25,7 @@ class BaseVerifiedTask(BaseModel):
         action: Operation to perform ("create" or "update").
         task_name: Name or title of the task.
         task_description: Detailed description of the task.
-        task_assigne: Assignee name(s) as a string.
+        task_assignee: Assignee name(s) as a string.
         task_status: Target status for the task.
         task_priority: Priority level assigned to the task.
         location: Target location where the task is managed.
@@ -34,7 +34,7 @@ class BaseVerifiedTask(BaseModel):
     action: Literal["create", "update"]
     task_name: str
     task_description: str
-    task_assigne: str
+    task_assignee: str
     task_status: str
     task_priority: str
     location: str

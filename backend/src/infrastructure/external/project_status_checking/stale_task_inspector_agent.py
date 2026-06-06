@@ -9,6 +9,7 @@ It correlates task activity with GitHub commits to detect inactivity
 patterns and potential blocking issues.
 """
 
+import asyncio
 import logging
 import json
 from typing import List
@@ -36,6 +37,8 @@ class StaleTaskInspectorAgent (BaseAgent[InspectedStaleTaskListResult], IStaleTa
     - Producing structured inspection results for further processing
     """
 
+    _TASK_BATCH_SIZE = 10
+
     def __init__(self, prompt_loader: IPromptLoader):
         """
         Initialize the StaleTaskInspectorAgent.
@@ -46,7 +49,7 @@ class StaleTaskInspectorAgent (BaseAgent[InspectedStaleTaskListResult], IStaleTa
         """
         super().__init__(prompt_loader)
 
-    def inspect_stale_tasks(
+    async def inspect_stale_tasks(
         self,
         tasks_in_progress: List[ClickUpTask],
         commits: List[CommitDTO]
@@ -73,35 +76,73 @@ class StaleTaskInspectorAgent (BaseAgent[InspectedStaleTaskListResult], IStaleTa
         """
         logger.info("Inspecting stale tasks process.")
 
-        tasks_json = json.dumps(
-            [task.to_dict() for task in tasks_in_progress],
-            ensure_ascii=False,
-            indent=2
+        commits_payload = [
+            {
+                "message": c.message[:500],
+                "date": c.date.isoformat() if c.date else None,
+                "branch": c.branch,
+            }
+            for c in commits
+        ]
+
+        batches = [
+            tasks_in_progress[i: i + StaleTaskInspectorAgent._TASK_BATCH_SIZE]
+            for i in range(0, len(tasks_in_progress), StaleTaskInspectorAgent._TASK_BATCH_SIZE)
+        ]
+
+        results = await asyncio.gather(
+            *[self._inspect_batch(batch, commits_payload) for batch in batches]
         )
 
-        parsed: InspectedStaleTaskListResult = self._call_llm(
-            agent_name="StaleTaskInspectorAgent",
-            folder_name="project_status_checking",
-            prompt_name="tasks_stale_inspector_agent",
-            variables={
-                "tasks": tasks_json,
-                "commits": json.dumps(
-                    [c.to_dict() for c in commits],
-                    ensure_ascii=False,
-                    default=str,
-                    indent=2
-                )
-            },
-            response_format=InspectedStaleTaskListResult,
-        )
+        stale_tasks = [task for batch_result in results for task in batch_result if task.is_blocked]
 
-        if not parsed or not parsed.tasks:
+        if not stale_tasks:
             logger.warning("All tasks are in a real progress.")
             return []
 
         logger.info(
             "Stale task inspecting completed successfully: %d task(s) stales.",
-            len(parsed.tasks)
+            len(stale_tasks)
         )
+
+        return stale_tasks
+
+    async def _inspect_batch(
+            self,
+            tasks_batch: List[ClickUpTask],
+            commits_payload: List[dict],
+    ) -> List[InspectedStaleTaskResult]:
+        """
+        Run LLM inspection on a single batch of tasks.
+
+        Args:
+            tasks_batch: Subset of in-progress tasks to analyze.
+            commits_payload: Pre-projected commit list shared across all batches.
+
+        Returns:
+            List[InspectedStaleTaskResult]: Stale tasks detected in this batch.
+        """
+        tasks_payload = json.dumps(
+            [{"id": t.id, "name": t.name, "description": t.description} for t in tasks_batch],
+            ensure_ascii=False,
+        )
+
+        parsed: InspectedStaleTaskListResult = self._call_llm(
+            agent_name="StaleTaskInspectorAgent",
+            folder_name="project_status_checking",
+            prompt_name="stale_tasks_inspector_agent",
+            variables={
+                "tasks": tasks_payload,
+                "commits": commits_payload,
+            },
+            response_format=InspectedStaleTaskListResult,
+        )
+
+        if not parsed or not parsed.tasks:
+            logger.debug(
+                "Batch of %d task(s): no stale tasks detected.",
+                len(tasks_batch),
+            )
+            return []
 
         return parsed.tasks

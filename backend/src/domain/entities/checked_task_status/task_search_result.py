@@ -1,33 +1,50 @@
 """
-Domain DTO for task search and mapping results.
+Domain DTOs for task search and matching results.
 
-This module defines the TaskSearchResult DTO used to represent
-the result of semantic search or LLM-based mapping of ClickUp tasks.
+This module defines DTOs used to represent the results of semantic
+task search and LLM-based task matching operations.
 
-It aggregates task identifiers returned by AI agents that perform:
-- Semantic task search within ClickUp spaces
-- Commit-to-task mapping based on Git commit messages
+The DTOs capture the ClickUp tasks identified by AI agents along
+with confidence scores indicating the relevance of each match.
 
 Main classes:
-    TaskSearchResult
+    TaskCandidate, TaskSearchResult
 """
 
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
+
+
+class TaskCandidate(BaseModel):
+    """
+    Representation of a single task search result.
+
+    This DTO contains a ClickUp task identifier returned by a search
+    or matching process, together with a confidence score reflecting
+    the relevance of the match.
+
+    Attributes:
+        id: ClickUp task identifier, or None if no task was identified.
+        confidence: Confidence score between 0.0 and 1.0 indicating
+            the relevance of the identified task, or None if no
+            confidence score is available.
+    """
+    id: Optional[str] = None
+    confidence: Optional[float] = None
 
 
 class TaskSearchResult(BaseModel):
     """
-    Representation of task search/matching results.
+    Representation of multiple task search results.
 
-    This DTO contains the list of ClickUp task identifiers returned
-    by an LLM-based search or mapping process.
+    This DTO contains a collection of task search results returned
+    by an LLM-based search or matching process.
 
-    It is used to represent the output of agents responsible for:
-    - Semantic task search (TaskSearchAgent)
-    - Commit-to-task mapping (CommitTaskMapperAgent)
+    It is typically used when multiple candidate tasks can be
+    associated with a user query, requirement, or commit message.
 
     Attributes:
-        ids: List of matched ClickUp task identifiers.
+        candidates: List of identified task matches with their associated
+            confidence scores.
     """
-    ids: List[str] = []
+    candidates: List[TaskCandidate]

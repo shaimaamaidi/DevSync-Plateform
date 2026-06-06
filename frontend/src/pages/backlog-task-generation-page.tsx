@@ -38,9 +38,7 @@ import type {
 import { useClickUpSpacesList } from '@/hooks/clickup-space-hooks/use-clickup-spaces';
 import { useClickUpStructure } from '@/hooks/clickup-structure-hooks/use-clikcup-structure';
 import { taskGenerationService } from '@/services/task-generation-service';
-import { taskVerificationService } from '@/services/task-verification-service';
 import { saveInClickupService } from '@/services/save-in-clickup-service';
-import { GeneratedTaskList } from '@/components/generated-tasks-list';
 import { VerifiedTaskList } from '@/components/verified-tasks-list';
 import { SpaceSetupForm } from '@/components/ui/clickup-creation-forms/space-setup-form';
 import { StepHeader } from '@/components/ui/shared-primitives/step-header';
@@ -61,11 +59,9 @@ export default function BacklogTaskGenerationPage() {
   const { structure, loading: structureLoading, isStructureEmpty, isFetching} = useClickUpStructure(selectedSpaceId);
   const [realIsStructureEmpty, setRealIsStructureEmpty] = useState(true);
 
-  const [generatedTasks, setGeneratedTasks] = useState<TaskGenerationDTO[]>([]);
   const pendingGenerateRef = useRef(false);
   const [verifiedTasks, setVerifiedTasks] = useState<TaskVerificationDTO[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
   const [isVerificationFinished, setIsVerificationFinished] = useState(false);
@@ -84,7 +80,7 @@ export default function BacklogTaskGenerationPage() {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const hasStarted = generatedTasks.length > 0 || verifiedTasks.length > 0 || isGenerating || isVerifying;
+  const hasStarted = verifiedTasks.length > 0 || isGenerating ;
 
   const allTasksHaveLocation = (tasks: TaskGenerationDTO[] | TaskVerificationDTO[]) =>
     tasks.every(t => t.location?.trim().length > 0);
@@ -109,10 +105,8 @@ export default function BacklogTaskGenerationPage() {
   }, []);
 
   const resetProcess = () => {
-    setGeneratedTasks([]);
     setVerifiedTasks([]);
     setIsGenerating(false);
-    setIsVerifying(false);
     setIsSaving(false);
     setSaveSummary(null);
     setSavedOk(false);
@@ -212,27 +206,38 @@ export default function BacklogTaskGenerationPage() {
     await executeGenerate(spaceId);
   };
 
-  const executeGenerate = async (spaceId: string) => {
-    const result = await withErrorHandling(
-      () => taskGenerationService.generateFromBacklog(sprintBacklogRef.current as Sprint, spaceId),
-      'Generate tasks from backlog',
-      onError(),
-    );
+  const map_sprint_backlog_to_tasks = (backlog: Sprint) => {
+    const mapped: TaskVerificationDTO[] = backlog.user_stories?.flatMap(us =>
+      us.tasks?.map(te => ({
+        action: 'create' as const,
+        task_name: te.task.title,
+        task_description: te.task.description,
+        task_assigne: 'غير محدد',
+        task_status: 'to do',
+        task_priority: 'normal',
+        location: '',
+        estimation: te.estimated_hours,
+      })) ?? []
+    ) ?? [];
+    showSuccessToast('Click up tasks generated successfully');
+    setVerifiedTasks(mapped);
+    setSavedOk(true);
+    setIsGenerating(false);
+  };
 
-    if (result){
-      showSuccessToast('Click up tasks generated successfully');
-      setGeneratedTasks(
-          result.map(t => ({
-            task_name: t.task_name,
-            task_description: t.task_description,
-            task_assigne: t.task_assigne,
-            task_status: t.task_status,
-            task_priority: t.task_priority,
-            location: t.location,
-            estimation: t.estimation,
-          })),
-        );
-      if (isStructureEmpty) {
+  const executeGenerate = async (spaceId: string) => {
+    setSavedOk(false);
+    if (isStructureEmpty) {
+      map_sprint_backlog_to_tasks(sprintBacklogRef.current as Sprint);
+    }else {
+      const result = await withErrorHandling(
+        () => taskGenerationService.generateFromBacklog(sprintBacklogRef.current as Sprint, spaceId),
+        'Generate tasks from backlog',
+        onError(),
+      );
+
+      if (result){
+        showSuccessToast('Click up tasks generated successfully');
         setVerifiedTasks(
           result.map(t => ({
             action: 'create' as const,
@@ -249,41 +254,6 @@ export default function BacklogTaskGenerationPage() {
     }
     setIsGenerating(false);
   }
-
-  const handleVerify = async () => {
-    if (!generatedTasks.length) 
-      return;
-    if (!allTasksHaveLocation(generatedTasks)) 
-      return;
-    setIsVerifying(true);
-    setSavedOk(false);
-
-    const result = await withErrorHandling(
-      () => taskVerificationService.verifyTasksFromBacklog(selectedSpaceId, generatedTasks as GeneratedTaskFromBacklog[]),
-      'Verify tasks generated from backlog',
-      onError(),
-    );
-    if (result){
-      setIsVerificationFinished(true);
-      showSuccessToast('Click up task verified successfully');
-      if (result.tasks) {
-        setVerifiedTasks(
-            result.tasks.map(t => ({
-            action: t.action,
-            task_name: t.task_name,
-            task_description: t.task_description,
-            task_assigne: t.task_assigne,
-            task_status: t.task_status,
-            task_priority: t.task_priority,
-            location: t.location,
-            task_id: t.task_id,
-            estimation: t.estimation,
-          })) ,
-        );
-      }
-    }
-    setIsVerifying(false);
-  };
 
   const executeSave = async (ignoreNames: boolean, ignoreMails: boolean) => {
     if (!verifiedTasks.length || !selectedSpaceId) return;
@@ -390,7 +360,7 @@ export default function BacklogTaskGenerationPage() {
                     <Select
                       value={selectedSpaceId || 'none'}
                       onValueChange={handleSpaceChange}
-                      disabled={spacesLoading || isGenerating || isVerifying || isSaving}
+                      disabled={spacesLoading || isGenerating || isSaving}
                     >
                       <SelectTrigger
                         className={`w-full sm:w-[500px] bg-input border-border ${
@@ -438,7 +408,7 @@ export default function BacklogTaskGenerationPage() {
 
                   <Button
                     onClick={handleCreateNewSpace}
-                    disabled={isGenerating || isVerifying || isSaving || disabledAll}
+                    disabled={isGenerating || isSaving || disabledAll}
                     className="gap-2 self-start shrink-0"
                   >
                     <Plus className="w-4 h-4" />
@@ -465,7 +435,7 @@ export default function BacklogTaskGenerationPage() {
                         }
                         handleGenerate();
                         }}
-                        disabled={isGenerating || isVerifying || isSaving || disabledAll}
+                        disabled={isGenerating || isSaving || disabledAll}
                         className="gap-2 ml-auto"
                         title={
                         !selectedSpaceId
@@ -483,122 +453,43 @@ export default function BacklogTaskGenerationPage() {
           </div>
         </section>
         </div>
-        {!realIsStructureEmpty ? (
-          <>
-            <div className={`overflow-hidden transition-all duration-500 ease-out ${
-              (generatedTasks.length > 0 || isGenerating) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
-            }`}>
-              <section>
-                <StepHeader
-                  number={2}
-                  isLoading={isGenerating}
-                  title="Generated tasks"
-                  subtitle="Delete irrelevant tasks, then verify."
-                />
-                <div className="mt-3 border border-gray-300 rounded-lg p-3">
-                  {!isGenerating && generatedTasks.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                      No tasks generated from the sprint backlog provided.
-                    </p>
+        <div className={`overflow-hidden transition-all duration-500 ease-out ${
+          (verifiedTasks.length > 0 || isGenerating) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
+        }`}>
+          <section>
+              <StepHeader
+                number={2}
+                isLoading={isGenerating}
+                title="Generated tasks"
+                subtitle="Edit, add, or remove tasks. These will be directly saved to ClickUp (click up space chosen contain no folder and no list)."
+              />
+              <div className="mt-3 border border-gray-300 rounded-lg p-3">
+                {!isGenerating && verifiedTasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
+                    No tasks to add — all tasks already exist in ClickUp.
+                  </p>
                   ) : (
-                    <GeneratedTaskList
-                      tasks={generatedTasks}
-                      isLoading={isGenerating}
-                      onDelete={idx => setGeneratedTasks(prev => prev.filter((_, i) => i !== idx))}
-                      onUpdate={(idx, updated) =>
-                        setGeneratedTasks(prev => prev.map((t, i) => (i === idx ? updated : t)))
-                      }
-                      onVerify={handleVerify}
-                      isVerifying={isVerifying}
-                      canVerify={allTasksHaveLocation(generatedTasks)}
-                      structure={structure}
-                      structureLoading={isFetching}
-                      spaceId={selectedSpaceId}
-                      isVerificationFinished={isVerificationFinished}
-                      disabled={disabledAll}
-                      showEstimation={true}
-                    />
-                  )}
-                </div>
-              </section>
-            </div>
-            <div className={`overflow-hidden transition-all duration-500 ease-out ${
-              (verifiedTasks.length > 0 || isVerifying) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
-            }`}>
-              <section>
-                <StepHeader
-                  number={3}
-                  isLoading={isVerifying}
-                  title="Verified tasks"
-                  subtitle="Edit, add, or remove tasks. These will be saved to ClickUp."
-                />
-                <div className="mt-3 border border-gray-300 rounded-lg p-3">
-                  {!isVerifying && verifiedTasks.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                      No tasks to add — all tasks already exist in ClickUp.
-                    </p>
-                  ) : (
-                    <VerifiedTaskList
-                      tasks={verifiedTasks}
-                      isLoading={isVerifying}
-                      onChange={setVerifiedTasks}
-                      onDrop={handleDropFromGenerated}
-                      onSave={handleSave}
-                      isSaving={isSaving}
-                      savedOk={savedOk}
-                      spaceId={selectedSpaceId}
-                      structure={structure}
-                      structureLoading={isFetching}
-                      isStructureEmpty={isStructureEmpty}
-                      canSave={allTasksHaveLocation(verifiedTasks)}
-                      disabled={disabledAll}
-                      showEstimation={true}
-                    />
-                  )}
-                </div>
-              </section>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className={`overflow-hidden transition-all duration-500 ease-out ${
-              (verifiedTasks.length > 0 || isGenerating) ? 'opacity-100 max-h-[2000px] translate-y-0' : 'opacity-0 max-h-0 -translate-y-2'
-            }`}>
-              <section>
-                  <StepHeader
-                    number={2}
+                  <VerifiedTaskList
+                    tasks={verifiedTasks}
                     isLoading={isGenerating}
-                    title="Generated tasks"
-                    subtitle="Edit, add, or remove tasks. These will be directly saved to ClickUp (click up space chosen contain no folder and no list)."
+                    onChange={setVerifiedTasks}
+                    onDrop={handleDropFromGenerated}
+                    onSave={handleSave}
+                    isSaving={isSaving}
+                    savedOk={savedOk}
+                    spaceId={selectedSpaceId}
+                    structure={structure}
+                    structureLoading={isFetching}
+                    isStructureEmpty={isStructureEmpty}
+                    canSave={allTasksHaveLocation(verifiedTasks)}
+                    disabled={disabledAll}
+                    showEstimation={true}
                   />
-                  <div className="mt-3 border border-gray-300 rounded-lg p-3">
-                    {!isGenerating && verifiedTasks.length === 0 ? (
-                      <p className="text-sm text-muted-foreground text-center py-6 border border-dashed rounded-xl">
-                        No tasks to add — all tasks already exist in ClickUp.
-                      </p>
-                    ) : (
-                      <VerifiedTaskList
-                        tasks={verifiedTasks}
-                        isLoading={isGenerating}
-                        onChange={setVerifiedTasks}
-                        onDrop={handleDropFromGenerated}
-                        onSave={handleSave}
-                        isSaving={isSaving}
-                        savedOk={savedOk}
-                        spaceId={selectedSpaceId}
-                        structure={structure}
-                        structureLoading={isFetching}
-                        isStructureEmpty={isStructureEmpty}
-                        canSave={allTasksHaveLocation(verifiedTasks)}
-                        disabled={disabledAll}
-                        showEstimation={true}
-                      />
-                    )}
-                  </div>
-                </section>
-            </div>
-          </>
-        )}
+                )}
+              </div>
+            </section>
+        </div>
+
         {savedOk && saveSummary && (
           <div className="overflow-hidden transition-all duration-500 ease-out opacity-100 max-h-[1000px] translate-y-0">
             <section>

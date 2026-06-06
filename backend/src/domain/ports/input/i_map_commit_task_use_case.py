@@ -28,7 +28,7 @@ class IMapCommitTaskUseCase(ABC):
     """
 
     @abstractmethod
-    def map_commit_task(self, commit: str, space_id: str) -> MappedCommitTaskResponse:
+    async def map_commit_task(self, commit: str, space_id: str) -> MappedCommitTaskResponse:
         """
         Map a GitHub commit to its corresponding ClickUp task.
 

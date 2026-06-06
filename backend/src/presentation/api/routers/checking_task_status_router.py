@@ -43,7 +43,7 @@ router = APIRouter()
         "The frontend uses the result to ask for confirmation, prompt the user to choose, or ask to rephrase."
     ),
 )
-def search_task(
+async def search_task(
     body: TaskSearchRequest,
     use_case: ISearchTaskUseCase = Depends(get_search_task_use_case),
 ) -> TaskSearchResponse:
@@ -76,7 +76,7 @@ def search_task(
         body.question,
     )
 
-    result = use_case.search_task(
+    result = await use_case.search_task(
         description=body.description,
         space_id=body.space_id,
     )

@@ -10,7 +10,7 @@ from backend.src.domain.entities.generated_tasks.generated_task_from_backlog imp
     GeneratedTaskFromBacklog,
     GeneratedTaskListFromBacklog,
 )
-from backend.src.domain.entities.sprint.estimation import TaskEstimate
+from backend.src.domain.entities.sprint.estimation import EstimatedTask
 from backend.src.domain.entities.sprint.sprint import Sprint, UserStorySprint
 from backend.src.infrastructure.external.shared.agents import base_agent
 from backend.src.infrastructure.external.task_generation_from_backlog.clickup_task_generator_from_backlog_agent import (
@@ -39,7 +39,7 @@ def _sample_backlog() -> Sprint:
         user_stories=[
             UserStorySprint(
                 user_story=UserStory(title="Login", description="Allow users to sign in."),
-                tasks=[TaskEstimate(task=Task(title="Build form", description="Create login form."), estimated_hours=5)],
+                tasks=[EstimatedTask(task=Task(title="Build form", description="Create login form."), estimated_hours=5)],
             )
         ],
     )

@@ -17,10 +17,15 @@ class CommitTaskMapperResult(BaseModel):
     """
     Representation of a commit-to-task mapping result.
 
-    This DTO contains the ID of the single ClickUp task that best
-    matches a given Git commit message, as returned by the LLM.
+    This DTO contains the ClickUp task that best matches a given
+    Git commit message, along with the confidence score assigned
+    by the mapping process.
 
     Attributes:
-        id: ClickUp task identifier, or None if no match was found.
+        id: ClickUp task identifier, or None if no suitable match was found.
+        confidence: Confidence score between 0.0 and 1.0 indicating
+            how strongly the commit is associated with the identified task,
+            or None if no confidence score is available.
     """
     id: Optional[str] = None
+    confidence: Optional[float] = None

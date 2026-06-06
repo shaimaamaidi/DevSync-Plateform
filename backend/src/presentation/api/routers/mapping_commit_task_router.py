@@ -39,7 +39,7 @@ router = APIRouter()
         "within the given space. Returns the match status and task details if found."
     ),
 )
-def find_task_by_commit(
+async def find_task_by_commit(
     request: MappedCommitTaskRequest,
     use_case: IMapCommitTaskUseCase = Depends(get_map_commit_task_use_case),
 ) -> MappedCommitTaskResponse:
@@ -73,7 +73,7 @@ def find_task_by_commit(
         request.commit,
     )
 
-    result = use_case.map_commit_task(
+    result = await use_case.map_commit_task(
         commit=request.commit,
         space_id=request.space_id,
     )

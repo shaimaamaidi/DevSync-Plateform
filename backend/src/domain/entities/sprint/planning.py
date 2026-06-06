@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from typing import List
 
 from backend.src.domain.entities.sprint.sprint import Sprint
+from backend.src.domain.entities.sprint.sprint_with_identified_tasks import SprintWithTaskIdentified
 
 
 class SprintPlanning(BaseModel):
@@ -26,3 +27,15 @@ class SprintPlanning(BaseModel):
         sprints: List of planned sprints.
     """
     sprints: List[Sprint] = []
+
+class SprintPlanningWithTaskIdentified(BaseModel):
+    """
+    Container for sprint planning results.
+
+    This DTO represents the full sprint breakdown of a project, including all planned sprints
+    and their associated user stories and task estimations.
+
+    Attributes:
+        sprints: List of planned sprints.
+    """
+    sprints: List[SprintWithTaskIdentified] = []

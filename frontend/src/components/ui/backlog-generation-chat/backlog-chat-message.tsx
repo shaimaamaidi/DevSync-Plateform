@@ -26,8 +26,7 @@ export function BacklogChatMessage({
   const isUser = message.role === "user";
   const isRejection = message.isRejection;
   const isStreaming = message._streaming;
-  const hasCard =
-    message.attachment && !["submitted"].includes(message.attachment?.type);
+  const hasCard = message.attachment && !["submitted", "clarification"].includes(message.attachment?.type);
 
   return (
     <div

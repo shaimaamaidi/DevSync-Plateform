@@ -10,6 +10,7 @@ tasks that may have been marked as done without sufficient technical
 implementation evidence.
 """
 
+import asyncio
 import logging
 import json
 from typing import List
@@ -38,6 +39,8 @@ class UnverifiedDoneTaskInspectorAgent (BaseAgent[InspectedUnverifiedDoneTaskLis
     - Producing structured inspection results for further processing
     """
 
+    _TASK_BATCH_SIZE = 10
+
     def __init__(self, prompt_loader: IPromptLoader):
         """
         Initialize the UnverifiedDoneTaskInspectorAgent.
@@ -48,7 +51,7 @@ class UnverifiedDoneTaskInspectorAgent (BaseAgent[InspectedUnverifiedDoneTaskLis
         """
         super().__init__(prompt_loader)
 
-    def verify_done_tasks(
+    async def verify_done_tasks(
         self,
         last_done_tasks: List[ClickUpTask],
         commits: List[CommitDTO]
@@ -77,10 +80,51 @@ class UnverifiedDoneTaskInspectorAgent (BaseAgent[InspectedUnverifiedDoneTaskLis
         """
         logger.info("Inspecting unverified done tasks process.")
 
-        tasks_json = json.dumps(
-            [task.to_dict() for task in last_done_tasks],
+        commits_payload = [
+            {
+                "message": c.message[:500],
+                "date": c.date.isoformat() if c.date else None,
+                "branch": c.branch,
+            }
+            for c in commits
+        ]
+
+        batches = [
+            last_done_tasks[i: i + UnverifiedDoneTaskInspectorAgent._TASK_BATCH_SIZE]
+            for i in range(0, len(last_done_tasks), UnverifiedDoneTaskInspectorAgent._TASK_BATCH_SIZE)
+        ]
+
+        results = await asyncio.gather(
+            *[self._verify_batch(batch, commits_payload) for batch in batches]
+        )
+
+        unverified_tasks = [task for batch_result in results for task in batch_result if not task.has_commit]
+
+        logger.info(
+            "Unverified done task inspecting completed successfully: %d task(s) stales.",
+            len(unverified_tasks)
+        )
+
+        return unverified_tasks
+
+    async def _verify_batch(
+            self,
+            tasks_batch: List[ClickUpTask],
+            commits_payload: List[dict],
+    ) -> List[InspectedUnverifiedDoneTaskResult]:
+        """
+        Run LLM verification on a single batch of recently done tasks.
+
+        Args:
+            tasks_batch: Subset of recently completed tasks to verify.
+            commits_payload: Pre-projected commit list shared across all batches.
+
+        Returns:
+            List[InspectedUnverifiedDoneTaskResult]: Unverified tasks detected in this batch.
+        """
+        tasks_payload = json.dumps(
+            [{"id": t.id, "name": t.name, "description": t.description} for t in tasks_batch],
             ensure_ascii=False,
-            indent=2
         )
 
         parsed: InspectedUnverifiedDoneTaskListResult = self._call_llm(
@@ -88,24 +132,17 @@ class UnverifiedDoneTaskInspectorAgent (BaseAgent[InspectedUnverifiedDoneTaskLis
             folder_name="project_status_checking",
             prompt_name="unverified_done_tasks_inspector_agent",
             variables={
-                "tasks": tasks_json,
-                "commits": json.dumps(
-                    [c.to_dict() for c in commits],
-                    ensure_ascii=False,
-                    default=str,
-                    indent=2
-                )
+                "tasks": tasks_payload,
+                "commits": commits_payload,
             },
             response_format=InspectedUnverifiedDoneTaskListResult,
         )
 
         if not parsed or not parsed.tasks:
-            logger.warning("All recently done tasks are verified.")
+            logger.debug(
+                "Batch of %d task(s): all verified.",
+                len(tasks_batch),
+            )
             return []
-
-        logger.info(
-            "Unverified done task inspecting completed successfully: %d task(s) stales.",
-            len(parsed.tasks)
-        )
 
         return parsed.tasks

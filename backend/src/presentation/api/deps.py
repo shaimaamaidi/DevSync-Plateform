@@ -20,7 +20,6 @@ Functions:
     get_save_summary_tasks_use_case: Builds the saving summary tasks use case per request.
     get_save_backlog_tasks_use_case: Builds the saving backlog tasks use case per request.
     get_verify_tasks_from_summary_use_case: Builds the verification tasks from summary use case per request.
-    get_verify_tasks_from_backlog_use_case: Builds the verification  tasks from backlog use case per request.
 
     # ClickUpContainer
     get_create_clickup_task_use_case: Provides the ClickUp task management use case instance.
@@ -61,9 +60,7 @@ from backend.src.application.use_cases.save_backlog_tasks_use_case import SaveBa
 from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
 from backend.src.application.use_cases.summarize_weekly_project_use_case import SummarizeWeeklyProjectUseCase
 from backend.src.application.use_cases.task_status_check.search_task_use_case import SearchTaskUseCase
-from backend.src.application.use_cases.task_status_check.synthesize_task_status_use_case import \
-    SynthesizeTaskStatusUseCase
-from backend.src.application.use_cases.verify_tasks_from_backlog_use_case import VerifyTasksFromBacklogUseCase
+from backend.src.application.use_cases.task_status_check.synthesize_task_status_use_case import SynthesizeTaskStatusUseCase
 from backend.src.application.use_cases.verify_tasks_from_summary_use_case import VerifyTasksFromSummaryUseCase
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.system.service_unavailable_exception import ServiceUnavailableException
@@ -409,36 +406,6 @@ def get_verify_tasks_from_summary_use_case(
     except Exception as e:
         logger.exception("Failed to build verify task from summary use case: %s", str(e))
         raise ServiceUnavailableException("Verify task from summary service is unavailable.") from e
-
-def get_verify_tasks_from_backlog_use_case(
-    request: Request,
-    container: PersistenceContainer = Depends(get_persistence_container),
-) -> VerifyTasksFromBacklogUseCase:
-    """
-    Build the verify tasks from backlog use case for the current request.
-
-    Combines singleton TaskGenerationContainer infrastructure with
-    request-scoped member_repo from PersistenceContainer.
-
-    Args:
-        request (Request): The incoming FastAPI request object.
-        container (PersistenceContainer): The request-scoped DI container.
-
-    Returns:
-        VerifyTasksFromBacklogUseCase: A fully initialized use case for this request.
-
-    Raises:
-        ServiceUnavailableException: If ClickUp infrastructure is not initialized.
-    """
-    try:
-        return request.app.state.task_generation_container.create_tasks_from_backlog_verification_use_case(
-            member_repo=container.member_repo
-        )
-    except ServiceUnavailableException:
-        raise
-    except Exception as e:
-        logger.exception("Failed to build verify task from backlog use case: %s", str(e))
-        raise ServiceUnavailableException("Verify task from backlog service is unavailable.") from e
 
 # Request-scoped use cases — ClickUpContainer + PersistenceContainer
 

@@ -151,3 +151,53 @@ def get_folders_statuses_and_priorities(folders: List[FolderWithListsMetadata]) 
     )
 
     return result
+
+def get_folders_priorities(folders: List[FolderWithListsMetadata]) -> Dict[str, Dict[str, List[str]]]:
+    """
+    Collect statuses and priorities available per folder.
+
+    Args:
+        folders: Iterable of Folder objects containing lists and metadata.
+
+    Returns:
+        Mapping of location label to available statuses and priorities.
+        - Folderless lists: labelled by list name only  → "Backlog"
+        - Lists inside a folder: labelled as folder/list → "Dev / Backend"
+
+        Example:
+            {
+                "Dev / Backend": {
+                    "priorities": ["urgent", "high", "normal", "low"],
+                },
+                "Backlog": {
+                    "priorities": ["urgent", "high", "normal", "low"],
+                },
+            }
+    """
+    folders_info: Dict[str, Dict[str, set]] = {}
+
+    for folder in folders:
+        for lst in folder.lists:
+            # Folderless: folder.id == lst.id (synthetic folder created per list)
+            label = lst.name if folder.id == lst.id else f"{folder.name} / {lst.name}"
+
+            if label not in folders_info:
+                folders_info[label] = {"statuses": set(), "priorities": set()}
+
+            for priority in lst.priorities:
+                folders_info[label]["priorities"].add(priority)
+
+    result = {
+        label: {
+            "priorities": list(info["priorities"]),
+        }
+        for label, info in folders_info.items()
+    }
+
+    logger.info(
+        "Folders statuses and priorities extracted: %s",
+        {name: {"priorities": data["priorities"]}
+         for name, data in result.items()},
+    )
+
+    return result

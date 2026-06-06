@@ -15,7 +15,7 @@ from typing import List
 
 from backend.src.domain.entities.generated_tasks.generated_task_from_backlog import GeneratedTaskFromBacklog
 from backend.src.domain.entities.sprint.sprint import Sprint
-from backend.src.domain.helpers.clickup_folder_helpers import get_folders_statuses_and_priorities
+from backend.src.domain.helpers.clickup_folder_helpers import get_folders_priorities
 from backend.src.domain.ports.input.i_generate_tasks_from_backlog_use_case import IGenerateTasksFromBacklogUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.services.task_generation_from_backlog.i_task_generator_from_backlog import ITaskGeneratorFromBacklog
@@ -48,7 +48,7 @@ class GenerateTasksFromBacklogUseCase(IGenerateTasksFromBacklogUseCase):
         self._clickup_reader = clickup_reader
         self._task_generator = task_generator
 
-    def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id: str) -> List[GeneratedTaskFromBacklog]:
+    async def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id: str) -> List[GeneratedTaskFromBacklog]:
         """
         Generate ClickUp tasks from a sprint backlog.
 
@@ -69,11 +69,11 @@ class GenerateTasksFromBacklogUseCase(IGenerateTasksFromBacklogUseCase):
         )
 
         folders = self._clickup_reader.get_space_structure_metadata(space_id)
-        locations_statuses = get_folders_statuses_and_priorities(folders)
+        locations_priorities = get_folders_priorities(folders)
 
-        tasks = self._task_generator.generate_tasks(
+        tasks = await self._task_generator.generate_tasks(
             backlog=sprint_backlog,
-            locations_statuses=locations_statuses,
+            locations_priorities=locations_priorities,
         )
         tasks = tasks or []
 

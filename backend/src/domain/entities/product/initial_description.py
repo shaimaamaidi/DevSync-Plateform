@@ -53,3 +53,7 @@ class InitialDescription(BaseModel):
         ...,
         description="Short synthesis of the whole project (2-3 sentences)",
     )
+    conflicts: List[str] = Field(
+        default_factory=list,
+        description="Explicit list of detected contradictions or inconsistencies in the input intelligence"
+    )

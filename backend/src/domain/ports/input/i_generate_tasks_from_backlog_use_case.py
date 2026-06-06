@@ -28,7 +28,7 @@ class IGenerateTasksFromBacklogUseCase(ABC):
     """
 
     @abstractmethod
-    def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id) -> List[GeneratedTaskFromBacklog]:
+    async def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id) -> List[GeneratedTaskFromBacklog]:
         """
         Generate ClickUp tasks from a sprint backlog.
 

@@ -29,7 +29,7 @@ class ISearchTaskUseCase(ABC):
     """
 
     @abstractmethod
-    def search_task(self, description: str, space_id: str) -> TaskSearchResponse:
+    async def search_task(self, description: str, space_id: str) -> TaskSearchResponse:
         """
         Search ClickUp tasks based on a user question and space identifier.
 

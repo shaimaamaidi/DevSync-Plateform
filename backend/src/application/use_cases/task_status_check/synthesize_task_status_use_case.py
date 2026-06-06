@@ -4,7 +4,7 @@ Task status synthesis use case module.
 This module provides the SynthesizeTaskStatusUseCase class, which is responsible for
 orchestrating the analysis and synthesis of ClickUp task status.
 
-It coordinates retrieval of external GitHub context (commits and deployments),
+It coordinates retrieval of external GitHub context (commits),
 delegates synthesis logic to a domain service, and returns a structured
 task status result enriched with LLM-based analysis.
 
@@ -13,16 +13,16 @@ Classes:
 """
 
 import logging
-import asyncio
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timezone, timedelta
 
+from backend.src.application.use_cases.shared.commit_similarity import filter_commits
 from backend.src.domain.entities.checked_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
+from backend.src.domain.entities.github.commit import CommitDTO
 from backend.src.domain.ports.input.task_status_check.i_synthesize_task_status_use_case import ISynthesizeTaskStatusUseCase
 from backend.src.domain.ports.output.clickup.i_clickup_reader import IClickUpReader
 from backend.src.domain.ports.output.github.i_github_commit_service import IGitHubCommitService
-from backend.src.domain.ports.output.github.i_github_deployment_service import IGitHubDeploymentService
 from backend.src.domain.ports.services.task_status_checking.i_task_status_synthesizer import ITaskStatusSynthesizer
 
 
@@ -34,7 +34,6 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
     Application use case for synthesizing ClickUp task status.
 
     This use case orchestrates the full task status analysis flow by:
-    - Fetching GitHub deployments linked to a repository (if provided)
     - Fetching GitHub commits linked to a repository (if provided)
     - Computing temporal analysis windows and derived activity signals
     - Delegating synthesis logic to a task status synthesizer service
@@ -46,7 +45,6 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
 
     Attributes:
         _task_status_analyzer (ITaskStatusSynthesizer): Service responsible for synthesizing task status.
-        _github_deployment_service (IGitHubDeploymentService): Service to fetch deployment data from GitHub.
         _github_commit_service (IGitHubCommitService): Service to fetch commit history from GitHub.
         _clickup_reader (IClickUpReader): Port used to fetch data from ClickUp API.
     """
@@ -54,10 +52,6 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
     _MAX_COMMITS_TODO = 30
     _MAX_COMMITS_IN_PROGRESS = 60
     _MAX_COMMITS_DONE = 60
-
-    _MAX_DEPLOYMENTS_TODO = 5
-    _MAX_DEPLOYMENTS_IN_PROGRESS = 10
-    _MAX_DEPLOYMENTS_DONE = 15
 
     _TODO_LOOKBACK_DAYS = 30
     _TODO_LIGHT_DAYS = 7
@@ -68,7 +62,6 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
         self,
         clickup_reader: IClickUpReader,
         task_status_analyzer: ITaskStatusSynthesizer,
-        github_deployment_service: IGitHubDeploymentService,
         github_commit_service: IGitHubCommitService,
     ):
         """
@@ -77,12 +70,10 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
         Args:
             clickup_reader: ClickUp reader port implementation used to retrieve workspace data.
             task_status_analyzer: Service responsible for synthesizing task status.
-            github_deployment_service: Service used to retrieve deployment data from GitHub.
             github_commit_service: Service used to retrieve commit history from GitHub.
         """
         self._clickup_reader = clickup_reader
         self._task_status_analyzer = task_status_analyzer
-        self._github_deployment_service = github_deployment_service
         self._github_commit_service = github_commit_service
 
     async def analyze_task_status(self, repo_url: Optional[str], task: ClickUpTask) -> SynthesizedTaskStatusResult:
@@ -90,7 +81,7 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
         Analyze and synthesize the status of a ClickUp task.
 
         This method:
-        - Retrieves GitHub deployments and commits if a repository URL is provided
+        - Retrieves GitHub commits if a repository URL is provided
         - Sends task + external context to the synthesizer service
         - Returns a structured synthesis result indicating completion status
 
@@ -112,28 +103,28 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
 
         time_context = self._clickup_reader.get_task_time_context(task.id)
 
-        since, until, max_commits, max_deployments = SynthesizeTaskStatusUseCase._compute_window(task, time_context)
+        since, until, max_commits = SynthesizeTaskStatusUseCase._compute_window(task, time_context)
 
-        deployments = []
         commits = []
 
         if repo_url and since is not None:
-            commits, deployments = await self._fetch_github_context(
+            commits = await  self._fetch_github_context(
                 repo_url=repo_url,
                 since=since,
                 until=until,
                 max_commits=max_commits,
-                max_deployments=max_deployments
             )
+
+            commits = filter_commits(commits, task)
 
             logger.info(
-                "GitHub context fetched. task_id=%s commits=%d deployments=%d.",
-                task.id, len(commits), len(deployments),
+                "GitHub context fetched. task_id=%s commits=%d.",
+                task.id, len(commits)
             )
 
-        signals = SynthesizeTaskStatusUseCase._derive_signals(time_context, commits, deployments)
+        signals = SynthesizeTaskStatusUseCase._derive_signals(time_context, commits)
 
-        result =  self._task_status_analyzer.synthesize_task_status(task, deployments, commits, signals)
+        result =  self._task_status_analyzer.synthesize_task_status(task, commits, signals)
 
         logger.info(
             "Task synthesize completed successfully: task_id=%s status_result=%d.",
@@ -144,7 +135,7 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
         return result
 
     @staticmethod
-    def _compute_window(task: ClickUpTask, time_context: dict) -> tuple[datetime | None, datetime, int, int]:
+    def _compute_window(task: ClickUpTask, time_context: dict) -> tuple[datetime | None, datetime, int]:
         """
         Compute the GitHub fetch window and retrieval limits based on task lifecycle signals.
 
@@ -167,7 +158,7 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
 
             Done
                 date_created → date_closed + 3d buffer.
-                Includes post-close commits/deployments for validation signals.
+                Includes post-close commits for validation signals.
 
             Unknown / other
                 Fallback: today-30d → today.
@@ -178,7 +169,7 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
                 lifecycle timestamps and status transition metadata.
 
         Returns:
-            Tuple (since, until, max_commits, max_deployments).
+            Tuple (since, until, max_commits).
 
             - since=None indicates that GitHub retrieval should be skipped.
             - until always represents the upper bound of the analysis window.
@@ -193,34 +184,34 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
 
         if status == "todo":
             fallback_since = now - timedelta(days=SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS)
-            anchor = since_current_status or date_created or fallback_since
+            anchor = since_current_status or fallback_since
 
             if (now - anchor).days > SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS:
                 logger.info(
                     "Todo task inactive for >%d days — skipping GitHub fetch.",
                     SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS,
                 )
-                return None, now, SynthesizeTaskStatusUseCase._MAX_COMMITS_TODO, SynthesizeTaskStatusUseCase._MAX_DEPLOYMENTS_TODO
+                return None, now, SynthesizeTaskStatusUseCase._MAX_COMMITS_TODO
 
             since = max(anchor, fallback_since)
-            return since, now, SynthesizeTaskStatusUseCase._MAX_COMMITS_TODO, SynthesizeTaskStatusUseCase._MAX_DEPLOYMENTS_TODO
+            return since, now, SynthesizeTaskStatusUseCase._MAX_COMMITS_TODO
 
         if "progress" in status or status == "in progress":
-            anchor = since_current_status or date_created or (now - timedelta(days=SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS))
+            anchor = since_current_status
             since = anchor - timedelta(days=SynthesizeTaskStatusUseCase._IN_PROGRESS_BUFFER_DAYS)
-            return since, now, SynthesizeTaskStatusUseCase._MAX_COMMITS_IN_PROGRESS, SynthesizeTaskStatusUseCase._MAX_DEPLOYMENTS_IN_PROGRESS
+            return since, now, SynthesizeTaskStatusUseCase._MAX_COMMITS_IN_PROGRESS
 
         if status in ("done", "closed", "complete", "completed"):
             since = date_created or (now - timedelta(days=SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS))
             until = (date_closed or now) + timedelta(days=SynthesizeTaskStatusUseCase._DONE_BUFFER_DAYS)
             until = min(until, now)
-            return since, until, SynthesizeTaskStatusUseCase._MAX_COMMITS_DONE, SynthesizeTaskStatusUseCase._MAX_DEPLOYMENTS_DONE
+            return since, until, SynthesizeTaskStatusUseCase._MAX_COMMITS_DONE
 
         logger.warning(
             "Unrecognised status '%s' — using 30-day fallback window.", status
         )
 
-        return now - timedelta(days=SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS), now, SynthesizeTaskStatusUseCase._MAX_COMMITS_DONE, SynthesizeTaskStatusUseCase._MAX_DEPLOYMENTS_TODO
+        return now - timedelta(days=SynthesizeTaskStatusUseCase._TODO_LOOKBACK_DAYS), now, SynthesizeTaskStatusUseCase._MAX_COMMITS_DONE
 
     async def _fetch_github_context(
             self,
@@ -228,36 +219,29 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
             since: datetime,
             until: datetime,
             max_commits: int,
-            max_deployments:int,
-    ) -> tuple[list, list]:
+    ) -> List[CommitDTO]:
         """
-        Fetch commits and deployments within [since, until] in parallel.
+        Fetch commits within [since, until].
 
         Args:
             repo_url: GitHub repository URL.
             since: Window start (inclusive).
             until: Window end (inclusive).
             max_commits: Commit cap to pass to the commit service.
-            max_deployments: Deployment cap to pass to the deployment service.
 
         Returns:
-            Tuple (commits, deployments).
+            list[CommitDTO]: commits list.
         """
-        commits_coro = self._github_commit_service.get_commits_between_dates(
+        commits = await self._github_commit_service.get_commits_between_dates(
             repo_url, since, until, max_commits
         )
-        deployments_coro = self._github_deployment_service.get_deployments_between_dates(
-            repo_url, since, until, max_deployments
-        )
 
-        commits, deployments = await asyncio.gather(commits_coro, deployments_coro)
-        return commits, deployments
+        return commits
 
     @staticmethod
     def _derive_signals(
             time_context: dict,
             commits: list,
-            deployments: list,
     ) -> dict:
         """
         Derive high-level activity signals from task lifecycle and GitHub context.
@@ -269,25 +253,15 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
         - Task inactivity duration
         - Post-close commit activity
         - Recency of development activity
-        - Production deployment evidence
-        - Presence of commits or deployments
 
         Args:
             time_context: Task lifecycle timestamps and status transition metadata.
             commits: Retrieved GitHub commits associated with the task repository.
-            deployments: Retrieved GitHub deployments associated with the task repository.
 
         Returns:
             Dict containing interpreted signals ready for synthesis and LLM consumption.
         """
-        now = datetime.now(tz=timezone.utc)
-
-        date_created = time_context.get("date_created")
         date_closed = time_context.get("date_closed")
-        since_current_status = time_context.get("since_current_status")
-
-        anchor = since_current_status or date_created
-        days_in_current_status = (now - anchor).days if anchor else None
 
         commits_after_close = []
         if date_closed and commits:
@@ -295,26 +269,10 @@ class SynthesizeTaskStatusUseCase(ISynthesizeTaskStatusUseCase):
                 c for c in commits
                 if c.date and c.date > date_closed
             ]
-
-        latest_commit_days_ago = None
-        if commits:
-            latest = max((c.date for c in commits if c.date), default=None)
-            if latest:
-                latest_commit_days_ago = (now - latest).days
-
-        deployed_to_prod_after_close = any(
-            d for d in deployments
-            if "prod" in (d.environment or "").lower()
-            and d.state == "success"
-            and (date_closed is None or (d.created_at and d.created_at >= date_closed))
-        )
+            commits = [c for c in commits if c not in commits_after_close]
 
         return {
-            "days_in_current_status": days_in_current_status,
             "commits_after_close_count": len(commits_after_close),
             "commits_after_close": [c.message for c in commits_after_close],
-            "latest_commit_days_ago": latest_commit_days_ago,
-            "deployed_to_prod_after_close": deployed_to_prod_after_close,
             "has_any_commit": len(commits) > 0,
-            "has_any_deployment": len(deployments) > 0,
         }

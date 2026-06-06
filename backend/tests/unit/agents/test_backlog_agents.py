@@ -18,7 +18,7 @@ from backend.src.domain.entities.market.refined_intelligence import RefinedMarke
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.entities.sprint.planning import SprintPlanning
 from backend.src.domain.exceptions.llm.llm_parsing_exception import LLMParsingException
-from backend.src.infrastructure.external.backlog_generation.agents.backlog_cleaner_agent import BacklogCleanerAgent
+from backend.src.infrastructure.external.backlog_generation.agents.epic_cleaner_agent import EpicCleanerAgent
 from backend.src.infrastructure.external.backlog_generation.agents.backlog_generation_orchestrator_agent import (
     BacklogGenerationOrchestratorAgent,
 )
@@ -38,7 +38,7 @@ from backend.src.infrastructure.external.backlog_generation.agents.market_query_
 from backend.src.infrastructure.external.backlog_generation.agents.product_context_builder_agent import (
     ProductContextBuilderAgent,
 )
-from backend.src.infrastructure.external.backlog_generation.agents.sprint_planner_agent import SprintPlannerAgent
+from backend.src.infrastructure.external.backlog_generation.agents.sprint_planner_orchestrator import SprintPlannerAgent
 from backend.src.infrastructure.external.backlog_generation.agents.task_generator_agent import TaskGeneratorAgent
 from backend.src.infrastructure.external.backlog_generation.agents.user_backlog_fixer_agent import UserBacklogFixerAgent
 from backend.src.infrastructure.external.backlog_generation.agents.user_story_generator_agent import (
@@ -303,20 +303,22 @@ def test_backlog_cleaner_agent_happy_path(monkeypatch) -> None:
     parsed = _backlog_structure()
     _patch_base_agent(monkeypatch, prompt_loader, parsed=parsed)
 
-    agent = BacklogCleanerAgent(prompt_loader)
-    result = agent.clean_backlog(_backlog_structure())
+    agent = EpicCleanerAgent(prompt_loader)
+    for epic in _backlog_structure().epics:
+        result = agent.clean_epic(epic)
 
-    assert result.epics[0].epic.title == "Epic"
+        assert result.epic.title == "Epic"
 
 
 def test_backlog_cleaner_agent_wraps_error(monkeypatch) -> None:
     prompt_loader = _prompt_loader()
     _patch_base_agent(monkeypatch, prompt_loader, raise_exc=RuntimeError("fail"))
 
-    agent = BacklogCleanerAgent(prompt_loader)
+    agent = EpicCleanerAgent(prompt_loader)
 
-    with pytest.raises(LLMParsingException):
-        agent.clean_backlog(_backlog_structure())
+    for epic in _backlog_structure().epics:
+        with pytest.raises(LLMParsingException):
+            agent.clean_epic(epic)
 
 
 def test_backlog_prioritizer_agent_happy_path(monkeypatch) -> None:
@@ -399,7 +401,7 @@ async def test_backlog_generation_orchestrator_agent_happy_path() -> None:
         tasks=[Task(title="Task", description="Desc")],
     )
     cleaner = MagicMock()
-    cleaner.clean_backlog.return_value = _backlog_structure()
+    cleaner.clean_epic.return_value = _backlog_structure()
 
     agent = BacklogGenerationOrchestratorAgent(
         epic_generator=epic_generator,
@@ -431,9 +433,9 @@ async def test_backlog_generation_orchestrator_agent_all_epics_fail() -> None:
         backlog_cleaner=cleaner,
     )
 
-    cleaner.clean_backlog.return_value = MagicMock(name="cleaned_backlog")
+    cleaner.clean_epic.return_value = MagicMock(name="cleaned_backlog")
 
     result = await agent.generate(_initial_description(), _refined_context())
 
-    cleaner.clean_backlog.assert_called_once()
-    assert result == cleaner.clean_backlog.return_value
+    cleaner.clean_epic.assert_called_once()
+    assert result == cleaner.clean_epic.return_value

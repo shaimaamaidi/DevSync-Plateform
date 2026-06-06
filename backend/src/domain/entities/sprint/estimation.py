@@ -1,28 +1,37 @@
 """
-Domain DTO for task estimation.
+Domain DTO for task estimation results.
 
-This module defines the TaskEstimate DTO used to represent a task along with its estimated effort.
-It is typically used during sprint planning to evaluate workload and distribute tasks across sprints.
+This module defines DTOs used to represent tasks enriched with effort estimation.
+These models are used during sprint planning to evaluate workload, distribute tasks,
+and support intelligent planning decisions.
 
 Main classes:
-    TaskEstimate
+    EstimatedTask, IdentifiedEstimatedTask
 """
 
-from pydantic import BaseModel
-
-from backend.src.domain.entities.backlog.task import Task
+from backend.src.domain.entities.backlog.task import Task, IdentifiedTask
 
 
-class TaskEstimate(BaseModel):
+class EstimatedTask(Task):
     """
-    Representation of a task with its estimated effort.
+    Task enriched with effort estimation.
 
-    This DTO links a task to an estimation value in hours, enabling sprint planning,
-    capacity management, and workload balancing.
+    This DTO extends the base Task model by adding an estimation field
+    representing the expected effort required to complete the task.
 
     Attributes:
-        task: Task entity to be estimated.
         estimated_hours: Estimated effort required to complete the task (in hours).
     """
-    task: Task
+    estimated_hours: float
+
+class IdentifiedEstimatedTask(IdentifiedTask):
+    """
+    Identified task enriched with effort estimation.
+
+    This DTO extends IdentifiedTask by adding an estimation field
+    representing the expected effort required to complete the task.
+
+    Attributes:
+        estimated_hours: Estimated effort required to complete the task (in hours).
+    """
     estimated_hours: float

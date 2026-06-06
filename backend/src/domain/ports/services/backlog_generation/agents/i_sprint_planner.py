@@ -1,8 +1,9 @@
 """
 Service port for sprint planning generation.
 
-This module defines the ISprintPlanner interface, which specifies operations for transforming
-a structured backlog into a sprint planning plan organized into iterative delivery cycles.
+This module defines the ISprintPlanner interface, which specifies operations
+for transforming a structured backlog into a sprint planning representation
+organized into iterative delivery cycles.
 """
 
 from abc import ABC, abstractmethod
@@ -15,20 +16,34 @@ class ISprintPlanner(ABC):
     """
     Define sprint planning generation behavior required by the application.
 
-    This interface is responsible for converting a backlog structure into a sprint planning
-    representation by grouping and organizing work into sprints based on estimation, priority,
-    and delivery constraints.
+    This interface is responsible for transforming a structured backlog into
+    a complete sprint planning plan by:
+    - Grouping work into sprints
+    - Ensuring workload distribution across iterations
+    - Respecting prioritization and estimation constraints
+    - Supporting agile delivery planning
+
+    It acts as the high-level orchestration contract for sprint planning systems.
     """
 
     @abstractmethod
-    def generate_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
+    def plan_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
         """
-        Generate sprint planning from a backlog structure.
+        Generate sprint planning from a structured backlog.
+
+        This method transforms a backlog into a sprint-based delivery plan
+        by organizing epics, user stories, and tasks into iterative sprints.
 
         Args:
-            backlog (BacklogStructure): Structured backlog containing epics, user stories, and tasks.
+            backlog (BacklogStructure): Structured backlog containing:
+                - epics
+                - user stories
+                - tasks
 
         Returns:
-            SprintPlanning: Generated sprint plan with organized sprints and workload distribution.
+            SprintPlanning: Final sprint plan containing:
+                - grouped sprints
+                - workload distribution
+                - structured delivery iterations
         """
         pass

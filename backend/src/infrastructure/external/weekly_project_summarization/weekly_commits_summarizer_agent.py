@@ -8,7 +8,6 @@ main development progress and technical work completed during the week.
 """
 
 import logging
-import json
 from typing import List
 
 from backend.src.domain.entities.github.commit import CommitDTO
@@ -74,24 +73,28 @@ class WeeklyCommitsSummarizerAgent(BaseAgent[WeeklySummaryNarrative], IWeeklyCom
         """
         logger.info("Summarize weekly commits process.")
 
+        if not commits:
+            return "No commits were recorded this week."
+
+        sorted_commits = sorted(commits, key=lambda c: c.date, reverse=True)
+
         result: WeeklySummaryNarrative = self._call_llm(
             agent_name="WeeklyCommitsSummarizerAgent",
             folder_name="weekly_project_summarization",
             prompt_name="weekly_commits_summarizer_agent",
             variables={
-                "commits": json.dumps(
-                    [c.to_dict() for c in commits],
-                    ensure_ascii=False,
-                    default=str,
-                    indent=2
-                )
+                "commits": [{
+                    "message": c.message[:1000],
+                    "author": c.author,
+                    "date": c.date.isoformat() if c.date else None,
+                } for c in sorted_commits]
             },
             response_format=WeeklySummaryNarrative,
         )
 
         if not result or not result.summary:
             logger.warning("No summary result returned.")
-            return ""
+            return "No commits were recorded this week."
 
         logger.info("Weekly commits summary completed.")
 

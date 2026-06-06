@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { MarketCard } from "./market-card";
 import { BacklogCard } from "./backlog-card";
 import { SprintCard } from "./sprint-card";
@@ -13,6 +13,10 @@ export function AttachmentRenderer({
 }: any) {
   if (!attachment) return null;
 
+  if (attachment.type === "clarification") {
+    return null;
+  }
+
   if (attachment.type === "market") {
     return (
       <MarketCard
@@ -23,6 +27,24 @@ export function AttachmentRenderer({
     );
   }
 
+  if (attachment.type === "conflicts") {
+    return (
+      <div className="mt-2 flex flex-col gap-2 px-3 py-3 bg-amber-50 border border-amber-200 rounded-xl">
+        <div className="flex items-center gap-2 text-[12px] font-semibold text-amber-700">
+          <AlertTriangle size={13} strokeWidth={2} />
+          Conflicts detected
+        </div>
+        <ul className="flex flex-col gap-1">
+          {(attachment.data?.conflicts ?? []).map((c: string, i: number) => (
+            <li key={i} className="text-[12px] text-amber-800 leading-relaxed">
+              • {c}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  
   if (attachment.type === "submitted") {
     return (
       <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-green-500/[0.08] rounded-[9px] border border-green-500/25 text-[12px] text-green-700 font-medium">
@@ -54,7 +76,7 @@ export function AttachmentRenderer({
     return <SprintCard data={attachment.data as UiSprint[]} />;
   }
 
-  if (attachment.type === "clickup_prompt") {
+  if (attachment.type === "clickup_management") {
     return (
       <div className="mt-3 px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-3">
         <p className="text-[13px] text-slate-700 leading-relaxed">

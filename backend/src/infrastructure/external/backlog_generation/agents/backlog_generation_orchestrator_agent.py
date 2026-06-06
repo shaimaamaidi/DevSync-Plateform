@@ -17,7 +17,7 @@ from backend.src.domain.entities.market.refined_intelligence import RefinedMarke
 from backend.src.domain.entities.product.initial_description import InitialDescription
 from backend.src.domain.exceptions.backlog.backlog_generation_exception import BacklogGenerationException
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_cleaner import IBacklogCleaner
+from backend.src.domain.ports.services.backlog_generation.agents.i_epic_cleaner import IEpicCleaner
 from backend.src.domain.ports.services.backlog_generation.agents.i_backlog_generation_orchestrator import \
     IBacklogGenerationOrchestrator
 from backend.src.domain.ports.services.backlog_generation.agents.i_epic_generator import IEpicGenerator
@@ -45,7 +45,7 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
         epic_generator (IEpicGenerator): Agent responsible for epic generation.
         user_story_generator (IUserStoryGenerator): Agent responsible for user story generation.
         task_generator (ITaskGenerator): Agent responsible for task generation.
-        backlog_cleaner (IBacklogCleaner): Agent responsible for backlog validation and cleaning.
+        epic_cleaner (IEpicCleaner): Agent responsible for backlog validation and cleaning.
     """
 
     def __init__(
@@ -53,7 +53,7 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
         epic_generator: IEpicGenerator,
         user_story_generator: IUserStoryGenerator,
         task_generator: ITaskGenerator,
-        backlog_cleaner: IBacklogCleaner
+        epic_cleaner: IEpicCleaner
     ):
         """
         Initialize the backlog generation orchestrator.
@@ -62,12 +62,12 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
             epic_generator (IEpicGenerator): Epic generation agent.
             user_story_generator (IUserStoryGenerator): User story generator agent.
             task_generator (ITaskGenerator): Task generator agent.
-            backlog_cleaner (IBacklogCleaner): Backlog cleaner agent.
+            epic_cleaner (IEpicCleaner): Backlog cleaner agent.
         """
         self.epic_generator = epic_generator
         self.user_story_generator = user_story_generator
         self.task_generator = task_generator
-        self.backlog_cleaner = backlog_cleaner
+        self.epic_cleaner = epic_cleaner
 
     async def generate(
             self,
@@ -131,12 +131,9 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
                 len(valid),
                 len(epics)
             )
-
-            cleaned_backlog = self.backlog_cleaner.clean_backlog(BacklogStructure(epics=valid))
-
             logger.info("Backlog generation completed successfully.")
 
-            return cleaned_backlog
+            return BacklogStructure(epics=valid)
         except BacklogGenerationException:
             raise
         except AppException:
@@ -176,10 +173,12 @@ class BacklogGenerationOrchestratorAgent(IBacklogGenerationOrchestrator):
             self.task_generator.generate_tasks_by_user_story(us, detailed_description, context)
             for us in user_stories_response.user_stories
         ]
-        return EpicBacklog(
+        epic_backlog = EpicBacklog(
             epic=epic,
             user_stories=[
                 UserStoryWithTasks(user_story=us, tasks=tr.tasks)
                 for us, tr in zip(user_stories_response.user_stories, tasks_results)
             ]
         )
+        cleaned = self.epic_cleaner.clean_epic(epic=epic_backlog)
+        return cleaned if cleaned else epic_backlog

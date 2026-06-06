@@ -21,17 +21,17 @@ class ITaskGeneratorFromBacklog(ABC):
     """
 
     @abstractmethod
-    def generate_tasks(
+    async def generate_tasks(
         self,
         backlog: Sprint,
-        locations_statuses: Dict[str, Dict[str, List[str]]]
+        locations_priorities: Dict[str, Dict[str, List[str]]]
     ) -> List[GeneratedTaskFromBacklog]:
         """
         Generate tasks from a backlog structure.
 
         Args:
             backlog: sprint backlog content.
-            locations_statuses: Mapping of locations to their available statuses and priorities.
+            locations_priorities: Mapping of locations to their available priorities.
 
         Returns:
             List of GeneratedTaskFromBacklog: Generated task objects.

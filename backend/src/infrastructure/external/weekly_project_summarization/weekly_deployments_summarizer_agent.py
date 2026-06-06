@@ -8,7 +8,6 @@ release activity, and delivery outcomes during the week.
 """
 
 import logging
-import json
 from typing import List
 
 from backend.src.domain.entities.github.deployment import DeploymentDTO
@@ -45,7 +44,7 @@ class WeeklyDeploymentsSummarizerAgent(BaseAgent[WeeklySummaryNarrative], IWeekl
         """
         super().__init__(prompt_loader=prompt_loader)
 
-    def summarize_deployments(self, deployments: List[DeploymentDTO],) -> str:
+    def summarize_deployments(self, deployments: List[DeploymentDTO]) -> str:
         """
         Generate a narrative summary of weekly deployments using an LLM.
 
@@ -74,24 +73,33 @@ class WeeklyDeploymentsSummarizerAgent(BaseAgent[WeeklySummaryNarrative], IWeekl
         """
         logger.info("Summarize weekly deployments process.")
 
+        if not deployments:
+            return "No deployments were recorded this week."
+
+        sorted_deployments = sorted(deployments, key=lambda d: d.created_at, reverse=True)
+
         result: WeeklySummaryNarrative = self._call_llm(
             agent_name="WeeklyDeploymentsSummarizerAgent",
             folder_name="weekly_project_summarization",
             prompt_name="weekly_deployments_summarizer_agent",
             variables={
-                "deployments": json.dumps(
-                    [d.model_dump() for d in deployments],
-                    ensure_ascii=False,
-                    default=str,
-                    indent=2
-                )
+                "deployments": [{
+                        "environment": d.environment,
+                        "ref": d.ref,
+                        "creator": d.creator,
+                        "created_at": d.created_at.isoformat(),
+                        "state": d.state,
+                    }
+                    for d in sorted_deployments
+                ],
+                "total_count": len(sorted_deployments)
             },
             response_format=WeeklySummaryNarrative,
         )
 
         if not result or not result.summary:
             logger.warning("No summary result returned.")
-            return ""
+            return "No deployments were recorded this week."
 
         logger.info("Weekly deployments summary completed.")
 

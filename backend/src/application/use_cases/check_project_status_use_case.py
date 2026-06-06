@@ -23,7 +23,7 @@ import logging
 import datetime
 from typing import List, Optional
 
-from backend.src.application.use_cases.shared.clickup_task_context_fetcher import fetch_task_context
+from backend.src.application.use_cases.shared.clickup_task_context import fetch_task_context
 from backend.src.domain.entities.checked_project_status.overdue_todo_task import OverdueTodoTask
 from backend.src.domain.entities.checked_project_status.project_status_summary import ProjectStatusSummary, TaskSummary, \
     ProjectStatusCode
@@ -64,6 +64,7 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
     """
 
     _OVERDUE_DAYS = 14
+    _MAX_COMMITS = 100
 
     def __init__(
         self,
@@ -198,11 +199,7 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
 
         stale_tasks = []
         if in_progress_tasks and last_7_days_commits:
-            inspected =self._stale_task_inspector.inspect_stale_tasks(in_progress_tasks, last_7_days_commits)
-            stale_tasks = [
-                task for task in inspected
-                if task.is_blocked or (not task.is_blocked and task.confidence == "low")
-            ]
+            stale_tasks = await self._stale_task_inspector.inspect_stale_tasks(in_progress_tasks, last_7_days_commits[:CheckProjectStatusUseCase._MAX_COMMITS])
 
         recently_done_tasks: List[ClickUpTask] = []
         if done_tasks:
@@ -210,11 +207,7 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
 
         unverified_done_tasks = []
         if recently_done_tasks and last_7_days_commits:
-            inspected = self._unverified_done_task_inspector.verify_done_tasks(recently_done_tasks, last_7_days_commits)
-            unverified_done_tasks = [
-                task for task in inspected
-                if not task.has_commit or (task.has_commit and task.confidence == "low")
-            ]
+            unverified_done_tasks = self._unverified_done_task_inspector.verify_done_tasks(recently_done_tasks, last_7_days_commits)
 
         if not tasks:
             status=ProjectStatusCode.CLICKUP_EMPTY

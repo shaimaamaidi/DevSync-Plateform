@@ -12,7 +12,6 @@ from typing import List
 from backend.src.domain.entities.checked_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
-from backend.src.domain.entities.github.deployment import DeploymentDTO
 
 
 class ITaskStatusSynthesizer(ABC):
@@ -28,7 +27,6 @@ class ITaskStatusSynthesizer(ABC):
     def synthesize_task_status(
         self,
         task: ClickUpTask,
-        deployments: List[DeploymentDTO],
         commits: List[CommitDTO],
         signals: dict
     ) -> SynthesizedTaskStatusResult:
@@ -50,7 +48,6 @@ class ITaskStatusSynthesizer(ABC):
 
         Args:
             task: ClickUp task to analyze.
-            deployments: List of GitHub deployments related to the task repository.
             commits: List of GitHub commits related to the task repository.
             signals: Derived workflow and activity signals generated from
                 task lifecycle and GitHub context.

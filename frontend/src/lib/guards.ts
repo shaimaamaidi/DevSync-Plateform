@@ -1,4 +1,4 @@
-import type { RefinedMarketIntelligence, BacklogPayload } from "@/types/backlog";
+import type { RefinedMarketIntelligence, BacklogPayload, ClarificationNeeded, ConflictsDetected } from "@/types/backlog";
 
 
 export function isRefinedMarketIntelligence(v: unknown): v is RefinedMarketIntelligence {
@@ -27,4 +27,23 @@ export function extractBacklogPayload(v: unknown): BacklogPayload | null {
 
 export function isSprintPlanning(v: unknown): v is { sprints: unknown[] } {
   return Boolean(v && typeof v === "object" && Array.isArray((v as any).sprints));
+}
+
+export function isClarificationNeeded(json: unknown): json is ClarificationNeeded {
+  return (
+    typeof json === "object" &&
+    json !== null &&
+    (json as any).status === "clarification_needed" &&
+    typeof (json as any).question === "string"
+  );
+}
+
+export function isConflictsDetected(json: unknown): json is ConflictsDetected {
+  return (
+    typeof json === "object" &&
+    json !== null &&
+    (json as any).status === "conflicts_detected" &&
+    Array.isArray((json as any).conflicts) &&
+    typeof (json as any).question === "string"
+  );
 }

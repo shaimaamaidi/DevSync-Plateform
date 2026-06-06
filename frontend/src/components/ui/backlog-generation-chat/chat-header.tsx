@@ -2,22 +2,29 @@ import { RotateCcw, FlaskConical } from "lucide-react";
 import logo from '@/assets/rido-logo.jpeg';
 
 interface ChatHeaderProps {
-  step: "idle" | "market_review" | "backlog_edit" | "finalizing" | "done";
+  step: "idle" | "clarifying" | "market_review" | "backlog_edit" | "finalizing" | "done";
+  clarifyingMode?: "clarification" | "conflicts"; 
   onReset: () => void;
 }
 
-const STEP_LABELS = {
+const STEP_LABELS: Record<string, string> = {
   idle: "",
+  clarifying_clarification: "Clarification",
+  clarifying_conflicts: "Conflicts",
   market_review: "Market Review",
   backlog_edit: "Editing Backlog",
   finalizing: "Finalizing…",
   done: "Complete",
 };
 
-export function ChatHeader({ step, onReset }: ChatHeaderProps) {
+export function ChatHeader({ step, clarifyingMode, onReset }: ChatHeaderProps) {
+  const labelKey =
+    step === "clarifying" && clarifyingMode
+      ? `clarifying_${clarifyingMode}`
+      : step;
+
   return (
     <div className="flex items-center justify-between px-3 sm:px-5 py-3 border-b border-slate-100 bg-white shrink-0 gap-2">
-
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <img
           src={logo}
@@ -38,10 +45,10 @@ export function ChatHeader({ step, onReset }: ChatHeaderProps) {
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        {step !== "idle" && (
+        {step !== "idle" && STEP_LABELS[labelKey] && (
           <div className="flex items-center gap-1 px-2 sm:px-3 py-[5px] rounded-full border border-slate-200 bg-slate-50 text-[10px] sm:text-[11px] text-slate-500 font-medium">
             <FlaskConical size={11} strokeWidth={2} />
-            <span className="hidden xs:inline">{STEP_LABELS[step]}</span>
+            <span className="hidden xs:inline">{STEP_LABELS[labelKey]}</span>
           </div>
         )}
 

@@ -2,11 +2,11 @@
 Domain DTOs for task representation.
 
 This module defines Data Transfer Objects (DTOs) for managing tasks within the backlog system.
-A task represents a small, actionable unit derived from a user story, and can be grouped into
-a list associated with a specific user story.
+A task represents a fine-grained, actionable unit derived from a user story and used for sprint planning
+and execution.
 
 Main classes:
-    Task, TaskList
+    Task, IdentifiedTask, TaskList
 """
 
 from pydantic import BaseModel
@@ -24,6 +24,22 @@ class Task(BaseModel):
         title: Title of the task.
         description: Detailed description of the task.
     """
+    title: str
+    description: str
+
+class IdentifiedTask(BaseModel):
+    """
+    Task enriched with a unique identifier.
+
+    This DTO is used when tasks need to be tracked, estimated, or referenced
+    during sprint planning and execution.
+
+    Attributes:
+        id: Unique identifier of the task.
+        title: Short title of the task.
+        description: Detailed explanation of the task.
+    """
+    id: str
     title: str
     description: str
 

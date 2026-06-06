@@ -1,3 +1,14 @@
+export interface ClarificationNeeded {
+  status: "clarification_needed";
+  missing_dimension: string;
+  question: string;
+}
+
+export interface ConflictsDetected {
+  status: "conflicts_detected";
+  conflicts: string[];
+  question: string;
+}
 export interface RefinedMarketIntelligence {
   refined_market_trends: string;
   refined_competitor_features: string[];
@@ -83,7 +94,7 @@ export interface ChatMessage {
 }
 
 export interface ChatAttachment {
-  type: "market" | "submitted" | "backlog" | "sprint" | "clickup_prompt";
+  type: "market" | "submitted" | "backlog" | "sprint" | "clickup_management" | "clarification" | "conflicts";
   data?: MarketSummary | UiEpic[] | UiSprint[] | any | undefined;
   editable?: boolean;
   mode?: "validation" | "backlog_generation" | "backlog_refinement" | "backlog_finishing";

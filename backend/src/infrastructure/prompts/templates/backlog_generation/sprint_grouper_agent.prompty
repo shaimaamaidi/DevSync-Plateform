@@ -1,7 +1,18 @@
 ---
-name: sprint_generator_agent
+name: SprintGrouperAgent
 description: Groups user stories into balanced sprints and performs strict validation of planning correctness.
-version: 7.0.0
+authors:
+  - Amaidi Chaima
+model:
+  api: chat
+  configuration:
+    type: azure_openai
+tags:
+  - agent
+  - backlog
+  - planning
+  - sprint
+version: 2.0.0
 ---
 
 system: |
@@ -95,10 +106,10 @@ system: |
   - 0 = very poor distribution
 
 user: |
-  Here are the epics and user stories:
+  # Here are the epics and user stories:
   {{stories_summary}}
 
-  REMINDER:
+  # REMINDER:
   - Respect all constraints strictly
   - Perform full validation before output
   - Fix issues before final answer

@@ -77,7 +77,7 @@ class MarketIntelligenceSummarizerAgent(BaseAgent[MarketIntelligenceSummary], IM
                 "business_goals": "\n".join(f"- {g}" for g in detailed_description.business_goals),
                 "constraints": "\n".join(f"- {c}" for c in detailed_description.constraints),
                 "summary": detailed_description.summary,
-                "web_result": web_result if web_result else "None",
+                "web_result": web_result if web_result else "No web search results provided.",
             },
             response_format=MarketIntelligenceSummary,
         )

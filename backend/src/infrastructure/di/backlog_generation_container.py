@@ -24,12 +24,14 @@ from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.infrastructure.di.bas_ai_container import BaseAIContainer
 
 from backend.src.infrastructure.external.backlog_generation.agents.epic_generator_agent import EpicGeneratorAgent
+from backend.src.infrastructure.external.backlog_generation.agents.sprint_grouper_agent import SprintGrouperAgent
+from backend.src.infrastructure.external.backlog_generation.agents.task_estimator_agent import TaskEstimatorAgent
 from backend.src.infrastructure.external.backlog_generation.agents.user_story_generator_agent import UserStoryGeneratorAgent
 from backend.src.infrastructure.external.backlog_generation.agents.task_generator_agent import TaskGeneratorAgent
-from backend.src.infrastructure.external.backlog_generation.agents.backlog_cleaner_agent import BacklogCleanerAgent
+from backend.src.infrastructure.external.backlog_generation.agents.epic_cleaner_agent import EpicCleanerAgent
 from backend.src.infrastructure.external.backlog_generation.agents.backlog_generation_orchestrator_agent import BacklogGenerationOrchestratorAgent
 from backend.src.infrastructure.external.backlog_generation.agents.backlog_prioritizer_agent import BacklogPrioritizerAgent
-from backend.src.infrastructure.external.backlog_generation.agents.sprint_planner_agent import SprintPlannerAgent
+from backend.src.infrastructure.external.backlog_generation.agents.sprint_planner_orchestrator import SprintPlannerOrchestrator
 from backend.src.infrastructure.external.backlog_generation.agents.product_context_builder_agent import ProductContextBuilderAgent
 from backend.src.infrastructure.external.backlog_generation.agents.market_intelligence_summarizer_agent import MarketIntelligenceSummarizerAgent
 from backend.src.infrastructure.external.backlog_generation.agents.market_intelligence_validator_agent import MarketIntelligenceValidatorAgent
@@ -77,9 +79,10 @@ class BacklogGenerationContainer(BaseAIContainer):
         epic_generator_agent (EpicGeneratorAgent)
         user_story_generator_agent (UserStoryGeneratorAgent)
         task_generator_agent (TaskGeneratorAgent)
-        backlog_cleaner_agent (BacklogCleanerAgent)
+        epic_cleaner_agent (EpicCleanerAgent)
         backlog_prioritizer_agent (BacklogPrioritizerAgent)
-        sprint_planner_agent (SprintPlannerAgent)
+        task_estimator_agent (TaskEstimatorAgent)
+        sprint_grouper_agent (SprintGrouperAgent)
 
         product_context_builder_agent (ProductContextBuilderAgent)
         market_intelligence_summarizer_agent (MarketIntelligenceSummarizerAgent)
@@ -88,6 +91,7 @@ class BacklogGenerationContainer(BaseAIContainer):
         user_backlog_fixer_agent (UserBacklogFixerAgent)
         web_search_agent (WebSearchAgent)
 
+        sprint_planner_orchestrator_agent (SprintPlannerOrchestrator)
         backlog_generation_orchestrator_agent (BacklogGenerationOrchestratorAgent):
             Orchestrates epic → story → task generation pipeline.
 
@@ -155,9 +159,10 @@ class BacklogGenerationContainer(BaseAIContainer):
         self.epic_generator_agent = EpicGeneratorAgent(self.prompt_loader)
         self.user_story_generator_agent = UserStoryGeneratorAgent(self.prompt_loader)
         self.task_generator_agent = TaskGeneratorAgent(self.prompt_loader)
-        self.backlog_cleaner_agent = BacklogCleanerAgent(self.prompt_loader)
+        self.epic_cleaner_agent = EpicCleanerAgent(self.prompt_loader)
         self.backlog_prioritizer_agent = BacklogPrioritizerAgent(self.prompt_loader)
-        self.sprint_planner_agent = SprintPlannerAgent(self.prompt_loader)
+        self.task_estimator_agent = TaskEstimatorAgent(self.prompt_loader)
+        self.sprint_grouper_agent = SprintGrouperAgent(self.prompt_loader)
         self.product_context_builder_agent = ProductContextBuilderAgent(self.prompt_loader)
         self.market_intelligence_summarizer_agent = MarketIntelligenceSummarizerAgent(self.prompt_loader)
         self.market_intelligence_validator_agent = MarketIntelligenceValidatorAgent(self.prompt_loader)
@@ -165,11 +170,15 @@ class BacklogGenerationContainer(BaseAIContainer):
         self.user_backlog_fixer_agent = UserBacklogFixerAgent(self.prompt_loader)
         self.web_search_agent = WebSearchAgent()
 
+        self.sprint_planner_orchestrator_agent = SprintPlannerOrchestrator(
+            self.task_estimator_agent,
+            self.sprint_grouper_agent,
+        )
         self.backlog_generation_orchestrator_agent = BacklogGenerationOrchestratorAgent(
             epic_generator=self.epic_generator_agent,
             user_story_generator=self.user_story_generator_agent,
             task_generator=self.task_generator_agent,
-            backlog_cleaner=self.backlog_cleaner_agent,
+            epic_cleaner=self.epic_cleaner_agent,
         )
 
     # Backlog generation — Tools
@@ -197,7 +206,7 @@ class BacklogGenerationContainer(BaseAIContainer):
         self.user_backlog_fixer_tool = UserBacklogFixerTool(self.user_backlog_fixer_agent)
         self.delivery_planning_tool  = DeliveryPlannerTool(
             backlog_prioritizer=self.backlog_prioritizer_agent,
-            sprint_planner=self.sprint_planner_agent,
+            sprint_planner=self.sprint_planner_orchestrator_agent,
         )
 
     async def initialize_backlog_workflow_orchestrator(self):

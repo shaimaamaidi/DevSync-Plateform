@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { ChatMessage, MarketSummary, UiEpic, BacklogPayload } from "@/types/backlog";
 import { readSseStream } from "@/utils/stream-parser";
-import { extractBacklogPayload, isRefinedMarketIntelligence, isSprintPlanning } from "@/lib/guards";
+import { extractBacklogPayload, isClarificationNeeded, isConflictsDetected, isRefinedMarketIntelligence, isSprintPlanning } from "@/lib/guards";
 import {
   areBacklogsEqual,
   areMarketSummariesEqual,
@@ -16,7 +16,7 @@ import { backlogGenerationService } from "@/services/backlog-generation-service"
 import { emitAxiosError, onAxiosError, type AxiosErrorEvent } from "@/api/axios-interceptor";
 import type { ErrorAction } from "@/types/api-error-type";
 
-type Step = "idle" | "market_review" | "backlog_edit" | "finalizing" | "done";
+type Step = "idle" | "clarifying" | "market_review" | "backlog_edit" | "finalizing" | "done";
 
 type StreamFailed = { readonly __streamFailed: true; action: ErrorAction };
 
@@ -49,6 +49,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
   const lastSubmittedMarketRef = useRef<MarketSummary | null>(null);
   const streamingMsgIdRef = useRef<number | null>(null);
   const [currentToolName, setCurrentToolName] = useState<string | null>(null);
+  const [clarifyingMode, setClarifyingMode] = useState<"clarification" | "conflicts">("clarification");
 
   const addMsg = useCallback((msg: Omit<ChatMessage, "id" | "ts">) => {
     const id = Date.now() + Math.random();
@@ -68,6 +69,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     setLoading(false);
     setStep("idle");
     setStreamingText("");
+    setClarifyingMode("clarification");
     streamingMsgIdRef.current = null;
     threadIdRef.current = null;
     lastRefinedMarketRef.current = null;
@@ -131,7 +133,34 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       }
 
       const { threadId, text: agentText, json, invalidDescription  } = result;
-      
+      if (isClarificationNeeded(json)) {
+        threadIdRef.current = threadId;
+        setStep("clarifying");
+        setClarifyingMode("clarification");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: agentText || json.question,
+          attachment: {
+            type: "clarification",
+            data: { question: json.question, missing_dimension: json.missing_dimension },
+          },
+        });
+        return;
+      }
+      if (isConflictsDetected(json)) {
+        threadIdRef.current = threadId;
+        setStep("clarifying");
+        setClarifyingMode("conflicts");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: json.question,
+          attachment: {
+            type: "conflicts",
+            data: { conflicts: json.conflicts, question: json.question },
+          },
+        });
+        return;
+      }
       if (invalidDescription) {
         updateMsg(agentMsgId, {
           _streaming: false,
@@ -350,7 +379,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
           addMsg({
             role: "agent",
             content: "",
-            attachment: { type: "clickup_prompt", data: sprintData },
+            attachment: { type: "clickup_management", data: sprintData },
           });
         } else {
           onNavigate?.("/backlog", { state: { epics: backlogToUi(lastBacklogPayloadRef.current!) } });
@@ -382,6 +411,17 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     }
   };
 
+  const handleClarificationReply = async (clarificationText: string, isRetry = false) => {
+    if (!clarificationText.trim() || loading) return;
+
+    if (!isRetry) {
+      addMsg({ role: "user", content: clarificationText });
+    }
+
+    setStep("idle");
+    await handleSend(clarificationText, false);
+  };
+
   const handleClickUpYes = (sprintData: any) => {
     localStorage.setItem('sprint_backlog', JSON.stringify(sprintData));
     onNavigate?.('/backlog-tasks');
@@ -400,6 +440,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     setInput,
     loading,
     step,
+    clarifyingMode,
     streamingText,
     addMsg,
     updateMsg,
@@ -407,6 +448,7 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
     handleSend,
     handleMarketSubmit,
     handleBacklogSubmit,
+    handleClarificationReply,
     handleClickUpYes,
     handleClickUpNo,
     currentToolName
