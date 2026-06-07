@@ -7,18 +7,13 @@ Classes:
     MemberModel: SQLAlchemy ORM model for members.
 """
 
-import enum
-
 from sqlalchemy import Column, Integer, String, Enum as SAEnum
 from sqlalchemy.orm import relationship
 
+from backend.src.domain.entities.member import MemberRole
 from backend.src.infrastructure.persistence.base import BaseModel
 from backend.src.infrastructure.persistence.models.member_repo_association import member_repo_association
 
-
-class MemberRole(str, enum.Enum):
-    ADMIN = "admin"
-    MEMBER = "member"
 
 class MemberModel(BaseModel):
     """

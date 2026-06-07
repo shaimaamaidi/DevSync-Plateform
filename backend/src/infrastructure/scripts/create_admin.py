@@ -10,8 +10,7 @@ import logging
 from backend.src.infrastructure.logging.logger_config import setup_logger
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.di.persistence_container import PersistenceContainer
-from backend.src.domain.entities.member import MemberCreateDTO
-
+from backend.src.domain.entities.member import MemberCreateDTO, MemberRole
 
 setup_logger()
 logger = logging.getLogger(__name__)
@@ -37,7 +36,7 @@ def create_admin():
             username="admin",
             arabic_name="شيماء",
             mail="admin@gmail.com",
-            #role=MemberRole.ADMIN
+            role=MemberRole.ADMIN,
             password="admin",
         )
 
