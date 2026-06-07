@@ -10,7 +10,7 @@ export function useClickUpSpacesLight() {
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError, refetch } = useQuery<ClickUpSpaceLightDTO[]>({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery<ClickUpSpaceLightDTO[]>({
     queryKey: ['clickup-spaces-light'],
     retry: false,
     queryFn: async () => {
@@ -31,6 +31,7 @@ export function useClickUpSpacesLight() {
   return {
     spaces: data ?? [],
     loading: isLoading,
+    isFetching,
     error: isError ? 'Unable to load click up spaces' : null,
     refetch,
   };

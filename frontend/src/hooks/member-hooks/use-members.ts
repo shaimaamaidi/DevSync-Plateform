@@ -10,7 +10,7 @@ export function useMembers() {
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { data, isLoading, isError, refetch } = useQuery<MemberDTO[]>({
+  const { data, isLoading, isFetching, isError, refetch } = useQuery<MemberDTO[]>({
     queryKey: ['members'],
     queryFn: async () => {
       try {
@@ -30,6 +30,7 @@ export function useMembers() {
   return {
     members: data ?? [],
     loading: isLoading,
+    isFetching,
     error: isError ? 'Unable to load members.' : null,
     refetch
   };

@@ -124,6 +124,15 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       );
 
       if (isStreamFailed(result)) {
+        const isNetworkDown = result.action === "NETWORK_DOWN";
+        if(isNetworkDown){
+          updateMsg(agentMsgId, {
+            _streaming: false,
+            content: "Connection lost. Please check your internet connection and try again." 
+          });
+          setStep("done");
+          return;
+        }
         updateMsg(agentMsgId, {
           _streaming: false,
           content: "The request didn't go through. You can try again.",
@@ -252,6 +261,15 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       );
 
       if (isStreamFailed(result)) {
+        const isNetworkDown = result.action === "NETWORK_DOWN";
+        if(isNetworkDown){
+          updateMsg(agentMsgId, {
+            _streaming: false,
+            content: "Connection lost. Please check your internet connection and try again." 
+          });
+          setStep("done");
+          return;
+        }
         setStep("market_review");
         updateMsg(agentMsgId, {
           _streaming: false,
@@ -353,6 +371,15 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       );
 
       if (isStreamFailed(result)) {
+        const isNetworkDown = result.action === "NETWORK_DOWN";
+        if(isNetworkDown){
+          updateMsg(agentMsgId, {
+            _streaming: false,
+            content: "Connection lost. Please check your internet connection and try again." 
+          });
+          setStep("done");
+          return;
+        }
         setStep("backlog_edit");
         updateMsg(agentMsgId, {
           _streaming: false,

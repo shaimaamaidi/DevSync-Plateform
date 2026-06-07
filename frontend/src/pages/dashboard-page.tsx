@@ -54,7 +54,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
-  const { repos, loading: reposLoading, error: errorRepos, refetch: refetchRepos } = useRepos();
+  const { repos, loading: reposLoading, isFetching: isFetchingRepos, error: errorRepos, refetch: refetchRepos } = useRepos();
   const { mutateAsync: updateRepo } = useUpdateRepo();
   const { mutateAsync: deleteRepo } = useDeleteRepo();
   const { mutateAsync: addRepo } = useAddRepo();
@@ -63,14 +63,14 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
   const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
   const [lastRepoUrl, setLastRepoUrl] = useState<string>('');
 
-  const { spaces: clickUpSpaces, loading: clickupLoading, error: clickupError, refetch: refreshClickUpData } = useClickUpSpacesLight();
+  const { spaces: clickUpSpaces, loading: clickupLoading, isFetching: isFetchingClickUpSpaces, error: clickupError, refetch: refreshClickUpData } = useClickUpSpacesLight();
   const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
   const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
   const { mutateAsync: removeClickUpSpace } = useRemoveClickUpSpace();
   const { mutateAsync: createClickUpSpace } = useCreateClickUpSpace();
   const { mutateAsync: registerClickUpSpace } = useRegisterClickUpSpace();
 
-  const { members, loading: membersLoading, error: errorMembers, refetch: refetchMembers } = useMembers();
+  const { members, loading: membersLoading, isFetching: isFetchingMembers, error: errorMembers, refetch: refetchMembers } = useMembers();
   const { mutateAsync: updateMember } = useUpdateMember();
   const { mutateAsync: deleteMember } = useDeleteMember();
   const { mutateAsync: addMember } = useAddMember();
@@ -270,7 +270,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             onUpdate={handleUpdateRepo}
             onDelete={handleDeleteRepo}
             onAdd={handleAddRepo}
-            isLoading={reposLoading || clickupLoading || membersLoading}
+            isLoading={reposLoading || isFetchingRepos || clickupLoading || isFetchingClickUpSpaces || membersLoading || isFetchingMembers}
             onAssociate={handleAssociateClickUpSpace}
             error={errorRepos}
             refreshRepos={refetchRepos}
@@ -284,7 +284,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             deployments={deployments}
             repos={repos}
             onLoadDeployments={handleLoadDeployments}
-            isLoading={reposLoading || isLoadingDeployments}
+            isLoading={reposLoading || isFetchingRepos || isLoadingDeployments}
             error={deploymentsError}                            
             onRetry={() => lastRepoUrl && handleLoadDeployments(lastRepoUrl)}
           />
@@ -300,7 +300,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             onAdd={handleAddMember}
             onInviteToClickUp={handleInviteMmeberToClickUp}
             onRemoveFromClickUp={handleRemoveMemberFromClickUp}
-            isLoading={membersLoading} 
+            isLoading={membersLoading || isFetchingMembers} 
             error={errorMembers}
             refetchMembers={refetchMembers}
           />
@@ -316,7 +316,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             onRemove={handleRemoveClickUpSpace}
             onCreate={handleCreateClickUpSpace}
             onRegister={handleRegisterClickUpSpace}
-            isLoading={clickupLoading} 
+            isLoading={clickupLoading || isFetchingClickUpSpaces || reposLoading || isFetchingRepos } 
             showNotFoundDialog={showNotFoundDialog}
             onNotFoundDialogChange={setShowNotFoundDialog}
             showNameMismatchDialog={showNameMismatchDialog}

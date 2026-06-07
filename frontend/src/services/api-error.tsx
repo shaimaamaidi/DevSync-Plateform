@@ -107,7 +107,7 @@ export const defaultOnError =
     if (action === "NETWORK_DOWN") {
       deduplicatedError("network_down", () => {
         toast.error(LOGOUT_MESSAGES["network_down"], {
-          autoClose: false,
+          autoClose: 4000,
           closeOnClick: true,
           toastId: "network_down",
         });
@@ -123,7 +123,7 @@ export const defaultOnError =
         const toastMsg = getLogoutMessage(meta?.code);
 
         toast.error(toastMsg, {
-          autoClose: false,
+          autoClose: 4000,
           closeOnClick: false,
           draggable: false,
           toastId: "session_error",
@@ -146,7 +146,7 @@ export const defaultOnError =
         toast.error(
           toastMsg,
           {
-            autoClose: false,      
+            autoClose: 4000,      
             closeOnClick: false,  
             draggable: false,
             toastId: "server_down", 
