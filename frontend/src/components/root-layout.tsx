@@ -1,9 +1,12 @@
 import { Navigation } from '@/components/navigation';
 import { AppFooter } from '@/components/app-footer';
 import { Outlet } from 'react-router-dom';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 
 export function RootLayout() {
+  useCurrentUser();
+  
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navigation />

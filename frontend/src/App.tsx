@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
-import { RequireAuth } from './components/RequireAuth';
+import { RequireAuth } from './components/require-auth';
 import { AxiosErrorBoundary } from './components/axios-error-boundary';
 import { GlobalToaster } from './components/global-toaster';
 import { RootLayout } from './components/root-layout';
@@ -11,7 +11,8 @@ import BacklogGenerationChatPage from './pages/backlog-generation-chat-page';
 import MeetingTaskGenerationPage from './pages/meeting-task-generation-page';
 import BacklogTaskGenerationPage from './pages/backlog-task-generation-page';
 import ProjectInsightsPage from './pages/project-insights-page';
-import LoginPage from './pages/Login-page';
+import LoginPage from './pages/login-page';
+import { RequireAdminRoute } from './components/require-admin-route';
 
 export default function App() {
   return (
@@ -24,7 +25,11 @@ export default function App() {
             <Route path="/" element={<Navigate to="/repositories" replace />} />
             <Route path="/repositories" element={<Dashboard activeTab="repos" />} />
             <Route path="/deployments" element={<Dashboard activeTab="deployments" />} />
-            <Route path="/members" element={<Dashboard activeTab="members" />} />
+            <Route path="/members" element={
+              <RequireAdminRoute>
+                <Dashboard activeTab="members" />
+              </RequireAdminRoute>
+            } />
             <Route path="/spaces" element={<Dashboard activeTab="spaces" />} />
             <Route path="/spaces/:spaceId/tasks" element={<Dashboard activeTab="space-tasks" />} />
             <Route path="/backlog-generation-chat" element={<BacklogGenerationChatPage />} />

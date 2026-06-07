@@ -37,6 +37,7 @@ import { SpaceTasksViewer } from '@/components/space-tasks-viewer';
 import { useRemoveClickUpSpace } from '@/hooks/clickup-space-hooks/use-remove-clickup-sapce';
 import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
 import { useClickUpSpacesLight } from '@/hooks/clickup-space-hooks/use-clickup-sapce-light';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 
 type WorkspaceSection = 'repos' | 'deployments' | 'members' | 'spaces' | 'space-tasks' | 'backlog-generation';
@@ -45,6 +46,9 @@ interface WorkspaceDashboardPageProps {
 }
 
 export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboardPageProps) {
+  const { user: currentUser, loading: userLoading } = useCurrentUser();
+  const isAdmin = !userLoading && currentUser?.role === 'admin';
+
   const [isLoadingDeployments, setIsLoadingDeployments] = useState(false);
 
   const navigate = useNavigate();
@@ -252,7 +256,9 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
         deployments={deployments} 
         members={members} 
         isLoading={reposLoading || membersLoading || isLoadingDeployments}
-        />
+        userLoading={userLoading}
+        isAdmin={isAdmin}
+      />
 
       <div className="my-8 border-t border-border" />
 
@@ -286,7 +292,7 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
         </div>
       )}
 
-      {activeTab === 'members' && (
+      {activeTab === 'members' && isAdmin && (
         <div className="animate-in fade-in duration-300">
           <MembersTable
             members={members}

@@ -8,6 +8,8 @@ interface DashboardStatsProps {
   deployments: DeploymentDTO[];
   members: MemberDTO[];
   isLoading?: boolean;
+  userLoading?: boolean;
+  isAdmin?: boolean; 
 }
 
 const statConfigs = [
@@ -17,7 +19,7 @@ const statConfigs = [
   { icon: CheckCircle, iconBg: 'bg-green-500/10', iconColor: 'text-green-600' },
 ];
 
-export function DashboardStats({ repos, deployments, members, isLoading }: DashboardStatsProps) {
+export function DashboardStats({ repos, deployments, members, isLoading, userLoading, isAdmin }: DashboardStatsProps) {
   const totalMembers = members.length;
   const uniqueClickUpSpaces = new Set(
     repos
@@ -26,15 +28,20 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
   ).size;
   const successfulDeployments = deployments.filter((d) => d.state === 'success').length;
 
+  if (userLoading) 
+    return (
+      <div className="w-full h-36 rounded-xl border border-border bg-card animate-pulse" />
+    );
+    
   return (
     isLoading ? (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
         {statConfigs.map((config, i) => (
-          <StatCardSkeleton key={i} {...config} />
+           i === 1 && !isAdmin ? null : <StatCardSkeleton key={i} {...config} />
         ))}
       </div>
     ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 md:grid-cols-2 ${isAdmin ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
         <Card className="p-6 border-border hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <div className="flex flex-col justify-between min-h-[88px]">
@@ -48,18 +55,20 @@ export function DashboardStats({ repos, deployments, members, isLoading }: Dashb
           </div>
         </Card>
 
-        <Card className="p-6 border-border hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col justify-between min-h-[88px]">
-              <p className="text-sm text-muted-foreground font-medium">Team Members</p>
-              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{totalMembers}</p>
-              <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
+        {isAdmin && (
+          <Card className="p-6 border-border hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col justify-between min-h-[88px]">
+                <p className="text-sm text-muted-foreground font-medium">Team Members</p>
+                <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2">{totalMembers}</p>
+                <p className="text-xs text-muted-foreground mt-2 invisible">-</p>
+              </div>
+              <div className="p-3 bg-blue-500/10 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
             </div>
-            <div className="p-3 bg-blue-500/10 rounded-lg">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </Card>
+          </Card>
+        )}
 
         <Card className="p-6 border-border hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">

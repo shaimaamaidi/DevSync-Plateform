@@ -7,6 +7,16 @@ import type {
 } from '@/api/api';
 
 export const memberService = {
+  mapToMemberDTO(member: MemberWithReposDTO): MemberDTO {
+    return {
+      id: member.id,
+      username: member.username,
+      arabic_name: member.arabic_name,
+      mail: member.mail,
+      role: member.role,
+    } as MemberDTO;
+  },
+
   async getAllWithRepos(): Promise<MemberWithReposDTO[]> {
     const response = await memberApi.getAllWithReposMemberAllWithReposGet();
     return response.data ?? [];

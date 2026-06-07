@@ -17,6 +17,7 @@ import {
 import { authService } from '@/services/auth-service';
 import { useIsMobile } from '@/hooks/use-mobile';
 import logo from '@/assets/rido-logo.jpeg';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 type HomeTab = 'repos' | 'deployments' | 'members' | 'spaces' | 'backlog-generation' | 'meeting-tasks' | 'project-insights';
 
@@ -36,10 +37,15 @@ const NAV_ITEMS = [
 ];
 
 export function Navigation({ onTabChange }: NavigationProps) {
+  const { user: currentUser, loading } = useCurrentUser();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isMobile = useIsMobile();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const visibleNavItems = NAV_ITEMS.filter(({ tab }) =>
+    tab === 'members' ? currentUser?.role === 'admin' : true
+  );
 
   const handleNav = (path: string, tab?: HomeTab) => {
     navigate(path);
@@ -70,19 +76,27 @@ export function Navigation({ onTabChange }: NavigationProps) {
 
           {!isMobile && (
             <div className="flex-1 flex items-center justify-center">
-              <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-                {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
-                  <Button
-                    key={path}
-                    variant={pathname === path ? 'default' : 'ghost'}
-                    onClick={() => handleNav(path, tab)}
-                    className="gap-2"
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span>{label}</span>
-                  </Button>
-                ))}
-              </div>
+              {loading ? (
+                <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                  {Array.from({ length: NAV_ITEMS.length }).map((_, i) => (
+                    <div key={i} className="h-9 w-24 rounded-md bg-muted-foreground/20 animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                  {visibleNavItems.map(({ path, tab, icon: Icon, label }) => (
+                    <Button
+                      key={path}
+                      variant={pathname === path ? 'default' : 'ghost'}
+                      onClick={() => handleNav(path, tab)}
+                      className="gap-2"
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span>{label}</span>
+                    </Button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -131,17 +145,23 @@ export function Navigation({ onTabChange }: NavigationProps) {
           }}
           className="border-b border-border bg-card px-4 py-3 flex flex-col gap-1 shadow-md"
         >
-          {NAV_ITEMS.map(({ path, tab, icon: Icon, label }) => (
-            <Button
-              key={path}
-              variant={pathname === path ? 'default' : 'ghost'}
-              onClick={() => handleNav(path, tab)}
-              className="w-full justify-start gap-3"
-            >
-              <Icon className="w-4 h-4" />
-              {label}
-            </Button>
-          ))}
+          {loading ? (
+            Array.from({ length: NAV_ITEMS.length }).map((_, i) => (
+              <div key={i} className="h-9 w-full rounded-md bg-muted-foreground/20 animate-pulse" />
+            ))
+          ) : (
+            visibleNavItems.map(({ path, tab, icon: Icon, label }) => (
+              <Button
+                key={path}
+                variant={pathname === path ? 'default' : 'ghost'}
+                onClick={() => handleNav(path, tab)}
+                className="w-full justify-start gap-3"
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </Button>
+            ))
+          )}
         </div>
       )}
     </nav>
