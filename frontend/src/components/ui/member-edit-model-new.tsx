@@ -235,7 +235,7 @@ export function MemberEditModal({
               onValueChange={(value) => setFormData({ ...formData, role: value as MemberRole })}
               disabled={isSaving}
             >
-              <SelectTrigger className="mt-2 bg-input border-border text-foreground">
+              <SelectTrigger className="mt-2 w-full bg-input border-border text-foreground">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">

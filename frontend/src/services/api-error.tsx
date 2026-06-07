@@ -1,4 +1,3 @@
-import { showErrorToast } from "@/components/global-toaster";
 import { authService } from "@/services/auth-service";
 import {
   resolveErrorAction,
@@ -6,6 +5,7 @@ import {
 } from "@/utils/error-handler";
 import { LOGOUT_MESSAGES, type ApiErrorMeta, type ErrorAction } from "@/types/api-error-type";
 import type { NavigateFunction } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export {
   withErrorHandling,
@@ -39,25 +39,31 @@ const flushErrors = () => {
   const unique = [...new Set(pendingMessages)];
   pendingMessages = [];
 
-  if (unique.length === 1) {
-    showErrorToast(unique[0], "Operation failed");
-  } else {
-    showErrorToast(
-      <div>
-        <strong style={{ display: "block", marginBottom: 6 }}>
-          {unique.length} errors occurred
-        </strong>
-        <ul style={{ margin: 0, paddingLeft: 16 }}>
-          {unique.map((msg, i) => (
-            <li key={i} style={{ marginBottom: 2, fontSize: "0.85em" }}>
-              {msg}
-            </li>
-          ))}
-        </ul>
-      </div>,
-      "",
-    );
-  }
+  const content =
+    unique.length === 1
+      ? `Operation failed: ${unique[0]}`
+      : (
+        <div>
+          <strong style={{ display: "block", marginBottom: 6 }}>
+            {unique.length} errors occurred
+          </strong>
+          <ul style={{ margin: 0, paddingLeft: 16 }}>
+            {unique.map((msg, i) => (
+              <li key={i} style={{ marginBottom: 2, fontSize: "0.85em" }}>
+                {msg}
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+
+  toast.dismiss("batch_errors");
+  setTimeout(() => {
+    toast.error(content, {
+      toastId: "batch_errors",
+      autoClose: 4000,
+    });
+  }, 100);
 };
 
 const queueError = (message: string) => {
@@ -98,6 +104,17 @@ export const defaultOnError =
   (navigate?: NavigateFunction) =>
   async (action: ErrorAction, message: string, meta?: ApiErrorMeta) => {
 
+    if (action === "NETWORK_DOWN") {
+      deduplicatedError("network_down", () => {
+        toast.error(LOGOUT_MESSAGES["network_down"], {
+          autoClose: false,
+          closeOnClick: true,
+          toastId: "network_down",
+        });
+      });
+      return;
+    }
+
     if (action === "SILENT") return;
 
     if (action === "LOGOUT") {
@@ -105,9 +122,14 @@ export const defaultOnError =
         const reason = meta?.code ?? "session_expired";
         const toastMsg = getLogoutMessage(meta?.code);
 
-        showErrorToast(toastMsg, "");
+        toast.error(toastMsg, {
+          autoClose: false,
+          closeOnClick: false,
+          draggable: false,
+          toastId: "session_error",
+        });
 
-        await new Promise((res) => setTimeout(res, 300));
+        await new Promise((res) => setTimeout(res, 3000));
 
         await authService.logout();
         navigate
@@ -121,9 +143,16 @@ export const defaultOnError =
       deduplicatedError("server_down", async () => {
         const toastMsg = LOGOUT_MESSAGES["server_down"];
 
-        showErrorToast(toastMsg, "Server unavailable");
-
-        await new Promise((res) => setTimeout(res, 300));
+        toast.error(
+          toastMsg,
+          {
+            autoClose: false,      
+            closeOnClick: false,  
+            draggable: false,
+            toastId: "server_down", 
+          }
+        );
+        await new Promise((res) => setTimeout(res, 3000));
 
         await authService.logout();
         navigate
@@ -132,6 +161,11 @@ export const defaultOnError =
       });
       return;
     }
+
+    const isNetworkMessage = message === "Network Error" ||  message === "Network is down";
+
+    if (isNetworkMessage) 
+      return;
 
     queueError(message);
   };

@@ -10,7 +10,7 @@ export function GlobalToaster() {
       hideProgressBar={false}
       newestOnTop
       closeOnClick
-      pauseOnFocusLoss
+      pauseOnFocusLoss={false}
       draggable
       pauseOnHover
       className="!top-4 !right-4 !left-4 sm:!left-auto sm:!w-auto"
@@ -26,7 +26,9 @@ export function showErrorToast(message: ReactNode, title = 'Operation failed') {
       message
     );
 
-  toast.error(content);
+  toast.error(content, {
+    toastId: typeof message === "string" ? `error_${message}` : "error_complex",
+  });
 }
 
 export function showSuccessToast(message: string, title = 'Success') {

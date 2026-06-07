@@ -87,7 +87,7 @@ export function GeneratedTaskCard({
                 </span>
               )}
 
-              <AssigneeAvatars value={task.task_assigne} />
+              <AssigneeAvatars value={task.task_assignee} />
 
               <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${
                 task.task_priority?.trim() ? cfg.badge : 'bg-muted text-muted-foreground border-border'

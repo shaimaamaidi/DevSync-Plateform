@@ -7,7 +7,7 @@ import {
 } from "@/utils/error-handler";
 
 export interface AxiosErrorEvent {
-  action: "LOGOUT" | "RETRY" | "NOTIFY";
+  action: "LOGOUT" | "RETRY" | "NOTIFY" | "SILENT" | "NETWORK_DOWN";
   message: string;
   code?: string | null;
   status?: number;
@@ -55,15 +55,59 @@ function getRetryKey(config: any): string {
   return String(config._retryId);
 }
 
+let isNetworkDown = false;
+type NetworkListener = (isDown: boolean) => void;
+const networkListeners: NetworkListener[] = [];
+
+export function onNetworkChange(listener: NetworkListener): () => void {
+  networkListeners.push(listener);
+  return () => {
+    const idx = networkListeners.indexOf(listener);
+    if (idx !== -1) networkListeners.splice(idx, 1);
+  };
+}
+
+function setNetworkDown(value: boolean) {
+  if (isNetworkDown === value) return; 
+  isNetworkDown = value;
+  networkListeners.forEach((cb) => cb(value));
+}
+
 export function setupAxiosInterceptors() {
+  axios.interceptors.request.use(
+    (config) => {
+      if (isNetworkDown) {
+        const err = new Error("Network is down") as any;
+        return Promise.reject(err);
+      }
+      return config;
+    }
+  );
+
   axios.interceptors.response.use(
     (response) => {
+      setNetworkDown(false);
       const key = String((response.config as any)._retryId);
       if (key) retryCountMap.delete(key);
       return response;
     },
 
     async (error) => {
+      if (error._silent) 
+        return Promise.reject(error);
+      
+      const isNetworkError = error.message === "Network Error" && !error.response;
+
+      if (isNetworkError) {
+        if (!isNetworkDown) {
+          setNetworkDown(true);
+        }
+        emitError({ action: "NETWORK_DOWN", message: "Network error", code: null, status: undefined });
+        return Promise.reject(error); 
+      }
+
+      setNetworkDown(false);
+
       const originalRequest = error.config;
       const status = error.response?.status;
 
@@ -127,12 +171,20 @@ export function setupAxiosInterceptors() {
         const attempt = retryCountMap.get(retryKey) ?? 0;
 
         if (attempt < 3) {
+          if (isNetworkDown) {
+            retryCountMap.delete(retryKey);
+            return Promise.reject(error);
+          }
           retryCountMap.set(retryKey, attempt + 1);
           await new Promise((res) => setTimeout(res, 1000 * (attempt + 1)));
           return axios(originalRequest);
         }
 
         retryCountMap.delete(retryKey);
+        
+        if (isNetworkDown) 
+          return Promise.reject(error);
+
         emitError({ action: "RETRY", message, code, status });
         return Promise.reject(error);
       }

@@ -102,6 +102,13 @@ export function resolveErrorAction(err: unknown): ErrorAction {
   const status = extractStatusCode(err);
   const code = extractErrorCode(err) as ErrorCode | null;
 
+  const isNetworkError =
+    (err as ErrorLike)?.message === "Network Error" &&
+    !(err as ErrorLike)?.response;
+
+  if (isNetworkError) 
+    return "NETWORK_DOWN";
+
   if (code && SILENT_CODES.has(code)) return "SILENT";
 
   if (code && LOGOUT_IMMEDIATELY.has(code)) return "LOGOUT";
@@ -135,7 +142,7 @@ export async function withErrorHandling<T>(
     const status = extractStatusCode(err);
     const code = extractErrorCode(err);
 
-    if (action === "SILENT") return null;
+    if (action === "SILENT" || action === "NETWORK_DOWN") return null;
 
     if (onError) {
       onError(action, message, { status: status ?? undefined, code });

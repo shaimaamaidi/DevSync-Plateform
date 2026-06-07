@@ -208,15 +208,15 @@ export default function BacklogTaskGenerationPage() {
 
   const map_sprint_backlog_to_tasks = (backlog: Sprint) => {
     const mapped: TaskVerificationDTO[] = backlog.user_stories?.flatMap(us =>
-      us.tasks?.map(te => ({
+      us.tasks?.map(t => ({
         action: 'create' as const,
-        task_name: te.task.title,
-        task_description: te.task.description,
-        task_assigne: 'غير محدد',
+        task_name: t.title,
+        task_description: t.description,
+        task_assignee: 'غير محدد',
         task_status: 'to do',
         task_priority: 'normal',
         location: '',
-        estimation: te.estimated_hours,
+        estimation: t.estimated_hours,
       })) ?? []
     ) ?? [];
     showSuccessToast('Click up tasks generated successfully');
@@ -243,7 +243,7 @@ export default function BacklogTaskGenerationPage() {
             action: 'create' as const,
             task_name: t.task_name,
             task_description: t.task_description,
-            task_assigne: t.task_assigne,
+            task_assignee: t.task_assignee,
             task_status: t.task_status,
             task_priority: t.task_priority,
             location: t.location,
@@ -326,7 +326,7 @@ export default function BacklogTaskGenerationPage() {
         action: 'create',
         task_name: t.task_name,
         task_description: t.task_description,
-        task_assigne: t.task_assigne,
+        task_assignee: t.task_assignee,
         task_status: t.task_status,
         task_priority: t.task_priority,
         location: t.location,

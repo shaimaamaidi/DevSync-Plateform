@@ -1,4 +1,4 @@
-export type ErrorAction = "LOGOUT" | "RETRY" | "NOTIFY" | "SILENT";
+export type ErrorAction = "LOGOUT" | "RETRY" | "NOTIFY" | "SILENT" | "NETWORK_DOWN";
 
 export const REASON_MESSAGES: Record<string, string> = {
   server_down: "The server is unavailable. Please try again later.",
@@ -16,6 +16,7 @@ export const LOGOUT_MESSAGES: Record<string, string> = {
   AGENT_INITIALIZATION_ERROR: "Unable to initialize the agent. Contact the administrator.",
   server_down: "The server is unavailable after multiple attempts. Try again later.",
   session_expired: "Your session has expired. Please sign in again.",
+  network_down: "Connection lost. Please check your internet connection.",
 };
 
 export interface ApiError {

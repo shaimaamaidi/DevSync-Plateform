@@ -136,8 +136,8 @@ export function VerifiedTaskCard({
               <div className="col-span-1 sm:col-span-2">
                 <p className="text-xs text-muted-foreground mb-1">Assignees</p>
                 <AssigneeField
-                  value={draft.task_assigne}
-                  onChange={set('task_assigne')}
+                  value={draft.task_assignee}
+                  onChange={set('task_assignee')}
                 />
               </div>
 
@@ -220,7 +220,7 @@ export function VerifiedTaskCard({
               </p>
 
               <div className="flex items-center gap-2 mt-3 flex-wrap">
-                <AssigneeAvatars value={task.task_assigne} />
+                <AssigneeAvatars value={task.task_assignee} />
 
                 <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${cfg.badge}`}>
                   {task.task_priority}

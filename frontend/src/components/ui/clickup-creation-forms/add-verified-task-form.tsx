@@ -23,7 +23,7 @@ const makeEmptyTask = (withEstimation: boolean): TaskVerificationDTO =>
         action: VerifiedTaskFromBacklogActionEnum.Create,
         task_name: '',
         task_description: '',
-        task_assigne: '',
+        task_assignee: '',
         task_status: '',
         task_priority: '',
         location: '',
@@ -33,7 +33,7 @@ const makeEmptyTask = (withEstimation: boolean): TaskVerificationDTO =>
         action: VerifiedTaskFromSummaryActionEnum.Create,
         task_name: '',
         task_description: '',
-        task_assigne: '',
+        task_assignee: '',
         task_status: '',
         task_priority: '',
         location: '',
@@ -158,8 +158,8 @@ export function AddVerifiedTaskForm({
             <div className="col-span-1 sm:col-span-2">
               <p className="text-xs text-muted-foreground mb-1">Assignees</p>
               <AssigneeField
-                value={draft.task_assigne}
-                onChange={set('task_assigne')}
+                value={draft.task_assignee}
+                onChange={set('task_assignee')}
               />
             </div>
 

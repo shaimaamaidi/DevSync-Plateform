@@ -54,27 +54,27 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);
 
+  const { repos, loading: reposLoading, error: errorRepos, refetch: refetchRepos } = useRepos();
+  const { mutateAsync: updateRepo } = useUpdateRepo();
+  const { mutateAsync: deleteRepo } = useDeleteRepo();
+  const { mutateAsync: addRepo } = useAddRepo();
+
   const [deployments, setDeployments] = useState<DeploymentDTO[]>([]);
   const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
   const [lastRepoUrl, setLastRepoUrl] = useState<string>('');
 
   const { spaces: clickUpSpaces, loading: clickupLoading, error: clickupError, refetch: refreshClickUpData } = useClickUpSpacesLight();
-
-  const { repos, loading: reposLoading, error: errorRepos, refetch: refetchRepos } = useRepos();
-  const { mutateAsync: updateRepo } = useUpdateRepo();
-  const { mutateAsync: deleteRepo } = useDeleteRepo();
-  const { mutateAsync: addRepo } = useAddRepo();
+  const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
+  const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
+  const { mutateAsync: removeClickUpSpace } = useRemoveClickUpSpace();
+  const { mutateAsync: createClickUpSpace } = useCreateClickUpSpace();
+  const { mutateAsync: registerClickUpSpace } = useRegisterClickUpSpace();
 
   const { members, loading: membersLoading, error: errorMembers, refetch: refetchMembers } = useMembers();
   const { mutateAsync: updateMember } = useUpdateMember();
   const { mutateAsync: deleteMember } = useDeleteMember();
   const { mutateAsync: addMember } = useAddMember();
     
-  const { mutateAsync: updateClickUpSpace } = useUpdateClickUpSpace();
-  const { mutateAsync: deleteClickUpSpace } = useDeleteClickUpSpace();
-  const { mutateAsync: removeClickUpSpace } = useRemoveClickUpSpace();
-  const { mutateAsync: createClickUpSpace } = useCreateClickUpSpace();
-  const { mutateAsync: registerClickUpSpace } = useRegisterClickUpSpace();
 
   const { mutateAsync: associateClickUpSpace } = useAssociateRepoWithClickUpSpace();
   const [showNotFoundDialog, setShowNotFoundDialog] = useState(false);
@@ -253,9 +253,8 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
     <>
       <DashboardStats 
         repos={repos} 
-        deployments={deployments} 
         members={members} 
-        isLoading={reposLoading || membersLoading || isLoadingDeployments}
+        isLoading={reposLoading || membersLoading }
         userLoading={userLoading}
         isAdmin={isAdmin}
       />

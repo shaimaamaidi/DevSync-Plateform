@@ -27,7 +27,7 @@ class DeploymentDTO(BaseModel):
         state: Deployment state.
         log_url: URL to deployment logs.
     """
-    dep_id: int
+    dep_id: str
     environment: str
     ref: str
     sha: str

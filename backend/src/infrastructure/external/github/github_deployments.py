@@ -114,7 +114,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
 
         actions_deployments = await self._fetch_deployments_from_actions(owner, repo)
 
-        seen_ids: set[int] = set()
+        seen_ids: set[str] = set()
         merged: List[DeploymentDTO] = []
 
         for dep in api_deployments + actions_deployments:
@@ -182,7 +182,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             env = dep.get("environment", "-")
             state, log_url = status_map.get(env, ("no status", "-"))
             api_deployments.append(DeploymentDTO(
-                dep_id=dep["id"],
+                dep_id=f"dep_{dep['id']}",
                 environment=env,
                 ref=dep.get("ref", "-"),
                 sha=dep.get("sha", "")[:7],
@@ -213,7 +213,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
                 state = conclusion or status or "no status"
 
             actions_deployments.append(DeploymentDTO(
-                dep_id=run.get("id", 0),
+                dep_id=f"run_{run.get('id', 0)}",
                 environment=run.get("head_branch") or "-",
                 ref=run.get("head_branch") or "-",
                 sha=(run.get("head_sha") or "")[:7],
@@ -226,7 +226,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
                 log_url=run.get("html_url") or "-",
             ))
 
-        seen_ids: set[int] = set()
+        seen_ids: set[str] = set()
         merged: List[DeploymentDTO] = []
         for dep in api_deployments + actions_deployments:
             if dep.dep_id not in seen_ids:
@@ -531,7 +531,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
             state, log_url = status_map.get(env, ("no status", "-"))
             deployments.append(
                 DeploymentDTO(
-                    dep_id=dep["id"],
+                    dep_id=f"dep_{dep['id']}",
                     environment=env,
                     ref=dep.get("ref", "-"),
                     sha=dep.get("sha", "")[:7],
@@ -630,7 +630,7 @@ class GitHubDeploymentAdapter(BaseGitHubClient, IGitHubDeploymentService):
 
             deployments.append(
                 DeploymentDTO(
-                    dep_id=run_id,
+                    dep_id=f"run_{run.get('id', 0)}",
                     environment=run.get("head_branch") or "-",
                     ref=run.get("head_branch") or "-",
                     sha=(run.get("head_sha") or "")[:7],

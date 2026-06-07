@@ -337,7 +337,7 @@ export interface CreateTaskRequest {
  * Deployment information returned by GitHub.  Attributes:     dep_id: Deployment identifier.     environment: Deployment environment.     ref: Git reference.     sha: Commit SHA.     creator: Creator username.     created_at: Creation timestamp.     description: Deployment description.     state: Deployment state.     log_url: URL to deployment logs.
  */
 export interface DeploymentDTO {
-    'dep_id': number;
+    'dep_id': string;
     'environment': string;
     'ref': string;
     'sha': string;

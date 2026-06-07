@@ -1,7 +1,5 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import type { DeploymentDTO, GitRepoDetailDTO } from '@/api/api';
-import { Button } from '@/components/ui/shared-primitives/button';
-import { Input } from '@/components/ui/shared-primitives/input';
 import { Card } from '@/components/ui/shared-primitives/card';
 import { 
   Select, 
@@ -30,7 +28,7 @@ export function DeploymentsTracker({
   error,
   onRetry,
 }: DeploymentsTrackerProps) {
-  const [searchUrl, setSearchUrl] = useState('');
+  const searchUrl = '';
   const [filteredDeployments, setFilteredDeployments] = useState<DeploymentDTO[]>(deployments);
   const [selectedRepoUrl, setSelectedRepoUrl] = useState('');
 
@@ -53,22 +51,12 @@ export function DeploymentsTracker({
     setFilteredDeployments(applySearchFilter(searchUrl, deployments));
   }, [deployments, searchUrl]);
 
-  const handleSearch = () => {
-    setFilteredDeployments(applySearchFilter(searchUrl, deployments));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-4">Deployments</h2>
         <p className="text-muted-foreground mb-6">
-          Track and manage all deployments by URL or repository name
+          Track and manage all deployments
         </p>
 
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -106,17 +94,6 @@ export function DeploymentsTracker({
               )}
             </SelectContent>
           </Select>
-          <Input
-            placeholder="Search by URL, deployment name, or branch..."
-            value={searchUrl}
-            onChange={(e) => setSearchUrl(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1 bg-input border-border text-foreground placeholder:text-muted-foreground"
-          />
-          <Button onClick={handleSearch} className="gap-2">
-            <Search className="w-4 h-4" />
-            Search
-          </Button>
         </div>
       </div>
       {isLoading ? (

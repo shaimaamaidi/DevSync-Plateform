@@ -93,7 +93,7 @@ def get_all_with_details(container: PersistenceContainer = Depends(get_persisten
     summary="Get all repositories with details",
     description="Retrieves all repositories along with extended metadata and detailed information."
 )
-def add_repo(repo: GitRepoCreateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> GitRepoDTO:
+async def add_repo(repo: GitRepoCreateDTO, container: PersistenceContainer = Depends(get_persistence_container)) -> GitRepoDTO:
     """
     Create a new repository.
 
@@ -111,7 +111,7 @@ def add_repo(repo: GitRepoCreateDTO, container: PersistenceContainer = Depends(g
         repo.url,
     )
 
-    result = container.create_github_repo_use_case.execute(repo)
+    result = await container.create_github_repo_use_case.execute(repo)
 
     logger.info(
         "Repository successfully saved: id=%s, url=%s.",
