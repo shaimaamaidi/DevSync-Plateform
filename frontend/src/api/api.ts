@@ -539,7 +539,7 @@ export interface MemberAuthDTO {
     'password': string;
 }
 /**
- * Payload for member creation.  Attributes:     username: Member username.     arabic_name: Member Arabic name.     mail: Member email address.     password: Member account password.
+ * Payload for member creation.  Attributes:     username: Member username.     arabic_name: Member Arabic name.     mail: Member email address.     role: Member role.     password: Member account password.
  */
 export interface MemberCreateDTO {
     /**
@@ -555,19 +555,28 @@ export interface MemberCreateDTO {
      */
     'mail': string;
     /**
+     * Member role.
+     */
+    'role'?: MemberRole;
+    /**
      * Member account password.
      */
     'password': string;
 }
+
+
 /**
- * Main DTO for representing a member.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.
+ * Main DTO for representing a member.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     role: Member role.     mail: Email address.
  */
 export interface MemberDTO {
     'id': number;
     'username': string;
     'arabic_name': string;
+    'role': MemberRole;
     'mail': string;
 }
+
+
 /**
  * Minimal member payload containing email address.  Attributes:     mail: Member email address.
  */
@@ -575,7 +584,19 @@ export interface MemberMailDTO {
     'mail'?: string | null;
 }
 /**
- * Authentication response containing access and refresh tokens.  Attributes:     access_token: JWT access token.     refresh_token: JWT refresh token.     token_type: Token type (default \'bearer\').
+ * Enumeration of supported member roles.  Roles define the authorization level granted to a member within the platform.
+ */
+
+export const MemberRole = {
+    Admin: 'admin',
+    Member: 'member',
+} as const;
+
+export type MemberRole = typeof MemberRole[keyof typeof MemberRole];
+
+
+/**
+ * Authentication response containing access and refresh tokens.  Attributes:     access_token: JWT access token.     refresh_token: JWT refresh token.     token_type: Token type (default \'bearer\').     role: Authenticated member role.
  */
 export interface MemberTokensDTO {
     /**
@@ -590,28 +611,40 @@ export interface MemberTokensDTO {
      * Token type (default \'bearer\').
      */
     'token_type'?: string;
+    /**
+     * Authenticated member role.
+     */
+    'role': MemberRole;
 }
+
+
 /**
- * Payload for member update.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.     repos: List of associated repositories.
+ * Payload for member update.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     role:Member role.     mail: Email address.     repos: List of associated repositories.
  */
 export interface MemberUpdateDTO {
     'id': number;
     'username'?: string | null;
     'arabic_name'?: string | null;
+    'role'?: MemberRole | null;
     'password'?: string | null;
     'mail'?: string | null;
     'repos'?: Array<RepoRefDTO>;
 }
+
+
 /**
- * Member DTO enriched with the list of associated repositories.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.     repos: List of repositories (RepoSummary).
+ * Member DTO enriched with the list of associated repositories.  Attributes:     id: Member identifier.     username: Username.     arabic_name: Arabic name.     mail: Email address.     role: Member role.     repos: List of repositories (RepoSummary).
  */
 export interface MemberWithReposDTO {
     'id': number;
     'username': string;
     'arabic_name': string;
     'mail': string;
+    'role'?: MemberRole | null;
     'repos'?: Array<RepoSummary>;
 }
+
+
 /**
  * Representation of an overdue Todo task.  Attributes:     task_id: Unique identifier of the task.     task_name: Human-readable name of the task.     task_description: Detailed description of the task.     days_waiting: Number of days the task has remained in Todo status.     reason: Explanation describing why the task is considered overdue.
  */

@@ -7,15 +7,6 @@ import type {
 } from '@/api/api';
 
 export const memberService = {
-  mapToMemberDTO(member: MemberWithReposDTO): MemberDTO {
-    return {
-      id: member.id,
-      username: member.username,
-      arabic_name: member.arabic_name,
-      mail: member.mail,
-    } as MemberDTO;
-  },
-
   async getAllWithRepos(): Promise<MemberWithReposDTO[]> {
     const response = await memberApi.getAllWithReposMemberAllWithReposGet();
     return response.data ?? [];
@@ -25,6 +16,7 @@ export const memberService = {
     if (!member.username?.trim()) throw new Error('Username is required');
     if (!member.arabic_name?.trim()) throw new Error('Arabic name is required');
     if (!member.mail?.trim()) throw new Error('Email is required');
+    if(!member.role) throw new Error('Role is required');
     if (!member.password?.trim()) throw new Error('Password is required');
 
     const response = await memberApi.addMemberMemberPost(member);
@@ -39,19 +31,13 @@ export const memberService = {
     member.arabic_name?.trim() ||
     member.mail?.trim() ||
     member.password?.trim() || 
+    member.role ||
     member.repos != null;
 
     if (!hasUpdate) throw new Error('At least one field must be provided to update a member');
 
     const response = await memberApi.updateMemberMemberMemberIdPut(member.id, member);
-    return response.data
-      ? {
-          id: response.data.id,
-          username: response.data.username,
-          arabic_name: response.data.arabic_name,
-          mail: response.data.mail,
-        } as MemberDTO
-      : null;
+    return response.data as MemberDTO ?? null;
   },
 
   async deleteMember(memberId: number): Promise<boolean> {

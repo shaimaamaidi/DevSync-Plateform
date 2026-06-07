@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import type { MemberCreateDTO, MemberDTO, MemberUpdateDTO } from '@/api/api';
+import { MemberRole, type MemberCreateDTO, type MemberDTO, type MemberUpdateDTO } from '@/api/api';
 import { Button } from '@/components/ui/shared-primitives/button';
 import { Card } from '@/components/ui/shared-primitives/card';
 import { Label } from '@/components/ui/shared-primitives/label';
 import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './shared-primitives/select';
 
 export interface MemberEditModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function MemberEditModal({
     ? formData.username !== editingMember.username ||
       formData.mail !== editingMember.mail ||
       formData.arabic_name !== (editingMember.arabic_name || '') ||
+      formData.role !== editingMember.role ||
       (!!formData.password && formData.password.length > 0)
     : true;
 
@@ -54,9 +56,10 @@ export function MemberEditModal({
               username: editingMember.username,
               mail: editingMember.mail,
               arabic_name: editingMember.arabic_name || '',
+              role: editingMember.role,
               password: '',
             }
-          : { username: '', mail: '', arabic_name: '', password: '' }
+          : { username: '', mail: '', arabic_name: '', role: MemberRole.Member, password: '' }
       );
     }
   }, [isOpen, editingMember]);
@@ -70,9 +73,9 @@ export function MemberEditModal({
       setErrors({ form: 'No changes to update' });
       return;
     }
-    if (!formData.username && !formData.username?.trim()) 
+    if (!formData.username?.trim()) 
       newErrors.username = 'Username is required';
-    if (!formData.mail && !formData.mail?.trim()) {
+    if (!formData.mail?.trim()) {
       newErrors.mail = 'Email is required';
     } else {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -80,12 +83,17 @@ export function MemberEditModal({
         newErrors.mail = 'Invalid email format';
       }
     }
-    if (!editingMember && (!formData.password || formData.password.trim().length < 6)) {
-      newErrors.password = 'Password (min 6 caractères) requis';
-    }
 
     if (!editingMember && !formData.arabic_name?.trim()) {
       newErrors.arabic_name = 'Arabic name is required';
+    }
+
+    if (!editingMember && !formData.role) {
+      newErrors.role = 'Role is required';
+    }
+
+    if (!editingMember && (!formData.password || formData.password.trim().length < 6)) {
+      newErrors.password = 'Password (min 6 caractères) requis';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -104,6 +112,7 @@ export function MemberEditModal({
           username: formData.username === editingMember.username ? null : formData.username,
           mail: formData.mail === editingMember.mail ? null : formData.mail,
           arabic_name: formData.arabic_name === editingMember.arabic_name ? null : formData.arabic_name,
+          role: formData.role === editingMember.role ? null : formData.role,
           password: (formData.password === '') ? null : formData.password,
         } as MemberUpdateDTO);
       } else {
@@ -112,6 +121,7 @@ export function MemberEditModal({
           mail: formData.mail,
           arabic_name: formData.arabic_name,
           password: formData.password,
+          role: formData.role,
         } as MemberCreateDTO;
         success = await onAdd(newMember);
       }
@@ -214,6 +224,29 @@ export function MemberEditModal({
               <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
                 <AlertCircle className="w-4 h-4" />
                 {errors.arabic_name}
+              </div>
+            )}
+          </div>
+            
+          <div>
+            <Label className="text-foreground font-medium">Role</Label>
+            <Select
+              value={formData.role || MemberRole.Member}
+              onValueChange={(value) => setFormData({ ...formData, role: value as MemberRole })}
+              disabled={isSaving}
+            >
+              <SelectTrigger className="mt-2 bg-input border-border text-foreground">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent className="bg-card border-border">
+                <SelectItem value={MemberRole.Member}>Member</SelectItem>
+                <SelectItem value={MemberRole.Admin}>Admin</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.role && (
+              <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {errors.role}
               </div>
             )}
           </div>

@@ -97,7 +97,7 @@ export function MembersTable({
         {isLoading ? (
           <table className="w-full min-w-[560px]">
             <tbody>
-              {Array.from({ length: 4 }).map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
                   <td className="px-6 py-4">
                     <div className="h-4 w-32 rounded bg-muted animate-pulse mx-auto" />
@@ -107,6 +107,9 @@ export function MembersTable({
                   </td>
                   <td className="px-6 py-4">
                     <div className="h-4 w-36 rounded bg-muted animate-pulse mx-auto" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-4 w-16 rounded bg-muted animate-pulse mx-auto" />
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end gap-2">
@@ -144,6 +147,7 @@ export function MembersTable({
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Member</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Mail</th>
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Arabic Name</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">Role</th>
                 <th className="px-10 py-4 text-right text-sm font-semibold text-foreground">Actions</th>
               </tr>
             </thead>
@@ -166,6 +170,9 @@ export function MembersTable({
                       <span className="text-sm text-muted-foreground">
                         {member.arabic_name || 'N/A'}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="text-sm text-muted-foreground capitalize">{member.role || 'N/A'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex justify-end gap-2">
@@ -197,7 +204,7 @@ export function MembersTable({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <p className="text-muted-foreground">No members yet. Create your first member!</p>
                   </td>
                 </tr>
@@ -209,11 +216,12 @@ export function MembersTable({
 
       <div className="sm:hidden space-y-3 max-h-[60vh] overflow-y-auto overflow-x-auto pr-1 max-w-full">
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+          Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-border p-4 space-y-2 animate-pulse">
               <div className="h-4 w-32 bg-muted rounded" />
               <div className="h-3 w-40 bg-muted rounded" />
               <div className="h-3 w-28 bg-muted rounded" />
+              <div className="h-3 w-36 bg-muted rounded" />
             </div>
           ))
         ) : error ? (
@@ -241,6 +249,7 @@ export function MembersTable({
                 <p className="text-xs text-muted-foreground" dir="rtl">
                   {member.arabic_name || 'N/A'}
                 </p>
+                <p className="text-xs text-muted-foreground capitalize">{member.role || 'N/A'}</p>
               </div>
               <div className="flex gap-1 shink-0">
                 <Button
