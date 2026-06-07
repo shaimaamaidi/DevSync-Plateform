@@ -9,12 +9,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpTaskWithEstimation
 from backend.src.domain.exceptions.clickup.clickup_task_create_exception import ClickUpTaskCreateException
 from backend.src.domain.exceptions.clickup.clickup_task_delete_exception import ClickUpTaskDeleteException
 from backend.src.domain.exceptions.clickup.clickup_task_update_exception import ClickUpTaskUpdateException
-from backend.src.infrastructure.external.clickup import writer as clickup_writer_pkg
 from backend.src.infrastructure.external.clickup.writer.clickup_task_writer import ClickUpTaskWriter
 
 
@@ -34,11 +32,11 @@ def test_create_task_by_list_success(monkeypatch) -> None:
 
     monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda p: "low")
     monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda e, m, i: [123])
-    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task", lambda p: p)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task_with_estimation", lambda p: p)
 
     writer = ClickUpTaskWriter(http)
 
-    task = SimpleNamespace(name="Do things", description="desc", priority=1, status="todo", assignee="alice@example.com")
+    task = SimpleNamespace(name="Do things", description="desc", priority=1, status="todo", assignee="alice@example.com", estimation=None)
 
     result = writer.create_task_by_list("list-1", task, {"alice@example.com": 123}, ignore_mails=True)
 
@@ -54,7 +52,7 @@ def test_create_task_by_list_failure_raises(monkeypatch) -> None:
 
     writer = ClickUpTaskWriter(http)
 
-    task = SimpleNamespace(name="Fail", description="desc", priority=None, status=None, assignee=None)
+    task = SimpleNamespace(name="Fail", description="desc", priority=None, status=None, assignee=None, estimation=None)
 
     with pytest.raises(ClickUpTaskCreateException):
         writer.create_task_by_list("list-1", task, {}, ignore_mails=True)
@@ -66,11 +64,11 @@ def test_update_task_success_and_failure(monkeypatch) -> None:
 
     monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda p: "high")
     monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda e, m, i: [5])
-    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task", lambda p: p)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task_with_estimation", lambda p: p)
 
     writer = ClickUpTaskWriter(http)
 
-    task_content = SimpleNamespace(name="Update me", description="d", priority=2, status="done", assignee="bob@example.com")
+    task_content = SimpleNamespace(name="Update me", description="d", priority=2, status="done", assignee="bob@example.com", estimation=None)
 
     result = writer.update_task("task-123", task_content, old_assignees="bob@example.com", email_to_id={"bob@example.com": 5}, ignore_mails=True)
 
@@ -110,13 +108,14 @@ def test_apply_results_counts() -> None:
         pass
 
     res_create = SimpleNamespace(action="create", location="FolderA / List1", task_name="CreateMe", task_status=None)
-    res_update = SimpleNamespace(action="update", task_id=None, task_name="UpdateMe")
+    res_update = SimpleNamespace(action="update", task_id=None, task_name="UpdateMe", location="FolderA / List1")
 
-    created, updated, skipped = ClickUpTaskWriter._apply_results([res_create, res_update], [folder], [], {}, False, True, create_fn, update_fn)
+    created, updated, skipped, failed_tasks = ClickUpTaskWriter._apply_results([res_create, res_update], [folder], [], {}, False, True, create_fn, update_fn)
 
     assert created == 1
     assert updated == 0
     assert skipped == 1
+    assert len(failed_tasks) == 1
 
 def test_create_task_by_list_builds_payload_and_returns_parsed_task(monkeypatch) -> None:
     """
@@ -126,9 +125,9 @@ def test_create_task_by_list_builds_payload_and_returns_parsed_task(monkeypatch)
     response = SimpleNamespace(status_code=200, json=lambda: {"id": "task-1", "name": "Task 1"})
     http_client.post_raw.return_value = response
 
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "priority_to_str", lambda value: "high")
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "resolve_assignee_ids_from_mails", lambda *args: [11, 22])
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "parse_task", lambda payload: payload)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda value: "high")
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda *args: [11, 22])
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task_with_estimation", lambda payload: payload)
 
     writer = ClickUpTaskWriter(http_client)
     task = ClickUpTaskWithEstimation(
@@ -162,8 +161,8 @@ def test_create_task_by_list_raises_when_api_fails(monkeypatch) -> None:
     """
     http_client = MagicMock()
     http_client.post_raw.return_value = SimpleNamespace(status_code=400, text="bad", json=lambda: {})
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "priority_to_str", lambda value: None)
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "resolve_assignee_ids_from_mails", lambda *args: [])
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda value: None)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda *args: [])
 
     writer = ClickUpTaskWriter(http_client)
 
@@ -182,9 +181,9 @@ def test_update_task_builds_assignee_delta(monkeypatch) -> None:
     """
     http_client = MagicMock()
     http_client.put_raw.return_value = SimpleNamespace(status_code=200, json=lambda: {"id": "task-1", "name": "Task 1"})
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "priority_to_str", lambda value: None)
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "resolve_assignee_ids_from_mails", lambda email_to_id, mails, ignore_mails: [email_to_id[mails[0]]])
-    monkeypatch.setattr(clickup_writer_pkg.clickup_task_writer, "parse_task", lambda payload: payload)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.priority_to_str", lambda value: None)
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.resolve_assignee_ids_from_mails", lambda email_to_id, mails, ignore_mails: [email_to_id[mails[0]]])
+    monkeypatch.setattr("backend.src.infrastructure.external.clickup.writer.clickup_task_writer.parse_task_with_estimation", lambda payload: payload)
 
     writer = ClickUpTaskWriter(http_client)
     task = ClickUpTaskWithEstimation(

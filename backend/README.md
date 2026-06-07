@@ -70,9 +70,9 @@ pytest --cov=backend --cov-report=term-missing
 ```
 
 Current test breakdown:
-- Total: 229
-- Unit: 186
-- Integration: 43
+- Total: 370
+- Unit: 310
+- Integration: 60
 
 ---
 

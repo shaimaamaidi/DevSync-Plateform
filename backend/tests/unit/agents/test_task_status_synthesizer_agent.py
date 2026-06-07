@@ -1,8 +1,4 @@
 from types import SimpleNamespace
-from types import SimpleNamespace
-
-from types import SimpleNamespace
-from types import SimpleNamespace
 
 from backend.src.infrastructure.external.task_status_checking.task_status_synthesizer_agent import (
     TaskStatusSynthesizerAgent,
@@ -22,5 +18,6 @@ def test_task_status_synthesizer_returns_fallback_when_llm_none():
             return {"id": self.id}
 
     task = Task()
-    result = agent.synthesize_task_status(task, deployments=[], commits=[], signals={})
+    # synthesize_task_status expects (task, commits, signals)
+    result = agent.synthesize_task_status(task, commits=[], signals={})
     assert hasattr(result, "is_completed") and hasattr(result, "summary")

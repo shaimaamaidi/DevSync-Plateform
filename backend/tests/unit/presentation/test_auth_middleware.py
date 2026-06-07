@@ -13,7 +13,8 @@ import sys
 import types
 
 _dummy_persistence = types.ModuleType("backend.src.infrastructure.di.persistence_container")
-_dummy_persistence.Container = lambda session: None
+_dummy_persistence.PersistenceContainer = lambda session: None
+_dummy_persistence.Container = _dummy_persistence.PersistenceContainer
 sys.modules["backend.src.infrastructure.di.persistence_container"] = _dummy_persistence
 
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
@@ -98,7 +99,7 @@ async def test_dispatch_verifies_bearer_token(monkeypatch) -> None:
     jwt_handler.verify_token.return_value = {"sub": "member-1"}
 
     monkeypatch.setattr(
-        "backend.src.presentation.api.middleware.auth_middleware.Container",
+        "backend.src.presentation.api.middleware.auth_middleware.PersistenceContainer",
         lambda _session: _FakeContainer(_session, jwt_handler),
     )
 
@@ -126,7 +127,7 @@ async def test_dispatch_returns_401_for_invalid_token(monkeypatch) -> None:
     jwt_handler.verify_token.side_effect = InvalidTokenException("Session is invalid. Please log in again.")
 
     monkeypatch.setattr(
-        "backend.src.presentation.api.middleware.auth_middleware.Container",
+        "backend.src.presentation.api.middleware.auth_middleware.PersistenceContainer",
         lambda _session: _FakeContainer(_session, jwt_handler),
     )
 
@@ -155,7 +156,7 @@ async def test_dispatch_verifies_cookie_token(monkeypatch) -> None:
     jwt_handler.verify_token.return_value = {"sub": "member-2"}
 
     monkeypatch.setattr(
-        "backend.src.presentation.api.middleware.auth_middleware.Container",
+        "backend.src.presentation.api.middleware.auth_middleware.PersistenceContainer",
         lambda _session: _FakeContainer(_session, jwt_handler),
     )
 

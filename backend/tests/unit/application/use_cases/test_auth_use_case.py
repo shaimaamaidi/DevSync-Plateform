@@ -22,6 +22,7 @@ def test_login_success() -> None:
     credentials_obj.hashed_password = "hashed"
     credentials_obj.id = 1
     credentials_obj.mail = "user@mail.com"
+    credentials_obj.role = "member"
     member_repo.find_credentials_by_mail.return_value = credentials_obj
     jwt_handler.create_access_token.return_value = "access"
     jwt_handler.create_refresh_token.return_value = ("refresh", "expiry")

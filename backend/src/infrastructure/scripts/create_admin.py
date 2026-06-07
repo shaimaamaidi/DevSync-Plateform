@@ -37,6 +37,7 @@ def create_admin():
             username="admin",
             arabic_name="شيماء",
             mail="admin@gmail.com",
+            #role=MemberRole.ADMIN
             password="admin",
         )
 

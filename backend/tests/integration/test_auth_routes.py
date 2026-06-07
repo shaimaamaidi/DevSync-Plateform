@@ -10,7 +10,7 @@ def test_login_success(client: TestClient, container) -> None:
     """
     Test successful login route returns access and refresh tokens.
     """
-    container.auth_use_case.login.return_value = MemberTokensDTO(access_token="access", refresh_token="refresh")
+    container.auth_use_case.login.return_value = MemberTokensDTO(access_token="access", refresh_token="refresh", role="member")
     response = client.post("/auth/login", json={"mail": "user@mail.com", "password": "pass"})
     assert response.status_code == 200
     assert response.json()["access_token"] == "access"
@@ -22,7 +22,7 @@ def test_refresh_success(client: TestClient, container) -> None:
     """
     Test refresh route returns new access and refresh tokens.
     """
-    container.auth_use_case.refresh.return_value = MemberTokensDTO(access_token="access2", refresh_token="refresh2")
+    container.auth_use_case.refresh.return_value = MemberTokensDTO(access_token="access2", refresh_token="refresh2", role="member")
     response = client.post("/auth/refresh?refresh_token=refresh")
     assert response.status_code == 200
     assert response.json()["access_token"] == "access2"

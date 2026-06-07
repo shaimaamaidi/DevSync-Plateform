@@ -103,7 +103,7 @@ async def test_start_stream_emits_thread_and_chunks(monkeypatch) -> None:
     results = [chunk async for chunk in orchestrator.start_stream("desc")]
 
     assert results[0] == "data: {\"thread_id\": \"t-1\"}\n\n"
-    assert results[1] == "data: {\"text\": \"chunk\"}\n\n"
+    assert results[1] == "chunk"
     assert captured["thread_id"] == "t-1"
     assert captured["tool_choice"]["function"]["name"] == "build_product_context"
 
@@ -141,7 +141,7 @@ async def test_run_stream_submits_tool_outputs(monkeypatch) -> None:
 
     results = [chunk async for chunk in orchestrator._run_stream("t-1")]
 
-    assert results == []
+    assert results == ['data: {"tool_call": {"name": "generate_backlog"}}\n\n']
     project_client.agents.runs.submit_tool_outputs_stream.assert_awaited_once()
     tool_outputs = project_client.agents.runs.submit_tool_outputs_stream.call_args.kwargs["tool_outputs"]
     payload = json.loads(tool_outputs[0]["output"])

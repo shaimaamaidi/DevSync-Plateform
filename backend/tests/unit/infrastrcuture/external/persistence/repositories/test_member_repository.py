@@ -69,6 +69,7 @@ def test_member_update_happy_path() -> None:
         username="old",
         arabic_name="old",
         mail="a@b.com",
+        role="member",
         password="hash",
         repos=[],
     )
@@ -110,6 +111,7 @@ def test_member_update_repos_by_id() -> None:
         username="old",
         arabic_name="old",
         mail="a@b.com",
+        role="member",
         password="hash",
         repos=[],
     )
@@ -135,6 +137,7 @@ def test_member_update_repos_by_url() -> None:
         username="old",
         arabic_name="old",
         mail="a@b.com",
+        role="member",
         password="hash",
         repos=[],
     )
@@ -159,6 +162,7 @@ def test_member_update_repos_missing_raises() -> None:
         username="old",
         arabic_name="old",
         mail="a@b.com",
+        role="member",
         password="hash",
         repos=[],
     )
@@ -183,6 +187,7 @@ def test_member_update_repos_mixed_id_and_url() -> None:
         username="old",
         arabic_name="old",
         mail="a@b.com",
+        role="member",
         password="hash",
         repos=[],
     )

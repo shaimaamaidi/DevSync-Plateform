@@ -17,7 +17,7 @@ def test_generate_tasks_from_summary(client: TestClient, container) -> None:
     generated_task = {
         "task_name": "Build login",
         "task_description": "Implement login flow",
-        "task_assigne": "Alice",
+        "task_assignee": "Alice",
         "task_status": "To Do",
         "task_priority": "High",
         "location": "Backend",
@@ -49,7 +49,7 @@ def test_verify_tasks(client: TestClient, container) -> None:
     generated_task = GeneratedTaskFromSummary(
         task_name="Build login",
         task_description="Implement login flow",
-        task_assigne="Alice",
+        task_assignee="Alice",
         task_status="To Do",
         task_priority="High",
         location="Backend",
@@ -59,7 +59,7 @@ def test_verify_tasks(client: TestClient, container) -> None:
         action="create",
         task_name="Build login",
         task_description="Implement login flow",
-        task_assigne="Alice",
+        task_assignee="Alice",
         task_status="To Do",
         task_priority="High",
         location="Backend",

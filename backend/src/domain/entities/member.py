@@ -5,14 +5,25 @@ This module defines Data Transfer Objects (DTOs) for member management, used in 
 creation, update, and retrieval flows.
 
 Main classes:
-    MemberAuthDTO, MemberCredentialsDTO, MemberTokensDTO, MemberDTO, MemberCreateDTO, MemberUpdateDTO,
-    MemberWithReposDTO
+    MemberRole, MemberAuthDTO, MemberCredentialsDTO, MemberTokensDTO, MemberDTO, MemberCreateDTO,
+    MemberUpdateDTO, MemberWithReposDTO
 """
 
+from enum import Enum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+
+class MemberRole(str, Enum):
+    """
+    Enumeration of supported member roles.
+
+    Roles define the authorization level granted to a member
+    within the platform.
+    """
+    ADMIN = "admin"
+    MEMBER = "member"
 
 class MemberAuthDTO(BaseModel):
     """
@@ -32,10 +43,12 @@ class MemberCredentialsDTO(BaseModel):
     Attributes:
         id: Member identifier.
         mail: Email address.
+        role: Member role.
         hashed_password: Hashed password.
     """
     id: int
     mail: str
+    role: MemberRole
     hashed_password: str
 
 class MemberTokensDTO(BaseModel):
@@ -46,10 +59,12 @@ class MemberTokensDTO(BaseModel):
         access_token: JWT access token.
         refresh_token: JWT refresh token.
         token_type: Token type (default 'bearer').
+        role: Authenticated member role.
     """
     access_token: str = Field(..., description="JWT access token.")
     refresh_token: str = Field(..., description="JWT refresh token.")
     token_type: str = Field(default="bearer", description="Token type (default 'bearer').")
+    role: MemberRole = Field(..., description="Authenticated member role.")
 
 class RepoSummary(BaseModel):
     """
@@ -83,11 +98,13 @@ class MemberDTO(BaseModel):
         id: Member identifier.
         username: Username.
         arabic_name: Arabic name.
+        role: Member role.
         mail: Email address.
     """
     id: int
     username: str
     arabic_name: str
+    role: MemberRole
     mail: str
 
 class MemberCreateDTO(BaseModel):
@@ -98,11 +115,13 @@ class MemberCreateDTO(BaseModel):
         username: Member username.
         arabic_name: Member Arabic name.
         mail: Member email address.
+        role: Member role.
         password: Member account password.
     """
     username: str = Field(..., min_length=1, description="Member username.")
     arabic_name: str = Field(..., min_length=1, description="Member Arabic name.")
     mail: str = Field(..., min_length=1, description="Member email address.")
+    role: MemberRole = Field(default=MemberRole.MEMBER, description="Member role.")
     password: str = Field(..., min_length=1, description="Member account password.")
 
 class MemberUpdateDTO(BaseModel):
@@ -113,12 +132,14 @@ class MemberUpdateDTO(BaseModel):
         id: Member identifier.
         username: Username.
         arabic_name: Arabic name.
+        role:Member role.
         mail: Email address.
         repos: List of associated repositories.
     """
     id: int
     username: Optional[str] = None
     arabic_name: Optional[str] = None
+    role: Optional[MemberRole] = None
     password: Optional[str] = None
     mail: Optional[str] = None
     repos: List[RepoRefDTO] = []
@@ -132,10 +153,12 @@ class MemberWithReposDTO(BaseModel):
         username: Username.
         arabic_name: Arabic name.
         mail: Email address.
+        role: Member role.
         repos: List of repositories (RepoSummary).
     """
     id: int
     username: str
     arabic_name: str
     mail: str
+    role: Optional[MemberRole] = None
     repos: List[RepoSummary] = []

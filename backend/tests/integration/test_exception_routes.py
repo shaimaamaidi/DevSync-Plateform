@@ -48,8 +48,8 @@ from backend.src.domain.exceptions.repo.repo_persistence_exception import RepoPe
             "REPO_NOT_FOUND",
         ),
         (
-            "repo_service",
-            "add_repo",
+            "create_github_repo_use_case",
+            "execute",
             "POST",
             "/repo/",
             {"name": "repo", "url": "https://github.com/org/repo"},

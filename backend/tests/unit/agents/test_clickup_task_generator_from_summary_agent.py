@@ -35,7 +35,7 @@ def test_generate_tasks_returns_generated_tasks(monkeypatch) -> None:
             GeneratedTaskFromSummary(
                 task_name="Build login",
                 task_description="Implement login flow",
-                task_assigne="Alice",
+                task_assignee="Alice",
                 task_status="To Do",
                 task_priority="High",
                 location="Backend",

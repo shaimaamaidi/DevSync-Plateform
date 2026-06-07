@@ -21,6 +21,7 @@ from backend.src.domain.exceptions.common.missing_env_variable_exception import 
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 from backend.src.domain.ports.output.i_jwt_handler import IJWTHandler
 
+
 logger = logging.getLogger(__name__)
 
 _BACKEND_DIR = Path(__file__).resolve().parents[3]
@@ -149,8 +150,9 @@ class JWTHandler(IJWTHandler):
 
             member_id = payload.get("sub")
             email = payload.get("mail")
+            #role = payload.get("role")
 
-            if not member_id or not email:
+            if not member_id or not email: # or not role
                 logger.error("Token missing required claims.")
                 raise InvalidTokenException("Session is invalid. Please log in again.")
 

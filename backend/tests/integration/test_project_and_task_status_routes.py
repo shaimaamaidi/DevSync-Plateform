@@ -39,20 +39,22 @@ def test_search_task_route_returns_matches(client: TestClient, container) -> Non
     Test that the task search route returns the matched tasks.
     """
     task = _clickup_task()
-    container.task_status_use_case.search_task.return_value = TaskSearchResponse(
-        status=TaskSearchStatus.SINGLE_MATCH,
-        message="One task found",
-        task=[task],
+    container.task_status_use_case.search_task = AsyncMock(
+        return_value=TaskSearchResponse(
+            status=TaskSearchStatus.SINGLE_MATCH,
+            message="One task found",
+            task=[task],
+        )
     )
 
-    payload = TaskSearchRequest(space_id="space-1", question="login flow").model_dump()
+    payload = TaskSearchRequest(space_id="space-1", description="login flow").model_dump()
 
     response = client.post("/task-status/search", json=payload)
 
     assert response.status_code == 200
     assert response.json()["status"] == TaskSearchStatus.SINGLE_MATCH.value
     assert response.json()["task"][0]["id"] == "task-1"
-    container.task_status_use_case.search_task.assert_called_once_with(question="login flow", space_id="space-1")
+    container.task_status_use_case.search_task.assert_awaited_once_with(description="login flow", space_id="space-1")
 
 
 def test_synthesize_task_status_route_returns_result(client: TestClient, container) -> None:
@@ -167,10 +169,12 @@ def test_find_task_by_commit_route_returns_mapping(client: TestClient, container
     """
     Test that the commit mapping route returns the matched task.
     """
-    container.commit_task_mapping_use_case.map_commit_task.return_value = MappedCommitTaskResponse(
-        status=CommitTaskMappingStatus.FOUND,
-        message="Task found",
-        task=_clickup_task("task-3", "Fix checkout"),
+    container.commit_task_mapping_use_case.map_commit_task = AsyncMock(
+        return_value=MappedCommitTaskResponse(
+            status=CommitTaskMappingStatus.FOUND,
+            message="Task found",
+            task=_clickup_task("task-3", "Fix checkout"),
+        )
     )
 
     response = client.post(
@@ -181,7 +185,7 @@ def test_find_task_by_commit_route_returns_mapping(client: TestClient, container
     assert response.status_code == 200
     assert response.json()["status"] == CommitTaskMappingStatus.FOUND.value
     assert response.json()["task"]["id"] == "task-3"
-    container.commit_task_mapping_use_case.map_commit_task.assert_called_once_with(
+    container.commit_task_mapping_use_case.map_commit_task.assert_awaited_once_with(
         commit="Fix checkout",
         space_id="space-1",
     )

@@ -7,12 +7,18 @@ Classes:
     MemberModel: SQLAlchemy ORM model for members.
 """
 
-from sqlalchemy import Column, Integer, String
+import enum
+
+from sqlalchemy import Column, Integer, String, Enum as SAEnum
 from sqlalchemy.orm import relationship
 
 from backend.src.infrastructure.persistence.base import BaseModel
 from backend.src.infrastructure.persistence.models.member_repo_association import member_repo_association
 
+
+class MemberRole(str, enum.Enum):
+    ADMIN = "admin"
+    MEMBER = "member"
 
 class MemberModel(BaseModel):
     """
@@ -33,6 +39,11 @@ class MemberModel(BaseModel):
     username = Column(String(255), nullable=False)
     arabic_name = Column(String(255), nullable=False)
     mail = Column(String(255), nullable=False, unique=True)
+    role = Column(
+        SAEnum(MemberRole, name="member_role_enum"),
+        nullable=False,
+        default=MemberRole.MEMBER,
+    )
     password = Column(String(255), nullable=False)
 
     repos = relationship(

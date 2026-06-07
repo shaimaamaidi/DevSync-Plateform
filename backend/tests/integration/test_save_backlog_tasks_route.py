@@ -12,14 +12,22 @@ def test_save_backlog_tasks_to_clickup(client: TestClient, container) -> None:
     """
     Test saving verified backlog tasks into ClickUp through the API.
     """
-    container.save_backlog_task_use_case.save_backlog_tasks_to_clickup.return_value = None
+    from backend.src.domain.entities.saved_tasks_request.task_sync_result import TaskSyncResult
+
+    container.save_backlog_task_use_case.save_backlog_tasks_to_clickup.return_value = TaskSyncResult(
+        total=1,
+        created=1,
+        updated=0,
+        failed=0,
+        failed_tasks=[],
+    )
 
     payload = SaveBacklogTasksRequest(
         tasks=[VerifiedTaskFromBacklog(
             action="create",
             task_name="Build login",
             task_description="Implement login",
-            task_assigne="Alice",
+            task_assignee="Alice",
             task_status="To Do",
             task_priority="High",
             location="Backend",

@@ -38,7 +38,6 @@ from backend.src.presentation.api.routers import (
     generation_tasks_from_summary_router,
     generation_backlog_router,
     verification_tasks_from_summary_router,
-    verification_tasks_from_backlog_router,
     saving_summary_tasks_router,
     saving_backlog_tasks_router,
     management_clickup_structure_router,
@@ -65,6 +64,7 @@ class _Container:
         self.associator_service = self.associator_use_case
         self.deployment_service = self.deployment_use_case
         self.auth_use_case = MagicMock()
+        self.create_github_repo_use_case = MagicMock()
         self.backlog_use_case = MagicMock()
         self.save_task_use_case = MagicMock()
         self.save_backlog_task_use_case = MagicMock()
@@ -104,7 +104,6 @@ def app(container: _Container) -> FastAPI:
     app.include_router(deployment_router.router, prefix="/deployment", tags=["Deployment"])
     app.include_router(generation_backlog_router.router, prefix="/backlog", tags=["Backlog"])
     app.include_router(verification_tasks_from_summary_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
-    app.include_router(verification_tasks_from_backlog_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
     app.include_router(generation_tasks_from_summary_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
     app.include_router(generation_tasks_from_backlog_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
     app.include_router(saving_summary_tasks_router.router, prefix="/clickup/tasks", tags=["ClickUp - Tasks"])
@@ -156,11 +155,6 @@ def app(container: _Container) -> FastAPI:
         return container.verify_task_use_case
 
     app.dependency_overrides[deps.get_verify_tasks_from_summary_use_case] = override_get_verify_task_use_case
-
-    def override_get_verify_task_backlog_use_case() -> MagicMock:
-        return container.verify_task_backlog_use_case
-
-    app.dependency_overrides[deps.get_verify_tasks_from_backlog_use_case] = override_get_verify_task_backlog_use_case
 
     def override_get_clickup_structure_metadata_use_case() -> MagicMock:
         return container.clickup_structure_metadata_use_case
@@ -244,7 +238,7 @@ def member_dto() -> MemberDTO:
     """
     Sample member DTO for tests.
     """
-    return MemberDTO(id=10, username="alice", arabic_name="أليس", mail="alice@example.com")
+    return MemberDTO(id=10, username="alice", arabic_name="أليس", mail="alice@example.com", role="member")
 
 
 @pytest.fixture
@@ -257,6 +251,7 @@ def member_with_repos_dto() -> MemberWithReposDTO:
         username="alice",
         arabic_name="أليس",
         mail="alice@example.com",
+        role="member",
         repos=[RepoSummary(id=1, name="repo-one", url="https://github.com/org/repo-one")],
     )
 

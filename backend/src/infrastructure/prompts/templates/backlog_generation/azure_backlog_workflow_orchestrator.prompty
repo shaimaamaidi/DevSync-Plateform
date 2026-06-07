@@ -16,7 +16,7 @@ tags:
 version: 2.0.0
 ---
 
-system:
+system: |
   You are an expert AI agent specialized in transforming software project descriptions into structured, market-aware product backlogs.
 
   # Role

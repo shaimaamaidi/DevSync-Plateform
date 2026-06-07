@@ -12,17 +12,21 @@ def test_find_task_by_commit(client: TestClient, container) -> None:
     """
     Test mapping a commit to a ClickUp task through the API.
     """
-    container.commit_task_mapping_use_case.map_commit_task.return_value = MappedCommitTaskResponse(
-        status=CommitTaskMappingStatus.FOUND,
-        message="Task found.",
-        task=ClickUpTask(
-            id="task-1",
-            name="Build login",
-            description="Implement login flow",
-            status="done",
-            assignee="alice@example.com",
-            priority="high",
-        ),
+    from unittest.mock import AsyncMock
+
+    container.commit_task_mapping_use_case.map_commit_task = AsyncMock(
+        return_value=MappedCommitTaskResponse(
+            status=CommitTaskMappingStatus.FOUND,
+            message="Task found.",
+            task=ClickUpTask(
+                id="task-1",
+                name="Build login",
+                description="Implement login flow",
+                status="done",
+                assignee="alice@example.com",
+                priority="high",
+            ),
+        )
     )
 
     response = client.post(
@@ -33,7 +37,7 @@ def test_find_task_by_commit(client: TestClient, container) -> None:
     assert response.status_code == 200
     assert response.json()["status"] == "FOUND"
     assert response.json()["task"]["id"] == "task-1"
-    container.commit_task_mapping_use_case.map_commit_task.assert_called_once_with(
+    container.commit_task_mapping_use_case.map_commit_task.assert_awaited_once_with(
         commit="fix login flow",
         space_id="space-1",
     )

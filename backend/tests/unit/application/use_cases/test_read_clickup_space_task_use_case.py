@@ -17,13 +17,13 @@ def test_get_tasks_by_space_calls_reader() -> None:
     """
     clickup_reader = MagicMock()
     expected = [FolderWithLists(id="folder-1", name="Backend", lists=[])]
-    clickup_reader.get_space_full_structure.return_value = expected
+    clickup_reader.get_space_full_structure_with_estimation.return_value = expected
     use_case = ReadClickUpSpaceTaskUseCase(clickup_reader)
 
     result = use_case.get_tasks_by_space("space-1")
 
     assert result == expected
-    clickup_reader.get_space_full_structure.assert_called_once_with("space-1")
+    clickup_reader.get_space_full_structure_with_estimation.assert_called_once_with("space-1")
 
 
 def test_get_tasks_by_space_raises_for_empty_space_id() -> None:

@@ -21,7 +21,6 @@ from backend.src.domain.ports.repositories.i_member_repository import IMemberRep
 logger = logging.getLogger(__name__)
 
 
-
 class MemberService(IMemberService):
     """
     Application service for member operations: creation, update, retrieval, and listing.

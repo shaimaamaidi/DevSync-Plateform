@@ -5,6 +5,7 @@ Unit tests for LLM-backed infrastructure agents.
 from datetime import datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
+import asyncio
 
 
 from backend.src.domain.entities.checked_project_status.inspected_stale_task_result import (
@@ -16,7 +17,7 @@ from backend.src.domain.entities.checked_project_status.inspected_unverified_don
     InspectedUnverifiedDoneTaskResult,
 )
 from backend.src.domain.entities.checked_task_status.synthesized_task_status_result import SynthesizedTaskStatusResult
-from backend.src.domain.entities.checked_task_status.task_search_result import TaskSearchResult
+from backend.src.domain.entities.checked_task_status.task_search_result import TaskSearchResult, TaskCandidate
 from backend.src.domain.entities.clickup.folder_with_lists import FolderWithLists
 from backend.src.domain.entities.clickup.list_with_tasks import ClickUpList, ClickUpTask
 from backend.src.domain.entities.github.commit import CommitDTO
@@ -135,7 +136,7 @@ def test_stale_task_inspector_returns_tasks(monkeypatch) -> None:
         MagicMock(return_value=InspectedStaleTaskListResult(tasks=expected)),
     )
 
-    result = agent.inspect_stale_tasks([task], [commit])
+    result = asyncio.run(agent.inspect_stale_tasks([task], [commit]))
 
     assert result == expected
 
@@ -148,7 +149,7 @@ def test_stale_task_inspector_returns_empty_list_when_no_result(monkeypatch) -> 
     agent = StaleTaskInspectorAgent(_prompt_loader())
     monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=InspectedStaleTaskListResult(tasks=[])))
 
-    result = agent.inspect_stale_tasks([_task()], [_commit()])
+    result = asyncio.run(agent.inspect_stale_tasks([_task()], [_commit()]))
 
     assert result == []
 
@@ -175,7 +176,7 @@ def test_unverified_done_task_inspector_returns_tasks(monkeypatch) -> None:
         MagicMock(return_value=InspectedUnverifiedDoneTaskListResult(tasks=expected)),
     )
 
-    result = agent.verify_done_tasks([_task("task-2", "Ship release")], [_commit()])
+    result = asyncio.run(agent.verify_done_tasks([_task("task-2", "Ship release")], [_commit()]))
 
     assert result == expected
 
@@ -188,7 +189,7 @@ def test_unverified_done_task_inspector_returns_empty_list_when_no_result(monkey
     agent = UnverifiedDoneTaskInspectorAgent(_prompt_loader())
     monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=InspectedUnverifiedDoneTaskListResult(tasks=[])))
 
-    result = agent.verify_done_tasks([_task()], [_commit()])
+    result = asyncio.run(agent.verify_done_tasks([_task()], [_commit()]))
 
     assert result == []
 
@@ -200,14 +201,10 @@ def test_task_search_agent_returns_matching_tasks(monkeypatch) -> None:
     _prepare_agent_env(monkeypatch)
     agent = TaskSearchAgent(_prompt_loader())
     task = _task()
-    folder = FolderWithLists(
-        id="folder-1",
-        name="Backend",
-        lists=[ClickUpList(id="list-1", name="Sprint", tasks=[task], statuses=[], priorities=[])],
-    )
-    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=TaskSearchResult(ids=["task-1"])))
+    # TaskSearchAgent expects a flat list of ClickUpTask objects
+    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=TaskSearchResult(candidates=[TaskCandidate(id="task-1", confidence=1.0)])))
 
-    result = agent.search_task("login flow", [folder])
+    result = asyncio.run(agent.search_task("login flow", [task]))
 
     assert result == [task]
 
@@ -218,14 +215,9 @@ def test_task_search_agent_returns_empty_list_when_no_ids(monkeypatch) -> None:
     """
     _prepare_agent_env(monkeypatch)
     agent = TaskSearchAgent(_prompt_loader())
-    folder = FolderWithLists(
-        id="folder-1",
-        name="Backend",
-        lists=[ClickUpList(id="list-1", name="Sprint", tasks=[_task()], statuses=[], priorities=[])],
-    )
-    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=TaskSearchResult(ids=[])))
+    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=TaskSearchResult(candidates=[])))
 
-    result = agent.search_task("login flow", [folder])
+    result = asyncio.run(agent.search_task("login flow", [_task()]))
 
     assert result == []
 
@@ -245,7 +237,8 @@ def test_task_status_synthesizer_returns_result(monkeypatch) -> None:
     )
     monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=expected))
 
-    result = agent.synthesize_task_status(task, [_deployment()], [_commit()], {"signal": True})
+    # synthesize_task_status expects (task, commits, signals)
+    result = agent.synthesize_task_status(task, [_commit()], {"signal": True})
 
     assert result == expected
 
@@ -259,7 +252,7 @@ def test_task_status_synthesizer_returns_fallback_when_no_result(monkeypatch) ->
     task = _task()
     monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=None))
 
-    result = agent.synthesize_task_status(task, [], [], {})
+    result = agent.synthesize_task_status(task, [], {})
 
     assert result.is_completed is True
     assert result.confidence == "low"
@@ -289,7 +282,7 @@ def test_weekly_commits_summarizer_returns_empty_string_when_no_summary(monkeypa
 
     result = agent.summarize_commits([_commit()])
 
-    assert result == ""
+    assert result == "No commits were recorded this week."
 
 
 def test_weekly_deployments_summarizer_returns_summary(monkeypatch) -> None:
@@ -315,4 +308,4 @@ def test_weekly_deployments_summarizer_returns_empty_string_when_no_summary(monk
 
     result = agent.summarize_deployments([_deployment()])
 
-    assert result == ""
+    assert result == "No deployments were recorded this week."

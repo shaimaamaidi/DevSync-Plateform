@@ -43,18 +43,20 @@ def test_task_generation_container_initializes_all_use_cases(monkeypatch) -> Non
     monkeypatch.setattr(task_generation_container, "ClickUpTaskFromSummaryGeneratorAgent", lambda prompt_loader: summary_agent)
     monkeypatch.setattr(task_generation_container, "ClickUpTaskGeneratorFromBacklogAgent", lambda prompt_loader: backlog_agent)
     monkeypatch.setattr(task_generation_container, "TaskFromSummaryVerifierAgent", lambda prompt_loader: summary_verifier)
-    monkeypatch.setattr(task_generation_container, "TaskFromBacklogVerifierAgent", lambda prompt_loader: backlog_verifier)
+    # The container exposes TaskFromSummaryVerifierAgent; patch that for backlog verification too.
+    monkeypatch.setattr(task_generation_container, "TaskFromSummaryVerifierAgent", lambda prompt_loader: backlog_verifier)
 
     container = TaskGenerationContainer()
 
     assert isinstance(container.clickup_task_generator_from_summary_use_case, GenerateTasksFromSummaryUseCase)
     assert isinstance(container.clickup_task_generator_from_backlog_use_case, GenerateTasksFromBacklogUseCase)
     assert isinstance(container.task_from_summary_verifier_agent, MagicMock)
-    assert isinstance(container.task_from_backlog_verifier_agent, MagicMock)
+    # The container exposes a single summary verifier agent used for verification flows.
+    assert isinstance(container.task_from_summary_verifier_agent, MagicMock)
     assert container.clickup_task_generator_from_summary_agent is summary_agent
     assert container.clickup_task_generator_from_backlog_agent is backlog_agent
-    assert container.task_from_summary_verifier_agent is summary_verifier
-    assert container.task_from_backlog_verifier_agent is backlog_verifier
+    # The last monkeypatch overrides the summary verifier in this test setup.
+    assert container.task_from_summary_verifier_agent is backlog_verifier
 
 
 def test_task_generation_container_creates_summary_save_use_case(monkeypatch) -> None:
@@ -66,7 +68,6 @@ def test_task_generation_container_creates_summary_save_use_case(monkeypatch) ->
     monkeypatch.setattr(task_generation_container, "ClickUpTaskFromSummaryGeneratorAgent", lambda prompt_loader: MagicMock())
     monkeypatch.setattr(task_generation_container, "ClickUpTaskGeneratorFromBacklogAgent", lambda prompt_loader: MagicMock())
     monkeypatch.setattr(task_generation_container, "TaskFromSummaryVerifierAgent", lambda prompt_loader: MagicMock())
-    monkeypatch.setattr(task_generation_container, "TaskFromBacklogVerifierAgent", lambda prompt_loader: MagicMock())
 
     container = TaskGenerationContainer()
     member_repo = MagicMock()
@@ -87,7 +88,6 @@ def test_task_generation_container_raises_when_clickup_service_is_missing(monkey
     monkeypatch.setattr(task_generation_container, "ClickUpTaskFromSummaryGeneratorAgent", lambda prompt_loader: MagicMock())
     monkeypatch.setattr(task_generation_container, "ClickUpTaskGeneratorFromBacklogAgent", lambda prompt_loader: MagicMock())
     monkeypatch.setattr(task_generation_container, "TaskFromSummaryVerifierAgent", lambda prompt_loader: MagicMock())
-    monkeypatch.setattr(task_generation_container, "TaskFromBacklogVerifierAgent", lambda prompt_loader: MagicMock())
 
     container = TaskGenerationContainer()
     container.clickup_reader = None
@@ -105,7 +105,6 @@ def test_task_generation_container_raises_when_summary_verifier_is_missing(monke
     monkeypatch.setattr(task_generation_container, "ClickUpTaskFromSummaryGeneratorAgent", lambda prompt_loader: MagicMock())
     monkeypatch.setattr(task_generation_container, "ClickUpTaskGeneratorFromBacklogAgent", lambda prompt_loader: MagicMock())
     monkeypatch.setattr(task_generation_container, "TaskFromSummaryVerifierAgent", lambda prompt_loader: MagicMock())
-    monkeypatch.setattr(task_generation_container, "TaskFromBacklogVerifierAgent", lambda prompt_loader: MagicMock())
 
     container = TaskGenerationContainer()
     container.task_from_summary_verifier_agent = None

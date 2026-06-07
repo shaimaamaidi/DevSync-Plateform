@@ -28,6 +28,7 @@ from backend.src.infrastructure.persistence.models.git_repo_model import GitRepo
 from backend.src.infrastructure.persistence.models.member_model import MemberModel
 from backend.src.shared.helpers.password_helper import hash_password
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +42,13 @@ def _model_to_dto(m: MemberModel) -> MemberDTO:
     Returns:
         MemberDTO: Member DTO.
     """
-    return MemberDTO(id=m.id, username=m.username, arabic_name=m.arabic_name, mail=m.mail)
+    return MemberDTO(
+        id=m.id,
+        username=m.username,
+        arabic_name=m.arabic_name,
+        mail=m.mail,
+        role=m.role
+    )
 
 def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
     """
@@ -58,7 +65,14 @@ def _model_to_with_repos_dto(m: MemberModel) -> MemberWithReposDTO:
     if m.repos:
         repos = [RepoSummary(name=r.name, url=r.url, id=r.id) for r in m.repos if r is not None]
 
-    return MemberWithReposDTO(id=m.id, username=m.username, arabic_name=m.arabic_name, mail=m.mail, repos=repos)
+    return MemberWithReposDTO(
+        id=m.id,
+        username=m.username,
+        arabic_name=m.arabic_name,
+        role=m.role,
+        mail=m.mail,
+        repos=repos
+    )
 
 
 class SqlAlchemyMemberRepository(IMemberRepository):
@@ -109,7 +123,12 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         logger.info("Credentials fetched successfully (mail=%s).", mail)
 
-        return MemberCredentialsDTO(id=m.id, mail=m.mail, hashed_password=m.password)
+        return MemberCredentialsDTO(
+            id=m.id,
+            mail=m.mail,
+            role=m.role,
+            hashed_password=m.password
+        )
 
     def save(self, member: MemberCreateDTO) -> MemberDTO:
         """
@@ -125,16 +144,23 @@ class SqlAlchemyMemberRepository(IMemberRepository):
             MemberPersistenceException: For database errors during persistence.
         """
         logger.info(
-            "Creating new member (username=%s, arabic_name=%s, mail=%s).",
+            "Creating new member (username=%s, arabic_name=%s, role=%s, mail=%s).",
             member.username,
             member.arabic_name,
+            member.role,
             member.mail,
         )
 
         try:
             hashed_password = hash_password(member.password)
 
-            m = MemberModel(username=member.username, mail=member.mail, arabic_name=member.arabic_name,password=hashed_password)
+            m = MemberModel(
+                username=member.username,
+                mail=member.mail,
+                arabic_name=member.arabic_name,
+                role=member.role,
+                password=hashed_password
+            )
             self._session.add(m)
 
             self._session.commit()
@@ -199,6 +225,9 @@ class SqlAlchemyMemberRepository(IMemberRepository):
 
         if member.mail:
             m.mail = member.mail
+
+        if member.role:
+            m.role = member.role
 
         if member.password:
             hashed_password = hash_password(member.password)

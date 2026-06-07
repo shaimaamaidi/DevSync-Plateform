@@ -84,7 +84,7 @@ class AuthUseCase(IAuthUseCase):
             raise InvalidInputException("Invalid email or password.")
 
 
-        data = {"sub": str(credentials.id), "mail": credentials.mail}
+        data = {"sub": str(credentials.id), "mail": credentials.mail, "role": credentials.role}
 
         access_token = self._jwt_handler.create_access_token(data=data)
 
@@ -103,7 +103,11 @@ class AuthUseCase(IAuthUseCase):
 
         logger.info("Member logged in successfully (id=%s).", credentials.id)
 
-        return MemberTokensDTO(access_token=access_token, refresh_token=refresh_token)
+        return MemberTokensDTO(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            role=credentials.role,
+        )
 
     def refresh(self, refresh_token: str) -> MemberTokensDTO:
         """
@@ -168,7 +172,11 @@ class AuthUseCase(IAuthUseCase):
 
         self._refresh_token_repo.revoke_refresh_token(refresh_token)
 
-        data = {"sub": payload["sub"], "mail": payload["mail"]}
+        data = {
+            "sub": payload["sub"],
+            "mail": payload["mail"],
+            "role": payload["role"],
+        }
 
         new_access_token = self._jwt_handler.create_access_token(data=data)
         new_refresh_token, expires_at = self._jwt_handler.create_refresh_token(data=data)
@@ -186,7 +194,11 @@ class AuthUseCase(IAuthUseCase):
 
         logger.info("Tokens refreshed successfully (member_id=%s).", record.member_id)
 
-        return MemberTokensDTO(access_token=new_access_token, refresh_token=new_refresh_token)
+        return MemberTokensDTO(
+            access_token=new_access_token,
+            refresh_token=new_refresh_token,
+            role=payload["role"],
+        )
 
     def logout(self, refresh_token: str) -> None:
         """

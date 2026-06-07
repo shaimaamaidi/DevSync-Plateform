@@ -30,5 +30,5 @@ def test_format_backlog_basic_structure() -> None:
     result = format_backlog(backlog)
 
     assert "EPIC: Epic" in result
-    assert "USER STORY: Story" in result
-    assert "- Task: Task desc" in result
+    assert "STORY: Story" in result
+    assert "TASK: Task: Task desc" in result

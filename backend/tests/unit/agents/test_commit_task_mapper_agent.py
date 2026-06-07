@@ -29,7 +29,7 @@ def test_map_commit_task_returns_matched_task(monkeypatch) -> None:
     agent = CommitTaskMapperAgent(prompt_loader)
     task_one = ClickUpTask(id="task-1", name="Build login", description="Desc", status="done", assignee="alice@example.com", priority="high")
     task_two = ClickUpTask(id="task-2", name="Ship release", description="Desc", status="done", assignee="bob@example.com", priority="high")
-    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=CommitTaskMapperResult(id="task-2")))
+    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=CommitTaskMapperResult(id="task-2", confidence=1.0)))
 
     result = agent.map_commit_task("fix login", [task_one, task_two])
 
@@ -47,7 +47,7 @@ def test_map_commit_task_returns_none_for_missing_match(monkeypatch) -> None:
     prompt_loader = MagicMock()
     agent = CommitTaskMapperAgent(prompt_loader)
     task = ClickUpTask(id="task-1", name="Build login", description="Desc", status="done", assignee="alice@example.com", priority="high")
-    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=CommitTaskMapperResult(id="missing-task")))
+    monkeypatch.setattr(agent, "_call_llm", MagicMock(return_value=CommitTaskMapperResult(id="missing-task", confidence=1.0)))
 
     result = agent.map_commit_task("fix login", [task])
 

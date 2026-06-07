@@ -3,6 +3,7 @@ Unit tests for MapCommitTaskUseCase.
 """
 
 from types import SimpleNamespace
+import asyncio
 from unittest.mock import MagicMock
 
 from backend.src.application.use_cases.map_commit_task_use_case import MapCommitTaskUseCase
@@ -22,7 +23,7 @@ def test_map_commit_task_returns_empty_status_when_space_has_no_tasks() -> None:
 
     use_case = MapCommitTaskUseCase(clickup_reader, mapper)
 
-    result = use_case.map_commit_task("commit-1", "space-1")
+    result = asyncio.run(use_case.map_commit_task("commit-1", "space-1"))
 
     assert result.status == CommitTaskMappingStatus.CLICK_UP_EMPTY
     assert result.task is None
@@ -44,7 +45,15 @@ def test_map_commit_task_returns_found_response() -> None:
 
     use_case = MapCommitTaskUseCase(clickup_reader, mapper)
 
-    result = use_case.map_commit_task("commit-1", "space-1")
+    # Patch async filter to return the eligible tasks immediately
+    import backend.src.application.use_cases.map_commit_task_use_case as mapmod
+
+    async def fake_filter(_reader, _tasks):
+        return [task]
+
+    mapmod.filter_search_candidates = fake_filter
+
+    result = asyncio.run(use_case.map_commit_task("commit-1", "space-1"))
 
     assert result.status == CommitTaskMappingStatus.FOUND
     assert result.task == task

@@ -36,7 +36,7 @@ def test_base_task_verifier_filtering_keeps_changed_results():
     r.task_name = "t"
     r.task_status = "done"
     r.task_priority = None
-    r.task_assigne = ""
+    r.task_assignee = ""
 
     filtered = verifier._filter_unchanged_updates([r], existing)
     assert filtered == [r]

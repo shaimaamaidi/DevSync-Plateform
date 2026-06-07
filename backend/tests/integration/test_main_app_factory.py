@@ -8,7 +8,8 @@ import types
 from fastapi.middleware.cors import CORSMiddleware
 
 _dummy_persistence = types.ModuleType("backend.src.infrastructure.di.persistence_container")
-_dummy_persistence.Container = lambda session: None
+_dummy_persistence.PersistenceContainer = lambda session: None
+_dummy_persistence.Container = _dummy_persistence.PersistenceContainer
 sys.modules["backend.src.infrastructure.di.persistence_container"] = _dummy_persistence
 
 from backend.src.infrastructure.handlers.exception_handler import FastAPIExceptionHandler

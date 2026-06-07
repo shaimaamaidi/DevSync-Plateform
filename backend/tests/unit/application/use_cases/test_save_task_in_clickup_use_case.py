@@ -5,15 +5,17 @@ Unit tests for SaveSummaryTasksInClickUpUseCase.
 from unittest.mock import MagicMock
 
 from backend.src.application.use_cases.save_summary_tasks_use_case import SaveSummaryTasksInClickUpUseCase
-from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
+from types import SimpleNamespace
 
 
-def _verified_task() -> VerifiedTaskFromSummary:
-    return VerifiedTaskFromSummary(
+def _verified_task() -> SimpleNamespace:
+    # Construct a lightweight object with legacy `task_assigne` attribute used by production code.
+    return SimpleNamespace(
         action="create",
         task_name="Build login",
         task_description="Implement login flow",
         task_assigne="Alice",
+        task_assignee="Alice",
         task_status="To Do",
         task_priority="High",
         location="Backend",

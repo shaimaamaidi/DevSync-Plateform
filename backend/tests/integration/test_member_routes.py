@@ -12,7 +12,7 @@ def test_get_all_with_repos(client: TestClient, container) -> None:
     Test getting all members with their repos via the API returns the correct list.
     """
     container.member_service.get_all_with_repos.return_value = [
-        MemberWithReposDTO(id=1, username="alice", arabic_name="علي", mail="a@b.com", repos=[])
+        MemberWithReposDTO(id=1, username="alice", arabic_name="علي", mail="a@b.com", role="member", repos=[])
     ]
 
     response = client.get("/member/all-with-repos")
@@ -26,7 +26,7 @@ def test_add_member(client: TestClient, container) -> None:
     """
     Test adding a member via the API returns the correct DTO.
     """
-    container.member_service.add_member.return_value = MemberDTO(id=2, username="bob", arabic_name="بوب", mail="b@c.com")
+    container.member_service.add_member.return_value = MemberDTO(id=2, username="bob", arabic_name="بوب", mail="b@c.com", role="member")
 
     response = client.post("/member/", json={"username": "bob", "arabic_name": "بوب", "mail": "b@c.com", "password": "secret"})
 

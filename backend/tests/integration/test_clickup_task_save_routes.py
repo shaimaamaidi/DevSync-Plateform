@@ -5,6 +5,7 @@ Integration tests for ClickUp task save route.
 from fastapi.testclient import TestClient
 
 from backend.src.domain.entities.saved_tasks_request.save_summary_tasks_request import SaveSummaryTasksRequest
+from backend.src.domain.entities.saved_tasks_request.task_sync_result import TaskSyncResult
 from backend.src.domain.entities.verified_tasks.verified_task_from_summary import VerifiedTaskFromSummary
 
 
@@ -12,14 +13,20 @@ def test_save_summary_tasks_to_clickup(client: TestClient, container) -> None:
     """
     Test saving verified tasks into ClickUp through the API.
     """
-    container.save_task_use_case.save_summary_tasks_to_clickup.return_value = None
+    container.save_task_use_case.save_summary_tasks_to_clickup.return_value = TaskSyncResult(
+        total=1,
+        created=1,
+        updated=0,
+        failed=0,
+        failed_tasks=[],
+    )
 
     payload = SaveSummaryTasksRequest(
         tasks=[VerifiedTaskFromSummary(
             action="create",
             task_name="Build login",
             task_description="Implement login",
-            task_assigne="Alice",
+            task_assignee="Alice",
             task_status="To Do",
             task_priority="High",
             location="Backend",

@@ -55,31 +55,35 @@ async def main():
         Exception:
             Any exception raised during Azure agent update process
     """
-    logger.info("Starting backlog agents update script.")
+    try:
+        logger.info("Starting backlog agents update script.")
 
-    container = BacklogGenerationContainer()
+        container = BacklogGenerationContainer()
 
-    # Web Search Agent
-    await container.initialize_web_search_tool()
+        # Web Search Agent
+        await container.initialize_web_search_tool()
 
-    logger.info("Updating web search agent tools and instructions on Azure.")
+        logger.info("Updating web search agent tools and instructions on Azure.")
 
-    await container.web_search_agent.update_agent_tools()
+        await container.web_search_agent.update_agent_tools()
 
-    # Backlog Workflow Orchestrator
-    instructions = container.prompt_loader.get_backlog_orchestrator_instructions()
-    orchestrator = await container.backlog_workflow_orchestrator_factory()
+        # Backlog Workflow Orchestrator
+        instructions = container.prompt_loader.get_backlog_orchestrator_instructions()
+        orchestrator = await container.backlog_workflow_orchestrator_factory()
 
-    logger.info("Updating orchestrator tools and instructions on Azure.")
+        logger.info("Updating orchestrator tools and instructions on Azure.")
 
-    await orchestrator.update_agent_tools(instructions)
+        await orchestrator.update_agent_tools(instructions)
 
-    #logger.info("Listing updated orchestrator tools.")
+        #logger.info("Listing updated orchestrator tools.")
 
-    #await orchestrator.list_agent_tools()
+        #await orchestrator.list_agent_tools()
 
-    logger.info("All backlog agents updated successfully.")
+        logger.info("All backlog agents updated successfully.")
 
+    except Exception:
+        logger.exception("Failed to update backlog agents.")
+        raise
 
 if __name__ == "__main__":
     asyncio.run(main())

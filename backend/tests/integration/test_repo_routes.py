@@ -27,7 +27,8 @@ def test_add_repo(client: TestClient, container) -> None:
     """
     Test adding a repository via the API returns the correct DTO.
     """
-    container.repo_service.add_repo.return_value = GitRepoDTO(
+    # production route uses create_github_repo_use_case.execute
+    container.create_github_repo_use_case.execute.return_value = GitRepoDTO(
         id=2,
         name="repo-two",
         url="https://github.com/org/repo-two",
@@ -40,7 +41,7 @@ def test_add_repo(client: TestClient, container) -> None:
 
     assert response.status_code == 200
     assert response.json()["id"] == 2
-    container.repo_service.add_repo.assert_called_once()
+    container.create_github_repo_use_case.execute.assert_called_once()
 
 
 def test_get_repo_by_id_returns_not_found(client: TestClient, container) -> None:

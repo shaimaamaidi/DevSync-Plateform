@@ -71,9 +71,9 @@ async def search_task(
             - task: list of matching ClickUp tasks (0, 1, or up to 3)
     """
     logger.info(
-        "Searching ClickUp tasks: space_id=%s, question=%s.",
+        "Searching ClickUp tasks: space_id=%s, description=%s.",
         body.space_id,
-        body.question,
+        body.description,
     )
 
     result = await use_case.search_task(

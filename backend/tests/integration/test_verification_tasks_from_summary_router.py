@@ -17,7 +17,7 @@ def test_verify_tasks_from_summary(client: TestClient, container) -> None:
             action="update",
             task_name="Build login",
             task_description="Implement login flow",
-            task_assigne="Alice",
+            task_assignee="Alice",
             task_status="To Do",
             task_priority="High",
             location="Backend",
@@ -31,7 +31,7 @@ def test_verify_tasks_from_summary(client: TestClient, container) -> None:
             GeneratedTaskFromSummary(
                 task_name="Build login",
                 task_description="Implement login flow",
-                task_assigne="Alice",
+                task_assignee="Alice",
                 task_status="To Do",
                 task_priority="High",
                 location="Backend",

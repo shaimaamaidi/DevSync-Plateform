@@ -88,6 +88,7 @@ def test_remove_members_builds_payload() -> None:
         username="bob",
         arabic_name="بوب",
         mail="bob@example.com",
+        role="member",
         repos=[],
     )
     repo_service.update.return_value = GitRepoDetailDTO(

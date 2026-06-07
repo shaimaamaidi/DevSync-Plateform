@@ -15,6 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 from backend.src.infrastructure.di.persistence_container import PersistenceContainer
 
+
 logger = logging.getLogger(__name__)
 
 
