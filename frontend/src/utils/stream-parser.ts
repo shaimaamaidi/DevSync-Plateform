@@ -47,7 +47,7 @@ export async function readSseStream(
           const errorLike = { response: { status, data: { error: { code, message } } } };
           const action = resolveErrorAction(errorLike);
 
-          const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | null =
+          const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | 'NETWORK_DOWN' | null =
             action === 'SILENT' ? null : action;
 
           if (emitAction) {
@@ -97,14 +97,16 @@ export async function readSseStream(
     }
 
     if (err instanceof Error) {
-      const isAlreadyEmitted =
-        err.message === 'Session expired. Redirecting to login.';
-
+      const isAlreadyEmitted = err.message === 'Session expired. Redirecting to login.';
       if (!isAlreadyEmitted) {
+        const isNetworkError =
+          err instanceof TypeError &&
+          (err.message === 'Failed to fetch' || err.message === 'Network Error');
+
         emitAxiosError({
-          action: 'NOTIFY',
+          action: isNetworkError ? 'NETWORK_DOWN' : 'NOTIFY',
           message: err.message || 'Stream connection lost',
-          code: 'STREAM_EXECUTION_ERROR',
+          code: isNetworkError ? null : 'STREAM_EXECUTION_ERROR',
         });
       }
     }

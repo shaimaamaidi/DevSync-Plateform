@@ -118,7 +118,7 @@ async function assertSseResponse(response: Response): Promise<ReadableStream<Uin
     const errorLike = buildErrorLike(response.status, { message });
     const action = resolveErrorAction(errorLike);
     const code = extractErrorCode(errorLike);
-    const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | null =
+    const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | 'NETWORK_DOWN' | null =
       action === 'SILENT' ? null : action;
 
     if (emitAction) {
@@ -133,7 +133,21 @@ async function assertSseResponse(response: Response): Promise<ReadableStream<Uin
 async function postStream(endpoint: string, body: unknown): Promise<ReadableStream<Uint8Array>> {
   const url = buildEndpointUrl(endpoint);
   const init = buildRequestInit(body);
-  const response = await fetchWithAuthRetry(url, init);
+
+  let response: Response;
+  try {
+    response = await fetchWithAuthRetry(url, init);
+  } catch (err) {
+    const isNetworkError =
+      err instanceof TypeError &&
+      (err.message === 'Failed to fetch' || err.message === 'Network Error');
+
+    if (isNetworkError) {
+      emitAxiosError({ action: 'NETWORK_DOWN', message: 'Network error', code: null });
+    }
+    throw err;
+  }
+
   return assertSseResponse(response);
 }
 
