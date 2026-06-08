@@ -119,7 +119,7 @@ export function MarketCard({ data, editable, onSubmit }: MarketCardProps) {
     if (!current.trim()) {
       const previous = (normalizedData[key] as string) ?? "";
       setDraft((prev) => ({ ...prev, [key]: previous }));
-      setTextErrors((prev) => ({ ...prev, [key]: "Ce champ ne peut pas être vide." }));
+      setTextErrors((prev) => ({ ...prev, [key]: "This field cannot be empty." }));
     } else {
       setTextErrors((prev) => ({ ...prev, [key]: undefined }));
     }
@@ -139,7 +139,7 @@ export function MarketCard({ data, editable, onSubmit }: MarketCardProps) {
     const errors: Partial<Record<SectionKey, string>> = {};
     TEXT_REQUIRED_KEYS.forEach((key) => {
       const val = (draft[key] as string) ?? "";
-      if (!val.trim()) errors[key] = "Ce champ ne peut pas être vide.";
+      if (!val.trim()) errors[key] = "This field cannot be empty.";
     });
     if (Object.keys(errors).length > 0) {
       setTextErrors(errors);
@@ -228,15 +228,15 @@ export function MarketCard({ data, editable, onSubmit }: MarketCardProps) {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 mt-1 gap-3">
           <p className="m-0 text-[12px] text-slate-500 leading-relaxed">
             {hasChanges
-              ? "Soumettez vos modifications pour valider et générer le backlog."
-              : "Aucune modification détectée. Lancez la génération pour créer le backlog avec les données actuelles."}
+              ? "Submit your changes to validate and generate the backlog."
+              : "No changes detected. Launch the generation to create the backlog with the current data."}
           </p>
           <button
             onClick={handleSubmit}
             className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-[12px] font-bold hover:bg-slate-700 border-none cursor-pointer transition-colors shrink-0 sm:ml-4 w-full sm:w-auto"
           >
             <FlagTriangleRight size={15} strokeWidth={2} />
-            {hasChanges ? "Valider & Générer le Backlog" : "Lancer la Génération"}
+            {hasChanges ? "Validate & Generate Backlog" : "Launch Generation"}
           </button>
         </div>
       )}

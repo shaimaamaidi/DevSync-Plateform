@@ -1,4 +1,4 @@
-import { emitAxiosError, type AxiosErrorEvent } from '@/api/axios-interceptor';
+import { emitAxiosErrorNetworkOnly, type AxiosErrorEvent } from '@/api/axios-interceptor';
 import { resolveErrorAction } from './error-handler';
 
 export interface StreamResult {
@@ -23,7 +23,7 @@ export async function readSseStream(
 ): Promise<StreamResult> {
   const reader  = stream.getReader();
   const decoder = new TextDecoder();
-  let buffer    = "";
+  let buffer = "";
   let threadId: string | null = null;
   const textChunks: string[]  = [];
   let invalidDescription: { message: string } | null = null;
@@ -50,7 +50,7 @@ export async function readSseStream(
           const emitAction: AxiosErrorEvent["action"] | null = action === 'SILENT' ? null : action as AxiosErrorEvent["action"];
 
           if (emitAction) {
-            emitAxiosError({ action: emitAction as AxiosErrorEvent["action"], message, code, status });
+            emitAxiosErrorNetworkOnly({ action: emitAction as AxiosErrorEvent["action"], message, code, status });
           }
 
           throw new SseBusinessError(message);
@@ -64,9 +64,12 @@ export async function readSseStream(
           textChunks.push(payload.text);
           onChunk?.(payload.text);
         }
-        if (payload?.invalid_description === true && payload?.message) {
+        if (
+          (payload?.invalid_description === true && payload?.message) ||
+          (payload?.status === "invalid" && payload?.message)
+        ) {
           invalidDescription = { message: payload.message };
-          onInvalidDescription?.(payload.message); 
+          onInvalidDescription?.(payload.message);
         }
       } catch (err) {
         if (err instanceof SseBusinessError) {
@@ -103,7 +106,7 @@ export async function readSseStream(
 
         const errorLike = { response: { status: 503, data: { error: { code: 'STREAM_EXECUTION_ERROR', message: err.message || 'Stream connection lost' } } } };
         const action = resolveErrorAction(errorLike);
-        emitAxiosError({
+        emitAxiosErrorNetworkOnly({
           action: isNetworkError ? 'NETWORK_DOWN' : action as AxiosErrorEvent["action"],
           message: err.message || 'Stream connection lost',
           code: isNetworkError ? null : 'STREAM_EXECUTION_ERROR',

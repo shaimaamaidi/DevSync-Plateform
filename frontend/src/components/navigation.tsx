@@ -78,7 +78,7 @@ export function Navigation({ onTabChange }: NavigationProps) {
             <div className="flex-1 flex items-center justify-center">
               {loading ? (
                 <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
-                  {Array.from({ length: NAV_ITEMS.length }).map((_, i) => (
+                  {Array.from({ length: visibleNavItems.length }).map((_, i) => (
                     <div key={i} className="h-9 w-24 rounded-md bg-muted-foreground/20 animate-pulse" />
                   ))}
                 </div>

@@ -13,7 +13,7 @@ tags:
   - market-intelligence
   - quality-control
   - backlog
-version: 2.0.0
+version: 2.1.0
 ---
 
 system: |
@@ -78,6 +78,17 @@ system: |
      - empty hype without technical meaning
      - e.g. "Next-gen disruptive innovation platform"
      - e.g. "revolutionary paradigm-shifting solution"
+
+  5. Internal Contradiction
+     - a single item or string that simultaneously recommends something AND states that same thing is harmful or counterproductive
+     - the contradiction must be direct and within the same item — not a nuanced trade-off
+     - EXAMPLES:
+       * "Automation is recommended, but automation reduces product effectiveness" → REMOVE
+       * "Add customization options, even though customization undermines the automation the product is built on" → REMOVE
+       * "Use real-time sync for better UX, but real-time sync degrades performance for all users" → REMOVE
+     - NOTE: A nuanced statement acknowledging a trade-off is NOT automatically a contradiction.
+       A contradiction is only flagged when the item both recommends X AND states X is harmful TO THE SAME PRODUCT in the same breath, with no resolution or context.
+     - RULE: Ask "Does this item recommend an action while simultaneously arguing that action damages the product it applies to?" If YES → Internal Contradiction.
 
   IMPORTANT:
   - NEVER remove realistic SaaS / enterprise concepts
@@ -150,7 +161,7 @@ system: |
   MUST follow this structure:
 
   1. Exact removed items (verbatim)
-  2. Rule triggered (Buzzword / Domain Mismatch / Unverifiable / Noise)
+  2. Rule triggered (Buzzword / Domain Mismatch / Unverifiable / Noise / Internal Contradiction)
   3. Why item violates rule (factual only)
   4. No interpretation, no improvement language
 
@@ -162,24 +173,10 @@ system: |
   - better
   - focus
 
-  GOOD EXAMPLE:
+  GOOD EXAMPLES:
   "Removed 'NFT-based healthcare identity system' due to Domain Mismatch rule. The item introduces blockchain identity concepts not present in a healthcare appointment system."
   "Removed 'quantum-resistant reservation encryption' due to Domain Mismatch rule. The item introduces an advanced security concept not relevant to the core functionality of a restaurant booking system."
-
-  # FIELD MAPPING CLARIFICATION (CRITICAL)
-  The output contains TWO distinct fields — never confuse them:
-
-  CONTENT RULE:
-  - refined_enrichment_notes is ALWAYS the filtered copy of input enrichment_notes
-  - If input enrichment_notes is valid → copy verbatim
-  - If input enrichment_notes is fully invalid → return "No valid data available"
-  - This field is NEVER empty ("") — it always reflects the input state
-
-  - cause:
-    → This is the forensic log of ALL removed items across ALL fields
-    → Format: "Removed 'X' due to Y rule. Reason."
-    → If nothing removed → return ""
-    → NEVER copy enrichment_notes content here
+  "Removed 'Add customization options, even though customization undermines the automation the product is built on' due to Internal Contradiction rule. The item simultaneously recommends customization and declares it harmful to the product's core automation."
 
   # FINAL OUTPUT FORMAT (STRICT JSON ONLY)
   {
@@ -212,6 +209,7 @@ user: |
   - Validate strictly across ALL fields without exception
   - Remove only invalid items
   - For each item ask: "Is this directly needed to deliver the core functionality described?" If NO → remove it
+  - For each item also ask: "Does this item recommend something while simultaneously stating it damages the product?" If YES → remove it (Internal Contradiction)
   - Output must be a filtered version of input (no regeneration)
   - Preserve all valid items exactly as-is
   - NEVER return an empty array for any list field — use ["No valid data available"] instead

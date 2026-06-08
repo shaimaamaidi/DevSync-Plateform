@@ -88,5 +88,4 @@ class MarketIntelligenceValidatorAgent(BaseAgent[RefinedMarketIntelligenceSummar
         )
 
         logger.info("Market intelligence validated successfully.")
-
         return result

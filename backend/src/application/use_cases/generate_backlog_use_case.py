@@ -77,7 +77,7 @@ class GenerateBacklogUseCase(IGenerateBacklogUseCase):
         )
 
         try:
-            async for chunk in self._orchestrator.start_stream(request.description):
+            async for chunk in self._orchestrator.start_stream( request.description, request.thread_id):
                 yield chunk
 
             logger.info("Backlog generation stream completed successfully.")

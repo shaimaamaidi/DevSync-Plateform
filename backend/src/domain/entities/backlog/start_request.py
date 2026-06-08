@@ -8,6 +8,7 @@ through the generation pipeline.
 Main classes:
     StartBacklogRequest
 """
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,6 +21,8 @@ class StartBacklogRequest(BaseModel):
     The description is used as the source input for generating epics, user stories, and tasks.
 
     Attributes:
+        thread_id: Identifier of the conversation thread.
         description: Raw functional or product description used to generate the backlog.
     """
+    thread_id: Optional[str] = Field(default=None, description="Conversation thread identifier.")
     description: str = Field(..., min_length=1, description="Functional or product description used for backlog generation.")

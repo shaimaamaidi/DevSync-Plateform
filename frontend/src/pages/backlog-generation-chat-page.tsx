@@ -27,28 +27,15 @@ export default function BacklogGenerationChatPage() {
 
   const isMobile = useIsMobile();
   const bottomRef = useRef<HTMLDivElement>(null);
-  const isStreamingRef = useRef(false);
-  const prevMessagesLengthRef = useRef(messages.length);
-
+  
   useEffect(() => {
-    const prev = prevMessagesLengthRef.current;
-    prevMessagesLengthRef.current = messages.length;
-    if (messages.length > prev) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end"});
   }, [messages.length]);
 
   useEffect(() => {
-    if (messages.length === 0) return;
-
-    if (streamingText && !isStreamingRef.current) {
-      isStreamingRef.current = true;
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    } else if (!streamingText && isStreamingRef.current) {
-      isStreamingRef.current = false;
-      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [streamingText, messages.length]);
+    if (!streamingText) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [streamingText]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -70,6 +57,7 @@ export default function BacklogGenerationChatPage() {
               <BacklogChatMessage
                 key={message.id}
                 message={message}
+                loading={loading}
                 streamingText={streamingText}
                 currentToolName={currentToolName} 
                 onMarketSubmit={handleMarketSubmit}
@@ -86,18 +74,27 @@ export default function BacklogGenerationChatPage() {
           <ChatInput
             value={input}
             onChange={setInput}
-            onSend={() =>
-              step === "clarifying"
-                ? handleClarificationReply(input)
-                : handleSend(input)
-            }
+            onSend={() => {
+              if (step === "clarifying") {
+                handleClarificationReply(input);
+              } else {
+                handleSend(input);
+              }
+              setInput(""); 
+            }}
             disabled={loading}
             placeholder={
-                  step === "clarifying"
-                    ? "Answer the agent's question…"
-                    : "Describe the product you want to build…"
-                }
+              step === "clarifying"
+                ? "Answer the agent's question…"
+                : "Describe the product you want to build…"
+            }
           />
+        ) : step === "done" ? (
+          <div className="border-t border-slate-100 px-4 py-3 sm:py-4 bg-white text-center">
+            <p className="text-[12px] text-slate-400">
+              Start a new conversation to generate another backlog.
+            </p>
+          </div>
         ) : (
           <div className="border-t border-slate-100 px-4 py-3 sm:py-4 bg-white text-center">
             <p className="text-[12px] text-slate-400">

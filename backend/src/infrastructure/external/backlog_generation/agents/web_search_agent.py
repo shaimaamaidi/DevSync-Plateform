@@ -189,7 +189,7 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
                 raise
 
             except Exception as e:
-                logger.exception("Unexpected error in _ask_one.")
+                logger.exception("Unexpected error in _ask_one. Root cause: %s", repr(e))
                 raise AzureAgentRuntimeException(
                     message="An unexpected error occurred during the web search. Please try again."
                 ) from e

@@ -25,10 +25,15 @@ export function onAxiosError(listener: AxiosErrorListener): () => void {
   };
 }
 
-export function emitAxiosError(event: AxiosErrorEvent) {
+function emitAxiosError(event: AxiosErrorEvent) {
   errorListeners.forEach((cb) => cb(event));
 }
 
+export function emitAxiosErrorNetworkOnly(event: AxiosErrorEvent) {
+  if (event.action === "NETWORK_DOWN") {
+    errorListeners.forEach((cb) => cb(event));
+  }
+}
 
 let isRefreshing = false;
 let pendingRequests: Array<{

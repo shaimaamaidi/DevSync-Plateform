@@ -19,7 +19,7 @@ import asyncio
 import logging
 
 import json
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 from azure.core.exceptions import AzureError, ClientAuthenticationError, ServiceRequestError
 
@@ -143,7 +143,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
 
         return instance
 
-    async def start_stream(self, description: str) -> AsyncGenerator[str, None]:
+    async def start_stream(self, description: str, thread_id: Optional[str] = None) -> AsyncGenerator[str, None]:
         """
         Start the backlog generation workflow in streaming mode.
 
@@ -161,6 +161,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
 
         Args:
             description (str): Raw project description provided by the user.
+            thread_id: Identifier of the conversation thread.
 
         Yields:
             AsyncGenerator[str, None]:
@@ -184,12 +185,16 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             await self.load_agent()
 
         try:
-            thread = await self.project_client.agents.threads.create()
+            if not thread_id:
+                thread = await self.project_client.agents.threads.create()
+                real_thread_id = thread.id
+            else:
+                real_thread_id = thread_id
 
-            logger.info("Azure thread created successfully: thread_id=%s.", thread.id)
+            logger.info("Azure thread created successfully: thread_id=%s.", real_thread_id)
 
             await self.project_client.agents.messages.create(
-                thread_id=thread.id, role="user", content=description
+                thread_id=real_thread_id, role="user", content=description
             )
         except (AzureAgentRuntimeException, StreamExecutionException, StreamCancelledException):
             raise
@@ -201,12 +206,11 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             logger.exception("start_stream failed unexpectedly.")
             raise StreamExecutionException(message="The generation could not be started. Please try again.") from e
 
-        yield f"data: {json.dumps({'thread_id': thread.id})}\n\n"
+        yield f"data: {json.dumps({'thread_id': real_thread_id})}\n\n"
 
-        async for chunk in self._run_stream(
-                thread.id,
-                tool_choice={"type": "function", "function": {"name": "build_product_context"}},
-        ):
+        async for chunk in self._run_stream(real_thread_id):
+            logger.info("chaima")
+            logger.info(chunk)
             yield chunk
 
     async def reply_stream(
@@ -436,7 +440,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             try:
                 async for event_type, event_data, _ in stream:
                     for chunk in event_handler.get_stream_chunks():
-                        yield chunk
+                        yield f"data: {json.dumps({'text': chunk})}\n\n"
 
                     if event_type == "thread.run.requires_action":
                         run_data = event_data

@@ -7,6 +7,7 @@ import { BacklogTypingIndicator } from "./backlog-typing-indicator";
 interface ChatMessageProps {
   message: ChatMessageType;
   streamingText?: string;
+  loading?: boolean;
   currentToolName?: string | null;
   onMarketSubmit?: (data: any) => void;
   onBacklogSubmit?: (data: any) => void;
@@ -17,6 +18,7 @@ interface ChatMessageProps {
 export function BacklogChatMessage({
   message,
   streamingText = "",
+  loading = false,
   currentToolName,
   onMarketSubmit,
   onBacklogSubmit,
@@ -64,6 +66,7 @@ export function BacklogChatMessage({
             <div className="mt-2">
               <button
                 onClick={message.onRetry}
+                disabled={loading}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] font-medium text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200 transition-colors cursor-pointer"
               >
                 <RefreshCcw size={12} strokeWidth={2} />

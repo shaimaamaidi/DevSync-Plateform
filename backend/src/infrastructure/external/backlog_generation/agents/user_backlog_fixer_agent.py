@@ -7,7 +7,7 @@ using an LLM.
 
 The agent ensures:
 - Structural consistency between reference and user backlog
-- Detection of missing or modified epics
+- Detection of modified epics
 - Correction of invalid or incomplete epics using LLM reasoning
 - Reconstruction of a validated backlog aligned with domain expectations
 
@@ -35,7 +35,7 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
 
     This agent is responsible for:
     - Comparing a reference backlog with a user-provided backlog
-    - Detecting missing, modified, or inconsistent epics
+    - Detecting modified or inconsistent epics
     - Using LLM reasoning to correct invalid epics
     - Reconstructing a validated and coherent backlog structure
 
@@ -43,6 +43,10 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
     - Deterministic comparison of backlog structures
     - Parallel LLM validation per epic
     - Aggregation of corrections into a final validated backlog
+
+    Constraints:
+    - Epic deletion is not permitted; every reference epic is always present
+    - Users may only modify epics or add user stories and tasks within them
     """
 
     def __init__(self, prompt_loader: IPromptLoader):
@@ -63,16 +67,14 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
         """
         Validate and fix a user-provided backlog using a reference backlog.
 
-        This method compares the reference backlog with the user-provided backlog,
-        detects missing or inconsistent epics, and uses LLM-based validation to
-        correct them.
+        This method compares the reference backlog with the user-provided backlog
+        and uses LLM-based validation to correct each epic independently.
 
         Processing steps:
-        1. Compare epics between reference and user backlog
-        2. Identify missing epics (restored directly from reference)
-        3. Validate existing epics using parallel LLM calls
-        4. Aggregate corrections and reconstructed epics
-        5. Build final BacklogValidation result
+        1. Match each reference epic with its counterpart in the user backlog
+        2. Validate each matched epic using parallel LLM calls
+        3. Aggregate corrections into a final validated backlog
+        4. Build final BacklogValidation result
 
         Args:
             backlog_reference (BacklogStructure): The expected reference backlog.
@@ -90,30 +92,23 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
             LLMParsingException: If LLM output cannot be parsed correctly.
 
         Notes:
-            - Missing epics are restored directly without LLM intervention
-            - Existing epics are validated independently in parallel
+            - Epic deletion is not permitted at the frontend level
+            - All reference epics are guaranteed to be present in the user backlog
+            - Epics are validated independently in parallel
             - Final backlog preserves reference ordering
+            - Users may only modify epics or add user stories and tasks
         """
         logger.info("Starting user backlog validation process.")
-
-        missing_epics = []
-        epics_to_validate = []
-
-        for ref_epic in backlog_reference.epics:
-            user_epic = next(
-                (e for e in backlog_to_validate.epics
-                 if e.epic.title == ref_epic.epic.title), None
-            )
-            if user_epic is None:
-                missing_epics.append(ref_epic)
-            else:
-                epics_to_validate.append((ref_epic, user_epic))
 
         llm_results = {}
         with ThreadPoolExecutor() as executor:
             futures = {
-                executor.submit(self._validate_epic, ref_epic, user_epic): ref_epic
-                for ref_epic, user_epic in epics_to_validate
+                executor.submit(
+                    self._validate_epic,
+                    ref_epic,
+                    next(e for e in backlog_to_validate.epics if e.epic.title == ref_epic.epic.title),
+                ): ref_epic
+                for ref_epic in backlog_reference.epics
             }
             for future in as_completed(futures):
                 ref_epic, result = future.result()
@@ -124,19 +119,11 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
         global_is_valid = True
 
         for ref_epic in backlog_reference.epics:
-            if ref_epic in missing_epics:
-                corrected_epics.append(ref_epic)
-                all_corrections.append(
-                    f"Restored the missing '{ref_epic.epic.title}' "
-                    f"epic from the reference backlog."
-                )
+            result = llm_results[ref_epic.epic.title]
+            corrected_epics.append(result.corrected_epic)
+            all_corrections.extend(result.corrections)
+            if not result.is_valid:
                 global_is_valid = False
-            else:
-                result = llm_results[ref_epic.epic.title]
-                corrected_epics.append(result.corrected_epic)
-                all_corrections.extend(result.corrections)
-                if not result.is_valid:
-                    global_is_valid = False
 
         return BacklogValidation(
             corrected_backlog=BacklogStructure(epics=corrected_epics),
@@ -183,8 +170,9 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
             - This method is executed in parallel across multiple epics
             - The LLM is used only for correction, not for detecting missing epics
             - Deterministic logic handles epic matching; LLM handles semantic repair
+            - Users may add user stories and tasks; LLM decides if they are valid
         """
-        return ref_epic, self._call_llm(
+        result = self._call_llm(
             agent_name="UserBacklogFixerAgent",
             folder_name="backlog_generation",
             prompt_name="user_backlog_fixer_agent",
@@ -194,3 +182,7 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
             },
             response_format=EpicValidation,
         )
+        logger.info("chacha")
+        logger.info(result.corrected_epic.epic.title)
+        logger.info(result.is_valid)
+        return ref_epic, result

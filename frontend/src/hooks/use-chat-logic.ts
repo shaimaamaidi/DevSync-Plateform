@@ -13,7 +13,7 @@ import {
   uiToBacklog,
 } from "@/lib/backlog.mapper";
 import { backlogGenerationService } from "@/services/backlog-generation-service";
-import { emitAxiosError, onAxiosError, type AxiosErrorEvent } from "@/api/axios-interceptor";
+import { emitAxiosErrorNetworkOnly, onAxiosError, type AxiosErrorEvent } from "@/api/axios-interceptor";
 import type { ErrorAction } from "@/types/api-error-type";
 
 type Step = "idle" | "clarifying" | "market_review" | "backlog_edit" | "finalizing" | "done";
@@ -37,7 +37,7 @@ function shouldOfferRetry(action: ErrorAction): boolean {
 }
 
 function emitUnexpectedError(message = "An unexpected error occurred.") {
-  emitAxiosError({ action: "NOTIFY", message, code: null });
+  emitAxiosErrorNetworkOnly({ action: "NOTIFY", message, code: null });
 }
 
 export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
@@ -123,7 +123,10 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
 
     try {
       const result = await runStream(
-        backlogGenerationService.start({ description: text }),
+        backlogGenerationService.start({ 
+          description: text,
+          thread_id: threadIdRef.current ?? null,
+        }),
         lastEmittedAction,
       );
 
@@ -186,13 +189,21 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         setStep("done");
         return;
       }
-
+      if (json && typeof json === "object" && (json as any).status === "invalid") {
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: (json as any).message ?? "Invalid input. Please provide a software project description.",
+        });
+        setStep("done");
+        return;
+      }
       if (!threadId || !isRefinedMarketIntelligence(json)) {
         emitUnexpectedError("The agent returned an unexpected response.");
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "The agent returned an unexpected response.",
+          content: "Something went wrong while processing the agent's response. Please start a new conversation.",
         });
+        setStep("done");
         return;
       }
 
@@ -207,7 +218,8 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       });
     } catch {
       emitUnexpectedError();
-      updateMsg(agentMsgId, { _streaming: false, content: "An unexpected error occurred." });
+      updateMsg(agentMsgId, { _streaming: false, content: "Something went wrong while processing the agent's response. Please start a new conversation." });
+      setStep("done");
     } finally {
       unsub();
       setLoading(false);
@@ -313,13 +325,16 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         });
       } else {
         emitUnexpectedError("The agent returned an unexpected response.");
-        setStep("market_review");
-        updateMsg(agentMsgId, { _streaming: false, content: "The agent returned an unexpected response." });
+        updateMsg(agentMsgId, {
+          _streaming: false, 
+          content: "Something went wrong while processing the agent's response. Please start a new conversation.",
+        });
+        setStep("done");
       }
     } catch {
       emitUnexpectedError();
-      setStep("market_review");
-      updateMsg(agentMsgId, { _streaming: false, content: "An unexpected error occurred." });
+      updateMsg(agentMsgId, { _streaming: false, content: "Something went wrong while processing the agent's response. Please start a new conversation." });
+      setStep("done");
     } finally {
       unsub();
       setLoading(false);
@@ -408,13 +423,15 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       const sprintData = isSprintPlanning(json) ? sprintPlanningToUi(json) : null;
 
       if (!hasBacklogChanges) {
-        if (correctedBacklogPayload) lastBacklogPayloadRef.current = correctedBacklogPayload;
-        setStep("done");
+        if (correctedBacklogPayload) 
+          lastBacklogPayloadRef.current = correctedBacklogPayload;
+
         updateMsg(agentMsgId, {
           _streaming: false,
           content: agentText || "Sprint planning generated.",
           ...(sprintData ? { attachment: { type: "sprint", data: sprintData } } : {}),
         });
+        setStep("done");
 
         if (sprintData) {
           addMsg({
@@ -435,17 +452,16 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
         });
       } else {
         emitUnexpectedError("The agent returned an unexpected response.");
-        setStep("done");
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: agentText || "Backlog refinement completed.",
-          ...(sprintData ? { attachment: { type: "sprint", data: sprintData } } : {}),
+          content: "Something went wrong while processing the agent's response. Please start a new conversation.",
         });
+        setStep("done");
       }
     } catch {
       emitUnexpectedError();
-      setStep("backlog_edit");
-      updateMsg(agentMsgId, { _streaming: false, content: "An unexpected error occurred." });
+      updateMsg(agentMsgId, { _streaming: false, content: "Something went wrong while processing the agent's response. Please start a new conversation." });
+      setStep("done");
     } finally {
       unsub();
       setLoading(false);
@@ -459,8 +475,114 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
       addMsg({ role: "user", content: clarificationText });
     }
 
-    setStep("idle");
-    await handleSend(clarificationText, false);
+    setLoading(true);
+    const agentMsgId = addMsg({ role: "agent", content: "", _streaming: true });
+    streamingMsgIdRef.current = agentMsgId;
+
+    const lastEmittedAction: { current: ErrorAction | null } = { current: null };
+    const unsub = onAxiosErrorOnce((e) => { lastEmittedAction.current = e.action; });
+
+    try {
+      const result = await runStream(
+        backlogGenerationService.start({
+          description: clarificationText,
+          thread_id: threadIdRef.current ?? null,  
+        }),
+        lastEmittedAction,
+      );
+
+      if (isStreamFailed(result)) {
+        const isNetworkDown = result.action === "NETWORK_DOWN";
+        if (isNetworkDown) {
+          updateMsg(agentMsgId, {
+            _streaming: false,
+            content: "Connection lost. Please check your internet connection and try again.",
+          });
+          setStep("done");
+          return;
+        }
+        const isSessionError = result.action === "RETRY_THEN_LOGOUT";
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: isSessionError
+            ? "Your session could not be restored. You will be redirected to login."
+            : "The request didn't go through. You can try again.",
+          ...(shouldOfferRetry(result.action) && { onRetry: () => handleClarificationReply(clarificationText, true) }),
+        });
+        return;
+      }
+
+      const { threadId, text: agentText, json, invalidDescription } = result;
+
+      if (threadId) threadIdRef.current = threadId;
+
+      if (isClarificationNeeded(json)) {
+        setStep("clarifying");
+        setClarifyingMode("clarification");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: agentText || json.question,
+          attachment: {
+            type: "clarification",
+            data: { question: json.question, missing_dimension: json.missing_dimension },
+          },
+        });
+        return;
+      }
+      if (isConflictsDetected(json)) {
+        setStep("clarifying");
+        setClarifyingMode("conflicts");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: json.question,
+          attachment: {
+            type: "conflicts",
+            data: { conflicts: json.conflicts, question: json.question },
+          },
+        });
+        return;
+      }
+      if (invalidDescription) {
+        updateMsg(agentMsgId, { _streaming: false, content: invalidDescription.message });
+        setStep("done");
+        return;
+      }
+      if (json && typeof json === "object" && (json as any).status === "invalid") {
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: (json as any).message ?? "Invalid input.",
+        });
+        setStep("done");
+        return;
+      }
+      if (!threadIdRef.current || !isRefinedMarketIntelligence(json)) {
+        emitUnexpectedError("The agent returned an unexpected response.");
+        updateMsg(agentMsgId, {
+          _streaming: false,
+          content: "Something went wrong. Please start a new conversation.",
+        });
+        setStep("done");
+        return;
+      }
+
+      lastRefinedMarketRef.current = json;
+      setStep("market_review");
+      updateMsg(agentMsgId, {
+        _streaming: false,
+        content: agentText || "Market intelligence generated. Please review and submit.",
+        attachment: { type: "market", data: refinedToSummary(json), editable: true },
+      });
+    } catch {
+      emitUnexpectedError();
+      updateMsg(agentMsgId, {
+        _streaming: false,
+        content: "Something went wrong. Please start a new conversation.",
+      });
+      setStep("done");
+    } finally {
+      unsub();
+      setLoading(false);
+    }
   };
 
   const handleClickUpYes = (sprintData: any) => {

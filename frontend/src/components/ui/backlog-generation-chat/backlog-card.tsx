@@ -8,7 +8,6 @@ import {
   Plus, 
   Check, 
   X, 
-  Trash2, 
   FlagTriangleRight
 } from "lucide-react";
 import type { UiEpic, UiStory, UiTask } from "@/types/backlog";
@@ -35,11 +34,10 @@ type BacklogErrors = {
   task: Partial<Record<"title" | "description", string>>;
 };
 
-type DeleteErrors = Record<string, string>;
 
 export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
   const [epics, setEpics] = useState<UiEpic[]>(() => normalizeBacklog(data));
-  const [openEpics,   setOpenEpics]   = useState<Record<string, boolean>>({});
+  const [openEpics, setOpenEpics]   = useState<Record<string, boolean>>({});
   const [openStories, setOpenStories] = useState<Record<string, boolean>>({});
   const [done, setDone] = useState(false);
 
@@ -52,7 +50,6 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
   const [newEpic,  setNewEpic]  = useState({ title: "", description: "" });
 
   const [errors, setErrors] = useState<BacklogErrors>({ epic: {}, story: {}, task: {} });
-  const [deleteErrors, setDeleteErrors] = useState<DeleteErrors>({});
 
   useEffect(() => {
     setEpics(normalizeBacklog(data));
@@ -64,17 +61,6 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
   const totalStories = epics.reduce((a, e) => a + e.stories.length, 0);
   const totalTasks   = epics.reduce((a, e) => a + e.stories.reduce((b, s) => b + s.tasks.length, 0), 0);
   const hasChanges   = !areBacklogsEqual(uiToBacklog(epics), uiToBacklog(data));
-
-  const showDeleteError = (id: string, msg: string) => {
-    setDeleteErrors((prev) => ({ ...prev, [id]: msg }));
-    setTimeout(() => {
-      setDeleteErrors((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    }, 3500);
-  };
 
   const getNextId = (items: { id: string }[], prefix: string) => {
     const numbers = items.map((i) => parseInt(i.id.replace(/\D/g, "") || "0", 10));
@@ -97,54 +83,6 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
         ? { ...s, tasks: s.tasks.map((t) => t.id === tid ? { ...t, ...patch } : t) }
         : s),
     } : ep));
-
-  const removeEpic = (eid: string) => {
-    if (epics.length === 1) {
-      showDeleteError(eid, "Impossible de supprimer le dernier epic. Le backlog ne peut pas être vide.");
-      return;
-    }
-    setEpics((e) => e.filter((ep) => ep.id !== eid));
-  };
-
-  const removeStory = (eid: string, sid: string) => {
-    const epic = epics.find((ep) => ep.id === eid);
-    if (epic && epic.stories.length === 1) {
-      showDeleteError(sid, "Impossible de supprimer la dernière user story. Un epic ne peut pas être vide.");
-      return;
-    }
-    setEpics((e) => e.map((ep) => ep.id === eid
-      ? { ...ep, stories: ep.stories.filter((s) => s.id !== sid) }
-      : ep));
-  };
-
-  const removeTask = (eid: string, sid: string, tid: string) => {
-    const story = epics.find((ep) => ep.id === eid)?.stories.find((s) => s.id === sid);
-    if (story && story.tasks.length === 1) {
-      showDeleteError(tid, "Impossible de supprimer la dernière tâche. Une story ne peut pas être vide.");
-      return;
-    }
-    setEpics((e) => e.map((ep) => ep.id === eid ? {
-      ...ep,
-      stories: ep.stories.map((s) => s.id === sid
-        ? { ...s, tasks: s.tasks.filter((t) => t.id !== tid) }
-        : s),
-    } : ep));
-  };
-
-  const addEpic = () => {
-    const newErrors: BacklogErrors["epic"] = {};
-    if (!newEpic.title.trim())       
-      newErrors.title = "Title is required.";
-    if (!newEpic.description.trim()) 
-      newErrors.description = "Description is required.";
-    if (Object.keys(newErrors).length > 0) {
-      setErrors((prev) => ({ ...prev, epic: newErrors }));
-      return;
-    }
-    setEpics((e) => [...e, { id: getNextId(epics, "E"), title: newEpic.title.trim(), description: newEpic.description.trim(), stories: [] }]);
-    setNewEpic({ title: "", description: "" });
-    setAddingEpic(false);
-  };
 
   const addStory = (eid: string) => {
     const newErrors: BacklogErrors["story"] = {};
@@ -250,7 +188,7 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
                   <div className={`w-[30px] h-[30px] sm:w-[34px] sm:h-[34px] rounded-[9px] flex items-center justify-center shrink-0 ${color.bg} border-[1.5px] ${color.border}`}>
                     <span className={`text-[8px] sm:text-[9px] font-extrabold tracking-wide ${color.fg}`}>{epic.id}</span>
                   </div>
-                  <div className="flex-1 min-w-0" onClick={(e) => isEdit && e.stopPropagation()}>
+                  <div className="flex-1 min-w-0 flex flex-col" onClick={(e) => isEdit && e.stopPropagation()}>
                     <EditableText
                       value={epic.title}
                       onChange={(v) => updateEpic(epic.id, { title: v })}
@@ -275,21 +213,7 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
                       : <ChevronRight size={14} strokeWidth={2} className="text-slate-400" />}
                   </div>
                 </button>
-                {isEdit && (
-                  <button
-                    onClick={() => removeEpic(epic.id)}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors border-none bg-transparent cursor-pointer shrink-0"
-                  >
-                    <Trash2 size={13} strokeWidth={1.8} />
-                  </button>
-                )}
               </div>
-
-              {deleteErrors[epic.id] && (
-                <div className="text-destructive text-xs px-3 sm:px-[15px] pb-2.5 -mt-1">
-                  {deleteErrors[epic.id]}
-                </div>
-              )}
 
               {isOpen && (
                 <div className="border-t border-slate-100 px-2.5 sm:px-3.5 pt-2.5 pb-3.5 flex flex-col gap-1.5">
@@ -307,7 +231,7 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
                               <div className={`w-[24px] h-[24px] sm:w-[26px] sm:h-[26px] rounded-[7px] flex items-center justify-center shrink-0 mt-px ${color.bg} border ${color.border}`}>
                                 <span className={`text-[7px] font-extrabold ${color.fg}`}>{story.id}</span>
                               </div>
-                              <div className="flex-1 min-w-0" onClick={(e) => isEdit && e.stopPropagation()}>
+                              <div className="flex-1 min-w-0 flex flex-col" onClick={(e) => isEdit && e.stopPropagation()}>
                                 <EditableText
                                   value={story.title}
                                   onChange={(v) => updateStory(epic.id, story.id, { title: v })}
@@ -343,21 +267,7 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
                                   : <ChevronRight size={13} strokeWidth={2} className="text-slate-400" />}
                               </div>
                             </button>
-                            {isEdit && (
-                              <button
-                                onClick={() => removeStory(epic.id, story.id)}
-                                className="w-6 h-6 flex items-center justify-center rounded-md text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors border-none bg-transparent cursor-pointer shrink-0"
-                              >
-                                <Trash2 size={12} strokeWidth={1.8} />
-                              </button>
-                            )}
                           </div>
-
-                          {deleteErrors[story.id] && (
-                            <div className="text-destructive text-xs px-3 pb-2 -mt-1">
-                              {deleteErrors[story.id]}
-                            </div>
-                          )}
 
                           {isStoryOpen && (
                             <div className="border-t border-slate-100 px-2.5 sm:px-3 pt-2.5 pb-3">
@@ -382,32 +292,19 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
                                           value={task.title}
                                           onChange={(v) => updateTask(epic.id, story.id, task.id, { title: v })}
                                           editable={isEdit}
-                                          className="text-[12px] font-semibold text-slate-800"
+                                          className="text-[12px] font-semibold text-slate-800 block"
                                           placeholder="Task title"
                                         />
                                         <EditableText
                                           value={task.description}
                                           onChange={(v) => updateTask(epic.id, story.id, task.id, { description: v })}
                                           editable={isEdit}
-                                          className="text-[11px] text-slate-500 mt-[2px]"
+                                          className="text-[11px] text-slate-500 mt-[2px] block"
                                           placeholder="Task description"
                                         />
                                       </div>
-                                      {isEdit && (
-                                        <button
-                                          onClick={() => removeTask(epic.id, story.id, task.id)}
-                                          className="w-5 h-5 flex items-center justify-center rounded-md text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors border-none bg-transparent cursor-pointer shrink-0"
-                                        >
-                                          <X size={11} strokeWidth={2.5} />
-                                        </button>
-                                      )}
                                     </div>
 
-                                    {deleteErrors[task.id] && (
-                                      <div className="text-destructive text-xs mt-1 px-1">
-                                        {deleteErrors[task.id]}
-                                      </div>
-                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -553,12 +450,6 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
               <div className="text-destructive text-xs mt-1 px-1">{errors.epic.description}</div>
             )}
             <div className="flex gap-1.5 justify-end">
-              <button
-                onClick={addEpic}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[12px] font-semibold hover:bg-emerald-100 border-none cursor-pointer transition-colors"
-              >
-                <Check size={13} /> Add epic
-              </button>
               <button
                 onClick={cancelEpicEdit}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[12px] font-semibold hover:bg-slate-200 border-none cursor-pointer transition-colors"

@@ -298,7 +298,7 @@ system: |
   - **Use semantic JSON equivalence** for comparisons: same keys, same values, same structure after parsing — NOT string comparison. When the user confirms a result, trust that confirmation and proceed immediately, even if you detect minor structural differences.
 
   ### Error handling
-  - **On `web_search` failure:** notify user with one sentence, silently switch to Flow 2.
+  - **On `web_search` failure:** notify user with one sentence ending with "Please wait.", silently switch to Flow 2.
   - **On any other tool failure** (timeout, malformed output, server error): notify the user clearly with the step name and error description, suggest retrying, and do NOT proceed to the next step automatically.
   - **On unfixable user JSON:** ask the user to resubmit rather than guessing intent.
 

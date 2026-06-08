@@ -84,14 +84,18 @@ export function areMarketSummariesEqual(a: MarketSummary, b: MarketSummary): boo
 
 function parseUserStoryDescription(description: string): { as_a: string; i_want: string; so_that: string } {
   const text = (description ?? "").trim();
-  if (!text) 
+  if (!text)
     return { as_a: "user", i_want: "", so_that: "" };
+
   let as_a = "user";
   let remaining = text;
-  
+
   const lower = text.toLowerCase();
-  if (lower.startsWith("as a ")) {
-    const afterAsA = text.slice(5); // remove "As a "
+  const prefixes = ["as an ", "as a "];
+  const matchedPrefix = prefixes.find((p) => lower.startsWith(p));
+
+  if (matchedPrefix) {
+    const afterAsA = text.slice(matchedPrefix.length);
     const commaIndex = afterAsA.indexOf(",");
 
     if (commaIndex !== -1) {
@@ -115,15 +119,11 @@ function parseUserStoryDescription(description: string): { as_a: string; i_want:
 
   if (soThatIndex !== -1) {
     i_want = remaining.slice(0, soThatIndex).replace(/,$/, "").trim();
-    so_that = remaining.slice(soThatIndex + 7).trim(); // "so that".length = 7
+    so_that = remaining.slice(soThatIndex + 7).trim();
   }
 
-  return {
-    as_a,
-    i_want,
-    so_that,
-  };
-};
+  return { as_a, i_want, so_that };
+}
 
 export function backlogToUi(b: BacklogPayload): UiEpic[] {
   return (b.epics ?? []).map((eb, ei) => ({
@@ -150,18 +150,16 @@ export function uiToBacklog(epics: UiEpic[]): BacklogPayload {
         title: ep.title?.trim() || "",
         description: ep.description?.trim() || "",
       },
-
       user_stories: (ep.stories ?? []).map((s) => {
         const as_a = (s.as_a ?? "user").trim().replace(/\s*,\s*$/, "").trim() || "user";
         const i_want = (s.i_want ?? "").trim().replace(/\s*,\s*$/, "").trim();
         let so_that = (s.so_that ?? "").trim();
-        const lower = so_that.toLowerCase();
-        if (lower.startsWith("so that ")) {
-          so_that = so_that.slice(7).trim();
+        if (so_that.toLowerCase().startsWith("so that ")) {
+          so_that = so_that.slice(8).trim();
         }
 
-        let description = `As a ${as_a}, I want ${i_want}`;
-
+        const needsAn = /^[aeiou]/i.test(as_a);
+        let description = `As ${needsAn ? "an" : "a"} ${as_a}, I want ${i_want}`;
         if (so_that) {
           description += `, so that ${so_that}`;
         }
@@ -179,7 +177,7 @@ export function uiToBacklog(epics: UiEpic[]): BacklogPayload {
       }),
     })),
   };
-};
+}
 
 export function areBacklogsEqual(a: BacklogPayload, b: BacklogPayload): boolean {
   return JSON.stringify(a) === JSON.stringify(b);

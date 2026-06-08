@@ -840,9 +840,10 @@ export interface Sprint {
     'user_stories'?: Array<UserStorySprint>;
 }
 /**
- * Request payload to start backlog generation.  This DTO represents the initial input provided by the user to start the backlog creation process. The description is used as the source input for generating epics, user stories, and tasks.  Attributes:     description: Raw functional or product description used to generate the backlog.
+ * Request payload to start backlog generation.  This DTO represents the initial input provided by the user to start the backlog creation process. The description is used as the source input for generating epics, user stories, and tasks.  Attributes:     thread_id: Identifier of the conversation thread.     description: Raw functional or product description used to generate the backlog.
  */
 export interface StartBacklogRequest {
+    'thread_id'?: string | null;
     /**
      * Functional or product description used for backlog generation.
      */

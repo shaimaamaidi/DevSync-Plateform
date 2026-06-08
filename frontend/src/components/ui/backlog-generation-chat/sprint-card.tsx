@@ -15,8 +15,8 @@ interface SprintCardProps {
 }
 
 export function SprintCard({ data }: SprintCardProps) {
-  const [openSprints, setOpenSprints]  = useState<Record<string, boolean>>({});
-  const [openStories, setOpenStories]  = useState<Record<string, boolean>>({});
+  const [openSprints, setOpenSprints] = useState<Record<string, boolean>>({});
+  const [openStories, setOpenStories] = useState<Record<string, boolean>>({});
 
   const totalHours = data.reduce((a, s) => a + s.totalEstimatedHours, 0);
   const totalStories = data.reduce((a, s) => a + s.stories.length, 0);
@@ -26,9 +26,9 @@ export function SprintCard({ data }: SprintCardProps) {
 
       <div className="flex gap-2">
         {[
-          { Icon: Zap,      val: data.length,     label: "Sprints",    color: "#7c3aed", iconBg: "#7c3aed18" },
-          { Icon: ListTodo, val: totalStories,     label: "Stories",    color: "#16a34a", iconBg: "#16a34a18" },
-          { Icon: Clock,    val: `${totalHours}h`, label: "Total est.", color: "#d97706", iconBg: "#d9770618" },
+          { Icon: Zap, val: data.length, label: "Sprints", color: "#7c3aed", iconBg: "#7c3aed18" },
+          { Icon: ListTodo, val: totalStories, label: "Stories", color: "#16a34a", iconBg: "#16a34a18" },
+          { Icon: Clock, val: `${totalHours}h`, label: "Total est.", color: "#d97706", iconBg: "#d9770618" },
         ].map(({ Icon, val, label, color, iconBg }) => (
           <div key={label} className="flex-1 flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-2.5 bg-slate-50 rounded-xl border border-slate-100 min-w-0">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: iconBg }}>
@@ -43,7 +43,7 @@ export function SprintCard({ data }: SprintCardProps) {
       </div>
 
       {data.map((sprint, idx) => {
-        const color  = SPRINT_PALETTE[idx % SPRINT_PALETTE.length];
+        const color = SPRINT_PALETTE[idx % SPRINT_PALETTE.length];
         const isOpen = !!openSprints[sprint.id];
 
         return (

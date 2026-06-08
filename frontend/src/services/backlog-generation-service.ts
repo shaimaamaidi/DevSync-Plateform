@@ -9,7 +9,7 @@ import {
   resolveErrorAction,
   extractErrorCode,
 } from '@/utils/error-handler';
-import { emitAxiosError, type AxiosErrorEvent } from '@/api/axios-interceptor';
+import { emitAxiosErrorNetworkOnly, type AxiosErrorEvent } from '@/api/axios-interceptor';
 
 const SSE_HEADERS = {
   'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ async function refreshOrRedirect(): Promise<void> {
     } catch {
       // silence
     }
-    emitAxiosError({
+    emitAxiosErrorNetworkOnly({
       action: 'LOGOUT',
       message: 'Session expirée',
       code: 'INVALID_TOKEN',
@@ -121,7 +121,7 @@ async function assertSseResponse(response: Response): Promise<ReadableStream<Uin
     const emitAction: AxiosErrorEvent["action"] | null = action === 'SILENT' ? null : action as AxiosErrorEvent["action"];
 
     if (emitAction) {
-      emitAxiosError({ action: emitAction, message, code, status: response.status });
+      emitAxiosErrorNetworkOnly({ action: emitAction, message, code, status: response.status });
     }
 
     throw new Error(message);
@@ -142,7 +142,7 @@ async function postStream(endpoint: string, body: unknown): Promise<ReadableStre
       (err.message === 'Failed to fetch' || err.message === 'Network Error');
 
     if (isNetworkError) {
-      emitAxiosError({ action: 'NETWORK_DOWN', message: 'Network error', code: null });
+      emitAxiosErrorNetworkOnly({ action: 'NETWORK_DOWN', message: 'Network error', code: null });
     }
     throw err;
   }

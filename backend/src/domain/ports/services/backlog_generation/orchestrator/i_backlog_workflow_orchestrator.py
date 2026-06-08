@@ -7,7 +7,7 @@ generation and iterative user feedback refinement.
 """
 
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
 
 class IBacklogWorkflowOrchestrator(ABC):
@@ -24,13 +24,13 @@ class IBacklogWorkflowOrchestrator(ABC):
     """
 
     @abstractmethod
-    def start_stream(self, description: str) -> AsyncGenerator[str, None]:
+    def start_stream(self, description: str, thread_id: Optional[str] = None) -> AsyncGenerator[str, None]:
         """
         Start the backlog generation workflow as a stream.
 
         Args:
             description (str): Raw product or feature description.
-
+            thread_id: Identifier of the conversation thread.
         Returns:
             AsyncGenerator[str, None]: Stream of generated backlog chunks.
         """
