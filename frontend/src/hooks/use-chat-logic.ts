@@ -29,7 +29,11 @@ function isStreamFailed(v: unknown): v is StreamFailed {
 }
 
 function shouldOfferRetry(action: ErrorAction): boolean {
-  return action === "RETRY" || action === "NOTIFY";
+  return (
+    action === "RETRY_THEN_SERVICE_ERROR" ||
+    action === "RETRY_THEN_DATA_ERROR" ||
+    action === "NOTIFY"
+  );
 }
 
 function emitUnexpectedError(message = "An unexpected error occurred.") {
@@ -125,17 +129,21 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
 
       if (isStreamFailed(result)) {
         const isNetworkDown = result.action === "NETWORK_DOWN";
-        if(isNetworkDown){
+        if (isNetworkDown) {
           updateMsg(agentMsgId, {
             _streaming: false,
-            content: "Connection lost. Please check your internet connection and try again." 
+            content: "Connection lost. Please check your internet connection and try again.",
           });
           setStep("done");
           return;
         }
+
+        const isSessionError = result.action === "RETRY_THEN_LOGOUT";
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "The request didn't go through. You can try again.",
+          content: isSessionError
+            ? "Your session could not be restored. You will be redirected to login."
+            : "The request didn't go through. You can try again.",
           ...(shouldOfferRetry(result.action) && { onRetry: () => handleSend(text, true) }),
         });
         return;
@@ -262,18 +270,21 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
 
       if (isStreamFailed(result)) {
         const isNetworkDown = result.action === "NETWORK_DOWN";
-        if(isNetworkDown){
+        if (isNetworkDown) {
           updateMsg(agentMsgId, {
             _streaming: false,
-            content: "Connection lost. Please check your internet connection and try again." 
+            content: "Connection lost. Please check your internet connection and try again.",
           });
           setStep("done");
           return;
         }
-        setStep("market_review");
+
+        const isSessionError = result.action === "RETRY_THEN_LOGOUT";
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "The request didn't go through. You can try again.",
+          content: isSessionError
+            ? "Your session could not be restored. You will be redirected to login."
+            : "The request didn't go through. You can try again.",
           ...(shouldOfferRetry(result.action) && { onRetry: () => handleMarketSubmit(editedSummary, true) }),
         });
         return;
@@ -372,18 +383,21 @@ export function useChatLogic(onNavigate?: (path: string, opts?: any) => void) {
 
       if (isStreamFailed(result)) {
         const isNetworkDown = result.action === "NETWORK_DOWN";
-        if(isNetworkDown){
+        if (isNetworkDown) {
           updateMsg(agentMsgId, {
             _streaming: false,
-            content: "Connection lost. Please check your internet connection and try again." 
+            content: "Connection lost. Please check your internet connection and try again.",
           });
           setStep("done");
           return;
         }
-        setStep("backlog_edit");
+
+        const isSessionError = result.action === "RETRY_THEN_LOGOUT";
         updateMsg(agentMsgId, {
           _streaming: false,
-          content: "The request didn't go through. You can try again.",
+          content: isSessionError
+            ? "Your session could not be restored. You will be redirected to login."
+            : "The request didn't go through. You can try again.",
           ...(shouldOfferRetry(result.action) && { onRetry: () => handleBacklogSubmit(editedEpics, true) }),
         });
         return;

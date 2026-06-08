@@ -15,7 +15,7 @@ interface Props {
   tasks: TaskVerificationDTO[];
   isLoading: boolean;
   onChange: (tasks: TaskVerificationDTO[]) => void;
-  onDrop: (task: TaskGenerationDTO) => void;
+  onDrop?: (task: TaskGenerationDTO) => void;
   onSave: () => void;
   isSaving: boolean;
   savedOk: boolean;
@@ -53,7 +53,7 @@ export function VerifiedTaskList({
     setIsDragOver(false);
     const raw = e.dataTransfer.getData('application/x-generated-task');
     if (!raw) return;
-    try { onDrop(JSON.parse(raw)); } catch {}
+    try { onDrop?.(JSON.parse(raw)); } catch {}
   };
 
   const handleDelete = (idx: number) =>

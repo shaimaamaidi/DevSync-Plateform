@@ -332,7 +332,7 @@ export default function MeetingTaskGenerationPage() {
     );
 
     if (sameTitle) {
-      showErrorToast('Task already exists and was not added', `Duplicate task`);
+      showErrorToast('Task already exists and was not added', { title: 'Duplicate task' });
       return;  
     }
     

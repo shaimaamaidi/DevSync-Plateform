@@ -8,7 +8,7 @@ export function useDeployments(initialDeployments: DeploymentDTO[] = []) {
     setDeployments((prevDeployments) => [newDeployment, ...prevDeployments]);
   }, []);
 
-  const updateDeployment = useCallback((id: number, updates: Partial<DeploymentDTO>) => {
+  const updateDeployment = useCallback((id: string, updates: Partial<DeploymentDTO>) => {
     setDeployments((prevDeployments) =>
       prevDeployments.map((dep) =>
         dep.dep_id === id ? { ...dep, ...updates } : dep

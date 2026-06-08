@@ -1,16 +1,15 @@
 import { authService } from "@/services/auth-service";
+import { resolveErrorAction, withErrorHandling } from "@/utils/error-handler";
 import {
-  resolveErrorAction,
-  withErrorHandling,
-} from "@/utils/error-handler";
-import { LOGOUT_MESSAGES, type ApiErrorMeta, type ErrorAction } from "@/types/api-error-type";
+  LOGOUT_MESSAGES,
+  type ApiErrorMeta,
+  type ErrorAction,
+} from "@/types/api-error-type";
 import type { NavigateFunction } from "react-router-dom";
-import { toast } from "react-toastify";
+import { dismissToast, showErrorToast, TOAST_IDS } from "@/components/global-toaster";
+import type { ReactNode } from "react";
 
-export {
-  withErrorHandling,
-};
-
+export { withErrorHandling };
 export const handleApiError = resolveErrorAction;
 
 
@@ -19,10 +18,31 @@ function getLogoutMessage(code?: string | null): string {
   return LOGOUT_MESSAGES["session_expired"];
 }
 
+async function redirectToLogin(
+  navigate: NavigateFunction | undefined,
+  reason: string,
+  logoutFn?: () => Promise<void> 
+) {
+  await new Promise((res) => setTimeout(res, 3000)); 
+  try { await logoutFn?.(); } catch { /* ignored */ } 
+  navigate
+    ? navigate(`/login?reason=${reason}`)
+    : (window.location.href = `/login?reason=${reason}`);
+}
+
+
+const recentErrors = new Set<string>();
+
+const deduplicatedError = (key: string, fn: () => Promise<void> | void, ttl = 3000) => {
+  if (recentErrors.has(key)) return;
+  recentErrors.add(key);
+  Promise.resolve(fn()).catch(console.error);
+  setTimeout(() => recentErrors.delete(key), ttl);
+};
+
 
 let pendingMessages: string[] = [];
 let batchScheduled = false;
-const recentErrors = new Set<string>();
 const recentToastMessages = new Set<string>();
 
 const scheduleFlush = () => {
@@ -39,7 +59,7 @@ const flushErrors = () => {
   const unique = [...new Set(pendingMessages)];
   pendingMessages = [];
 
-  const content =
+  const content: ReactNode =
     unique.length === 1
       ? `Operation failed: ${unique[0]}`
       : (
@@ -57,12 +77,9 @@ const flushErrors = () => {
         </div>
       );
 
-  toast.dismiss("batch_errors");
+  dismissToast(TOAST_IDS.BATCH_ERRORS);
   setTimeout(() => {
-    toast.error(content, {
-      toastId: "batch_errors",
-      autoClose: 4000,
-    });
+    showErrorToast(content, { toastId: TOAST_IDS.BATCH_ERRORS, autoClose: 4000 });
   }, 100);
 };
 
@@ -70,34 +87,9 @@ const queueError = (message: string) => {
   if (recentToastMessages.has(message)) return;
   recentToastMessages.add(message);
   setTimeout(() => recentToastMessages.delete(message), 3000);
-
   pendingMessages.push(message);
   scheduleFlush();
 };
-
-const deduplicatedError = (key: string, fn: () => void, ttl = 3000) => {
-  if (recentErrors.has(key)) return;
-  recentErrors.add(key);
-  fn();
-  setTimeout(() => recentErrors.delete(key), ttl);
-};
-
-
-const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 1000;
-
-async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  attempt = 1,
-): Promise<T> {
-  try {
-    return await fn();
-  } catch (err) {
-    if (attempt >= MAX_RETRIES) throw err;
-    await new Promise((res) => setTimeout(res, BASE_DELAY_MS * attempt));
-    return retryWithBackoff(fn, attempt + 1);
-  }
-}
 
 
 export const defaultOnError =
@@ -106,10 +98,10 @@ export const defaultOnError =
 
     if (action === "NETWORK_DOWN") {
       deduplicatedError("network_down", () => {
-        toast.error(LOGOUT_MESSAGES["network_down"], {
+        showErrorToast(LOGOUT_MESSAGES["network_down"], {
+          toastId: TOAST_IDS.NETWORK_DOWN,
           autoClose: 4000,
           closeOnClick: true,
-          toastId: "network_down",
         });
       });
       return;
@@ -120,54 +112,55 @@ export const defaultOnError =
     if (action === "LOGOUT") {
       deduplicatedError("session_error", async () => {
         const reason = meta?.code ?? "session_expired";
-        const toastMsg = getLogoutMessage(meta?.code);
-
-        toast.error(toastMsg, {
+        showErrorToast(getLogoutMessage(meta?.code), {
+          toastId: TOAST_IDS.SESSION_ERROR,
           autoClose: 4000,
           closeOnClick: false,
           draggable: false,
-          toastId: "session_error",
         });
-
-        await new Promise((res) => setTimeout(res, 3000));
-
-        await authService.logout();
-        navigate
-          ? navigate(`/login?reason=${reason}`)
-          : (window.location.href = `/login?reason=${reason}`);
+        await redirectToLogin(navigate, reason, () => authService.logout());
       });
       return;
     }
 
-    if (action === "RETRY") {
-      deduplicatedError("server_down", async () => {
-        const toastMsg = LOGOUT_MESSAGES["server_down"];
-
-        toast.error(
-          toastMsg,
-          {
-            autoClose: 4000,      
-            closeOnClick: false,  
-            draggable: false,
-            toastId: "server_down", 
-          }
-        );
-        await new Promise((res) => setTimeout(res, 3000));
-
-        await authService.logout();
-        navigate
-          ? navigate("/login?reason=server_down")
-          : (window.location.href = "/login?reason=server_down");
+    if (action === "RETRY_THEN_LOGOUT") {
+      deduplicatedError("retry_then_logout", async () => {
+        showErrorToast(LOGOUT_MESSAGES["retry_then_logout"], {
+          toastId: TOAST_IDS.RETRY_THEN_LOGOUT,
+          autoClose: 4000,
+          closeOnClick: false,
+          draggable: false,
+        });
+      await redirectToLogin(navigate, "retry_then_logout", () => authService.logout());
       });
       return;
     }
 
-    const isNetworkMessage = message === "Network Error" ||  message === "Network is down";
-
-    if (isNetworkMessage) 
+    if (action === "RETRY_THEN_SERVICE_ERROR") {
+      deduplicatedError("service_error", () => {
+        showErrorToast(LOGOUT_MESSAGES["service_error"], {
+          toastId: TOAST_IDS.SERVICE_ERROR,
+          autoClose: 5000,
+          closeOnClick: true,
+        });
+      });
       return;
+    }
+
+    if (action === "RETRY_THEN_DATA_ERROR") {
+      deduplicatedError("data_error", () => {
+        showErrorToast(LOGOUT_MESSAGES["data_error"], {
+          toastId: TOAST_IDS.DATA_ERROR,
+          autoClose: 5000,
+          closeOnClick: true,
+        });
+      });
+      return;
+    }
+
+    const isNetworkMessage =
+      message === "Network Error" || message === "Network is down";
+    if (isNetworkMessage) return;
 
     queueError(message);
   };
-
-export { retryWithBackoff };

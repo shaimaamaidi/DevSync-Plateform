@@ -1,11 +1,12 @@
 import {
   LOGOUT_IMMEDIATELY,
-  RETRYABLE_CODES,
+  RETRY_THEN_LOGOUT,
+  RETRY_THEN_SERVICE_ERROR,
+  RETRY_THEN_DATA_ERROR,
   SILENT_CODES,
   type ErrorCode,
 } from "@/api/error-codes";
 import type { ApiErrorMeta, ErrorAction } from "@/types/api-error-type";
-
 
 type ErrorLike = {
   message?: string;
@@ -17,7 +18,6 @@ type ErrorLike = {
 
 type ErrorListener = (msg: string) => void;
 
-
 const listeners: ErrorListener[] = [];
 
 export function subscribeToApiError(listener: ErrorListener) {
@@ -28,16 +28,11 @@ export function subscribeToApiError(listener: ErrorListener) {
   };
 }
 
-
 export function extractErrorCode(err: unknown): string | null {
   try {
     const data = (err as ErrorLike)?.response?.data;
     if (!data || typeof data !== "object") return null;
-    return (
-      (data as any)?.error?.code ??
-      (data as any)?.code ??
-      null
-    );
+    return (data as any)?.error?.code ?? (data as any)?.code ?? null;
   } catch {
     return null;
   }
@@ -55,8 +50,8 @@ export function extractAssigneeListFromError(message: string): string[] {
   const match = message.match(/\[([^\]]+)\]/);
   if (!match) return [message];
   return match[1]
-    .split(',')
-    .map(s => s.trim().replace(/^['"]|['"]$/g, ''))
+    .split(",")
+    .map((s) => s.trim().replace(/^['"]|['"]$/g, ""))
     .filter(Boolean);
 }
 
@@ -106,33 +101,34 @@ export function resolveErrorAction(err: unknown): ErrorAction {
     (err as ErrorLike)?.message === "Network Error" &&
     !(err as ErrorLike)?.response;
 
-  if (isNetworkError) 
-    return "NETWORK_DOWN";
+  if (isNetworkError) return "NETWORK_DOWN";
 
   if (code && SILENT_CODES.has(code)) return "SILENT";
 
   if (code && LOGOUT_IMMEDIATELY.has(code)) return "LOGOUT";
 
-  if (status === 401 || status === 403) return "LOGOUT";
+  if (status === 401) return "LOGOUT";
+  if (status === 403) return "NOTIFY";
 
   if (status === 422) return "NOTIFY";
 
-  if (code && RETRYABLE_CODES.has(code)) return "RETRY";
+  if (code && RETRY_THEN_LOGOUT.has(code))         return "RETRY_THEN_LOGOUT";
+  if (code && RETRY_THEN_SERVICE_ERROR.has(code))  return "RETRY_THEN_SERVICE_ERROR";
+  if (code && RETRY_THEN_DATA_ERROR.has(code))     return "RETRY_THEN_DATA_ERROR";
 
-  if (status === 500 || status === 502 || status === 503 || status === 429) return "RETRY";
+  if (status === 429 || status === 502 || status === 503)
+    return "RETRY_THEN_SERVICE_ERROR";
+
+  if (status === 500)
+    return "RETRY_THEN_DATA_ERROR";
 
   return "NOTIFY";
 }
 
-
 export async function withErrorHandling<T>(
   fn: () => Promise<T>,
   context: string,
-  onError?: (
-    action: ErrorAction,
-    message: string,
-    meta?: ApiErrorMeta,
-  ) => void,
+  onError?: (action: ErrorAction, message: string, meta?: ApiErrorMeta) => void,
 ): Promise<T | null> {
   try {
     return await fn();

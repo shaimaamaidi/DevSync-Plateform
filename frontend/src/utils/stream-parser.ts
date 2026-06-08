@@ -1,4 +1,4 @@
-import { emitAxiosError } from '@/api/axios-interceptor';
+import { emitAxiosError, type AxiosErrorEvent } from '@/api/axios-interceptor';
 import { resolveErrorAction } from './error-handler';
 
 export interface StreamResult {
@@ -47,12 +47,10 @@ export async function readSseStream(
           const errorLike = { response: { status, data: { error: { code, message } } } };
           const action = resolveErrorAction(errorLike);
 
-          const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | 'NETWORK_DOWN' | null =
-            action === 'SILENT' ? null : action;
+          const emitAction: AxiosErrorEvent["action"] | null = action === 'SILENT' ? null : action as AxiosErrorEvent["action"];
 
           if (emitAction) {
-            const sseAction = emitAction === 'RETRY' ? 'NOTIFY' : emitAction;
-            emitAxiosError({ action: sseAction, message, code, status });
+            emitAxiosError({ action: emitAction as AxiosErrorEvent["action"], message, code, status });
           }
 
           throw new SseBusinessError(message);
@@ -103,8 +101,10 @@ export async function readSseStream(
           err instanceof TypeError &&
           (err.message === 'Failed to fetch' || err.message === 'Network Error');
 
+        const errorLike = { response: { status: 503, data: { error: { code: 'STREAM_EXECUTION_ERROR', message: err.message || 'Stream connection lost' } } } };
+        const action = resolveErrorAction(errorLike);
         emitAxiosError({
-          action: isNetworkError ? 'NETWORK_DOWN' : 'NOTIFY',
+          action: isNetworkError ? 'NETWORK_DOWN' : action as AxiosErrorEvent["action"],
           message: err.message || 'Stream connection lost',
           code: isNetworkError ? null : 'STREAM_EXECUTION_ERROR',
         });

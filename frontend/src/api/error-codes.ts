@@ -59,7 +59,10 @@ export const ERROR_CODES = {
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 
-
+/**
+ * Immediate login, 0 retry.
+ * Session/config invalide.
+ */
 export const LOGOUT_IMMEDIATELY = new Set<ErrorCode>([
   ERROR_CODES.INVALID_TOKEN,
   ERROR_CODES.MISSING_ENV_VARIABLE,
@@ -68,52 +71,105 @@ export const LOGOUT_IMMEDIATELY = new Set<ErrorCode>([
   ERROR_CODES.AGENT_INITIALIZATION_ERROR,
 ]);
 
-// Retry (max 3) puis logout si toujours KO
-// 502/503 : erreurs externes/infra transitoires (Azure, LLM, ClickUp API, streams)
-// 429     : rate limit → attendre puis retry
-// 500 persistence/DB : peuvent être transitoires (connexion perdue, session expirée)
-export const RETRYABLE_CODES = new Set<ErrorCode>([
-  // Azure / Agent
-  ERROR_CODES.AZURE_AGENT_RUNTIME_ERROR,   // 502
-  ERROR_CODES.AZURE_STREAM_ERROR,           // 502
-  ERROR_CODES.STREAM_EXECUTION_ERROR,       // 503
-  ERROR_CODES.TOOL_EXECUTION_ERROR,         // 503
-
-  // Backlog workflow
-  ERROR_CODES.BACKLOG_GENERATION_ERROR,     // 503
-  ERROR_CODES.BACKLOG_REPLY_ERROR,          // 503
-  ERROR_CODES.BACKLOG_STREAM_ERROR,         // 503
-  ERROR_CODES.REPLY_STREAM_ERROR,           // 500
-  ERROR_CODES.SERVICE_UNAVAILABLE,          // 503
-
-  // LLM
-  ERROR_CODES.LLM_API_ERROR,               // 502
-  ERROR_CODES.LLM_NETWORK_ERROR,           // 502
-
-  // ClickUp API (appels externes transitoires)
-  ERROR_CODES.CLICKUP_API_ERROR,           // 502
-  ERROR_CODES.CLICKUP_TASK_CREATE_ERROR,   // 502
-  ERROR_CODES.CLICKUP_TASK_UPDATE_ERROR,   // 502
-  ERROR_CODES.CLICKUP_TASK_DELETE_ERROR,   // 502
-  ERROR_CODES.CLICKUP_WRITE_ERROR,         // 502
-  ERROR_CODES.CLICKUP_RATE_LIMIT,          // 429
-
-  // GitHub
-  ERROR_CODES.GITHUB_API_ERROR,            // 502
-  ERROR_CODES.GITHUB_RATE_LIMIT,           // 429
-
-  // DB / Persistence (transitoires)
-  ERROR_CODES.DB_CONNECTION_ERROR,         // 500
-  ERROR_CODES.DB_INIT_ERROR,               // 500
-  ERROR_CODES.DB_SESSION_ERROR,            // 500
-  ERROR_CODES.REFRESH_TOKEN_PERSISTENCE_ERROR, // 500
-  ERROR_CODES.MEMBER_PERSISTENCE_ERROR,    // 500
-  ERROR_CODES.REPO_PERSISTENCE_ERROR,      // 500
-  ERROR_CODES.CLICKUP_PERSISTENCE_ERROR,   // 500
+/**
+ * Retry (max 2, backoff 1s) then logout.
+ * Errors that may be transient but indicate
+ * a potentially compromised session if they persist.
+ */
+export const RETRY_THEN_LOGOUT = new Set<ErrorCode>([
+  ERROR_CODES.REFRESH_TOKEN_PERSISTENCE_ERROR,
+  ERROR_CODES.AZURE_AGENT_RUNTIME_ERROR,
+  ERROR_CODES.AZURE_STREAM_ERROR,
 ]);
 
-// Silencieux — ni retry ni logout
-// STREAM_CANCELLED (499) : annulé par le client lui-même
+/**
+ * Retry (max 2, backoff exponentiel 1s base) then show an error with toatsr.
+ * "service unreachable".
+ * Rate limits (429) : Same policy, the retreat absorbs the expectation.
+ */
+export const RETRY_THEN_SERVICE_ERROR = new Set<ErrorCode>([
+  // LLM / Azure
+  ERROR_CODES.LLM_API_ERROR,
+  ERROR_CODES.LLM_NETWORK_ERROR,
+  ERROR_CODES.STREAM_EXECUTION_ERROR,
+  ERROR_CODES.TOOL_EXECUTION_ERROR,
+
+  // Backlog workflow
+  ERROR_CODES.BACKLOG_GENERATION_ERROR,
+  ERROR_CODES.BACKLOG_REPLY_ERROR,
+  ERROR_CODES.BACKLOG_STREAM_ERROR,
+  ERROR_CODES.REPLY_STREAM_ERROR,
+  ERROR_CODES.SERVICE_UNAVAILABLE,
+
+  // ClickUp API (external calls)
+  ERROR_CODES.CLICKUP_API_ERROR,
+  ERROR_CODES.CLICKUP_TASK_CREATE_ERROR,
+  ERROR_CODES.CLICKUP_TASK_UPDATE_ERROR,
+  ERROR_CODES.CLICKUP_TASK_DELETE_ERROR,
+  ERROR_CODES.CLICKUP_WRITE_ERROR,
+  ERROR_CODES.CLICKUP_RATE_LIMIT,// 429 → backoff long
+
+  // GitHub
+  ERROR_CODES.GITHUB_API_ERROR,
+  ERROR_CODES.GITHUB_RATE_LIMIT,// 429 → backoff long
+]);
+
+/**
+ * Retry (max 3, short backoff 500ms base) then show a technical error.
+ */
+export const RETRY_THEN_DATA_ERROR = new Set<ErrorCode>([
+  ERROR_CODES.DB_CONNECTION_ERROR,
+  ERROR_CODES.DB_INIT_ERROR,
+  ERROR_CODES.DB_SESSION_ERROR,
+  ERROR_CODES.MEMBER_PERSISTENCE_ERROR,
+  ERROR_CODES.REPO_PERSISTENCE_ERROR,
+  ERROR_CODES.CLICKUP_PERSISTENCE_ERROR,
+]);
+
+/**
+ * Silencieux — no retry, no logout, no notification.
+ * STREAM_CANCELLED (499) : cancelled voluntarily by the customer.
+ */
 export const SILENT_CODES = new Set<ErrorCode>([
   ERROR_CODES.STREAM_CANCELLED,
 ]);
+
+
+export type RetryPolicy = {
+  maxAttempts: number;
+  baseDelayMs: number;
+};
+
+export const RETRY_POLICIES = {
+  RETRY_THEN_LOGOUT: { maxAttempts: 2, baseDelayMs: 1000 },
+  RETRY_THEN_SERVICE_ERROR: { maxAttempts: 2, baseDelayMs: 1000 },
+  RETRY_THEN_DATA_ERROR: { maxAttempts: 3, baseDelayMs: 500  },
+} as const satisfies Record<string, RetryPolicy>;
+
+
+export type ErrorBehavior =
+  | { kind: "logout_immediately" }
+  | { kind: "retry_then_logout"; policy: RetryPolicy }
+  | { kind: "retry_then_service_error"; policy: RetryPolicy }
+  | { kind: "retry_then_data_error"; policy: RetryPolicy }
+  | { kind: "silent" }
+  | { kind: "unhandled" };
+
+export function resolveErrorBehavior(code: ErrorCode): ErrorBehavior {
+  if (LOGOUT_IMMEDIATELY.has(code))
+    return { kind: "logout_immediately" };
+
+  if (RETRY_THEN_LOGOUT.has(code))
+    return { kind: "retry_then_logout", policy: RETRY_POLICIES.RETRY_THEN_LOGOUT };
+
+  if (RETRY_THEN_SERVICE_ERROR.has(code))
+    return { kind: "retry_then_service_error", policy: RETRY_POLICIES.RETRY_THEN_SERVICE_ERROR };
+
+  if (RETRY_THEN_DATA_ERROR.has(code))
+    return { kind: "retry_then_data_error", policy: RETRY_POLICIES.RETRY_THEN_DATA_ERROR };
+
+  if (SILENT_CODES.has(code))
+    return { kind: "silent" };
+
+  return { kind: "unhandled" };
+}

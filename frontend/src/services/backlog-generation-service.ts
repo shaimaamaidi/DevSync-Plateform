@@ -9,7 +9,7 @@ import {
   resolveErrorAction,
   extractErrorCode,
 } from '@/utils/error-handler';
-import { emitAxiosError } from '@/api/axios-interceptor';
+import { emitAxiosError, type AxiosErrorEvent } from '@/api/axios-interceptor';
 
 const SSE_HEADERS = {
   'Content-Type': 'application/json',
@@ -118,8 +118,7 @@ async function assertSseResponse(response: Response): Promise<ReadableStream<Uin
     const errorLike = buildErrorLike(response.status, { message });
     const action = resolveErrorAction(errorLike);
     const code = extractErrorCode(errorLike);
-    const emitAction: 'LOGOUT' | 'RETRY' | 'NOTIFY' | 'NETWORK_DOWN' | null =
-      action === 'SILENT' ? null : action;
+    const emitAction: AxiosErrorEvent["action"] | null = action === 'SILENT' ? null : action as AxiosErrorEvent["action"];
 
     if (emitAction) {
       emitAxiosError({ action: emitAction, message, code, status: response.status });

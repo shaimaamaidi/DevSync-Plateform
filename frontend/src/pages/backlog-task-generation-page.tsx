@@ -28,10 +28,9 @@ import {
   extractErrorCode, 
   extractAssigneeListFromError
 } from '@/utils/error-handler';
-import { showErrorToast, showSuccessToast } from '@/components/global-toaster';
+import { showSuccessToast } from '@/components/global-toaster';
 import type { 
   FailedTask,
-  GeneratedTaskFromBacklog, 
   Sprint, 
   VerifiedTaskFromBacklog 
 } from '@/api/api';
@@ -64,7 +63,6 @@ export default function BacklogTaskGenerationPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [savedOk, setSavedOk] = useState(false);
-  const [isVerificationFinished, setIsVerificationFinished] = useState(false);
 
   const [disabledAll, setDisabledAll] = useState(false);
 
@@ -110,7 +108,6 @@ export default function BacklogTaskGenerationPage() {
     setIsSaving(false);
     setSaveSummary(null);
     setSavedOk(false);
-    setIsVerificationFinished(false);
     setDisabledAll(false);
   };
 
@@ -303,38 +300,6 @@ export default function BacklogTaskGenerationPage() {
   const handleIgnoreNames = () => { setAssigneeDialog({ open: false }); executeSave(true, false); };
   const handleIgnoreMails = () => { setAssigneeDialog({ open: false }); executeSave(true, true); };
 
-  const handleDropFromGenerated = (task: TaskGenerationDTO) => {
-    const t = task as GeneratedTaskFromBacklog;
-    
-    if (realIsStructureEmpty)
-      return;
-    if (!isVerificationFinished) 
-      return;
-
-    const sameTitle = verifiedTasks.find(
-      v => v.task_name.trim().toLowerCase() === task.task_name.trim().toLowerCase(),
-    );
-
-    if (sameTitle) {
-      showErrorToast('Task already exists and was not added', `Duplicate task`);
-      return;  
-    }
-    
-    setVerifiedTasks(prev => [
-      ...prev,
-      {
-        action: 'create',
-        task_name: t.task_name,
-        task_description: t.task_description,
-        task_assignee: t.task_assignee,
-        task_status: t.task_status,
-        task_priority: t.task_priority,
-        location: t.location,
-        estimation: t.estimation,
-      },
-    ]);
-  };
-
   const navigateToNewBacklog = () => {
     navigate('/backlog-generation-chat');
   };
@@ -473,7 +438,6 @@ export default function BacklogTaskGenerationPage() {
                     tasks={verifiedTasks}
                     isLoading={isGenerating}
                     onChange={setVerifiedTasks}
-                    onDrop={handleDropFromGenerated}
                     onSave={handleSave}
                     isSaving={isSaving}
                     savedOk={savedOk}

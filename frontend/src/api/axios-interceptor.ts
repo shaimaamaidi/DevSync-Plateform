@@ -5,9 +5,10 @@ import {
   normalizeErrorMessage,
   extractErrorCode,
 } from "@/utils/error-handler";
+import { RETRY_POLICIES } from "@/api/error-codes";
 
 export interface AxiosErrorEvent {
-  action: "LOGOUT" | "RETRY" | "NOTIFY" | "SILENT" | "NETWORK_DOWN";
+  action: "LOGOUT" | "RETRY_THEN_LOGOUT" | "RETRY_THEN_SERVICE_ERROR" | "RETRY_THEN_DATA_ERROR" | "NOTIFY" | "SILENT" | "NETWORK_DOWN";
   message: string;
   code?: string | null;
   status?: number;
@@ -28,32 +29,16 @@ export function emitAxiosError(event: AxiosErrorEvent) {
   errorListeners.forEach((cb) => cb(event));
 }
 
-function emitError(event: AxiosErrorEvent) {
-  emitAxiosError(event);
-}
 
 let isRefreshing = false;
 let pendingRequests: Array<{
   resolve: (value: any) => void;
   reject: (reason: any) => void;
-  config: any; 
+  config: any;
 }> = [];
+
 const retryCountMap = new Map<string, number>();
 let requestIdCounter = 0;
-
-const REFRESH_SKIP_URLS = ["/auth/refresh", "/auth/login", "/auth/logout"];
-
-function shouldSkipRefresh(url?: string): boolean {
-  if (!url) return false;
-  return REFRESH_SKIP_URLS.some((skip) => url.includes(skip));
-}
-
-function getRetryKey(config: any): string {
-  if (!config._retryId) {
-    config._retryId = ++requestIdCounter;
-  }
-  return String(config._retryId);
-}
 
 let isNetworkDown = false;
 type NetworkListener = (isDown: boolean) => void;
@@ -68,21 +53,62 @@ export function onNetworkChange(listener: NetworkListener): () => void {
 }
 
 function setNetworkDown(value: boolean) {
-  if (isNetworkDown === value) return; 
+  if (isNetworkDown === value) return;
   isNetworkDown = value;
   networkListeners.forEach((cb) => cb(value));
 }
 
-export function setupAxiosInterceptors() {
-  axios.interceptors.request.use(
-    (config) => {
-      if (isNetworkDown) {
-        const err = new Error("Network is down") as any;
-        return Promise.reject(err);
-      }
-      return config;
-    }
+
+const REFRESH_SKIP_URLS = ["/auth/refresh", "/auth/login", "/auth/logout"];
+
+function shouldSkipRefresh(url?: string): boolean {
+  if (!url) return false;
+  return REFRESH_SKIP_URLS.some((skip) => url.includes(skip));
+}
+
+function getRetryKey(config: any): string {
+  if (!config._retryId) config._retryId = ++requestIdCounter;
+  return String(config._retryId);
+}
+
+function getRetryPolicy(action: AxiosErrorEvent["action"]) {
+  switch (action) {
+    case "RETRY_THEN_LOGOUT":
+      return RETRY_POLICIES.RETRY_THEN_LOGOUT;
+    case "RETRY_THEN_SERVICE_ERROR":
+      return RETRY_POLICIES.RETRY_THEN_SERVICE_ERROR;
+    case "RETRY_THEN_DATA_ERROR":
+      return RETRY_POLICIES.RETRY_THEN_DATA_ERROR;
+    default:
+      return null;
+  }
+}
+
+function isRateLimitCode(code: string | null): boolean {
+  return (
+    code === "CLICKUP_RATE_LIMIT" ||
+    code === "GITHUB_RATE_LIMIT"
   );
+}
+
+function computeDelay(
+  baseDelayMs: number,
+  attempt: number,
+  isRateLimit: boolean
+): number {
+  if (isRateLimit) return 5000; 
+  return baseDelayMs * Math.pow(2, attempt); 
+}
+
+
+export function setupAxiosInterceptors() {
+
+  axios.interceptors.request.use((config) => {
+    if (isNetworkDown) {
+      return Promise.reject(new Error("Network is down"));
+    }
+    return config;
+  });
 
   axios.interceptors.response.use(
     (response) => {
@@ -93,17 +119,20 @@ export function setupAxiosInterceptors() {
     },
 
     async (error) => {
-      if (error._silent) 
-        return Promise.reject(error);
-      
-      const isNetworkError = error.message === "Network Error" && !error.response;
+      if (error._silent) return Promise.reject(error);
+
+      const isNetworkError =
+        error.message === "Network Error" && !error.response;
 
       if (isNetworkError) {
-        if (!isNetworkDown) {
-          setNetworkDown(true);
-        }
-        emitError({ action: "NETWORK_DOWN", message: "Network error", code: null, status: undefined });
-        return Promise.reject(error); 
+        setNetworkDown(true);
+        emitAxiosError({
+          action: "NETWORK_DOWN",
+          message: "Network error",
+          code: null,
+          status: undefined,
+        });
+        return Promise.reject(error);
       }
 
       setNetworkDown(false);
@@ -141,13 +170,9 @@ export function setupAxiosInterceptors() {
           pendingRequests = [];
           pending.forEach(({ reject }) => reject(refreshError));
 
-          try {
-            await authService.logout();
-          } catch {
-            /* ignored */
-          }
+          try { await authService.logout(); } catch { /* ignored */ }
 
-          emitError({
+          emitAxiosError({
             action: "LOGOUT",
             message: "Session expired",
             code: "INVALID_TOKEN",
@@ -166,30 +191,34 @@ export function setupAxiosInterceptors() {
 
       if (action === "SILENT") return Promise.reject(error);
 
-      if (action === "RETRY") {
+      const policy = getRetryPolicy(action);
+
+      if (policy) {
         const retryKey = getRetryKey(originalRequest);
         const attempt = retryCountMap.get(retryKey) ?? 0;
 
-        if (attempt < 3) {
-          if (isNetworkDown) {
-            retryCountMap.delete(retryKey);
-            return Promise.reject(error);
-          }
+        if (attempt < policy.maxAttempts && !isNetworkDown) {
           retryCountMap.set(retryKey, attempt + 1);
-          await new Promise((res) => setTimeout(res, 1000 * (attempt + 1)));
+
+          const delay = computeDelay(
+            policy.baseDelayMs,
+            attempt,
+            isRateLimitCode(code)
+          );
+
+          await new Promise((res) => setTimeout(res, delay));
           return axios(originalRequest);
         }
 
         retryCountMap.delete(retryKey);
-        
-        if (isNetworkDown) 
-          return Promise.reject(error);
 
-        emitError({ action: "RETRY", message, code, status });
+        if (isNetworkDown) return Promise.reject(error);
+
+        emitAxiosError({ action, message, code, status });
         return Promise.reject(error);
       }
 
-      emitError({ action, message, code, status });
+      emitAxiosError({ action, message, code, status });
       return Promise.reject(error);
     }
   );
