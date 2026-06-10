@@ -411,7 +411,7 @@ export interface GeneratedTaskFromBacklogRequest {
     /**
      * Sprint backlog data used to generate tasks.
      */
-    'sprint_backlog': Sprint;
+    'sprint_backlog': Array<Sprint>;
     /**
      * Identifier of the ClickUp workspace.
      */

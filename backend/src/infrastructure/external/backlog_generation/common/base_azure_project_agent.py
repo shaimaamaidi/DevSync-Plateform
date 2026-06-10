@@ -8,23 +8,15 @@ backlog generation workflow.
 
 import logging
 
-import os
-from pathlib import Path
-
 from azure.core.exceptions import AzureError
 from azure.identity.aio import ClientSecretCredential
 from azure.ai.projects.aio import AIProjectClient
-from dotenv import load_dotenv
 
 from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
-from backend.src.domain.exceptions.azure.missing_azure_config_exception import MissingAzureConfigException
+from backend.src.infrastructure.config.settings import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-_BACKEND_DIR = Path(__file__).resolve().parents[5]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class BaseAzureProjectAgent:
@@ -56,48 +48,25 @@ class BaseAzureProjectAgent:
                 missing (tenant_id, client_id, client_secret, endpoint, or agent_id).
             AzureAgentRuntimeException: If initialization of Azure credentials or project client fails.
         """
-        loaded = load_dotenv(_DOTENV_PATH, override=False)
+        tenant_id = settings.AZURE_TENANT_ID
+        client_id = settings.AZURE_CLIENT_ID
+        client_secret = settings.AZURE_CLIENT_SECRET
+        endpoint = settings.AZURE_PROJECT_ENDPOINT
+        self.agent_id = getattr(settings, agent_id_env_key, None)
 
-        if not loaded:
-            logger.warning(".env file not found at %s.", _DOTENV_PATH)
+        self.credential = ClientSecretCredential(
+            tenant_id=tenant_id,
+            client_id=client_id,
+            client_secret=client_secret,
+        )
 
-        tenant_id = os.environ.get("AZURE_TENANT_ID")
-        client_id = os.environ.get("AZURE_CLIENT_ID")
-        client_secret = os.environ.get("AZURE_CLIENT_SECRET")
-        endpoint = os.environ.get("AZURE_PROJECT_ENDPOINT")
-        self.agent_id = os.environ.get(agent_id_env_key)
+        self.project_client = AIProjectClient(
+            endpoint=endpoint,
+            credential=self.credential,
+        )
 
-        if not all([tenant_id, client_id, client_secret, endpoint, self.agent_id]):
-            logger.error(
-                "Missing Azure configuration (agent_env_key=%s).",
-                agent_id_env_key
-            )
-            raise MissingAzureConfigException(
-                "The AI service is not properly configured. Please contact your administrator."
-            )
+        self.agent = None
 
-        try:
-            self.credential = ClientSecretCredential(
-                tenant_id=tenant_id,
-                client_id=client_id,
-                client_secret=client_secret,
-            )
-
-            self.project_client = AIProjectClient(
-                endpoint=endpoint,
-                credential=self.credential,
-            )
-
-            self.agent = None
-
-        except Exception as e:
-            logger.exception(
-                "Azure BaseAgent initialization failed (agent_env_key=%s).",
-                agent_id_env_key
-            )
-            raise AzureAgentRuntimeException(
-                message="The AI service could not be initialized. Please contact your administrator."
-            ) from e
 
     async def load_agent(self) -> None:
         """

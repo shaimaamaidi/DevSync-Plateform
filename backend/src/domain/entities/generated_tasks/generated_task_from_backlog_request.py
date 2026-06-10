@@ -10,6 +10,7 @@ into actionable tasks associated with a ClickUp workspace.
 Main class:
     GeneratedTaskFromBacklogRequest
 """
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -27,5 +28,5 @@ class GeneratedTaskFromBacklogRequest(BaseModel):
         sprint_backlog: Sprint backlog data used to generate tasks.
         space_id: Identifier of the ClickUp workspace where tasks will be created.
     """
-    sprint_backlog: Sprint = Field(..., description="Sprint backlog data used to generate tasks.")
+    sprint_backlog: List[Sprint] = Field(default=[], description="Sprint backlog data used to generate tasks.")
     space_id: str = Field(..., min_length=1, description="Identifier of the ClickUp workspace.")

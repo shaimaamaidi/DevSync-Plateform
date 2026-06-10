@@ -8,24 +8,18 @@ Classes:
 """
 
 import logging
-import os
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 
 from jose import JWTError, jwt, ExpiredSignatureError
-from dotenv import load_dotenv
 from jose.exceptions import JWTClaimsError
 
 from backend.src.domain.exceptions.base.app_exception import AppException
-from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.exceptions.auth.invalid_token_exception import InvalidTokenException
 from backend.src.domain.ports.output.i_jwt_handler import IJWTHandler
+from backend.src.infrastructure.config.settings import settings
 
 
 logger = logging.getLogger(__name__)
-
-_BACKEND_DIR = Path(__file__).resolve().parents[3]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class JWTHandler(IJWTHandler):
@@ -48,20 +42,11 @@ class JWTHandler(IJWTHandler):
         Raises:
             MissingEnvVariableException: If required environment variables are missing or invalid.
         """
-        load_dotenv(_DOTENV_PATH)
-        self.secret_key = os.getenv("JWT_SECRET_KEY")
-        self.algorithm = os.getenv("JWT_ALGORITHM", "HS256")
 
-        if not self.secret_key:
-            logger.error("JWTHandler initialization failed: JWT_SECRET_KEY is missing!")
-            raise MissingEnvVariableException()
-
-        try:
-            self.access_token_expire_minutes = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
-            self.refresh_token_expire_days = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
-        except ValueError as e:
-            logger.exception("Invalid JWT config values.")
-            raise MissingEnvVariableException() from e
+        self.secret_key = settings.JWT_SECRET_KEY
+        self.algorithm = settings.JWT_ALGORITHM
+        self.access_token_expire_minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        self.refresh_token_expire_days = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
         logger.info("JWTHandler initialized successfully.")
 

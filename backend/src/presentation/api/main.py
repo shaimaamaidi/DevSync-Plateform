@@ -25,6 +25,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.src.domain.exceptions.base.app_exception import AppException
+from backend.src.infrastructure.config.settings import settings
 from backend.src.infrastructure.di.backlog_generation_container import BacklogGenerationContainer
 from backend.src.infrastructure.di.clickup_container import ClickUpContainer
 from backend.src.infrastructure.di.commit_task_mapping_container import CommitTaskMappingContainer
@@ -172,7 +173,7 @@ def create_app() -> FastAPI:
     app.add_middleware(JWTAuthMiddleware)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173"],
+        allow_origins=settings.ALLOW_ORIGINS,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

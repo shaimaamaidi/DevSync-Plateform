@@ -5,26 +5,19 @@ This module provides the MySQLConnector class for managing SQLAlchemy engine and
 """
 
 import logging
-from pathlib import Path
 from typing import Tuple
 
 from sqlalchemy import create_engine, text, Engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, Session
-from dotenv import load_dotenv
-import os
 
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.database.database_connection_exception import DatabaseConnectionException
 from backend.src.domain.exceptions.database.database_initialization_exception import DatabaseInitializationException
 from backend.src.domain.exceptions.database.database_session_exception import DatabaseSessionException
-
+from backend.src.infrastructure.config.settings import settings
 
 logger = logging.getLogger(__name__)
-
-
-_BACKEND_DIR = Path(__file__).resolve().parents[3]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class MySQLConnector:
@@ -52,35 +45,13 @@ class MySQLConnector:
         """
         logger.info("Initializing MySQL connector.")
 
-        loaded = load_dotenv(_DOTENV_PATH, override=False)
-
-        if not loaded:
-            logger.warning(".env file not found at %s.", _DOTENV_PATH)
-
-        self.user = os.getenv("MYSQL_USER")
-        self.password = os.getenv("MYSQL_PASSWORD")
-        self.host = os.getenv("MYSQL_HOST")
-        self.port = os.getenv("MYSQL_PORT")
-        self.db = os.getenv("MYSQL_DB")
+        self.user = settings.MYSQL_USER
+        self.password = settings.MYSQL_PASSWORD
+        self.host = settings.MYSQL_HOST
+        self.port = settings.MYSQL_PORT
+        self.db = settings.MYSQL_DB
         self.engine = None
         self.Session = None
-
-        missing = [k for k, v in {
-            "MYSQL_USER": self.user,
-            "MYSQL_PASSWORD": self.password,
-            "MYSQL_HOST": self.host,
-            "MYSQL_PORT": self.port,
-            "MYSQL_DB": self.db,
-        }.items() if not v]
-
-        if missing:
-            logger.error(
-                "Missing required environment variables for database: %s.",
-                missing
-            )
-            raise DatabaseInitializationException(
-                "The service is not properly configured. Please contact support."
-            )
 
         logger.info(
             "MySQLConnector initialized (host=%s, port=%s, db=%s).",

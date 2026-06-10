@@ -41,6 +41,7 @@ function emitUnexpectedError(message = "An unexpected error occurred.") {
 }
 
 export function useChatLogic() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -417,6 +418,8 @@ export function useChatLogic() {
       const sprintData = isSprintPlanning(parsedDelivery) ? sprintPlanningToUi(parsedDelivery) : null;
 
       if (sprintData) {
+        localStorage.setItem('sprint_backlog', JSON.stringify(parsedDelivery.sprints ?? parsedDelivery));
+
         updateMsg(agentMsgId, {
           _streaming: false,
           content: agentText || "Sprint planning generated.",
@@ -519,6 +522,8 @@ export function useChatLogic() {
       const sprintData = isSprintPlanning(parsedDelivery) ? sprintPlanningToUi(parsedDelivery) : null;
 
       if (sprintData) {
+        localStorage.setItem('sprint_backlog', JSON.stringify(parsedDelivery.sprints ?? parsedDelivery));
+
         updateMsg(agentMsgId, {
           _streaming: false,
           content: agentText || "Sprint planning generated.",
@@ -665,9 +670,7 @@ export function useChatLogic() {
     }
   };
 
-  const handleClickUpYes = (sprintData: any) => {
-    const navigate = useNavigate();
-    localStorage.setItem('sprint_backlog', JSON.stringify(sprintData));
+  const handleClickUpYes = () => {
     navigate('/backlog-tasks');
   };
 

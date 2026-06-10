@@ -59,8 +59,8 @@ export function BacklogCard({ data, editable, onSubmit, onConfirm }: BacklogCard
   const isEdit = editable && !done;
 
   const totalStories = epics.reduce((a, e) => a + e.stories.length, 0);
-  const totalTasks   = epics.reduce((a, e) => a + e.stories.reduce((b, s) => b + s.tasks.length, 0), 0);
-  const hasChanges   = !areBacklogsEqual(uiToBacklog(epics), uiToBacklog(data));
+  const totalTasks = epics.reduce((a, e) => a + e.stories.reduce((b, s) => b + s.tasks.length, 0), 0);
+  const hasChanges = !areBacklogsEqual(uiToBacklog(epics), uiToBacklog(data));
 
   const getNextId = (items: { id: string }[], prefix: string) => {
     const numbers = items.map((i) => parseInt(i.id.replace(/\D/g, "") || "0", 10));

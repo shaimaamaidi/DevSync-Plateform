@@ -94,6 +94,7 @@ export function AttachmentRenderer({
             onClick={() => { 
               setClicked(true); 
               console.log("yes")
+              console.log(attachment.data);
               onClickUpYes?.(attachment.data); 
             }}
             disabled={clicked}

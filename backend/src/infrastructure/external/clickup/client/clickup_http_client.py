@@ -10,27 +10,20 @@ This client contains no business logic and is used by infrastructure services.
 """
 
 import logging
-import os
-from pathlib import Path
 
 import requests
 from typing import Any
 
-from dotenv import load_dotenv
 
 from backend.src.domain.exceptions.clickup.clickup_api_exception import ClickUpApiException
 from backend.src.domain.exceptions.clickup.clickup_authentication_exception import ClickUpAuthenticationException
 from backend.src.domain.exceptions.clickup.clickup_client_exception import ClickUpClientException
 from backend.src.domain.exceptions.clickup.clickup_rate_limit_exception import ClickUpRateLimitException
 from backend.src.domain.exceptions.clickup.clickup_resource_not_found_exception import ClickUpResourceNotFoundException
-from backend.src.domain.exceptions.clickup.missing_clickup_config_exception import MissingClickUpConfigException
+from backend.src.infrastructure.config.settings import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-_BACKEND_DIR = Path(__file__).resolve().parents[5]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class ClickUpHttpClient:
@@ -47,8 +40,6 @@ class ClickUpHttpClient:
         _headers (dict): HTTP headers including authentication token.
     """
 
-    BASE_URL = "https://api.clickup.com/api/v2"
-
     def __init__(self):
         """
         Initialize the ClickUp HTTP client.
@@ -59,18 +50,10 @@ class ClickUpHttpClient:
         Raises:
             MissingClickUpConfigException: If the API token is missing from environment.
         """
-        loaded = load_dotenv(_DOTENV_PATH, override=False)
 
-        if not loaded:
-            logger.warning(".env file not found at %s.", _DOTENV_PATH)
-
-        api_token = os.getenv("CLICKUP_API_TOKEN")
-        self.team_id = os.getenv("CLICKUP_TEAM_ID")
-
-        if not api_token or not self.team_id:
-            raise MissingClickUpConfigException(
-                "ClickUp integration is not properly configured. Please contact your administrator."
-            )
+        self.BASE_URL = settings.CLICKUP_BASE_URL
+        api_token = settings.CLICKUP_API_TOKEN
+        self.team_id = settings.CLICKUP_TEAM_ID
 
         self._headers = {
             "Authorization": api_token,

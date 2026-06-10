@@ -47,7 +47,7 @@ import { SaveSummaryBanner } from '@/components/ui/task-cards/save-summary-banne
 import type { AssigneeDialogStateForGeneration } from '@/types/assignee-dialog';
 
 export default function BacklogTaskGenerationPage() {
-  const sprintBacklogRef = useRef<Sprint | null>(null);
+  const sprintBacklogRef = useRef<Sprint[] | null>(null);
 
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
 
@@ -93,8 +93,8 @@ export default function BacklogTaskGenerationPage() {
         navigate('/backlog-generation-chat');
         return;
     }
-    const parsed: Sprint = JSON.parse(raw);
-    if (!parsed.user_stories?.length) {
+    const parsed: Sprint[] = JSON.parse(raw);
+    if (!Array.isArray(parsed) || !parsed.length) {
         navigate('/backlog-generation-chat');
         return;
     }
@@ -174,7 +174,7 @@ export default function BacklogTaskGenerationPage() {
     setErrors({});
     const newErrors: Record<string, string> = {};
 
-    if (!sprintBacklogRef.current || !sprintBacklogRef.current.user_stories?.length) {
+    if (!sprintBacklogRef.current || !sprintBacklogRef.current.length) {
       newErrors.backlog = 'Sprint Backlog provided is empty or invalid. Please retry the generation of backlog again.';
     }
 
@@ -203,19 +203,21 @@ export default function BacklogTaskGenerationPage() {
     await executeGenerate(spaceId);
   };
 
-  const map_sprint_backlog_to_tasks = (backlog: Sprint) => {
-    const mapped: TaskVerificationDTO[] = backlog.user_stories?.flatMap(us =>
-      us.tasks?.map(t => ({
-        action: 'create' as const,
-        task_name: t.title,
-        task_description: t.description,
-        task_assignee: 'غير محدد',
-        task_status: 'to do',
-        task_priority: 'normal',
-        location: '',
-        estimation: t.estimated_hours,
-      })) ?? []
-    ) ?? [];
+  const map_sprint_backlog_to_tasks = (backlog: Sprint[]) => {
+    const mapped: TaskVerificationDTO[] = backlog.flatMap(sprint =>
+        (sprint.user_stories ?? []).flatMap(us =>
+            (us.tasks ?? []).map(t => ({
+                action: 'create' as const,
+                task_name: t.title,
+                task_description: t.description,
+                task_assignee: 'غير محدد',
+                task_status: 'to do',
+                task_priority: 'normal',
+                location: '',
+                estimation: t.estimated_hours,
+            }))
+        )
+    );
     showSuccessToast('Click up tasks generated successfully');
     setVerifiedTasks(mapped);
     setSavedOk(true);
@@ -225,10 +227,10 @@ export default function BacklogTaskGenerationPage() {
   const executeGenerate = async (spaceId: string) => {
     setSavedOk(false);
     if (isStructureEmpty) {
-      map_sprint_backlog_to_tasks(sprintBacklogRef.current as Sprint);
+      map_sprint_backlog_to_tasks(sprintBacklogRef.current as Sprint[]);
     }else {
       const result = await withErrorHandling(
-        () => taskGenerationService.generateFromBacklog(sprintBacklogRef.current as Sprint, spaceId),
+        () => taskGenerationService.generateFromBacklog(sprintBacklogRef.current as Sprint[], spaceId),
         'Generate tasks from backlog',
         onError(),
       );
@@ -405,7 +407,7 @@ export default function BacklogTaskGenerationPage() {
                         title={
                         !selectedSpaceId
                             ? 'Select a ClickUp space first'
-                            : !sprintBacklogRef.current || !sprintBacklogRef.current.user_stories?.length
+                            : !sprintBacklogRef.current || !sprintBacklogRef.current.length
                             ? 'Sprint backlog is empty or invalid, please retry the generation of backlog'
                             : ''
                         }

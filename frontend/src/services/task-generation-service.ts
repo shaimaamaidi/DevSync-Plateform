@@ -25,7 +25,7 @@ export const taskGenerationService = {
   },
 
   async generateFromBacklog(
-    backlog: Sprint,
+    backlog: Array<Sprint>,
     spaceId: string
   ): Promise<GeneratedTaskFromBacklog[]> {
     if (!spaceId?.trim()) throw new Error('Click up space code is required');

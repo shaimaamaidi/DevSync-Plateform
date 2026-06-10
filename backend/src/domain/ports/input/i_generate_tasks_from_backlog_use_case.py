@@ -28,12 +28,12 @@ class IGenerateTasksFromBacklogUseCase(ABC):
     """
 
     @abstractmethod
-    async def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id) -> List[GeneratedTaskFromBacklog]:
+    async def generate_tasks_from_backlog(self, sprint_backlog: List[Sprint], space_id) -> List[GeneratedTaskFromBacklog]:
         """
         Generate ClickUp tasks from a sprint backlog.
 
         Args:
-            sprint_backlog (Sprint): sprint backlog content.
+            sprint_backlog (List[Sprint]): sprint backlog content.
             space_id (str): ClickUp space identifier.
 
         Returns:

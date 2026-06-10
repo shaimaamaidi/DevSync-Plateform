@@ -7,27 +7,20 @@ error management, and repository URL parsing for consistent GitHub API access.
 """
 
 import logging
-import os
 import re
 from datetime import datetime, timezone
-from pathlib import Path
 
 import asyncio
 import httpx
-from dotenv import load_dotenv
 
-from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
 from backend.src.domain.exceptions.github.github_api_exception import GitHubApiException
 from backend.src.domain.exceptions.github.github_rate_limit_exception import GitHubRateLimitException
 from backend.src.domain.exceptions.github.github_repo_not_found_exception import GitHubRepoNotFoundException
 from backend.src.domain.exceptions.github.invalid_github_url_exception import InvalidGitHubUrlException
+from backend.src.infrastructure.config.settings import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-_BACKEND_DIR = Path(__file__).resolve().parents[4]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class BaseGitHubClient:
@@ -57,16 +50,10 @@ class BaseGitHubClient:
             MissingEnvVariableException: If required environment variables
             (such as GITHUB_TOKEN or timeout configuration) are missing or invalid.
         """
-        loaded = load_dotenv(_DOTENV_PATH, override=False)
 
-        if not loaded:
-            logger.warning(".env file not found at %s.", _DOTENV_PATH)
+        connect_timeout = settings.CONNECT_TIMEOUT
+        read_timeout = settings.READ_TIMEOUT
 
-        try:
-            connect_timeout = int(os.getenv("CONNECT_TIMEOUT", 10))
-            read_timeout = int(os.getenv("READ_TIMEOUT", 60))
-        except ValueError as e:
-            raise MissingEnvVariableException() from e
 
         self.GITHUB_TIMEOUT = httpx.Timeout(
             connect=connect_timeout,
@@ -75,11 +62,7 @@ class BaseGitHubClient:
             pool=connect_timeout,
         )
 
-        self.GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-
-        if not self.GITHUB_TOKEN:
-            logger.error("Missing required environment variable: GITHUB_TOKEN.")
-            raise MissingEnvVariableException()
+        self.GITHUB_TOKEN = settings.GITHUB_TOKEN
 
     @staticmethod
     def _parse_repo(url: str) -> tuple[str, str]:

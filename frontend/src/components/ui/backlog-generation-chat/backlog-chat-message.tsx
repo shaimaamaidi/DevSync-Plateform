@@ -23,6 +23,7 @@ export function BacklogChatMessage({
   currentToolName,
   onMarketSubmit,
   onBacklogSubmit,
+  onBacklogConfirm,
   onClickUpYes,
   onClickUpNo,
 }: ChatMessageProps) {
@@ -83,6 +84,7 @@ export function BacklogChatMessage({
               messageId={message.id}
               onMarketSubmit={onMarketSubmit}
               onBacklogSubmit={onBacklogSubmit}
+              onBacklogConfirm={onBacklogConfirm}
               onClickUpYes={onClickUpYes}
               onClickUpNo={onClickUpNo}
             />

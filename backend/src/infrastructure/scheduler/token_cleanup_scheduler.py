@@ -8,24 +8,16 @@ Classes:
 """
 
 import logging
-import os
-from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from dotenv import load_dotenv
 
-from backend.src.domain.exceptions.common.missing_env_variable_exception import MissingEnvVariableException
+from backend.src.infrastructure.config.settings import settings
 from backend.src.infrastructure.persistence.mysql_connector import MySQLConnector
 from backend.src.infrastructure.persistence.repositories.refresh_token_repository import SqlAlchemyRefreshTokenRepository
 
 
 logger = logging.getLogger(__name__)
-
-
-_BACKEND_DIR = Path(__file__).resolve().parents[3]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
-
 
 
 class TokenCleanupScheduler:
@@ -50,20 +42,9 @@ class TokenCleanupScheduler:
         Raises:
             MissingEnvVariableException: If TOKEN_CLEANUP_INTERVAL_HOURS is missing or not an integer.
         """
-        load_dotenv(_DOTENV_PATH)
-
         self._db = db
 
-        try:
-            self._interval_hours = int(os.getenv("TOKEN_CLEANUP_INTERVAL_HOURS", 24))
-
-        except ValueError as e:
-            logger.exception(
-                "Failed to parse TOKEN_CLEANUP_INTERVAL_HOURS='%s'. Expected an integer. Error: %s",
-                os.getenv("TOKEN_CLEANUP_INTERVAL_HOURS"),
-                e
-            )
-            raise MissingEnvVariableException() from e
+        self._interval_hours = settings.TOKEN_CLEANUP_INTERVAL_HOURS
 
         self._scheduler = BackgroundScheduler()
 

@@ -9,7 +9,7 @@ to a dedicated generator service.
 Classes:
     GenerateTaskFromBacklogUseCase: Main use case for generating tasks from a sprint backlog.
 """
-
+import asyncio
 import logging
 from typing import List
 
@@ -48,7 +48,7 @@ class GenerateTasksFromBacklogUseCase(IGenerateTasksFromBacklogUseCase):
         self._clickup_reader = clickup_reader
         self._task_generator = task_generator
 
-    async def generate_tasks_from_backlog(self, sprint_backlog: Sprint, space_id: str) -> List[GeneratedTaskFromBacklog]:
+    async def generate_tasks_from_backlog(self, sprint_backlog: List[Sprint], space_id: str) -> List[GeneratedTaskFromBacklog]:
         """
         Generate ClickUp tasks from a sprint backlog.
 
@@ -57,7 +57,7 @@ class GenerateTasksFromBacklogUseCase(IGenerateTasksFromBacklogUseCase):
         produce structured tasks.
 
         Args:
-            sprint_backlog (Sprint): sprint backlog content.
+            sprint_backlog (List[Sprint]): sprint backlog content.
             space_id (str): ClickUp space identifier.
 
         Returns:
@@ -71,11 +71,15 @@ class GenerateTasksFromBacklogUseCase(IGenerateTasksFromBacklogUseCase):
         folders = self._clickup_reader.get_space_structure_metadata(space_id)
         locations_priorities = get_folders_priorities(folders)
 
-        tasks = await self._task_generator.generate_tasks(
-            backlog=sprint_backlog,
-            locations_priorities=locations_priorities,
-        )
-        tasks = tasks or []
+        results = await asyncio.gather(*[
+            self._task_generator.generate_tasks(
+                backlog=sprint,
+                locations_priorities=locations_priorities,
+            )
+            for sprint in sprint_backlog
+        ])
+
+        tasks = [task for result in results if result for task in result]
 
 
         logger.info(

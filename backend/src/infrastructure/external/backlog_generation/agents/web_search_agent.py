@@ -9,7 +9,6 @@ structured text response.
 
 import logging
 
-import os
 import asyncio
 from typing import List
 
@@ -19,6 +18,7 @@ from azure.core.exceptions import AzureError, ClientAuthenticationError, Service
 from backend.src.domain.exceptions.azure.azure_agent_runtime_exception import AzureAgentRuntimeException
 from backend.src.domain.exceptions.azure.missing_azure_config_exception import MissingAzureConfigException
 from backend.src.domain.ports.services.backlog_generation.agents.i_web_search import IWebSearch
+from backend.src.infrastructure.config.settings import settings
 from backend.src.infrastructure.external.backlog_generation.common.azure_retry import AzureRetry
 from backend.src.infrastructure.external.backlog_generation.common.base_azure_project_agent import BaseAzureProjectAgent
 
@@ -52,13 +52,7 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
         """
         super().__init__("TASK_CREATOR_WEB_SEARCH_AGENT_ID")
 
-        self.bing_connection_name = os.environ.get("BING_CONNECTION_NAME")
-
-        if not self.bing_connection_name:
-            logger.error("Missing BING_CONNECTION_NAME environment variable.")
-            raise MissingAzureConfigException(
-                "The web search service is not properly configured. Please contact your administrator."
-            )
+        self.bing_connection_name = settings.BING_CONNECTION_NAME
 
         self._retry = AzureRetry()
 

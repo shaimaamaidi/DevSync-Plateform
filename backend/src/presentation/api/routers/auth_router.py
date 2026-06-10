@@ -16,6 +16,7 @@ from fastapi import APIRouter, Depends, Response, Request
 from starlette import status
 
 from backend.src.domain.entities.member import MemberAuthDTO, MemberTokensDTO, MemberDTO
+from backend.src.infrastructure.config.settings import settings
 from backend.src.infrastructure.di.persistence_container import PersistenceContainer
 from backend.src.presentation.api.deps import get_persistence_container
 
@@ -56,10 +57,10 @@ def login(credentials: MemberAuthDTO, response: Response, container: Persistence
         key="access_token",
         value=result.access_token,
         httponly=True,
-        secure=False,  # False en local, à remettre à True en prod
+        secure=settings.SECURE,
         samesite="lax",
-        max_age=30*60,  # 30 minutes
-        domain = "localhost",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 30 minutes
+        domain =settings.DOMAIN,
     )
 
     logger.info("Member logged in successfully: mail=%s.", credentials.mail)
@@ -97,10 +98,10 @@ def refresh(refresh_token: str, response: Response, container: PersistenceContai
         key="access_token",
         value=result.access_token,
         httponly=True,
-        secure=False,  # False en local, à remettre à True en prod
+        secure=settings.SECURE,
         samesite="lax",
-        max_age=30*60,  # 30 minutes
-        domain="localhost",
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 30 minutes
+        domain=settings.DOMAIN,
     )
 
     logger.info("Tokens refreshed successfully.")

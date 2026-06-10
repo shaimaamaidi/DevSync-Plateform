@@ -27,20 +27,15 @@ allowing tuning without code changes.
 
 import asyncio
 import logging
-import os
 import random
-from pathlib import Path
 from typing import Callable, Awaitable, Any
 
 from azure.core.exceptions import AzureError, ServiceRequestError
-from dotenv import load_dotenv
+
+from backend.src.infrastructure.config.settings import settings
 
 
 logger = logging.getLogger(__name__)
-
-
-_BACKEND_DIR = Path(__file__).resolve().parents[5]
-_DOTENV_PATH = _BACKEND_DIR / ".env"
 
 
 class AzureRetry:
@@ -72,15 +67,10 @@ class AzureRetry:
         Loads environment variables and sets retry parameters used for
         exponential backoff execution of Azure operations.
         """
-        loaded = load_dotenv(_DOTENV_PATH, override=False)
-
-        if not loaded:
-            logger.warning(".env file not found at %s.", _DOTENV_PATH)
-
-        self.max_attempts = int(os.environ.get("WEB_SEARCH_MAX_RETRIES", 3))
-        self.base_delay   = float(os.environ.get("WEB_SEARCH_RETRY_BASE_DELAY", 2.0))
-        self.max_delay    = float(os.environ.get("WEB_SEARCH_RETRY_MAX_DELAY", 30.0))
-        self.run_timeout  = float(os.environ.get("WEB_SEARCH_RUN_TIMEOUT", 60.0))
+        self.max_attempts = settings.WEB_SEARCH_MAX_RETRIES
+        self.base_delay = settings.WEB_SEARCH_RETRY_BASE_DELAY
+        self.max_delay = settings.WEB_SEARCH_RETRY_MAX_DELAY
+        self.run_timeout = settings.WEB_SEARCH_RUN_TIMEOUT
 
 
     @staticmethod
@@ -146,8 +136,8 @@ class AzureRetry:
                     raise
 
                 raw_delay = self.base_delay * (2 ** (attempt - 1))
-                jitter    = random.uniform(0, raw_delay)
-                delay     = min(jitter, self.max_delay)
+                jitter = random.uniform(0, raw_delay)
+                delay = min(jitter, self.max_delay)
 
                 logger.warning(
                     "Attempt %d/%d failed — retrying in %.1fs. Error: %s.",
