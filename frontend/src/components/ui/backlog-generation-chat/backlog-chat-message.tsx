@@ -12,8 +12,8 @@ interface ChatMessageProps {
   onMarketSubmit?: (messageId: number, data: any) => void;  
   onBacklogSubmit?: (data: any) => void;
   onBacklogConfirm?: (data: any) => void;
-  onClickUpYes?: (data: any) => void;
-  onClickUpNo?: (data: any) => void;
+  onClickUpYes?: () => void;
+  onClickUpNo?: () => void;
 }
 
 export function BacklogChatMessage({

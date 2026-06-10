@@ -39,9 +39,6 @@ class MySQLConnector:
     def __init__(self):
         """
         Initialize configuration from environment and validate it.
-
-        Raises:
-            DatabaseInitializationException: If required environment variables are missing.
         """
         logger.info("Initializing MySQL connector.")
 

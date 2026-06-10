@@ -45,10 +45,6 @@ class BaseGitHubClient:
         - Reads HTTP timeout configuration (connect/read)
         - Validates the presence of the GitHub authentication token
         - Configures the HTTP timeout settings for API requests
-
-        Raises:
-            MissingEnvVariableException: If required environment variables
-            (such as GITHUB_TOKEN or timeout configuration) are missing or invalid.
         """
 
         connect_timeout = settings.CONNECT_TIMEOUT

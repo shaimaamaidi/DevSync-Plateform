@@ -38,9 +38,6 @@ class TokenCleanupScheduler:
 
         Args:
             db (MySQLConnector): The database connector instance.
-
-        Raises:
-            MissingEnvVariableException: If TOKEN_CLEANUP_INTERVAL_HOURS is missing or not an integer.
         """
         self._db = db
 

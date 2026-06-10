@@ -1,3 +1,28 @@
+"""
+Application settings and configuration management.
+
+This module is responsible for loading environment variables from the
+application `.env` file and exposing them through the `Settings` class.
+
+It centralizes configuration for all application components, including:
+
+- Database connectivity
+- Authentication and JWT settings
+- GitHub integration
+- Azure OpenAI services
+- Azure AI Project services
+- Web search services
+- ClickUp integration
+- Security and CORS settings
+
+The module also performs startup validation to ensure that all required
+configuration values are present and raises domain-specific exceptions
+when mandatory settings are missing or invalid.
+
+Attributes:
+    settings (Settings): Singleton instance containing validated application configuration.
+"""
+
 import os
 from dotenv import load_dotenv
 from pathlib import Path
@@ -13,6 +38,38 @@ load_dotenv(_ENV_PATH)
 
 
 class Settings:
+    """
+    Application configuration settings.
+
+    This class loads environment variables from the configured `.env` file
+    and exposes strongly-typed application settings used throughout the system.
+
+    It is responsible for:
+    - Loading environment variables
+    - Providing access to application configuration values
+    - Validating required configuration at startup
+    - Raising domain-specific exceptions when mandatory settings are missing
+
+    Configuration domains include:
+    - Database
+    - Authentication (JWT)
+    - GitHub integration
+    - Azure OpenAI services
+    - Azure AI Project services
+    - Web search services
+    - ClickUp integration
+    - Application security and CORS settings
+
+    Raises:
+        DatabaseInitializationException:
+            If required database configuration is missing.
+        MissingEnvVariableException:
+            If a required application environment variable is missing.
+        MissingAzureConfigException:
+            If Azure-related configuration is incomplete.
+        MissingClickUpConfigException:
+            If ClickUp integration configuration is incomplete.
+    """
 
     # --- Cookies et CORS ---
     ALLOW_ORIGINS: list[str] = (os.getenv("ALLOW_ORIGINS") or "").split(",")
@@ -75,6 +132,19 @@ class Settings:
     CLICKUP_API_TOKEN: str = os.getenv("CLICKUP_API_TOKEN")
 
     def __init__(self):
+        """
+        Validate all required application configuration.
+
+        Performs startup validation for database, authentication,
+        Azure services, web search services, agent configuration,
+        and ClickUp integration settings.
+
+        Raises:
+            DatabaseInitializationException: If database configuration is incomplete.
+            MissingEnvVariableException: If a required environment variable is missing.
+            MissingAzureConfigException: If Azure-related configuration is incomplete.
+            MissingClickUpConfigException: If ClickUp configuration is incomplete.
+        """
 
         for var in ["MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_HOST", "MYSQL_DB"]:
             if not getattr(self, var):

@@ -44,8 +44,6 @@ class BaseAzureProjectAgent:
             agent_id_env_key (str): Environment variable key that contains the agent ID.
 
         Raises:
-            MissingAzureConfigException: If one or more required Azure environment variables are
-                missing (tenant_id, client_id, client_secret, endpoint, or agent_id).
             AzureAgentRuntimeException: If initialization of Azure credentials or project client fails.
         """
         tenant_id = settings.AZURE_TENANT_ID
@@ -54,19 +52,28 @@ class BaseAzureProjectAgent:
         endpoint = settings.AZURE_PROJECT_ENDPOINT
         self.agent_id = getattr(settings, agent_id_env_key, None)
 
-        self.credential = ClientSecretCredential(
-            tenant_id=tenant_id,
-            client_id=client_id,
-            client_secret=client_secret,
-        )
+        try:
+            self.credential = ClientSecretCredential(
+                tenant_id=tenant_id,
+                client_id=client_id,
+                client_secret=client_secret,
+            )
 
-        self.project_client = AIProjectClient(
-            endpoint=endpoint,
-            credential=self.credential,
-        )
+            self.project_client = AIProjectClient(
+                endpoint=endpoint,
+                credential=self.credential,
+            )
 
-        self.agent = None
+            self.agent = None
 
+        except Exception as e:
+            logger.exception(
+                "Azure BaseAgent initialization failed (agent_env_key=%s).",
+                agent_id_env_key
+            )
+            raise AzureAgentRuntimeException(
+                message="The AI service could not be initialized. Please contact your administrator."
+            ) from e
 
     async def load_agent(self) -> None:
         """

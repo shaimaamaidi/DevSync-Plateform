@@ -522,6 +522,8 @@ export function useChatLogic() {
       const sprintData = isSprintPlanning(parsedDelivery) ? sprintPlanningToUi(parsedDelivery) : null;
 
       if (sprintData) {
+        console.log("cha");
+        console.log(JSON.stringify(parsedDelivery.sprints ?? parsedDelivery));
         localStorage.setItem('sprint_backlog', JSON.stringify(parsedDelivery.sprints ?? parsedDelivery));
 
         updateMsg(agentMsgId, {

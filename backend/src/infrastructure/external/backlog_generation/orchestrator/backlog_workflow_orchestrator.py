@@ -471,7 +471,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                 message="Delivery planning could not be started. Please try again."
             ) from e
 
-        async for chunk in self._run_stream(thread_id):
+        async for chunk in self._run_stream(thread_id, tool_choice={"type": "function", "function": {"name": "delivery_planning"}}):
             yield chunk
 
     async def _run_stream(self, thread_id: str, tool_choice=None) -> AsyncGenerator[str, None]:

@@ -94,8 +94,7 @@ export function AttachmentRenderer({
             onClick={() => { 
               setClicked(true); 
               console.log("yes")
-              console.log(attachment.data);
-              onClickUpYes?.(attachment.data); 
+              onClickUpYes?.(); 
             }}
             disabled={clicked}
             className="px-4 py-1.5 text-[12px] font-medium bg-slate-900 text-white rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"

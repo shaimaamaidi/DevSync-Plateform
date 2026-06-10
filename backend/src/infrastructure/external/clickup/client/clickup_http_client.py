@@ -46,9 +46,6 @@ class ClickUpHttpClient:
 
         Loads environment variables, validates the presence of the ClickUp API token,
         and prepares HTTP headers for authenticated requests.
-
-        Raises:
-            MissingClickUpConfigException: If the API token is missing from environment.
         """
 
         self.BASE_URL = settings.CLICKUP_BASE_URL

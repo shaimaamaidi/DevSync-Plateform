@@ -38,9 +38,6 @@ class JWTHandler(IJWTHandler):
         Initialize the JWTHandler.
 
         Loads environment variables and sets up JWT configuration.
-
-        Raises:
-            MissingEnvVariableException: If required environment variables are missing or invalid.
         """
 
         self.secret_key = settings.JWT_SECRET_KEY

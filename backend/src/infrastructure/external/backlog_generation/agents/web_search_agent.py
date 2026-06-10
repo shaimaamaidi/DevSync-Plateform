@@ -45,10 +45,6 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
         Initialize the WebSearchAgent.
 
         Loads required Azure configuration and ensures Bing connection is available.
-
-        Raises:
-            MissingAzureConfigException: If the required environment variable BING_CONNECTION_NAME
-                is not defined.
         """
         super().__init__("TASK_CREATOR_WEB_SEARCH_AGENT_ID")
 
