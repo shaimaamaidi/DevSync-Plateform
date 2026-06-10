@@ -87,5 +87,11 @@ class MarketIntelligenceValidatorAgent(BaseAgent[RefinedMarketIntelligenceSummar
             response_format=RefinedMarketIntelligenceSummary,
         )
 
+        if not result.refined_market_trends or result.refined_market_trends=="":
+            result.refined_market_trends = "No valid data available"
+
+        if not result.refined_enrichment_notes or result.refined_enrichment_notes=="":
+            result.refined_enrichment_notes = "No valid data available"
+
         logger.info("Market intelligence validated successfully.")
         return result

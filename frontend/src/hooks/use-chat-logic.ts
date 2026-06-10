@@ -227,7 +227,7 @@ export function useChatLogic() {
   };
 
 
-  const handleMarketSubmit = async (editedSummary: MarketSummary, isRetry = false) => {
+  const handleMarketSubmit = async (messageId: number, editedSummary: MarketSummary, isRetry = false) => {
     const submittedSummary = cloneMarketSummary(normalizeMarketSummary(editedSummary));
 
     if (!isRetry) {
@@ -238,7 +238,7 @@ export function useChatLogic() {
 
       setMessages((prev) =>
         prev.map((m) =>
-          m.attachment?.type === "market"
+        m.id === messageId && m.attachment?.type === "market"  
             ? { ...m, attachment: { ...m.attachment, editable: false, data: submittedSummary } }
             : m
         )
@@ -297,7 +297,7 @@ export function useChatLogic() {
           content: isSessionError
             ? "Your session could not be restored. You will be redirected to login."
             : "The request didn't go through. You can try again.",
-          ...(shouldOfferRetry(result.action) && { onRetry: () => handleMarketSubmit(editedSummary, true) }),
+          ...(shouldOfferRetry(result.action) && { onRetry: () => handleMarketSubmit(messageId, editedSummary, true) }),
         });
         return;
       }
@@ -408,9 +408,13 @@ export function useChatLogic() {
         return;
       }
 
-      const { text: agentText, json } = result;;
-      const correctedBacklogPayload = extractBacklogPayload(json);
-      const sprintData = isSprintPlanning(json) ? sprintPlanningToUi(json) : null;
+      const { text: agentText, json, backlogPreview, deliveryPlanPreview } = result;
+      const correctedBacklogPayload = backlogPreview
+        ? extractBacklogPayload(JSON.parse(backlogPreview))
+        : extractBacklogPayload(json);
+      
+      const parsedDelivery = deliveryPlanPreview ? JSON.parse(deliveryPlanPreview) : json;
+      const sprintData = isSprintPlanning(parsedDelivery) ? sprintPlanningToUi(parsedDelivery) : null;
 
       if (sprintData) {
         updateMsg(agentMsgId, {
@@ -510,8 +514,9 @@ export function useChatLogic() {
         return;
       }
 
-      const { text: agentText, json } = result;
-      const sprintData = isSprintPlanning(json) ? sprintPlanningToUi(json) : null;
+      const { text: agentText, json, deliveryPlanPreview } = result;
+      const parsedDelivery = deliveryPlanPreview ? JSON.parse(deliveryPlanPreview) : json;
+      const sprintData = isSprintPlanning(parsedDelivery) ? sprintPlanningToUi(parsedDelivery) : null;
 
       if (sprintData) {
         updateMsg(agentMsgId, {

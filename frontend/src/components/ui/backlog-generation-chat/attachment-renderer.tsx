@@ -7,6 +7,7 @@ import { useState } from "react";
 
 export function AttachmentRenderer({ 
   attachment, 
+  messageId,
   onMarketSubmit, 
   onBacklogSubmit ,
   onBacklogConfirm,
@@ -22,6 +23,7 @@ export function AttachmentRenderer({
   if (attachment.type === "market") {
     return (
       <MarketCard
+        messageId={messageId}
         data={attachment.data}
         editable={attachment.editable}
         onSubmit={onMarketSubmit}

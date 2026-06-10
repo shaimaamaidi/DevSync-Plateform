@@ -13,7 +13,7 @@ const STEP_LABELS: Record<string, string> = {
   clarifying_conflicts: "Conflicts",
   market_review: "Market Review",
   backlog_edit: "Editing Backlog",
-  finalizing: "Finalizing…",
+  finalizing: "Finalizing",
   done: "Complete",
 };
 

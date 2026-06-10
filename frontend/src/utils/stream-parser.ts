@@ -6,6 +6,8 @@ export interface StreamResult {
   text: string;
   json: unknown;
   invalidDescription?: { message: string } | null;
+  backlogPreview?: string | null;
+  deliveryPlanPreview?: string | null;
 }
 
 class SseBusinessError extends Error {
@@ -27,6 +29,8 @@ export async function readSseStream(
   let threadId: string | null = null;
   const textChunks: string[]  = [];
   let invalidDescription: { message: string } | null = null;
+  let backlogPreview: string | null = null;
+  let deliveryPlanPreview: string | null = null;
 
   const consumeFrame = (frame: string) => {
     const lines = frame
@@ -57,13 +61,24 @@ export async function readSseStream(
         }
 
         if (payload?.thread_id) threadId = payload.thread_id;
+
         if (payload?.tool_call?.name) {
           onToolCall?.(payload.tool_call.name);
         }
+        
+        if (typeof payload?.backlog_preview === 'string') {
+          backlogPreview = payload.backlog_preview;
+        }
+
+        if (typeof payload?.delivery_plan_preview === 'string') {
+          deliveryPlanPreview = payload.delivery_plan_preview;
+        }
+
         if (typeof payload?.text === 'string') {
           textChunks.push(payload.text);
           onChunk?.(payload.text);
         }
+
         if (
           (payload?.invalid_description === true && payload?.message) ||
           (payload?.status === "invalid" && payload?.message)
@@ -122,7 +137,7 @@ export async function readSseStream(
 
   const rawText = textChunks.join("").trim();
   const { text, json } = parseResponse(rawText);
-  return { threadId, text, json, invalidDescription };
+  return { threadId, text, json, invalidDescription, backlogPreview, deliveryPlanPreview  };
 }
 
 function parseResponse(raw: string): { text: string; json: unknown } {
@@ -130,50 +145,69 @@ function parseResponse(raw: string): { text: string; json: unknown } {
     const trimmed = (input ?? "").trim();
     if (!trimmed) return null;
     try { return JSON.parse(trimmed); } catch { /* continue */ }
-    const start = Math.min(
-      ...[trimmed.indexOf("{"), trimmed.indexOf("[")].filter((idx) => idx >= 0),
-    );
-    if (!Number.isFinite(start)) return null;
-    const open = trimmed[start] as "{" | "[";
-    const close = open === "{" ? "}" : "]";
-    let depth = 0, inString = false, escaped = false;
-    for (let i = start; i < trimmed.length; i++) {
-      const ch = trimmed[i];
-      if (inString) {
-        if (escaped) escaped = false;
-        else if (ch === "\\") escaped = true;
-        else if (ch === '"') inString = false;
-        continue;
-      }
-      if (ch === '"') { inString = true; continue; }
-      if (ch === open) depth++;
-      if (ch === close) {
-        depth--;
-        if (depth === 0) {
-          try { return JSON.parse(trimmed.slice(start, i + 1)); } catch { return null; }
+
+    for (let start = 0; start < trimmed.length; start++) {
+      const ch = trimmed[start];
+      if (ch !== "{" && ch !== "[") continue;
+      const close = ch === "{" ? "}" : "]";
+      let depth = 0, inString = false, escaped = false;
+      for (let i = start; i < trimmed.length; i++) {
+        const c = trimmed[i];
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (c === "\\") escaped = true;
+          else if (c === '"') inString = false;
+          continue;
+        }
+        if (c === '"') { inString = true; continue; }
+        if (c === ch) depth++;
+        if (c === close) {
+          depth--;
+          if (depth === 0) {
+            try {
+              const parsed = JSON.parse(trimmed.slice(start, i + 1));
+              return parsed;
+            } catch { break; }
+          }
         }
       }
     }
     return null;
   };
 
+  // Manual fenced block extraction
+  const fenceStart = raw.indexOf("```");
+  if (fenceStart !== -1) {
+    const afterFence = raw.indexOf("\n", fenceStart);
+    const fenceEnd = raw.indexOf("```", afterFence);
+    if (afterFence !== -1 && fenceEnd !== -1) {
+      const inside = raw.slice(afterFence + 1, fenceEnd).trim();
+      const parsed = tryParseJson(inside);
+      if (parsed !== null) {
+        const textBefore = raw.slice(0, fenceStart).trim();
+        return { text: textBefore, json: parsed };
+      }
+    }
+  }
+
+  // Regex fenced fallback
   const fencedJsonRegex = /```(?:json)?\s*([\s\S]*?)```/gi;
   const fencedMatches = Array.from(raw.matchAll(fencedJsonRegex));
-  const textWithoutFences = raw.replace(/```(?:json)?[\s\S]*?```/gi, "").trim();
-
   for (const match of fencedMatches) {
     const parsed = tryParseJson(match[1]);
     if (parsed !== null) {
+      const textWithoutFences = raw.replace(/```(?:json)?[\s\S]*?```/gi, "").trim();
       return { text: textWithoutFences, json: parsed };
     }
   }
 
+  // Pure JSON
   try {
     const parsed = JSON.parse(raw.trim());
-    // Pure JSON response — no narrative text
     return { text: "", json: parsed };
-  } catch { /* not pure JSON, continue */ }
+  } catch { /* continue */ }
 
+  // Embedded JSON
   const extracted = tryParseJson(raw);
   if (extracted !== null) {
     const jsonStart = Math.min(

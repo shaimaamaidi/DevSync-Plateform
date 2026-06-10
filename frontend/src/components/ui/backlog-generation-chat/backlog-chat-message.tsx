@@ -9,7 +9,7 @@ interface ChatMessageProps {
   streamingText?: string;
   loading?: boolean;
   currentToolName?: string | null;
-  onMarketSubmit?: (data: any) => void;
+  onMarketSubmit?: (messageId: number, data: any) => void;  
   onBacklogSubmit?: (data: any) => void;
   onBacklogConfirm?: (data: any) => void;
   onClickUpYes?: (data: any) => void;
@@ -80,6 +80,7 @@ export function BacklogChatMessage({
           {!isStreaming && message.attachment && (
             <AttachmentRenderer
               attachment={message.attachment}
+              messageId={message.id}
               onMarketSubmit={onMarketSubmit}
               onBacklogSubmit={onBacklogSubmit}
               onClickUpYes={onClickUpYes}

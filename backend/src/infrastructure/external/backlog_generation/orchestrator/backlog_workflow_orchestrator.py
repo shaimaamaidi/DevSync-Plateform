@@ -283,6 +283,8 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         except Exception:
             change_signal = True
 
+        await self._cancel_stream(thread_id)
+
         content = f"""
         [VERIFICATION LOOP RESPONSE]
         This is a user response during the verification loop — do NOT restart from STEP 1.
@@ -305,8 +307,6 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
           - DO NOT call validate_market_intelligence
           - proceed DIRECTLY to generate_backlog with tool_result (they are semantically equivalent)
         """
-
-        await self.cancel_stream(thread_id)
 
         try:
             await self.project_client.agents.messages.create(
@@ -371,24 +371,21 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             "to_validate": user_result,
         }
 
-        change_signal = "MODIFIED"
+        await self._cancel_stream(thread_id)
 
         content = f"""
         [BACKLOG VERIFICATION LOOP RESPONSE]
         This is a user response during the backlog verification loop — do NOT restart from STEP 1.
+        Do NOT call delivery_planning before fix_user_backlog completes.
 
-        Comparison result: {change_signal}
+        Comparison result: MODIFIED
 
         Instructions:
-        - If comparison result is CONFIRMED_UNCHANGED:
-          Proceed DIRECTLY to delivery_planning (backlog data is pre-loaded server-side, no arguments needed).
-        - If comparison result is MODIFIED:
-          Call fix_user_backlog immediately (no arguments needed — data is pre-loaded server-side).
-          - If fix_user_backlog returns is_valid: true → proceed DIRECTLY to delivery_planning.
-          - If is_valid: false → present the fixed backlog with corrections, ask user to review again.
+        - Call fix_user_backlog NOW. The arguments are pre-loaded server-side — call it with no arguments.
+        - WAIT for fix_user_backlog result before any other action.
+        - If fix_user_backlog returns is_valid: true → THEN proceed to delivery_planning.
+        - If fix_user_backlog returns is_valid: false → present corrections paragraph, ask user to review.
         """
-
-        await self.cancel_stream(thread_id)
 
         try:
             await self.project_client.agents.messages.create(
@@ -406,7 +403,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                 message="Your backlog response could not be processed. Please try again."
             ) from e
 
-        async for chunk in self._run_stream(thread_id):
+        async for chunk in self._run_stream(thread_id, tool_choice={"type": "function", "function": {"name": "fix_user_backlog"}}):
             yield chunk
 
     async def generate_delivery_plan_stream(
@@ -446,6 +443,8 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
             "confirmed_backlog": backlog,
         }
 
+        await self._cancel_stream(thread_id)
+
         content = f"""
         [DELIVERY PLANNING REQUEST]
         The user has confirmed the backlog without modifications — do NOT call fix_user_backlog.
@@ -455,8 +454,6 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
         - Do NOT restart from STEP 1.
         - Do NOT call any other tool before delivery_planning.
         """
-
-        await self.cancel_stream(thread_id)
 
         try:
             await self.project_client.agents.messages.create(
@@ -614,11 +611,29 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                                                 thread_id,
                                             )
                                     result = await functions[function_name](**function_args)
-                                    if function_name == "fix_user_backlog" and isinstance(result, dict):
+
+                                    if hasattr(result, "model_dump"):
+                                        result_dict = result.model_dump()
+                                    elif isinstance(result, dict):
+                                        result_dict = result
+                                    elif isinstance(result, str):
+                                        try:
+                                            result_dict = json.loads(result)
+                                        except json.JSONDecodeError:
+                                            result_dict = None
+                                    else:
+                                        result_dict = None
+
+                                    if function_name == "fix_user_backlog" and result_dict is not None:
                                         fixed_backlog = (
-                                                result.get("fixed_backlog")
-                                                or result.get("data", {}).get("fixed_backlog")
+                                                result_dict.get("corrected_backlog")
+                                                or result_dict.get("data", {}).get("corrected_backlog")
                                         )
+
+                                        if fixed_backlog:
+                                            full_json = json.dumps(fixed_backlog, ensure_ascii=False, indent=2)
+                                            yield f"data: {json.dumps({'backlog_preview': full_json})}\n\n"
+
                                         if fixed_backlog and thread_id in self._backlog_store:
                                             self._backlog_store[thread_id]["confirmed_backlog"] = (
                                                 json.dumps(fixed_backlog)
@@ -630,13 +645,25 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                                                 thread_id,
                                             )
 
-                                    if isinstance(result, dict):
-                                        if "success" not in result:
-                                            result = {"success": True, "data": result}
-                                    else:
-                                        result = {"success": True, "data": str(result)}
+                                    if function_name == "delivery_planning" and result_dict is not None:
+                                        delivery_data = result_dict.get("data") or result_dict
+                                        if delivery_data:
+                                            full_json = json.dumps(delivery_data, ensure_ascii=False, indent=2)
+                                            yield f"data: {json.dumps({'delivery_plan_preview': full_json})}\n\n"
 
-                                    output = json.dumps(result)
+                                    if result_dict is not None:
+                                        if "success" not in result_dict:
+                                            output = json.dumps({"success": True, "data": result_dict})
+                                        else:
+                                            output = json.dumps(result_dict)
+                                    elif isinstance(result, dict):
+                                        if "success" not in result:
+                                            output = json.dumps({"success": True, "data": result})
+                                        else:
+                                            output = json.dumps(result)
+                                    else:
+                                        output = json.dumps({"success": True, "data": str(result)})
+
                                 except InvalidToolArgumentException as e:
                                     logger.warning("Invalid tool arguments: %s.", function_name)
                                     output = json.dumps({
@@ -760,7 +787,7 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                     message="An unexpected error occurred during generation. Please try again."
                 ) from e
 
-    async def cancel_stream(self, thread_id: str) -> None:
+    async def _cancel_stream(self, thread_id: str) -> None:
         """
         Cancel the active Azure agent run for a given thread.
         """
@@ -779,22 +806,6 @@ class BacklogWorkflowOrchestrator(BaseAzureProjectAgent, IBacklogWorkflowOrchest
                     "Failed to cancel run: thread_id=%s, run_id=%s, error=%s.",
                     thread_id, run_id, e
                 )
-        else:
-            try:
-                runs = await self.project_client.agents.runs.list(thread_id=thread_id)
-                async for run in runs:
-                    if run.status in ("in_progress", "queued", "requires_action"):
-                        await self.project_client.agents.runs.cancel(
-                            thread_id=thread_id,
-                            run_id=run.id,
-                        )
-                        logger.info(
-                            "Cancelled run via fallback: thread_id=%s, run_id=%s.",
-                            thread_id, run.id,
-                        )
-                        await self._wait_for_cancellation(thread_id, run.id)
-            except Exception as e:
-                logger.warning("Fallback cancel failed: thread_id=%s, error=%s.", thread_id, e)
 
     async def _wait_for_cancellation(self, thread_id: str, run_id: str, timeout: float = 10.0) -> None:
         """

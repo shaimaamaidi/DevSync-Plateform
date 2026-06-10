@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   TrendingUp,
   Swords,
@@ -90,24 +90,19 @@ const SECTIONS: readonly Section[] = [
 const TEXT_REQUIRED_KEYS = new Set<SectionKey>(["market_trends", "enrichment_notes"]);
 
 interface MarketCardProps {
+  messageId: number; 
   data: MarketSummary;
   readonly editable: boolean;
-  onSubmit: (summary: MarketSummary) => void;
+  onSubmit: (messageId: number,summary: MarketSummary) => void;
 }
 
-export function MarketCard({ data, editable, onSubmit }: MarketCardProps) {
+export function MarketCard({ messageId, data, editable, onSubmit }: MarketCardProps) {
   const [draft, setDraft] = useState<MarketSummary>(() => normalizeMarketSummary(data));
   const [done, setDone] = useState(false);
   const [textErrors, setTextErrors] = useState<Partial<Record<SectionKey, string>>>({});
 
-  const normalizedData = normalizeMarketSummary(data);
+  const normalizedData = useMemo(() => normalizeMarketSummary(data), [data]);
   const hasChanges = !areMarketSummariesEqual(draft, normalizedData);
-
-  useEffect(() => {
-    setDraft(normalizeMarketSummary(data));
-    setDone(false);
-    setTextErrors({});
-  }, [data]);
 
   const handleUpdate = <K extends SectionKey>(key: K, value: MarketSummary[K]) => {
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -146,7 +141,7 @@ export function MarketCard({ data, editable, onSubmit }: MarketCardProps) {
       return;
     }
     setDone(true);
-    onSubmit(cloneMarketSummary(normalizeMarketSummary(draft)));
+    onSubmit(messageId, cloneMarketSummary(normalizeMarketSummary(draft)));  
   };
 
   return (

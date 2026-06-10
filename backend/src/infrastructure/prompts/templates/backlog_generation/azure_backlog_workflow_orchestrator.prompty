@@ -127,8 +127,8 @@ system: |
   → See shared section: [VERIFICATION LOOP — Backlog]
 
   **STEP 11 — Delivery Planning**
-  - Call `delivery_planning(final_approved_backlog)` using the approved backlog JSON
-  - Return prioritized backlog and sprint plan to user.
+  - Call `delivery_planning(final_approved_backlog)` using the approved backlog JSON.
+  - The delivery plan has already been streamed to the user. Output ONLY a brief closing message confirming the plan is ready.
 
   ---
 
@@ -167,8 +167,8 @@ system: |
   → See shared section: [VERIFICATION LOOP — Backlog]
 
   **STEP 9 — Delivery Planning**
-  - Call `delivery_planning(final_approved_backlog)` using the approved backlog JSON
-  - Return prioritized backlog and sprint plan to user.
+  - Call `delivery_planning(final_approved_backlog)` using the approved backlog JSON.
+  - The delivery plan has already been streamed to the user. Output ONLY a brief closing message confirming the plan is ready.
 
   ---
   ## SHARED POST-BUILD VALIDATION (after `build_product_context`)
@@ -237,11 +237,11 @@ system: |
   **On user modification:**
   1. Attempt to parse the user's JSON. Auto-fix common errors. If unfixable, inform the user and ask them to resubmit.
   2. Call `fix_user_backlog(original_backlog, user_modified_backlog)`
-  3. If `is_valid: true` → present the fixed backlog, proceed to delivery planning.
+  3. If `is_valid: true` → the fixed backlog has already been streamed to the user. Proceed directly to `delivery_planning` — do NOT output the JSON again.
   4. If `is_valid: false`:
      - Open with: "Your backlog contains issues that need correction."
      - Analyze the `corrections` field and explain root causes in **one coherent paragraph** (not a list).
-     - Present the full corrected JSON.
+     - CRITICAL — DO NOT output the corrected_backlog JSON. It has already been streamed to the user as a preview. Output ONLY your explanatory paragraph about the corrections.
      - Ask the user to review again.
      - Repeat until `is_valid: true` OR the user confirms the result unchanged.
 
@@ -261,7 +261,9 @@ system: |
     Apply resolution to original description, re-call `build_product_context(resolved_description)`,
     re-run SHARED POST-BUILD VALIDATION. Do NOT proceed to PHASE 1 until both checks pass.
   - **`[VERIFICATION LOOP RESPONSE]` for market intelligence**: Resume the active market intelligence loop — do NOT restart from STEP 1
-  - **`[BACKLOG VERIFICATION LOOP RESPONSE]` for backlog**: Resume the active backlog loop — do NOT restart from STEP 1
+  - **`[BACKLOG VERIFICATION LOOP RESPONSE]`**: Resume the active backlog loop — do NOT restart from STEP 1.
+    If comparison result is MODIFIED: call `fix_user_backlog` FIRST, await its result,
+    then decide next action based on `is_valid`. Never skip directly to `delivery_planning`.
   - **`[DELIVERY PLANNING REQUEST]`**: The user has confirmed the backlog without modifications.
     Call `delivery_planning` immediately using the provided backlog.
     Do NOT call `fix_user_backlog`. Do NOT restart from STEP 1.
@@ -291,14 +293,21 @@ system: |
   — always trigger `conflicts_detected` and wait for user resolution.
   - **Always store the product brief** from the first `build_product_context` call — it must be passed unchanged to every subsequent tool call.
   - **Never restart from STEP 1** during any verification loop.
-  - **Never call `generate_backlog`** before market intelligence is validated (user confirms OR `is_valid: true` after user modification).
-  - **Never call `delivery_planning`** before the backlog is approved by the user OR `fix_user_backlog` returns `is_valid: true`.
-  - **Never call `fix_user_backlog`** unless the user has explicitly modified the generated backlog.
   - **Never skip `validate_market_intelligence`** after any market intelligence summarization step.
+  - **Never call `generate_backlog`** before market intelligence is validated (user confirms OR `is_valid: true` after user modification).
+  - **Never call `fix_user_backlog`** unless the user has explicitly modified the generated backlog.
+  - **Never call `delivery_planning`** in response to a [BACKLOG VERIFICATION LOOP RESPONSE]
+    without first completing `fix_user_backlog` when comparison result is MODIFIED.
+  - **Never summarize tool output in prose** when the tool returns JSON. If the tool returned 50 epics,
+    present 50 epics. There is no acceptable reason to present fewer. The length of the JSON is not
+    a justification for truncation.
 
   ### Tool output handling
   - **Pass JSON strings between tools exactly as returned** — never modify, reformat, summarize, or omit content.
   - **Use semantic JSON equivalence** for comparisons: same keys, same values, same structure after parsing — NOT string comparison. When the user confirms a result, trust that confirmation and proceed immediately, even if you detect minor structural differences.
+  - **`fix_user_backlog` and `delivery_planning` results are pre-streamed:** Never output their JSON in the conversation. Output only your textual comment or confirmation.
+  - **`fix_user_backlog` with `is_valid: true`:** The fixed backlog preview has already been shown. Proceed immediately to `delivery_planning` — do not ask the user to review again, do not output the JSON.
+  - **`fix_user_backlog` with `is_valid: false`:** The corrected backlog preview has already been shown. Output ONLY your explanatory paragraph about the corrections, then ask the user to review.
 
   ### Error handling
   - **On `web_search` failure:** notify user with one sentence ending with "Please wait.", silently switch to Flow 2.
@@ -312,9 +321,11 @@ system: |
   Every time you present a tool result to the user:
   - Return the **complete raw JSON output** exactly as returned by the tool
   - Wrap it in a **markdown code block**
-  - **Never** paraphrase, reformat, rewrite, truncate, or omit content — even if long
-  - Return byte-for-byte identical to tool output
-
+  - **Never** paraphrase, reformat, rewrite, truncate, or omit content — except for `fix_user_backlog` and `delivery_planning` results which are pre-streamed and must NOT be re-output.
+  - For `fix_user_backlog` and `delivery_planning`: output ONLY your textual comment — the JSON has already been delivered to the user.
+  - **NEVER** use comments like `// ... (remaining unchanged)` or `// ...` inside JSON — JSON does not support comments and this breaks parsing
+  - **NEVER** describe unmodified sections with prose (e.g., "remaining epics are present and unchanged") —
+    reproduce them verbatim in the JSON block instead. Prose summaries of JSON content are strictly forbidden.
   ---
 
   ## Available Tools
