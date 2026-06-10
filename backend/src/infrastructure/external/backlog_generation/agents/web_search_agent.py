@@ -170,10 +170,9 @@ class WebSearchAgent(BaseAzureProjectAgent, IWebSearch):
                         message="The web search could not be completed. Please try again."
                     )
 
-                messages = await self.project_client.agents.messages.list(
-                    thread_id=thread.id
-                )
-                async for msg in messages:
+                async for msg in self.project_client.agents.messages.list(
+                        thread_id=thread.id
+                ):
                     if msg.role == "assistant":
                         for content in msg.content:
                             if content.type == "text":

@@ -13,9 +13,11 @@ import logging
 
 from typing import AsyncGenerator
 
+from backend.src.domain.entities.backlog.delivery_plan_request import DeliveryPlanRequest
 from backend.src.domain.entities.backlog.reply_backlog_request import ReplyBacklogStreamRequest
 from backend.src.domain.entities.backlog.reply_request import ReplyStreamRequest
 from backend.src.domain.entities.backlog.start_request import StartBacklogRequest
+from backend.src.domain.exceptions.backlog.delivery_plan_exception import DeliveryPlanException
 from backend.src.domain.exceptions.base.app_exception import AppException
 from backend.src.domain.exceptions.backlog.backlog_reply_exception import BacklogReplyException
 from backend.src.domain.exceptions.backlog.backlog_stream_exception import BacklogStreamException
@@ -177,3 +179,47 @@ class GenerateBacklogUseCase(IGenerateBacklogUseCase):
                 str(e)
             )
             raise BacklogReplyException("Failed to process your backlog update. Please try again.")
+
+    async def generate_delivery_plan(self, request: DeliveryPlanRequest) -> AsyncGenerator[str, None]:
+        """
+        Trigger delivery planning directly from a confirmed backlog.
+
+        Called when the user confirms the backlog without modifications,
+        bypassing fix_user_backlog and proceeding straight to delivery_planning.
+
+        Args:
+            request (DeliveryPlanRequest): Request containing the thread ID and confirmed backlog.
+
+        Returns:
+            AsyncGenerator[str, None]: Stream of delivery planning chunks.
+
+        Raises:
+            AppException: If a known application-level error occurs during processing.
+            DeliveryPlanException: If an unexpected error occurs during delivery planning streaming.
+        """
+        logger.info(
+            "Starting direct delivery planning: thread_id=%s.",
+            request.thread_id
+        )
+
+        try:
+            async for chunk in self._orchestrator.generate_delivery_plan_stream(
+                    thread_id=request.thread_id,
+                    backlog=request.backlog,
+            ):
+                yield chunk
+
+            logger.info(
+                "Delivery planning stream completed successfully: thread_id=%s.",
+                request.thread_id,
+            )
+
+        except AppException:
+            raise
+        except Exception as e:
+            logger.exception(
+                "Delivery planning failed: thread_id=%s, error=%s.",
+                request.thread_id,
+                str(e)
+            )
+            raise DeliveryPlanException("Failed to generate delivery plan. Please try again.")

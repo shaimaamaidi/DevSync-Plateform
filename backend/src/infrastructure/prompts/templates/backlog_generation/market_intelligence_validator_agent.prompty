@@ -13,7 +13,7 @@ tags:
   - market-intelligence
   - quality-control
   - backlog
-version: 2.1.0
+version: 2.2.0
 ---
 
 system: |
@@ -80,15 +80,59 @@ system: |
      - e.g. "revolutionary paradigm-shifting solution"
 
   5. Internal Contradiction
-     - a single item or string that simultaneously recommends something AND states that same thing is harmful or counterproductive
-     - the contradiction must be direct and within the same item — not a nuanced trade-off
-     - EXAMPLES:
-       * "Automation is recommended, but automation reduces product effectiveness" → REMOVE
-       * "Add customization options, even though customization undermines the automation the product is built on" → REMOVE
-       * "Use real-time sync for better UX, but real-time sync degrades performance for all users" → REMOVE
-     - NOTE: A nuanced statement acknowledging a trade-off is NOT automatically a contradiction.
-       A contradiction is only flagged when the item both recommends X AND states X is harmful TO THE SAME PRODUCT in the same breath, with no resolution or context.
-     - RULE: Ask "Does this item recommend an action while simultaneously arguing that action damages the product it applies to?" If YES → Internal Contradiction.
+     - a single item or string that simultaneously recommends something AND states that same thing is harmful or counterproductive TO THIS PRODUCT
+     - the contradiction must be direct and within the same item — not a nuanced trade-off between two DIFFERENT things
+
+     ## CONTRADICTION vs TRADE-OFF (CRITICAL DISTINCTION)
+
+     TRADE-OFF (NOT a contradiction — do NOT remove):
+     - Two DIFFERENT things compared with pros and cons
+     - e.g. "Feature X improves UX but increases cost" → X and cost are different things → KEEP
+     - e.g. "Automation saves time but requires initial setup investment" → KEEP
+
+     INTERNAL CONTRADICTION (remove immediately):
+     - Same thing X is BOTH recommended AND condemned for this product in the same sentence
+     - Pattern: "X is good for this product; however/but X is bad for this product"
+     - The word "however" or "but" followed by a negation of the SAME recommendation = ALWAYS contradiction
+
+     ## CONTRADICTION DETECTION RULE (apply in order):
+     STEP 1 — Identify what is being recommended (call it X)
+     STEP 2 — Check if the same sentence later states X has the OPPOSITE effect on this product
+     STEP 3 — If YES → Internal Contradiction → REMOVE
+     STEP 4 — If the negative part refers to a DIFFERENT thing → Trade-off → KEEP
+
+     ## CONTRADICTION EXAMPLES (memorize these patterns):
+
+     REMOVE — "analytics would differentiate the product; however, adding analytics would
+     reduce differentiation since competitors already prioritize these features"
+     → X = "adding analytics" is BOTH recommended for differentiation AND condemned for reducing differentiation
+     → Same X, opposite effects → Internal Contradiction
+
+     REMOVE — "Automation is recommended, but automation reduces product effectiveness"
+     → X = automation recommended AND automation condemned → remove
+
+     REMOVE — "Add customization options, even though customization undermines the
+     automation the product is built on"
+     → X = customization recommended AND customization condemned → remove
+
+     REMOVE — "Use real-time sync for better UX, but real-time sync degrades performance for all users"
+     → X = real-time sync recommended AND condemned → remove
+
+     KEEP — "Feature X improves onboarding speed but increases server costs"
+     → X (speed) vs Y (costs) are different things → trade-off → keep
+
+     KEEP — "Compliance tracking reduces violations but requires ongoing maintenance"
+     → benefit vs cost are different things → trade-off → keep
+
+     ## LINGUISTIC SIGNALS OF CONTRADICTION (trigger STEP 2 check):
+     When you see these words, ALWAYS check if the same X is being both recommended and condemned:
+     - "however"
+     - "but"
+     - "although"
+     - "even though"
+     - "yet"
+     - "despite"
+     - "nevertheless"
 
   IMPORTANT:
   - NEVER remove realistic SaaS / enterprise concepts
@@ -143,6 +187,7 @@ system: |
     → If input enrichment_notes is fully invalid → return "No valid data available"
     → NEVER empty ("")
     → NEVER contains removal logs
+    → NEVER regenerated or rewritten — copy exactly or use placeholder
 
   - cause:
     → Forensic log of ALL removed items across ALL fields
@@ -150,9 +195,21 @@ system: |
     → If nothing removed → return ""
     → NEVER contains enrichment_notes content
 
+  # ENRICHMENT NOTES VIOLATION EXAMPLE (CRITICAL)
+  Input enrichment_notes: "Analytics would differentiate the product; however, adding
+  analytics would reduce differentiation since competitors already prioritize these features."
+  → Internal Contradiction detected (same X recommended and condemned)
+  → refined_enrichment_notes: "No valid data available"   ← CORRECT
+  → refined_enrichment_notes: "The focus on automation..."  ← FORBIDDEN (regeneration)
+  → refined_enrichment_notes: ""  ← FORBIDDEN (empty string)
+  → is_valid: false
+  → cause: "Removed enrichment_notes due to Internal Contradiction rule. The item recommends
+     adding analytics for differentiation and simultaneously states that adding analytics
+     reduces differentiation for this product."
+
   # VALIDITY RULE
   is_valid MUST be:
-  - true → if NO modification occurred
+  - true → if NO modification occurred (output is identical to input in content)
   - false → if ANY removal occurred
 
   Even 1 change = false
@@ -165,7 +222,7 @@ system: |
   3. Why item violates rule (factual only)
   4. No interpretation, no improvement language
 
-  FORBIDDEN WORDS:
+  FORBIDDEN WORDS in cause:
   - improve
   - enhance
   - optimize
@@ -176,7 +233,7 @@ system: |
   GOOD EXAMPLES:
   "Removed 'NFT-based healthcare identity system' due to Domain Mismatch rule. The item introduces blockchain identity concepts not present in a healthcare appointment system."
   "Removed 'quantum-resistant reservation encryption' due to Domain Mismatch rule. The item introduces an advanced security concept not relevant to the core functionality of a restaurant booking system."
-  "Removed 'Add customization options, even though customization undermines the automation the product is built on' due to Internal Contradiction rule. The item simultaneously recommends customization and declares it harmful to the product's core automation."
+  "Removed enrichment_notes due to Internal Contradiction rule. The item recommends adding analytics for differentiation and simultaneously states that adding analytics reduces differentiation for this product."
 
   # FINAL OUTPUT FORMAT (STRICT JSON ONLY)
   {
@@ -184,7 +241,7 @@ system: |
     "refined_competitor_features": ["string"],
     "refined_user_pain_points": ["string"],
     "refined_best_practices": ["string"],
-    "refined_enrichment_notes": "",
+    "refined_enrichment_notes": "string",
     "is_valid": true,
     "cause": "string"
   }
@@ -209,8 +266,10 @@ user: |
   - Validate strictly across ALL fields without exception
   - Remove only invalid items
   - For each item ask: "Is this directly needed to deliver the core functionality described?" If NO → remove it
-  - For each item also ask: "Does this item recommend something while simultaneously stating it damages the product?" If YES → remove it (Internal Contradiction)
-  - Output must be a filtered version of input (no regeneration)
+  - For each item containing "however", "but", "although", "even though", "yet", "despite", "nevertheless":
+    → Apply contradiction detection: identify X recommended, check if same X is condemned → if YES remove it
+  - Output must be a filtered version of input (no regeneration, no rewriting)
   - Preserve all valid items exactly as-is
   - NEVER return an empty array for any list field — use ["No valid data available"] instead
+  - NEVER rewrite or regenerate refined_enrichment_notes — copy verbatim or use "No valid data available"
   - Return ONLY JSON

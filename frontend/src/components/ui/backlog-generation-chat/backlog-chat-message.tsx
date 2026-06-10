@@ -11,6 +11,7 @@ interface ChatMessageProps {
   currentToolName?: string | null;
   onMarketSubmit?: (data: any) => void;
   onBacklogSubmit?: (data: any) => void;
+  onBacklogConfirm?: (data: any) => void;
   onClickUpYes?: (data: any) => void;
   onClickUpNo?: (data: any) => void;
 }
@@ -54,12 +55,13 @@ export function BacklogChatMessage({
             <div className="px-3 sm:px-3.5 py-2.5 text-[13px] leading-[1.7] rounded-xl bg-slate-50 text-slate-800 border border-slate-100 rounded-tl-[3px]">
               {streamingText || <BacklogTypingIndicator toolName={currentToolName} />}
             </div>
-          ) : (
-            <MessageBubble
-              isUser={isUser}
-              isRejection={isRejection}
-              content={message.content}
-            />
+          ) : ( message.content && (
+              <MessageBubble
+                isUser={isUser}
+                isRejection={isRejection}
+                content={message.content}
+              />
+            )
           )}
 
           {!isStreaming && message.onRetry && (

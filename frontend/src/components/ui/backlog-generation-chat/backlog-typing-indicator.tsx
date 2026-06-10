@@ -7,6 +7,11 @@ interface TypingIndicatorProps {
 export function BacklogTypingIndicator({ toolName }: TypingIndicatorProps) {
   return (
     <div className="flex items-center gap-[5px] py-[3px]">
+       {toolName && ( 
+        <span className="mr-2 text-[12px] text-slate-400 italic">
+          {getToolLabel(toolName)}
+        </span>
+      )}
       {[0, 1, 2].map((i) => (
         <div
           key={i}
@@ -14,11 +19,7 @@ export function BacklogTypingIndicator({ toolName }: TypingIndicatorProps) {
           style={{ animationDelay: `${i * 0.18}s` }}
         />
       ))}
-      {toolName && ( 
-        <span className="ml-2 text-[12px] text-slate-400 italic">
-          {getToolLabel(toolName)}
-        </span>
-      )}
+
     </div>
   );
 }

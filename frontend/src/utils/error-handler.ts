@@ -112,9 +112,12 @@ export function resolveErrorAction(err: unknown): ErrorAction {
 
   if (status === 422) return "NOTIFY";
 
-  if (code && RETRY_THEN_LOGOUT.has(code))         return "RETRY_THEN_LOGOUT";
-  if (code && RETRY_THEN_SERVICE_ERROR.has(code))  return "RETRY_THEN_SERVICE_ERROR";
-  if (code && RETRY_THEN_DATA_ERROR.has(code))     return "RETRY_THEN_DATA_ERROR";
+  if (code && RETRY_THEN_LOGOUT.has(code)) 
+    return "RETRY_THEN_LOGOUT";
+  if (code && RETRY_THEN_SERVICE_ERROR.has(code))  
+    return "RETRY_THEN_SERVICE_ERROR";
+  if (code && RETRY_THEN_DATA_ERROR.has(code))     
+    return "RETRY_THEN_DATA_ERROR";
 
   if (status === 429 || status === 502 || status === 503)
     return "RETRY_THEN_SERVICE_ERROR";

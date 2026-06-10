@@ -17,7 +17,8 @@ to ensure both accuracy and flexibility.
 
 import logging
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed, ThreadPoolExecutor
+
 from backend.src.domain.entities.backlog.structure import BacklogStructure
 from backend.src.domain.entities.backlog.validation import BacklogValidation, EpicValidation
 from backend.src.domain.ports.services.backlog_generation.agents.i_user_backlog_fixer import IUserBacklogFixer
@@ -100,19 +101,34 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
         """
         logger.info("Starting user backlog validation process.")
 
+        epic_pairs = list(zip(backlog_reference.epics, backlog_to_validate.epics))
+
         llm_results = {}
         with ThreadPoolExecutor() as executor:
             futures = {
                 executor.submit(
                     self._validate_epic,
                     ref_epic,
-                    next(e for e in backlog_to_validate.epics if e.epic.title == ref_epic.epic.title),
+                    user_epic,
                 ): ref_epic
-                for ref_epic in backlog_reference.epics
+                for ref_epic, user_epic in epic_pairs
             }
             for future in as_completed(futures):
-                ref_epic, result = future.result()
-                llm_results[ref_epic.epic.title] = result
+                ref_epic = futures[future]
+                try:
+                    _, result = future.result()
+                    llm_results[ref_epic.epic.title] = result
+                except Exception as e:
+                    logger.error(
+                        "Epic validation failed for '%s': %s",
+                        ref_epic.epic.title,
+                        e,
+                    )
+                    llm_results[ref_epic.epic.title] = EpicValidation(
+                        corrected_epic=ref_epic,
+                        corrections=[],
+                        is_valid=True,
+                    )
 
         all_corrections = []
         corrected_epics = []
@@ -182,7 +198,27 @@ class UserBacklogFixerAgent(BaseAgent[EpicValidation], IUserBacklogFixer):
             },
             response_format=EpicValidation,
         )
-        logger.info("chacha")
-        logger.info(result.corrected_epic.epic.title)
-        logger.info(result.is_valid)
-        return ref_epic, result
+
+        has_real_correction = any(
+            correction.lower().startswith(
+                (
+                    "removed",
+                    "replaced",
+                    "restored",
+                    "completed",
+                )
+            )
+            for correction in result.corrections
+        )
+
+        if result.is_valid:
+            return ref_epic, EpicValidation(corrected_epic=user_epic, corrections=[],is_valid=True)
+
+        elif not has_real_correction:
+            return ref_epic, EpicValidation(
+                corrected_epic=user_epic,
+                corrections=[],
+                is_valid=True,
+            )
+        else:
+            return ref_epic,result

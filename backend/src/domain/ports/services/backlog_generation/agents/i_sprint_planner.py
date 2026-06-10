@@ -27,7 +27,7 @@ class ISprintPlanner(ABC):
     """
 
     @abstractmethod
-    def plan_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
+    async def plan_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
         """
         Generate sprint planning from a structured backlog.
 

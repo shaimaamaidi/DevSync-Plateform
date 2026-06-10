@@ -334,6 +334,19 @@ export interface CreateTaskRequest {
     'estimation'?: number | null;
 }
 /**
+ * Request payload for delivery plan generation.  This DTO is used once a backlog has been reviewed and confirmed. It allows the system to generate a delivery plan based on the finalized backlog while maintaining the existing conversation thread.  Attributes:     thread_id: Identifier of the conversation thread.     backlog: Confirmed backlog content used as input for delivery         plan generation.
+ */
+export interface DeliveryPlanRequest {
+    /**
+     * Conversation thread identifier.
+     */
+    'thread_id': string;
+    /**
+     * Confirmed backlog content used to generate the delivery plan.
+     */
+    'backlog': string;
+}
+/**
  * Deployment information returned by GitHub.  Attributes:     dep_id: Deployment identifier.     environment: Deployment environment.     ref: Git reference.     sha: Commit SHA.     creator: Creator username.     created_at: Creation timestamp.     description: Deployment description.     state: Deployment state.     log_url: URL to deployment logs.
  */
 export interface DeploymentDTO {
@@ -1713,6 +1726,41 @@ export class AuthApi extends BaseAPI {
 export const BacklogApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Triggers delivery planning directly when the user confirms the backlog without modifications. Bypasses the fix loop and streams the sprint plan immediately.
+         * @summary Generate delivery plan from confirmed backlog
+         * @param {DeliveryPlanRequest} deliveryPlanRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateDeliveryPlanBacklogDeliveryPlanPost: async (deliveryPlanRequest: DeliveryPlanRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'deliveryPlanRequest' is not null or undefined
+            assertParamExists('generateDeliveryPlanBacklogDeliveryPlanPost', 'deliveryPlanRequest', deliveryPlanRequest)
+            const localVarPath = `/backlog/delivery-plan`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(deliveryPlanRequest, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
          * @summary Reply to backlog validation
          * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
@@ -1827,6 +1875,19 @@ export const BacklogApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = BacklogApiAxiosParamCreator(configuration)
     return {
         /**
+         * Triggers delivery planning directly when the user confirms the backlog without modifications. Bypasses the fix loop and streams the sprint plan immediately.
+         * @summary Generate delivery plan from confirmed backlog
+         * @param {DeliveryPlanRequest} deliveryPlanRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async generateDeliveryPlanBacklogDeliveryPlanPost(deliveryPlanRequest: DeliveryPlanRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.generateDeliveryPlanBacklogDeliveryPlanPost(deliveryPlanRequest, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['BacklogApi.generateDeliveryPlanBacklogDeliveryPlanPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
          * @summary Reply to backlog validation
          * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
@@ -1875,6 +1936,16 @@ export const BacklogApiFactory = function (configuration?: Configuration, basePa
     const localVarFp = BacklogApiFp(configuration)
     return {
         /**
+         * Triggers delivery planning directly when the user confirms the backlog without modifications. Bypasses the fix loop and streams the sprint plan immediately.
+         * @summary Generate delivery plan from confirmed backlog
+         * @param {DeliveryPlanRequest} deliveryPlanRequest 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        generateDeliveryPlanBacklogDeliveryPlanPost(deliveryPlanRequest: DeliveryPlanRequest, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.generateDeliveryPlanBacklogDeliveryPlanPost(deliveryPlanRequest, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
          * @summary Reply to backlog validation
          * @param {ReplyBacklogStreamRequest} replyBacklogStreamRequest 
@@ -1911,6 +1982,17 @@ export const BacklogApiFactory = function (configuration?: Configuration, basePa
  * BacklogApi - object-oriented interface
  */
 export class BacklogApi extends BaseAPI {
+    /**
+     * Triggers delivery planning directly when the user confirms the backlog without modifications. Bypasses the fix loop and streams the sprint plan immediately.
+     * @summary Generate delivery plan from confirmed backlog
+     * @param {DeliveryPlanRequest} deliveryPlanRequest 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public generateDeliveryPlanBacklogDeliveryPlanPost(deliveryPlanRequest: DeliveryPlanRequest, options?: RawAxiosRequestConfig) {
+        return BacklogApiFp(this.configuration).generateDeliveryPlanBacklogDeliveryPlanPost(deliveryPlanRequest, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Handles user feedback during backlog verification. Validates or adjusts the generated backlog and continues the workflow until approval and transition to delivery planning.
      * @summary Reply to backlog validation

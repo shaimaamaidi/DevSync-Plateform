@@ -9,7 +9,7 @@ Main classes:
     EpicValidation, BacklogValidation
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List
 
 from backend.src.domain.entities.backlog.structure import BacklogStructure, EpicBacklog
@@ -24,8 +24,8 @@ class EpicValidation(BaseModel):
         corrections: List of human-readable sentences describing substantive changes.
         is_valid: True only if no substantive correction was applied to this epic.
     """
-    corrected_epic: EpicBacklog
-    corrections: List[str] = Field(default_factory=list)
+    corrected_epic: EpicBacklog  | None = None
+    corrections: List[str] = []
     is_valid: bool
 
 class BacklogValidation(BaseModel):

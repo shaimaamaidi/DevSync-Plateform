@@ -22,6 +22,7 @@ from starlette import status
 from starlette.responses import StreamingResponse
 
 from backend.src.application.use_cases.generate_backlog_use_case import GenerateBacklogUseCase
+from backend.src.domain.entities.backlog.delivery_plan_request import DeliveryPlanRequest
 from backend.src.domain.entities.backlog.start_request import StartBacklogRequest
 from backend.src.domain.entities.backlog.reply_request import ReplyStreamRequest
 from backend.src.domain.entities.backlog.reply_backlog_request import ReplyBacklogStreamRequest
@@ -125,7 +126,6 @@ async def reply(
         media_type="text/event-stream",
     )
 
-
 @router.post(
     "/reply/backlog",
     status_code=status.HTTP_200_OK,
@@ -172,5 +172,44 @@ async def reply_backlog(
 
     return StreamingResponse(
         use_case.reply_backlog(request),
+        media_type="text/event-stream",
+    )
+
+@router.post(
+    "/delivery-plan",
+    status_code=status.HTTP_200_OK,
+    summary="Generate delivery plan from confirmed backlog",
+    description=(
+        "Triggers delivery planning directly when the user confirms the backlog "
+        "without modifications. Bypasses the fix loop and streams the sprint plan immediately."
+    )
+)
+async def generate_delivery_plan(
+    request: DeliveryPlanRequest,
+    use_case: GenerateBacklogUseCase = Depends(get_generate_backlog_use_case),
+) -> StreamingResponse:
+    """
+    Trigger delivery planning from a confirmed backlog.
+
+    This endpoint is called when the user approves the backlog as-is.
+    It skips fix_user_backlog entirely and calls delivery_planning directly.
+
+    Args:
+        request (DeliveryPlanRequest):
+            Contains:
+            - thread_id: Active workflow thread identifier
+            - backlog: Confirmed backlog JSON string
+
+        use_case (GenerateBacklogUseCase):
+            Application use case handling the delivery planning workflow.
+
+    Returns:
+        StreamingResponse:
+            SSE stream containing the prioritized backlog and sprint plan.
+    """
+    logger.info("Starting delivery planning: thread_id=%s.", request.thread_id)
+
+    return StreamingResponse(
+        use_case.generate_delivery_plan(request),
         media_type="text/event-stream",
     )

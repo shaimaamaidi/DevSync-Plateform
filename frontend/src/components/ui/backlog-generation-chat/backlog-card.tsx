@@ -26,6 +26,8 @@ interface BacklogCardProps {
   data: UiEpic[];
   readonly editable: boolean;
   onSubmit: (epics: UiEpic[]) => void;
+  onConfirm?: () => void;
+
 }
 
 type BacklogErrors = {
@@ -35,7 +37,7 @@ type BacklogErrors = {
 };
 
 
-export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
+export function BacklogCard({ data, editable, onSubmit, onConfirm }: BacklogCardProps) {
   const [epics, setEpics] = useState<UiEpic[]>(() => normalizeBacklog(data));
   const [openEpics, setOpenEpics]   = useState<Record<string, boolean>>({});
   const [openStories, setOpenStories] = useState<Record<string, boolean>>({});
@@ -43,11 +45,9 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
 
   const [addingStory, setAddingStory] = useState<string | null>(null);
   const [addingTask,  setAddingTask]  = useState<string | null>(null);
-  const [addingEpic,  setAddingEpic]  = useState(false);
 
   const [newStory, setNewStory] = useState({ title: "", as_a: "user", i_want: "", so_that: "" });
   const [newTask,  setNewTask]  = useState({ title: "", description: "" });
-  const [newEpic,  setNewEpic]  = useState({ title: "", description: "" });
 
   const [errors, setErrors] = useState<BacklogErrors>({ epic: {}, story: {}, task: {} });
 
@@ -125,12 +125,6 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
     } : ep));
     setNewTask({ title: "", description: "" });
     setAddingTask(null);
-  };
-
-  const cancelEpicEdit = () => {
-    setAddingEpic(false);
-    setNewEpic({ title: "", description: "" });
-    setErrors((prev) => ({ ...prev, epic: {} }));
   };
 
   const cancelStoryEdit = () => {
@@ -377,8 +371,8 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
                         )}
                         <div className="flex flex-col sm:flex-row gap-1.5">
                           {[
-                            { field: "as_a",    ph: "As a…"    },
-                            { field: "i_want",  ph: "I want…"  },
+                            { field: "as_a", ph: "As a…"    },
+                            { field: "i_want", ph: "I want…"  },
                             { field: "so_that", ph: "So that…" },
                           ].map(({ field, ph }) => (
                             <input
@@ -429,59 +423,24 @@ export function BacklogCard({ data, editable, onSubmit }: BacklogCardProps) {
       })}
 
       {isEdit && (
-        addingEpic ? (
-          <div className="flex flex-col gap-1.5 p-3 rounded-xl border border-dashed border-slate-200 bg-white">
-            <input
-              value={newEpic.title}
-              onChange={(e) => setNewEpic((s) => ({ ...s, title: e.target.value }))}
-              placeholder="Epic title…"
-              className={miniInput}
-            />
-            {errors.epic.title && (
-              <div className="text-destructive text-xs mt-1 px-1">{errors.epic.title}</div>
-            )}
-            <input
-              value={newEpic.description}
-              onChange={(e) => setNewEpic((s) => ({ ...s, description: e.target.value }))}
-              placeholder="Short description…"
-              className={miniInput}
-            />
-            {errors.epic.description && (
-              <div className="text-destructive text-xs mt-1 px-1">{errors.epic.description}</div>
-            )}
-            <div className="flex gap-1.5 justify-end">
-              <button
-                onClick={cancelEpicEdit}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-500 text-[12px] font-semibold hover:bg-slate-200 border-none cursor-pointer transition-colors"
-              >
-                <X size={13} /> Cancel
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => setAddingEpic(true)}
-            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-slate-200 text-[13px] text-slate-400 hover:border-slate-300 hover:text-slate-500 bg-transparent cursor-pointer transition-colors px-3.5"
-          >
-            <Plus size={14} strokeWidth={2.5} /> Add epic
-          </button>
-        )
-      )}
-
-      {isEdit && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 mt-1 gap-3">
-          <p className="m-0 text-[12px] text-slate-500 leading-relaxed">
-            {hasChanges
-              ? "Submit your modifications to validate and generate the sprints."
-              : "No modifications detected. Run generation to create sprints from the current backlog."}
-          </p>
-          <button
-            onClick={handleSubmit}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-[12px] font-bold hover:bg-slate-700 border-none cursor-pointer transition-colors shrink-0 sm:ml-4 w-full sm:w-auto"
-          >
-            <FlagTriangleRight size={15} strokeWidth={2} />
-            {hasChanges ? "Validate & Generate Sprints" : "Run Sprint Generation"}
-          </button>
+        <div className="flex gap-2 shrink-0 sm:ml-4 w-full sm:w-auto">
+          {hasChanges ? (
+            <button
+              onClick={handleSubmit}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-[12px] font-bold hover:bg-slate-700 border-none cursor-pointer transition-colors w-full sm:w-auto"
+            >
+              <FlagTriangleRight size={15} strokeWidth={2} />
+              Validate & Generate Sprints
+            </button>
+          ) : (
+            <button
+              onClick={() => { setDone(true); onConfirm?.(); }}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-[12px] font-bold hover:bg-slate-700 border-none cursor-pointer transition-colors w-full sm:w-auto"
+            >
+              <FlagTriangleRight size={15} strokeWidth={2} />
+              Confirm & Generate Sprints
+            </button>
+          )}
         </div>
       )}
     </div>

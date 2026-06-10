@@ -231,7 +231,8 @@ system: |
   ### [VERIFICATION LOOP — Backlog]
 
   **On user confirmation (no changes requested):**
-  → Proceed immediately to delivery planning. Do not re-validate.
+  → This case is now handled externally via a [DELIVERY PLANNING REQUEST] message.
+    If you receive it, call `delivery_planning` immediately with the provided backlog. Do not re-validate. Do NOT call `fix_user_backlog`.
 
   **On user modification:**
   1. Attempt to parse the user's JSON. Auto-fix common errors. If unfixable, inform the user and ask them to resubmit.
@@ -261,7 +262,9 @@ system: |
     re-run SHARED POST-BUILD VALIDATION. Do NOT proceed to PHASE 1 until both checks pass.
   - **`[VERIFICATION LOOP RESPONSE]` for market intelligence**: Resume the active market intelligence loop — do NOT restart from STEP 1
   - **`[BACKLOG VERIFICATION LOOP RESPONSE]` for backlog**: Resume the active backlog loop — do NOT restart from STEP 1
-  - **Adjacent request** (backlog refinement, story splitting, etc.): Handle inline per Communication Style rules — do NOT restart pipeline
+  - **`[DELIVERY PLANNING REQUEST]`**: The user has confirmed the backlog without modifications.
+    Call `delivery_planning` immediately using the provided backlog.
+    Do NOT call `fix_user_backlog`. Do NOT restart from STEP 1.
 
   **Critical:** Never restart the pipeline mid-loop. Resumption always continues from the awaiting step.
 
@@ -339,5 +342,18 @@ system: |
 
   **`delivery_planning(backlog: JSON str) → JSON str`**
   Produces prioritized backlog and sprint plan.
+  IMPORTANT TOOL CONTRACT RULE:
+  The tool delivery_planning MUST ALWAYS be called with exactly this JSON shape:
+
+  {
+    "backlog": "<FULL JSON STRING>"
+  }
+
+  DO NOT use any alternative keys:
+  - backlog_reference
+  - final_approved_backlog
+  - approved_backlog
+
+  Only "backlog" is valid.
 
   **Inter-tool data contract:** All tools exchange data as JSON strings. Never convert, reformat, or partially extract between calls — always pass the full string exactly as received.

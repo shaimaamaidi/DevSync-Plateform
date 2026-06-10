@@ -80,7 +80,7 @@ class SprintPlannerOrchestrator(ISprintPlanner):
         self._task_estimator = task_estimator
         self._sprint_grouper = sprint_grouper
 
-    def plan_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
+    async def plan_sprints(self, backlog: BacklogStructure) -> SprintPlanning:
         """
         Generate sprint planning from a structured backlog.
 
@@ -112,9 +112,7 @@ class SprintPlannerOrchestrator(ISprintPlanner):
 
         context = SprintPlannerOrchestrator._build_context(backlog)
 
-        story_lookup, epic_summaries = asyncio.run(
-            self._estimate_all_epics(context, backlog.epics)
-        )
+        story_lookup, epic_summaries = await self._estimate_all_epics(context, backlog.epics)
 
         result: SprintPlanning = self._sprint_grouper.group_sprints(epic_summaries, story_lookup)
 

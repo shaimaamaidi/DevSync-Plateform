@@ -4,11 +4,11 @@ import type { RefinedMarketIntelligence, BacklogPayload, ClarificationNeeded, Co
 export function isRefinedMarketIntelligence(v: unknown): v is RefinedMarketIntelligence {
   return Boolean(
     v && typeof v === "object" &&
-    "refined_market_trends"       in (v as object) &&
+    "refined_market_trends" in (v as object) &&
     "refined_competitor_features" in (v as object) &&
-    "refined_user_pain_points"    in (v as object) &&
-    "refined_best_practices"      in (v as object) &&
-    "refined_enrichment_notes"    in (v as object),
+    "refined_user_pain_points" in (v as object) &&
+    "refined_best_practices" in (v as object) &&
+    "refined_enrichment_notes" in (v as object),
   );
 }
 

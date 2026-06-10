@@ -97,5 +97,5 @@ export interface ChatAttachment {
   type: "market" | "submitted" | "backlog" | "sprint" | "clickup_management" | "clarification" | "conflicts";
   data?: MarketSummary | UiEpic[] | UiSprint[] | any | undefined;
   editable?: boolean;
-  mode?: "validation" | "backlog_generation" | "backlog_refinement" | "backlog_finishing";
+  mode?: "validation" | "backlog_generation" | "backlog_refinement" | "backlog_confirmed" |"backlog_finishing";
 }

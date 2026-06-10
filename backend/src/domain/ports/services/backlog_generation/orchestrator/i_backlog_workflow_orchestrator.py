@@ -24,7 +24,7 @@ class IBacklogWorkflowOrchestrator(ABC):
     """
 
     @abstractmethod
-    def start_stream(self, description: str, thread_id: Optional[str] = None) -> AsyncGenerator[str, None]:
+    async def start_stream(self, description: str, thread_id: Optional[str] = None) -> AsyncGenerator[str, None]:
         """
         Start the backlog generation workflow as a stream.
 
@@ -34,10 +34,10 @@ class IBacklogWorkflowOrchestrator(ABC):
         Returns:
             AsyncGenerator[str, None]: Stream of generated backlog chunks.
         """
-        pass
+        yield ""
 
     @abstractmethod
-    def reply_stream(
+    async def reply_stream(
         self,
         thread_id: str,
         tool_result: str,
@@ -54,10 +54,10 @@ class IBacklogWorkflowOrchestrator(ABC):
         Returns:
             AsyncGenerator[str, None]: Stream of updated results.
         """
-        pass
+        yield ""
 
     @abstractmethod
-    def reply_backlog_stream(
+    async def reply_backlog_stream(
         self,
         thread_id: str,
         user_result: str,
@@ -74,4 +74,25 @@ class IBacklogWorkflowOrchestrator(ABC):
         Returns:
             AsyncGenerator[str, None]: Stream of updated backlog results.
         """
-        pass
+        yield ""
+
+    @abstractmethod
+    async def generate_delivery_plan_stream(
+            self,
+            thread_id: str,
+            backlog: str
+    ) -> AsyncGenerator[str, None]:
+        """
+        Trigger delivery planning directly from a confirmed backlog.
+
+        Called when the user confirms the backlog without modifications,
+        skipping fix_user_backlog and proceeding straight to delivery_planning.
+
+        Args:
+            thread_id (str): Active Azure agent thread identifier.
+            backlog (str): Confirmed backlog JSON string.
+
+        Yields:
+            AsyncGenerator[str, None]: Streaming chunks of delivery planning output.
+        """
+        yield ""

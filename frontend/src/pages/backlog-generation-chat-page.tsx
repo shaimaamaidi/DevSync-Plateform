@@ -19,6 +19,7 @@ export default function BacklogGenerationChatPage() {
     handleSend,
     handleMarketSubmit,
     handleBacklogSubmit,
+    handleBacklogConfirm,
     handleClarificationReply,
     handleClickUpYes,
     handleClickUpNo,
@@ -58,10 +59,11 @@ export default function BacklogGenerationChatPage() {
                 key={message.id}
                 message={message}
                 loading={loading}
-                streamingText={streamingText}
-                currentToolName={currentToolName} 
+                streamingText={message._streaming ? streamingText : ""} 
+                currentToolName={message._streaming ? currentToolName : null}
                 onMarketSubmit={handleMarketSubmit}
                 onBacklogSubmit={handleBacklogSubmit}
+                onBacklogConfirm={handleBacklogConfirm}
                 onClickUpYes={handleClickUpYes}
                 onClickUpNo={handleClickUpNo}
               />

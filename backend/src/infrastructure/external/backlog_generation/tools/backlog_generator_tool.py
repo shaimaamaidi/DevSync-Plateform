@@ -74,7 +74,7 @@ class BacklogGeneratorTool(IBacklogGeneratorTool):
             InvalidToolArgumentException: If detailed_description or context is not valid JSON
                 or does not match the expected schema.
             ToolExecutionException: If backlog generation fails due to orchestrator errors
-                or unexpected runtime issues..
+                or unexpected runtime issues.
         """
         logger.info(
             "BacklogGeneratorTool called.",

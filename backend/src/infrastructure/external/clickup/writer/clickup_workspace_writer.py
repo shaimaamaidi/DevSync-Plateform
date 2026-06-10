@@ -18,6 +18,7 @@ from requests import Response
 from backend.src.domain.entities.clickup.list_metadata import ClickUpListMetadata
 from backend.src.domain.entities.clickup.member_invitation import ClickUpMemberInvitation
 from backend.src.domain.entities.clickup.status import ClickUpStatus
+from backend.src.domain.exceptions.clickup.clickup_plan_restriction_exception import ClickUpPlanRestrictionException
 from backend.src.domain.exceptions.clickup.clickup_write_exception import ClickUpWriteException
 from backend.src.domain.ports.output.clickup.i_clickup_workspace_writer import IClickUpWorkSpaceWriter
 from backend.src.infrastructure.external.clickup.client.clickup_http_client import ClickUpHttpClient
@@ -332,6 +333,12 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
             )
             return True
 
+        if response.status_code in (402, 403):
+            raise ClickUpPlanRestrictionException(
+                "Inviting members via API requires a ClickUp Enterprise plan. "
+                "Please invite members manually from the ClickUp workspace settings."
+            )
+
         error_message = ClickUpWorkSpaceWriter._get_error_message(response)
 
         logger.error(
@@ -370,6 +377,12 @@ class ClickUpWorkSpaceWriter(IClickUpWorkSpaceWriter):
                 response.status_code,
             )
             return True
+
+        if response.status_code in (402, 403):
+            raise ClickUpPlanRestrictionException(
+                "Removing members via API requires a ClickUp Enterprise plan. "
+                "Please remove members manually from the ClickUp workspace settings."
+            )
 
         error_message = ClickUpWorkSpaceWriter._get_error_message(response)
 

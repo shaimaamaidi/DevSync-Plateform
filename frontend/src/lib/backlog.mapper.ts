@@ -150,16 +150,20 @@ export function uiToBacklog(epics: UiEpic[]): BacklogPayload {
         title: ep.title?.trim() || "",
         description: ep.description?.trim() || "",
       },
+
       user_stories: (ep.stories ?? []).map((s) => {
         const as_a = (s.as_a ?? "user").trim().replace(/\s*,\s*$/, "").trim() || "user";
         const i_want = (s.i_want ?? "").trim().replace(/\s*,\s*$/, "").trim();
         let so_that = (s.so_that ?? "").trim();
-        if (so_that.toLowerCase().startsWith("so that ")) {
+        const lower = so_that.toLowerCase();
+        if (lower.startsWith("so that ")) {
           so_that = so_that.slice(8).trim();
         }
 
-        const needsAn = /^[aeiou]/i.test(as_a);
-        let description = `As ${needsAn ? "an" : "a"} ${as_a}, I want ${i_want}`;
+        const startsWithSilentH = /^h(?:[aeiou]|r\b)/i.test(as_a);
+        const article = /^[aeiou]/i.test(as_a) || startsWithSilentH ? "an" : "a";
+        let description = `As ${article} ${as_a}, I want ${i_want}`;
+
         if (so_that) {
           description += `, so that ${so_that}`;
         }
@@ -177,7 +181,7 @@ export function uiToBacklog(epics: UiEpic[]): BacklogPayload {
       }),
     })),
   };
-}
+};
 
 export function areBacklogsEqual(a: BacklogPayload, b: BacklogPayload): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
@@ -195,8 +199,8 @@ export function sprintPlanningToUi(raw: any): UiSprint[] {
       ...parseUserStoryDescription(us.user_story?.description ?? ""),
       tasks: (us.tasks ?? []).map((t: any, ti: number) => ({
         id: `S${si + 1}.US${ui + 1}.T${ti + 1}`,
-        title: t.task?.title ?? "",
-        description: t.task?.description ?? "",
+        title: t.title ?? "",
+        description: t.description ?? "",
         estimatedHours: t.estimated_hours ?? 0,
       })),
     })),

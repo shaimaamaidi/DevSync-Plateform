@@ -1,5 +1,6 @@
 import { BASE_PATH } from '@/api/base';
 import type {
+  DeliveryPlanRequest,
   ReplyBacklogStreamRequest,
   ReplyStreamRequest,
   StartBacklogRequest
@@ -161,6 +162,10 @@ export const backlogGenerationService = {
 
   async replyBacklog(request: ReplyBacklogStreamRequest): Promise<ReadableStream<Uint8Array>> {
     return postStream('/backlog/reply/backlog', request);
+  },
+
+  async generateDeliveryPlan(request: DeliveryPlanRequest): Promise<ReadableStream<Uint8Array>> {
+    return postStream('/backlog/delivery-plan', request);
   },
 };
 

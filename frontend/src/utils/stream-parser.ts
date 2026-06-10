@@ -159,12 +159,31 @@ function parseResponse(raw: string): { text: string; json: unknown } {
 
   const fencedJsonRegex = /```(?:json)?\s*([\s\S]*?)```/gi;
   const fencedMatches = Array.from(raw.matchAll(fencedJsonRegex));
-  const text = raw.replace(/```(?:json)?[\s\S]*?```/gi, "").trim();
-  let json: unknown = null;
+  const textWithoutFences = raw.replace(/```(?:json)?[\s\S]*?```/gi, "").trim();
+
   for (const match of fencedMatches) {
     const parsed = tryParseJson(match[1]);
-    if (parsed !== null) { json = parsed; break; }
+    if (parsed !== null) {
+      return { text: textWithoutFences, json: parsed };
+    }
   }
-  if (json === null) json = tryParseJson(raw);
-  return { text, json };
+
+  try {
+    const parsed = JSON.parse(raw.trim());
+    // Pure JSON response — no narrative text
+    return { text: "", json: parsed };
+  } catch { /* not pure JSON, continue */ }
+
+  const extracted = tryParseJson(raw);
+  if (extracted !== null) {
+    const jsonStart = Math.min(
+      ...[raw.indexOf("{"), raw.indexOf("[")].filter((i) => i >= 0),
+    );
+    const narrativeText = Number.isFinite(jsonStart)
+      ? raw.slice(0, jsonStart).trim()
+      : raw.trim();
+    return { text: narrativeText, json: extracted };
+  }
+
+  return { text: raw.trim(), json: null };
 }
