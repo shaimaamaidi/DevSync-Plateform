@@ -48,6 +48,7 @@ import type { AssigneeDialogStateForGeneration } from '@/types/assignee-dialog';
 
 export default function BacklogTaskGenerationPage() {
   const sprintBacklogRef = useRef<Sprint[] | null>(null);
+  const [hasBacklog, setHasBacklog] = useState(false);
 
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
 
@@ -89,17 +90,11 @@ export default function BacklogTaskGenerationPage() {
 
   useEffect(() => {
     const raw = localStorage.getItem('sprint_backlog');
-    if (!raw) {
-        navigate('/backlog-generation-chat');
-        return;
-    }
+    if (!raw) return;
     const parsed: Sprint[] = JSON.parse(raw);
-    if (!Array.isArray(parsed) || !parsed.length) {
-        navigate('/backlog-generation-chat');
-        return;
-    }
+    if (!Array.isArray(parsed) || !parsed.length) return;
     sprintBacklogRef.current = parsed;
-    localStorage.removeItem('sprint_backlog');
+    setHasBacklog(true);
   }, []);
 
   const resetProcess = () => {
@@ -309,6 +304,19 @@ export default function BacklogTaskGenerationPage() {
   const navigateToConsultationSpace = () => {
     navigate(`/spaces/${selectedSpaceId}/tasks`);
   };
+
+  if (!hasBacklog) {
+    return (
+        <div className="w-full flex flex-col items-center justify-center py-24 gap-3">
+            <p className="text-sm text-muted-foreground text-center">
+                No sprint backlog found. Please generate a backlog first.
+            </p>
+            <Button onClick={() => navigate('/backlog-generation-chat')}>
+                Go to backlog generation
+            </Button>
+        </div>
+    );
+  }
   
   return (
     <div className="w-full space-y-8 py-2">
