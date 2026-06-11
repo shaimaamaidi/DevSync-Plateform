@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: devsync_backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: >
+      sh -c "
+        python -m backend.src.infrastructure.scripts.init_db &&
+        python -m backend.src.infrastructure.scripts.create_admin &&
+        uvicorn backend.src.presentation.api.main:app --host 0.0.0.0 --port 8000
+      "
+    depends_on:
+      mydb:
+        condition: service_healthy
+    networks:
+      - devsync_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: devsync_frontend
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - devsync_net
+
+  mydb:
+    image: mysql:8.0
+    container_name: devsync_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devsync_net
+
+volumes:
+  mysql_data:
+
+networks:
+  devsync_net:
+    driver: bridge

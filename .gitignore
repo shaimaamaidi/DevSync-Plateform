@@ -52,3 +52,10 @@ Thumbs.db
 wwwroot/*.js
 typings
 
+.dockerignore
+docker-compose.override.yml
+mysql_data/
+postgres_data/
+
+*.pyo
+*.pyd
