@@ -220,7 +220,12 @@ export function VerifiedTaskCard({
               </p>
 
               <div className="flex items-center gap-2 mt-3 flex-wrap">
-                <AssigneeAvatars value={task.task_assignee} />
+                <div
+                  title="Open edit mode to change assignees"
+                  className="cursor-not-allowed"
+                >
+                  <AssigneeAvatars value={task.task_assignee} />
+                </div>
 
                 <span className={`text-xs px-2 py-0.5 rounded-md border shrink-0 ${cfg.badge}`}>
                   {task.task_priority}
