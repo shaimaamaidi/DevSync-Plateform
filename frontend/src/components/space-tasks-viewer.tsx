@@ -52,7 +52,7 @@ type PendingUpdate = {
 export function SpaceTasksViewer() {
   const { spaceId } = useParams<{ spaceId: string }>();
   const [selectedListId, setSelectedListId] = useState<string>('');
-
+  
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const onError = useCallback(() => defaultOnError(navigate), [navigate]);

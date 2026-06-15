@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/shared-primitives/button';
 import { Plus, Edit2, Trash2, Eye, Link as LinkIcon, AlertCircle } from 'lucide-react';
 import { ClickUpEditModal } from './ui/clickup-edit-model-new';
 import { useNavigate } from 'react-router-dom';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
@@ -56,6 +57,8 @@ export function ClickUpSpacesTable({
   refetchSpaces
 }: ClickUpSpacesTableProps) {
   const navigate = useNavigate();
+  const { user: currentUser, loading } = useCurrentUser();
+  const isAdmin = !loading && currentUser?.role === 'admin';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
   const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
@@ -80,10 +83,12 @@ export function ClickUpSpacesTable({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground">ClickUp Spaces</h2>
-        <Button onClick={handleAddClick} className="gap-2 shrink-0">
-          <Plus className="w-4 h-4" />
-          Add Space
-        </Button>
+        {isAdmin && (
+          <Button onClick={handleAddClick} className="gap-2 shrink-0">
+            <Plus className="w-4 h-4" />
+            Add Space
+          </Button>
+        )}
       </div>
 
       <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[480px] border border-border rounded-lg">
@@ -101,13 +106,17 @@ export function ClickUpSpacesTable({
                   <td className="px-6 py-4">
                     <div className="h-4 w-48 rounded bg-muted animate-pulse mx-auto" />
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
-                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
-                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
-                    </div>
-                  </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                        {isAdmin && (
+                          <>
+                            <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                            <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                          </>
+                        )}
+                      </div>
+                    </td>
                 </tr>
               ))}
             </tbody>
@@ -192,26 +201,30 @@ export function ClickUpSpacesTable({
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleEditClick(space)}
-                          className="h-8 w-8"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (typeof space.id === 'number') {
-                              setDeleteConfirmSpaceId(space.id);
-                            }
-                          }}
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditClick(space)}
+                              className="h-8 w-8"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                if (typeof space.id === 'number') {
+                                  setDeleteConfirmSpaceId(space.id);
+                                }
+                              }}
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -259,17 +272,21 @@ export function ClickUpSpacesTable({
                   <Button variant="ghost" size="icon" onClick={() => space.space_code ? navigate(`/spaces/${space.space_code}/tasks`) : null} className="h-8 w-8" disabled={!space.space_code}>
                     <Eye className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(space)} className="h-8 w-8">
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => typeof space.id === 'number' && setDeleteConfirmSpaceId(space.id)}
-                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {isAdmin &&(
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => handleEditClick(space)} className="h-8 w-8">
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => typeof space.id === 'number' && setDeleteConfirmSpaceId(space.id)}
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
               <p className="text-xs font-mono text-muted-foreground">{space.space_code || 'N/A'}</p>

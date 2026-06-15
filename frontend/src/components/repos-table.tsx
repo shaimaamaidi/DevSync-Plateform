@@ -28,6 +28,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/shared-primitives/dialog';
+import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
 
 interface ReposTableProps {
   repos: GitRepoDetailDTO[];
@@ -54,6 +55,9 @@ export function ReposTable({
   error,
   refreshRepos 
 }: ReposTableProps) {
+  const { user: currentUser, loading } = useCurrentUser();
+  const isAdmin = !loading && currentUser?.role === 'admin';
+  
   const [selectedRepo, setSelectedRepo] = useState<GitRepoDetailDTO | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -73,17 +77,19 @@ export function ReposTable({
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between gap-2">
         <h2 className="text-xl sm:text-2xl font-bold text-foreground">GitHub Repositories</h2>
-        <Button onClick={handleAddClick} className="gap-2 shrink-0">
-          <Plus className="w-4 h-4" />
-          Add Repository
-        </Button>
+        {isAdmin && (
+          <Button onClick={handleAddClick} className="gap-2 shrink-0">
+            <Plus className="w-4 h-4" />
+            Add Repository
+          </Button>
+        )}
       </div>
 
       <div className="hidden sm:block overflow-x-auto overflow-y-auto max-h-[480px] border border-border rounded-lg">
         {isLoading ? (
           <table className="w-full min-w-[600px]">
             <tbody>
-              {Array.from({ length: 4 }).map((_, i) => (
+              {Array.from({ length: isAdmin ? 4 : 3 }).map((_, i) => (
                 <tr key={i} className="border-b border-border">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3 justify-center">
@@ -104,12 +110,14 @@ export function ReposTable({
                   <td className="px-6 py-4">
                     <div className="h-6 w-24 rounded-full bg-muted animate-pulse mx-auto" />
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end gap-2">
-                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
-                      <div className="w-8 h-8 rounded bg-muted animate-pulse" />
-                    </div>
-                  </td>
+                  {isAdmin && (
+                    <td className="px-6 py-4">
+                      <div className="flex justify-end gap-2">
+                        <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                        <div className="w-8 h-8 rounded bg-muted animate-pulse" />
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -118,7 +126,7 @@ export function ReposTable({
           <table className="w-full min-w-[600px]">
             <tbody>
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center">
+                <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="flex items-center gap-2 text-destructive text-sm">
                       <AlertCircle className="w-4 h-4" />
@@ -151,9 +159,11 @@ export function ReposTable({
                 <th className="px-6 py-4 text-center text-sm font-semibold text-foreground">
                   ClickUp Space
                 </th>
-                <th className="px-12 py-4 text-right text-sm font-semibold text-foreground">
-                  Actions
-                </th>
+                {isAdmin && (
+                  <th className="px-12 py-4 text-right text-sm font-semibold text-foreground">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -202,14 +212,16 @@ export function ReposTable({
                             </div>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleEditClick(repo)}
-                        >
-                          <Users className="w-4 h-4" />
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => handleEditClick(repo)}
+                          >
+                            <Users className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -226,35 +238,37 @@ export function ReposTable({
                         </Badge>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                    {isAdmin && (
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
                           onClick={() => handleEditClick(repo)}
                           className="text-primary hover:bg-primary/10"
                         >
                           <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (typeof repo.id === 'number') {
-                              setDeleteConfirmRepoId(repo.id);
-                            }
-                          }}
-                          className="text-destructive hover:bg-destructive/10"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </td>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (typeof repo.id === 'number') {
+                                setDeleteConfirmRepoId(repo.id);
+                              }
+                            }}
+                            className="text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center">
                     <p className="text-muted-foreground">No repositories yet. Create your first repository!</p>
                   </td>
                 </tr>
@@ -266,7 +280,7 @@ export function ReposTable({
 
       <div className="sm:hidden space-y-3 max-h-[60vh] overflow-y-auto overflow-x-auto pr-1 max-w-full">
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+          Array.from({ length: isAdmin ? 4 : 3 }).map((_, i) => (
             <div key={i} className="rounded-lg border border-border p-4 space-y-2 animate-pulse">
               <div className="h-4 w-32 bg-muted rounded" />
               <div className="h-3 w-48 bg-muted rounded" />
@@ -294,20 +308,21 @@ export function ReposTable({
                   <GitBranch className="w-4 h-4 text-primary" />
                   <span className="font-medium text-foreground truncate">{repo.name}</span>
                 </div>
-                <div className="flex gap-1 shrink-0">
-                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(repo)} className="h-8 w-8 text-primary">
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost" size="icon"
-                    onClick={() => typeof repo.id === 'number' && setDeleteConfirmRepoId(repo.id)}
-                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-1 shrink-0">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditClick(repo)} className="h-8 w-8 text-primary">
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost" size="icon"
+                      onClick={() => typeof repo.id === 'number' && setDeleteConfirmRepoId(repo.id)}
+                      className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
-
               {repo.url && (
                 <a href={repo.url} target="_blank" rel="noopener noreferrer"
                   className="text-primary text-xs flex items-center gap-1 hover:underline">

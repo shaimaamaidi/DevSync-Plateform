@@ -25,6 +25,7 @@ import {
   DialogTitle 
 } from "../shared-primitives/dialog";
 import { AddStatusForm } from "../clickup-creation-forms/add-status-from";
+import { useCurrentUser } from "@/hooks/current-user-hooks/use-current-user";
 
 interface TaskCardProps {
   task: ClickUpTaskWithEstimation;
@@ -81,6 +82,9 @@ export function TaskCard({
   onSave,
   busy,
 }: TaskCardProps) {
+  const { user: currentUser, loading } = useCurrentUser();
+  const isAdmin = !loading && currentUser?.role === 'admin';
+  
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showAddStatus, setShowAddStatus] = useState(false);
@@ -324,15 +328,17 @@ export function TaskCard({
               >
                 <Pen className="w-3.5 h-3.5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 text-destructive"
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={busy}
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0 text-destructive"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={busy}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         )}
