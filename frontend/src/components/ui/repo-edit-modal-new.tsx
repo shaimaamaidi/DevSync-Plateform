@@ -65,6 +65,9 @@ export function RepoEditModalNew({
   useEffect(() => {
     if (isOpen) {
       setIsSaving(false);
+      setShowAddMembersPanel(false);
+      setMembersToRemove([]);
+      setNewMembers([]);
       if (repo) {
         setFormData(repo);
       } else {
@@ -280,8 +283,8 @@ export function RepoEditModalNew({
               onClick={() => {
                 if (isCancelDisabled) return;
                 setErrors({});
+                setShowAddMembersPanel(false);
                 onClose();
-                setShowAddMembersPanel(!showAddMembersPanel)
               }}
               disabled={isCancelDisabled}
               className="p-2 hover:bg-muted rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

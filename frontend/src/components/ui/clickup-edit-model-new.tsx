@@ -225,7 +225,7 @@ export function ClickUpEditModal({
   };
 
   if(!isOpen)
-  return null;
+    return null;
 
   return (
     <>

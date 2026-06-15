@@ -120,7 +120,10 @@ export default function LoginPage() {
               className={inputClass(!!fieldErrors.mail || invalidCredentials)}
             />
             {fieldErrors.mail && (
-              <div className="text-destructive text-xs mt-1 px-1">{fieldErrors.mail}</div>
+              <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {fieldErrors.mail}
+              </div>
             )}
           </div>
 
@@ -155,7 +158,10 @@ export default function LoginPage() {
               </button>
             </div>
             {fieldErrors.password && (
-              <div className="text-destructive text-xs mt-1 px-1">{fieldErrors.password}</div>
+              <div className="text-destructive text-xs mt-1 px-1 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {fieldErrors.password}
+              </div>
             )}
             <div className="text-right h-[12px]"></div>
           </div>
