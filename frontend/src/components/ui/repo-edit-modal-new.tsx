@@ -378,9 +378,6 @@ export function RepoEditModalNew({
                     </SelectItem>
                   ) : (
                     <>
-                      <SelectItem value="none" className="text-muted-foreground" disabled>
-                        <span className="text-muted-foreground">No ClickUp space selected</span>
-                      </SelectItem>
                       {clickupOptions.map((space) => (
                         <SelectItem
                           key={space.id ?? space.space_code ?? space.name}

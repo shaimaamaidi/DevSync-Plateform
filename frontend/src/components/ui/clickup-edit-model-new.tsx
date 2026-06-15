@@ -305,9 +305,6 @@ export function ClickUpEditModal({
                         <SelectItem value="none" disabled>No repository available (all are already linked)</SelectItem>
                       ) : (
                         <>
-                          <SelectItem value="none" className="text-muted-foreground" disabled>
-                            No repository selected
-                          </SelectItem>
                           {repoOptions.map((repo, i) => (
                             <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
                               {repo.name}
@@ -404,9 +401,6 @@ export function ClickUpEditModal({
                             <SelectItem value="none" disabled>No repository available (all are already linked)</SelectItem>
                           ) : (
                             <>
-                              <SelectItem value="none" className="text-muted-foreground" disabled>
-                                No repository selected
-                              </SelectItem>
                               {repoOptions.map((repo, i) => (
                                 <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
                                   {repo.name}
