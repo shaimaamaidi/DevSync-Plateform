@@ -65,7 +65,8 @@ export function ClickUpEditModal({
 
   const repoOptions = repositories.filter(
     (repo): repo is GitRepoDetailDTO & { id: number } =>
-      typeof repo.id === 'number' && repo.clickup_space === null,
+      typeof repo.id === 'number' &&
+      (repo.clickup_space === null || repo.id === editingSpace?.repo?.id),
   );
 
   const hasChanges = editingSpace
@@ -294,22 +295,22 @@ export function ClickUpEditModal({
                     onValueChange={handleRepoChange}
                     disabled={isSaving}
                   >
-                    <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                      <SelectValue placeholder="Select a repository..." />
+                    <SelectTrigger className="mt-2 bg-input border-border text-foreground">
+                      <SelectValue placeholder="No repository selected" />
                     </SelectTrigger>
                     <SelectContent className="bg-card border-border w-full">
                       {repositories.length === 0 ? (
                         <SelectItem value="none" disabled>No repository available</SelectItem>
                       ) :  repoOptions.length === 0 ? (
-                        <SelectItem value="none" disabled>No repository available for association (all are already linked)</SelectItem>
+                        <SelectItem value="none" disabled>No repository available (all are already linked)</SelectItem>
                       ) : (
                         <>
-                          <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                          <SelectItem value="none" className="text-muted-foreground" disabled>
                             No repository selected
                           </SelectItem>
                           {repoOptions.map((repo, i) => (
                             <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                              {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                              {repo.name}
                             </SelectItem>
                           ))}
                         </>
@@ -394,19 +395,21 @@ export function ClickUpEditModal({
                         disabled={isSaving}
                       >
                         <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                          <SelectValue placeholder="Select a repository..." />
+                          <SelectValue placeholder="No repository selected" />
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border w-full">
-                          {repoOptions.length === 0 ? (
+                          {repositories.length === 0 ? (
                             <SelectItem value="none" disabled>No repository available</SelectItem>
+                          ) : repoOptions.length === 0 ? (
+                            <SelectItem value="none" disabled>No repository available (all are already linked)</SelectItem>
                           ) : (
                             <>
-                              <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                              <SelectItem value="none" className="text-muted-foreground" disabled>
                                 No repository selected
                               </SelectItem>
                               {repoOptions.map((repo, i) => (
                                 <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                                  {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                                  {repo.name}
                                 </SelectItem>
                               ))}
                             </>
@@ -468,19 +471,19 @@ export function ClickUpEditModal({
                         disabled={isSaving}
                       >
                         <SelectTrigger className="mt-2 bg-input border-border text-foreground w-full">
-                          <SelectValue placeholder="Select a repository..." />
+                          <SelectValue placeholder="No repository selected" />
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border w-full">
                           {repoOptions.length === 0 ? (
                             <SelectItem value="none" disabled>No repository available</SelectItem>
                           ) : (
                             <>
-                              <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                              <SelectItem value="none" className="text-muted-foreground" disabled>
                                 No repository selected
                               </SelectItem>
                               {repoOptions.map((repo, i) => (
                                 <SelectItem key={repo.id ?? repo.url ?? i} value={repo.id.toString()}>
-                                  {repo.url ?? 'Unknown repo'} ({repo.name ?? 'Unnamed'})
+                                  {repo.name}
                                 </SelectItem>
                               ))}
                             </>
