@@ -82,7 +82,9 @@ export function RepoEditModalNew({
   const [hasChanges, setHasChanges] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const clickupOptions = clickUpSpaces.filter(
-    (space): space is ClickUpSpaceLightDTO & { id: number } => typeof space.id === 'number' && space.repo === null,
+    (space): space is ClickUpSpaceLightDTO & { id: number } =>
+      typeof space.id === 'number' &&
+      (space.repo === null || space.id === repo?.clickup_space?.id),
   );
   useEffect(() => {
     if (!isOpen) {
@@ -376,7 +378,7 @@ export function RepoEditModalNew({
                     </SelectItem>
                   ) : (
                     <>
-                      <SelectItem value="none" className="text-muted-foreground hidden" disabled>
+                      <SelectItem value="none" className="text-muted-foreground" disabled>
                         <span className="text-muted-foreground">No ClickUp space selected</span>
                       </SelectItem>
                       {clickupOptions.map((space) => (
