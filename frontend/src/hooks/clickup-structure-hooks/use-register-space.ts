@@ -63,6 +63,7 @@ export function useRegisterClickUpSpace() {
     onSuccess: (result) => {
       if (result.ok) {
         queryClient.invalidateQueries({ queryKey: ['clickup-spaces'] });
+        queryClient.invalidateQueries({ queryKey: ['clickup-spaces-light'] });
       }
     },
   });

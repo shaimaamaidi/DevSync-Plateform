@@ -30,6 +30,7 @@ export function useCreateClickUpSpace() {
         return;
       }
       queryClient.invalidateQueries({ queryKey: ['clickup-spaces'] });
+      queryClient.invalidateQueries({ queryKey: ['clickup-spaces-light'] });
     },
   });
 }
