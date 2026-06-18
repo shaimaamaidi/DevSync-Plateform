@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useCallback, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,14 @@ import {
   type MemberUpdateDTO 
 } from '@/api/api';
 import { Button } from '@/components/ui/shared-primitives/button';
-import { Plus, Edit2, Trash2, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, AlertCircle, Database, Loader2, Link2Off } from 'lucide-react';
 import { MemberEditModal } from './ui/member-edit-model-new';
 import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
+import { showSuccessToast } from './global-toaster';
+import { clickUpStructureManagementService } from '@/services/clickup-workspace-management-service';
+import { extractErrorCode, extractStatusCode, normalizeErrorMessage, resolveErrorAction } from '@/utils/error-handler';
+import { defaultOnError } from '@/services/api-error';
+import { useNavigate } from 'react-router-dom';
 
 export interface MembersTableProps {
   members: MemberDTO[];
@@ -24,11 +29,18 @@ export interface MembersTableProps {
   onDelete: (id: number) => void;
   onAdd: (member: MemberCreateDTO) => Promise<boolean>;
   onInviteToClickUp: (email: string, role: ClickUpMemberRole) => Promise<boolean>;
-  onRemoveFromClickUp: (memberId: number) => Promise<boolean>;
   isLoading?: boolean;
   error?: string | null;
   refetchMembers?: () => void;
 }
+
+export interface RemoveFromClickUpResult {
+  success: boolean;
+  softErrorCode?: string;
+  softErrorMessage?: string;
+}
+
+const CLICKUP_SOFT_ERROR_CODES = ['MEMBER_NOT_FOUND', 'CLICKUP_PLAN_RESTRICTION'];
 
 export function MembersTable({ 
   members, 
@@ -36,7 +48,6 @@ export function MembersTable({
   onDelete, 
   onAdd, 
   onInviteToClickUp, 
-  onRemoveFromClickUp, 
   isLoading,
   error,
   refetchMembers
@@ -52,6 +63,12 @@ export function MembersTable({
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<ClickUpMemberRole>(ClickUpMemberRole.NUMBER_4);
   const [deleteFromDBConfirmId, setDeleteFromDBConfirmId] = useState<number | null>(null);
+
+  const navigate = useNavigate();
+  const onError = useCallback(() => defaultOnError(navigate), [navigate]);
+  
+  const [clickUpRemovalInfo, setClickUpRemovalInfo] = useState<string | null>(null);
+  const [isRemovingFromClickUp, setIsRemovingFromClickUp] = useState(false);
 
   const handleAddClick = () => {
     setEditingMember(null);
@@ -72,15 +89,63 @@ export function MembersTable({
     setMemberMail(member?.mail ?? null);
     setInviteToClickUpMemberDialog(true);
   };
+  
+  const handleRemoveMemberFromClickUp = useCallback(
+    
+    async (memberId: number): Promise<RemoveFromClickUpResult> => {
+      try {
+        await clickUpStructureManagementService.removeMemberFromWorkspace(memberId);
+        showSuccessToast('Member removed from ClickUp successfully');
+        return { success: true };
+      } catch (err) {
+        const code = extractErrorCode(err);
 
-  const handleDeleteClickUp = async () => {
-    if (deleteConfirmMemberId === null) 
+        if (code && CLICKUP_SOFT_ERROR_CODES.includes(code)) {
+          return {
+            success: false,
+            softErrorCode: code,
+            softErrorMessage: normalizeErrorMessage(err),
+          };
+        }
+
+        const action = resolveErrorAction(err);
+        const message = normalizeErrorMessage(err);
+        const status = extractStatusCode(err);
+        await onError()(action, message, { code, status: status ?? undefined });
+        return { success: false };
+      }
+    },
+    [onError],
+  );
+
+  const handleRemoveFromClickUp = async () => {
+    if (deleteConfirmMemberId === null) return;
+    const memberId = deleteConfirmMemberId;
+
+    setIsRemovingFromClickUp(true);
+    const result = await handleRemoveMemberFromClickUp(memberId);
+    setIsRemovingFromClickUp(false);
+    setDeleteConfirmMemberId(null);
+
+    if (result.success) {
+      setClickUpRemovalInfo(null);
+      setDeleteFromDBConfirmId(memberId);
       return;
-    const success = await onRemoveFromClickUp(deleteConfirmMemberId);
-    if (success) {
-      setDeleteConfirmMemberId(null);
-      setDeleteFromDBConfirmId(deleteConfirmMemberId); 
     }
+
+    if (result.softErrorCode) {
+      setClickUpRemovalInfo(
+        result.softErrorMessage ?? "This member could not be removed from ClickUp.",
+      );
+      setDeleteFromDBConfirmId(memberId);
+    }
+  };
+
+  const handleDeleteFromDBDirectly = () => {
+    if (deleteConfirmMemberId === null) return;
+    setDeleteFromDBConfirmId(deleteConfirmMemberId);
+    setClickUpRemovalInfo(null);
+    setDeleteConfirmMemberId(null);
   };
 
   return (
@@ -291,19 +356,58 @@ export function MembersTable({
 
       <Dialog
         open={deleteConfirmMemberId !== null}
-        onOpenChange={(open) => { if (!open) setDeleteConfirmMemberId(null); }}
+        onOpenChange={(open) => { if (!open && !isRemovingFromClickUp) setDeleteConfirmMemberId(null); }}
       >
         <DialogContent
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <DialogTitle>Remove from ClickUp?</DialogTitle>
-            <DialogDescription>This will remove the member from ClickUp. You'll be asked about database deletion next.</DialogDescription>
+            <DialogTitle>Remove this member</DialogTitle>
+            <DialogDescription>Choose how you want to remove them.</DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setDeleteConfirmMemberId(null)}>No</Button>
-            <Button variant="destructive" onClick={handleDeleteClickUp}>Yes</Button>
+
+          <div className="grid grid-cols-2 gap-2 py-2">
+            <button
+              type="button"
+              disabled={isRemovingFromClickUp}
+              onClick={handleDeleteFromDBDirectly}
+              className="flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer border-border bg-muted/40 text-muted-foreground hover:bg-muted/80 hover:border-foreground/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Database className="w-5 h-5" />
+              <span className="font-medium text-foreground">Database</span>
+              <span className="text-xs text-center leading-snug opacity-70">
+                Deletes only from the database.
+              </span>
+            </button>
+
+            <button
+              type="button"
+              disabled={isRemovingFromClickUp}
+              onClick={handleRemoveFromClickUp}
+              className="flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer border-border bg-muted/40 text-muted-foreground hover:bg-muted/80 hover:border-foreground/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isRemovingFromClickUp ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Link2Off className="w-5 h-5" />
+              )}
+              <span className="font-medium text-foreground">ClickUp</span>
+              <span className="text-xs text-center leading-snug opacity-70">
+                Remove the member from ClickUp then from the database.
+              </span>
+            </button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setDeleteConfirmMemberId(null)}
+              disabled={isRemovingFromClickUp}
+              className="w-full"
+            >
+              Cancel
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -362,23 +466,36 @@ export function MembersTable({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleteFromDBConfirmId !== null} onOpenChange={(open) => { if (!open) setDeleteFromDBConfirmId(null); }}>
+      <Dialog
+        open={deleteFromDBConfirmId !== null}
+        onOpenChange={(open) => { if (!open) { setDeleteFromDBConfirmId(null); setClickUpRemovalInfo(null); } }}
+      >
         <DialogContent
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>
             <DialogTitle>Remove from database too?</DialogTitle>
-            <DialogDescription>Member removed from ClickUp. Do you also want to delete them from the database?</DialogDescription>
+            <DialogDescription>
+              {clickUpRemovalInfo ?? "Member removed from ClickUp. Do you also want to delete them from the database?"}
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setDeleteFromDBConfirmId(null)}>No</Button>
-            <Button variant="destructive" onClick={async () => {
-              if (deleteFromDBConfirmId !== null) {
-                await onDelete(deleteFromDBConfirmId);
-                setDeleteFromDBConfirmId(null);
-              }
-            }}>Yes, delete</Button>
+            <Button variant="outline" onClick={() => { setDeleteFromDBConfirmId(null); setClickUpRemovalInfo(null); }}>
+              No
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (deleteFromDBConfirmId !== null) {
+                  await onDelete(deleteFromDBConfirmId);
+                  setDeleteFromDBConfirmId(null);
+                  setClickUpRemovalInfo(null);
+                }
+              }}
+            >
+              Yes, delete
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -127,19 +127,6 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
     showSuccessToast('Member deleted successfully');    
   }, [deleteMember]);
 
-  const handleRemoveMemberFromClickUp = useCallback(async (memberId: number) => {
-    const result = await withErrorHandling(
-      () => clickUpStructureManagementService.removeMemberFromWorkspace(memberId),
-      'Remove member from ClickUp',
-      onError(),
-    );
-    if (!result)
-      return Promise.resolve(false);
-
-    showSuccessToast('Member removed from ClickUp successfully');
-    return Promise.resolve(true);
-  }, []);
-
   const handleDeleteClickUpSpace = useCallback(async (id: number) => {
     const result = await deleteClickUpSpace(id);
     
@@ -299,7 +286,6 @@ export default function DashboardPage({ activeTab = 'repos' }: WorkspaceDashboar
             onDelete={handleDeleteMember}
             onAdd={handleAddMember}
             onInviteToClickUp={handleInviteMmeberToClickUp}
-            onRemoveFromClickUp={handleRemoveMemberFromClickUp}
             isLoading={membersLoading || isFetchingMembers} 
             error={errorMembers}
             refetchMembers={refetchMembers}

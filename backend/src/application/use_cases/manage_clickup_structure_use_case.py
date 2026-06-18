@@ -393,7 +393,7 @@ class ManageClickUpStructureUseCase(IManageClickUpStructureUseCase):
             logger.warning(
                 "Member not found in ClickUp workspace, skipping ClickUp deletion. "
                 "member_id=%s email=%s.",
-                db_member.member_id,
+                db_member.id,
                 db_member.mail,
             )
             raise MemberNotFoundException("This member is not part of the ClickUp workspace.")
