@@ -387,7 +387,7 @@ export function ClickUpEditModal({
                     <div>
                       <Label className="text-foreground font-medium">Linked Repository</Label>
                       <Select
-                        value={formData.repo?.id?.toString() || 'none'}
+                        value={formData.repo?.id?.toString() || ''}
                         onValueChange={handleRepoChange}
                         disabled={isSaving}
                       >
@@ -396,9 +396,9 @@ export function ClickUpEditModal({
                         </SelectTrigger>
                         <SelectContent className="bg-card border-border w-full">
                           {repositories.length === 0 ? (
-                            <SelectItem value="none" disabled>No repository available</SelectItem>
+                            <SelectItem value="none-empty" disabled>No repository available</SelectItem>
                           ) : repoOptions.length === 0 ? (
-                            <SelectItem value="none" disabled>No repository available (all are already linked)</SelectItem>
+                            <SelectItem value="none-empty" disabled>No repository available (all are already linked)</SelectItem>
                           ) : (
                             <>
                               {repoOptions.map((repo, i) => (

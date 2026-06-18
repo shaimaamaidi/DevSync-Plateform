@@ -360,7 +360,7 @@ export function RepoEditModalNew({
                 Select Space (Optional)
               </Label>
               <Select
-                value={formData.clickup_space?.id?.toString() || 'none'}
+                value={formData.clickup_space?.id?.toString() || ''}
                 onValueChange={handleSpaceChange}
                 disabled={isSaving}
               >
@@ -369,11 +369,11 @@ export function RepoEditModalNew({
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
                   {clickUpSpaces.length === 0 ? (
-                    <SelectItem value="none" disabled>
+                    <SelectItem value="none-empty" disabled>
                       No ClickUp space available
                     </SelectItem>
                   ) : clickupOptions.length === 0 ? (
-                    <SelectItem value="none" disabled>
+                    <SelectItem value="none-empty" disabled>
                       No ClickUp space available for association (all are already linked)
                     </SelectItem>
                   ) : (
