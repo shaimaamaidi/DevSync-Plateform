@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/shared-primitives/button';
 import { Plus, Save, Check } from 'lucide-react';
 import type {  
@@ -96,7 +95,7 @@ export function VerifiedTaskList({
           </p>
         )}
 
-        {!isLoading && (
+        {!isLoading &&  tasks.length !== 0 && (
           <Button 
             onClick={() => setShowAddForm(p => !p)}
             disabled={disabled}
@@ -108,14 +107,13 @@ export function VerifiedTaskList({
         )}
       </div>
 
-      {showAddForm && !isStructureEmpty && createPortal (
+      {showAddForm && (
         <AddVerifiedTaskForm
           isOpen={showAddForm}
           onAdd={handleAdd}
           onCancel={() => setShowAddForm(false)}
           spaceId={spaceId}
-        />,
-        document.body
+        />
       )}
 
       <div className="max-h-[480px] overflow-y-auto overflow-x-auto flex flex-col gap-2 pr-1 max-w-full">
