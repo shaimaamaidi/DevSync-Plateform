@@ -477,7 +477,8 @@ export function MembersTable({
           <DialogHeader>
             <DialogTitle>Remove from database too?</DialogTitle>
             <DialogDescription>
-              {clickUpRemovalInfo ?? "Member removed from ClickUp. Do you also want to delete them from the database?"}
+              {clickUpRemovalInfo ?? "Member removed from ClickUp."}
+              Do you {clickUpRemovalInfo? '' : "also"} want to delete him from database?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">

@@ -225,7 +225,7 @@ export function SpaceTasksViewer() {
           </div>
 
           {!dataLoading && !dataError && selectedListId && (
-            <Button onClick={() => setShowAddForm((p) => !p)} disabled={busy} className="gap-2 shrink-0">
+            <Button onClick={() => setShowAddForm(true)} disabled={busy} className="gap-2 shrink-0">
               <Plus className="w-4 h-4" />
               Add task
             </Button>
@@ -319,7 +319,7 @@ export function SpaceTasksViewer() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {showAddForm && createPortal(
+                  {showAddForm &&(
                     <AddTaskForm
                       isOpen={showAddForm}
                       listId={selectedListId}
@@ -332,8 +332,7 @@ export function SpaceTasksViewer() {
                       membersLoading={membersLoading}
                       onCreated={handleCreated}
                       onCancel={() => setShowAddForm(false)}
-                    />,
-                    document.body
+                    />
                   )}
                   <div className="max-h-[480px] overflow-y-auto overflow-x-auto space-y-3 pr-1 max-w-full">
                     {currentTasks.length === 0 && !showAddForm ? (
