@@ -142,7 +142,7 @@ class VerifyTasksFromSummaryUseCase(IVerifyTasksFromSummaryUseCase):
                 action="create",
                 task_name=task.task_name,
                 task_description=task.task_description,
-                task_assigne=task.task_assigne,
+                task_assignee=task.task_assignee,
                 task_status=task.task_status,
                 task_priority=task.task_priority,
                 location=task.location,
