@@ -41,7 +41,6 @@ frontend/src/api/docs/
 .coverage.*
 htmlcov/
 
-.vscode/
 .idea/
 
 .DS_Store

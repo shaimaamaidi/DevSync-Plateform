@@ -1,4 +1,4 @@
-import { emitAxiosErrorNetworkOnly, type AxiosErrorEvent } from '@/api/axios-interceptor';
+import { emitAxiosError, emitAxiosErrorNetworkOnly, type AxiosErrorEvent } from '@/api/axios-interceptor';
 import { resolveErrorAction } from './error-handler';
 
 export interface StreamResult {
@@ -22,6 +22,7 @@ export async function readSseStream(
   onChunk?: (chunk: string) => void,
   onToolCall?: (name: string) => void,
   onInvalidDescription?: (message: string) => void,
+  onThreadId?: (threadId: string | null) => void,
 ): Promise<StreamResult> {
   const reader  = stream.getReader();
   const decoder = new TextDecoder();
@@ -54,13 +55,16 @@ export async function readSseStream(
           const emitAction: AxiosErrorEvent["action"] | null = action === 'SILENT' ? null : action as AxiosErrorEvent["action"];
 
           if (emitAction) {
-            emitAxiosErrorNetworkOnly({ action: emitAction as AxiosErrorEvent["action"], message, code, status });
+            emitAxiosError({ action: emitAction as AxiosErrorEvent["action"], message, code, status });
           }
 
           throw new SseBusinessError(message);
         }
 
-        if (payload?.thread_id) threadId = payload.thread_id;
+        if (typeof payload?.thread_id === 'string' && payload.thread_id) {
+          threadId = payload.thread_id;
+          onThreadId?.(threadId);
+        }
 
         if (payload?.tool_call?.name) {
           onToolCall?.(payload.tool_call.name);
@@ -121,11 +125,13 @@ export async function readSseStream(
 
         const errorLike = { response: { status: 503, data: { error: { code: 'STREAM_EXECUTION_ERROR', message: err.message || 'Stream connection lost' } } } };
         const action = resolveErrorAction(errorLike);
-        emitAxiosErrorNetworkOnly({
+        const errorEvent = {
           action: isNetworkError ? 'NETWORK_DOWN' : action as AxiosErrorEvent["action"],
           message: err.message || 'Stream connection lost',
           code: isNetworkError ? null : 'STREAM_EXECUTION_ERROR',
-        });
+        } satisfies AxiosErrorEvent;
+        if (isNetworkError) emitAxiosErrorNetworkOnly(errorEvent);
+        else emitAxiosError(errorEvent);
       }
     }
     throw err;
