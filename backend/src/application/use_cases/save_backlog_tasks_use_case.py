@@ -90,8 +90,8 @@ class SaveBacklogTasksInClickUpUseCase(ISaveBacklogTasksInClickUpUseCase):
         assignee_names_list: List[str] = list({
             a.strip()
             for task in tasks
-            if task.task_assigne
-            for a in task.task_assigne.split(",")
+            if task.task_assignee
+            for a in task.task_assignee.split(",")
             if a.strip() and a.strip() != "غير محدد"
         })
 

@@ -551,6 +551,7 @@ export default function MeetingTaskGenerationPage() {
                     <VerifiedTaskList
                       tasks={verifiedTasks}
                       isLoading={isVerifying}
+                      isGenerating={true}
                       onChange={setVerifiedTasks}
                       onDrop={handleDropFromGenerated}
                       onSave={handleSave}
@@ -590,6 +591,7 @@ export default function MeetingTaskGenerationPage() {
                       <VerifiedTaskList
                         tasks={verifiedTasks}
                         isLoading={isGenerating}
+                        isGenerating={false}
                         onChange={setVerifiedTasks}
                         onDrop={handleDropFromGenerated}
                         onSave={handleSave}

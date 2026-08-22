@@ -426,15 +426,15 @@ export function BacklogCard({ data, editable, onSubmit, onConfirm }: BacklogCard
         <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 mt-1 gap-3">
           <p className="m-0 text-[12px] text-slate-500 leading-relaxed">
             {hasChanges
-              ? "Submit your changes to validate and generate the sprints."
-              : "No changes detected. Launch the generation to create the sprints with the current backlog."}
+              ? "Submit your changes to validate and generate the delivery plan."
+              : "No changes detected. Launch the generation to create the delivery plan with the current backlog."}
           </p>
           <button
             onClick={hasChanges ? handleSubmit : () => { setDone(true); onConfirm?.(); }}
             className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-slate-900 text-white text-[12px] font-bold hover:bg-slate-700 border-none cursor-pointer transition-colors shrink-0 sm:ml-4 w-full sm:w-auto"
           >
             <FlagTriangleRight size={15} strokeWidth={2} />
-            {hasChanges ? "Validate & Generate Sprints" : "Confirm & Generate Sprints"}
+            {hasChanges ? "Validate & Generate  Delivery Plan" : "Confirm & Generate Delivery Plan"}
           </button>
         </div>
       )}

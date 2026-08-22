@@ -43,7 +43,7 @@ class ClickUpTaskGeneratorFromBacklogAgent(BaseAgent[GeneratedTaskListFromBacklo
 
     async def generate_tasks(
         self,
-        sprint_backlog: Sprint,
+        backlog: Sprint,
         locations_priorities: Dict[str, Dict[str, List[str]]]
     ) -> List[GeneratedTaskFromBacklog]:
         """
@@ -55,7 +55,7 @@ class ClickUpTaskGeneratorFromBacklogAgent(BaseAgent[GeneratedTaskListFromBacklo
         - Parses the LLM response into domain task objects
 
         Args:
-            sprint_backlog: sprint backlog content.
+            backlog: sprint backlog content.
             locations_priorities: Mapping of locations to available priorities.
 
         Returns:
@@ -73,11 +73,11 @@ class ClickUpTaskGeneratorFromBacklogAgent(BaseAgent[GeneratedTaskListFromBacklo
         else:
             locations_text = "No locations available."
 
-        context = ClickUpTaskGeneratorFromBacklogAgent._build_context(sprint_backlog)
+        context = ClickUpTaskGeneratorFromBacklogAgent._build_context(backlog)
 
         tasks_nested = await asyncio.gather(*[
-            self._generate_tasks_from_user_story(locations_text, context, us)
-            for us in sprint_backlog.user_stories
+            asyncio.to_thread(self._generate_tasks_from_user_story, locations_text, context, us)
+            for us in backlog.user_stories
         ])
 
         tasks_flat = [task for tasks in tasks_nested for task in tasks]
@@ -119,15 +119,14 @@ class ClickUpTaskGeneratorFromBacklogAgent(BaseAgent[GeneratedTaskListFromBacklo
     @staticmethod
     def _format_user_story(user_story: UserStorySprint) -> str:
         lines = [
-            f"User Story: {user_story.title}",
-            f"Description: {user_story.description}",
+            f"User Story: {user_story.user_story.title}",
+            f"Description: {user_story.user_story.description}",
             ""
         ]
 
         for task_estimate in user_story.tasks:
-            task = task_estimate.task
-            lines.append(f"  - Task: {task.title}")
-            lines.append(f"  Description: {task.description}")
+            lines.append(f"  - Task: {task_estimate.title}")
+            lines.append(f"  Description: {task_estimate.description}")
             lines.append(f"  Estimated Hours: {task_estimate.estimated_hours}h")
             lines.append("")
 

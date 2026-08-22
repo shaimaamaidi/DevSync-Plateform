@@ -13,6 +13,7 @@ import type { TaskGenerationDTO, TaskVerificationDTO } from '@/types/clickup';
 interface Props {
   tasks: TaskVerificationDTO[];
   isLoading: boolean;
+  isGenerating: boolean;
   onChange: (tasks: TaskVerificationDTO[]) => void;
   onDrop?: (task: TaskGenerationDTO) => void;
   onSave: () => void;
@@ -30,6 +31,7 @@ interface Props {
 export function VerifiedTaskList({
   tasks,
   isLoading,
+  isGenerating,
   onChange,
   onDrop,
   onSave,
@@ -83,8 +85,11 @@ export function VerifiedTaskList({
       <div className="flex items-center justify-between gap-2">
         {!isStructureEmpty && (
           <p className="text-xs text-muted-foreground">
-            {!isLoading &&
-              `${tasks.length} task${tasks.length !== 1 ? 's' : ''} · drop or add`}
+            {!isLoading && (
+              isGenerating
+                ? `${tasks.length} task${tasks.length !== 1 ? 's' : ''} · drop or add`
+                : `${tasks.length} task${tasks.length !== 1 ? 's' : ''}`
+            )}
           </p>
         )}
 

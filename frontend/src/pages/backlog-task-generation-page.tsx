@@ -447,6 +447,7 @@ export default function BacklogTaskGenerationPage() {
                   <VerifiedTaskList
                     tasks={verifiedTasks}
                     isLoading={isGenerating}
+                    isGenerating={false}
                     onChange={setVerifiedTasks}
                     onSave={handleSave}
                     isSaving={isSaving}

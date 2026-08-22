@@ -255,15 +255,15 @@ export function MemberEditModal({
             <Label className="text-foreground font-medium">Password</Label>
             <input
               type="password"
-              placeholder="Mot de passe (laisser vide pour ne pas changer)"
+              placeholder="Password"
               value={formData.password || ''}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className={inputClass(!!errors.password) + ' mt-2'}
               disabled={isSaving}
             />
             {editingMember && (
-              <div className="text-muted-foreground text-xs mt-1">
-                Laisser vide pour ne pas changer le mot de passe
+              <div className="text-muted-foreground text-xs mt-1">                
+                Leave blank to keep the password unchanged.
               </div>
             )}
 
