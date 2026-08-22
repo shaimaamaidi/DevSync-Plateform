@@ -12,7 +12,7 @@ import {
   uiToBacklog,
 } from "@/lib/backlog.mapper";
 import { backlogGenerationService } from "@/services/backlog-generation-service";
-import { emitAxiosErrorNetworkOnly, onAxiosError, type AxiosErrorEvent } from "@/api/axios-interceptor";
+import { emitAxiosError, onAxiosError, type AxiosErrorEvent } from "@/api/axios-interceptor";
 import type { ErrorAction } from "@/types/api-error-type";
 import { useNavigate } from "react-router-dom";
 
@@ -37,7 +37,7 @@ function shouldOfferRetry(action: ErrorAction): boolean {
 }
 
 function emitUnexpectedError(message = "An unexpected error occurred.") {
-  emitAxiosErrorNetworkOnly({ action: "NOTIFY", message, code: null });
+  emitAxiosError({ action: "NOTIFY", message, code: null });
 }
 
 export function useChatLogic() {
@@ -94,6 +94,8 @@ export function useChatLogic() {
         stream,
         (chunk) => { setStreamingText((prev) => prev + chunk); },
         (name) => { setCurrentToolName(name); }, 
+        undefined,
+        (threadId) => { threadIdRef.current = threadId; },
       );
       setStreamingText("");
       setCurrentToolName(null);
@@ -137,8 +139,8 @@ export function useChatLogic() {
           updateMsg(agentMsgId, {
             _streaming: false,
             content: "Connection lost. Please check your internet connection and try again.",
+            onRetry: () => handleSend(text, true),
           });
-          setStep("done");
           return;
         }
 
@@ -287,8 +289,8 @@ export function useChatLogic() {
           updateMsg(agentMsgId, {
             _streaming: false,
             content: "Connection lost. Please check your internet connection and try again.",
+            onRetry: () => handleMarketSubmit(messageId, editedSummary, true),
           });
-          setStep("done");
           return;
         }
 
@@ -393,8 +395,8 @@ export function useChatLogic() {
           updateMsg(agentMsgId, {
             _streaming: false,
             content: "Connection lost. Please check your internet connection and try again.",
+            onRetry: () => handleBacklogSubmit(editedEpics, true),
           });
-          setStep("done");
           return;
         }
 
@@ -502,8 +504,8 @@ export function useChatLogic() {
           updateMsg(agentMsgId, {
             _streaming: false,
             content: "Connection lost. Please check your internet connection and try again.",
+            onRetry: () => handleBacklogConfirm(true),
           });
-          setStep("done");
           return;
         }
         const isSessionError = result.action === "RETRY_THEN_LOGOUT";
@@ -584,8 +586,8 @@ export function useChatLogic() {
           updateMsg(agentMsgId, {
             _streaming: false,
             content: "Connection lost. Please check your internet connection and try again.",
+            onRetry: () => handleClarificationReply(clarificationText, true),
           });
-          setStep("done");
           return;
         }
         const isSessionError = result.action === "RETRY_THEN_LOGOUT";

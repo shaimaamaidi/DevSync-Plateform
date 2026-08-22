@@ -25,13 +25,13 @@ export function onAxiosError(listener: AxiosErrorListener): () => void {
   };
 }
 
-function emitAxiosError(event: AxiosErrorEvent) {
+export function emitAxiosError(event: AxiosErrorEvent) {
   errorListeners.forEach((cb) => cb(event));
 }
 
 export function emitAxiosErrorNetworkOnly(event: AxiosErrorEvent) {
   if (event.action === "NETWORK_DOWN") {
-    errorListeners.forEach((cb) => cb(event));
+    emitAxiosError(event);
   }
 }
 
@@ -103,6 +103,11 @@ function computeDelay(
 ): number {
   if (isRateLimit) return 5000; 
   return baseDelayMs * Math.pow(2, attempt); 
+}
+
+function isSafeRetryMethod(method?: string): boolean {
+  const normalizedMethod = method?.toUpperCase();
+  return normalizedMethod === "GET" || normalizedMethod === "HEAD" || normalizedMethod === "OPTIONS";
 }
 
 
@@ -198,7 +203,7 @@ export function setupAxiosInterceptors() {
 
       const policy = getRetryPolicy(action);
 
-      if (policy) {
+      if (policy && isSafeRetryMethod(originalRequest?.method)) {
         const retryKey = getRetryKey(originalRequest);
         const attempt = retryCountMap.get(retryKey) ?? 0;
 
