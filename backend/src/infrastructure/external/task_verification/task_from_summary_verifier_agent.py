@@ -73,7 +73,7 @@ class TaskFromSummaryVerifierAgent(
                     "task_description": t.task_description,
                     "task_status": t.task_status,
                     "task_priority": t.task_priority,
-                    "task_assigne": t.task_assigne,
+                    "task_assignee": t.task_assignee,
                     "location": t.location,
                 }
                 for t in tasks

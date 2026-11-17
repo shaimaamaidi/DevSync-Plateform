@@ -196,7 +196,7 @@ export function EditableList({ items, onChange, accent = "info" }: EditableListP
           className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg border border-dashed bg-transparent cursor-pointer text-[12px] font-[inherit] font-medium transition-opacity hover:opacity-75"
           style={{ borderColor: colors.dash, color: colors.fg }}
         >
-          <Plus size={12} strokeWidth={2.5} /> Ajouter un élément
+          <Plus size={12} strokeWidth={2.5} /> Add an item
         </button>
       )}
     </div>

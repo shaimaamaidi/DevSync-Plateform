@@ -223,7 +223,7 @@ class BaseTaskVerifierAgent(BaseAgent[W], Generic[G, V, W], ABC):
         """
         new_assignees = {
             a.strip()
-            for a in result.task_assigne.split(",")
+            for a in result.task_assignee.split(",")
             if a.strip() and a.strip() != "غير محدد"
         }
         existing_assignees = {

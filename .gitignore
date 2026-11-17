@@ -8,9 +8,9 @@ ENV/
 
 .env
 .env.*
-!backend/.env.exemple
-!frontend/.env.exemple
-
+!.env.example
+!backend/.env.example
+!frontend/.env.example
 dist/
 build/
 *.egg-info/

@@ -182,11 +182,11 @@ class CheckProjectStatusUseCase(ICheckProjectStatusUseCase):
         last_7_days_commits: List[CommitDTO] = []
 
         if repo_url:
-            commit = self._github_commit_service.get_commits(repo_url, max_commits=1)
+            commit = await self._github_commit_service.get_commits(repo_url, max_commits=1)
             if commit:
                 last_commit_date = commit[0].date
 
-            deployment = self._github_deployment_service.get_deployments(repo_url, max_deployments=1)
+            deployment = await self._github_deployment_service.get_deployments(repo_url, max_deployments=1)
             if deployment:
                 last_deployment_date = deployment[0].created_at
 

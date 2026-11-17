@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,16 +7,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/shared-primitives/dialog';
-import type { 
-  ClickUpSpaceLightDTO, 
-  ClickUpSpaceUpdateDTO, 
-  CreateSpaceRequest, 
-  ClickUpSpaceRegisterDTO, 
-  GitRepoDetailDTO, 
-  AssociateClickUpSpaceRequest 
+import type {
+  ClickUpSpaceLightDTO,
+  ClickUpSpaceUpdateDTO,
+  CreateSpaceRequest,
+  ClickUpSpaceRegisterDTO,
+  GitRepoDetailDTO,
+  AssociateClickUpSpaceRequest
 } from '@/api/api';
 import { Button } from '@/components/ui/shared-primitives/button';
-import { Plus, Edit2, Trash2, Eye, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Link as LinkIcon, AlertCircle, Database, Loader2, Link2Off } from 'lucide-react';
 import { ClickUpEditModal } from './ui/clickup-edit-model-new';
 import { useNavigate } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/current-user-hooks/use-current-user';
@@ -25,7 +25,7 @@ export interface ClickUpSpacesTableProps {
   spaces: ClickUpSpaceLightDTO[];
   onUpdate: (space: ClickUpSpaceUpdateDTO) => Promise<boolean>;
   onDelete: (id: number) => Promise<boolean>;
-  onRemove: (spaceCode: number) => Promise<boolean>; 
+  onRemove: (spaceCode: string) => Promise<boolean>;
   onCreate: (space: CreateSpaceRequest) => Promise<boolean>;
   onRegister: (space: ClickUpSpaceRegisterDTO) => Promise<boolean | undefined>;
   isLoading?: boolean;
@@ -39,13 +39,13 @@ export interface ClickUpSpacesTableProps {
   refetchSpaces?: () => void;
 }
 
-export function ClickUpSpacesTable({ 
-  spaces, 
-  onUpdate, 
-  onDelete, 
+export function ClickUpSpacesTable({
+  spaces,
+  onUpdate,
+  onDelete,
   onRemove,
-  onCreate, 
-  onRegister, 
+  onCreate,
+  onRegister,
   isLoading ,
   showNotFoundDialog,
   onNotFoundDialogChange,
@@ -61,7 +61,8 @@ export function ClickUpSpacesTable({
   const isAdmin = !loading && currentUser?.role === 'admin';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState<ClickUpSpaceLightDTO | null>(null);
-  const [deleteConfirmSpaceId, setDeleteConfirmSpaceId] = useState<number | null>(null);
+  const [deleteConfirmSpace, setDeleteConfirmSpace] = useState<ClickUpSpaceLightDTO | null>(null);
+  const [isRemoving, setIsRemoving] = useState(false);
   const [showDeleteModeDialog, setShowDeleteModeDialog] = useState(false);
 
   const handleAddClick = () => {
@@ -216,7 +217,8 @@ export function ClickUpSpacesTable({
                               size="icon"
                               onClick={() => {
                                 if (typeof space.id === 'number') {
-                                  setDeleteConfirmSpaceId(space.id);
+                                  setDeleteConfirmSpace(space);
+                                  setShowDeleteModeDialog(true);
                                 }
                               }}
                               className="h-8 w-8 text-destructive hover:bg-destructive/10"
@@ -280,7 +282,12 @@ export function ClickUpSpacesTable({
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => typeof space.id === 'number' && setDeleteConfirmSpaceId(space.id)}
+                        onClick={() => {
+                          if (typeof space.id === 'number' && space.space_code) {
+                            setDeleteConfirmSpace(space);
+                            setShowDeleteModeDialog(true);
+                          }
+                        }}
                         className="h-8 w-8 text-destructive hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -322,80 +329,92 @@ export function ClickUpSpacesTable({
       />
 
       <Dialog
-        open={deleteConfirmSpaceId !== null}
-        onOpenChange={(open) => { if (!open) setDeleteConfirmSpaceId(null); }}
+          open={showDeleteModeDialog}
+          onOpenChange={(open) => {
+            if (!open) {
+              setShowDeleteModeDialog(false);
+              setDeleteConfirmSpace(null);
+            }
+          }}
       >
         <DialogContent
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
-          <DialogHeader>
-            <DialogTitle>Are you sure you want to delete this ClickUp space?</DialogTitle>
-            <DialogDescription>
-              This action cannot be undone. The ClickUp space will be permanently deleted.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setDeleteConfirmSpaceId(null)}>No</Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                setShowDeleteModeDialog(true);
-              }}
-            >
-              Yes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={showDeleteModeDialog}
-        onOpenChange={(open) => {
-          if (!open) {
-            setShowDeleteModeDialog(false);
-            setDeleteConfirmSpaceId(null);
-          }
-        }}
-      >
-        <DialogContent
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Choose deletion mode</DialogTitle>
-            <DialogDescription>
-              How would you like to delete this space?
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                if (deleteConfirmSpaceId !== null) {
-                  await onDelete(deleteConfirmSpaceId);
-                  setShowDeleteModeDialog(false);
-                  setDeleteConfirmSpaceId(null);
-                 
+        <DialogHeader>
+            <DialogTitle>Remove this space</DialogTitle>
+            <DialogDescription>Choose how you want to remove it.</DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-2 gap-2 py-2">
+          <button
+            type="button"
+            disabled={isRemoving}
+            onClick={async () => {
+                if (deleteConfirmSpace?.id !== undefined) {
+                  setIsRemoving(true);
+                  try {
+                    await onDelete(deleteConfirmSpace.id);
+                    setShowDeleteModeDialog(false);
+                    setDeleteConfirmSpace(null);
+                  } finally {
+                    setIsRemoving(false);
+                  }
                 }
-              }}
-            >
-              Remove from DB only
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={async () => {
-                if (deleteConfirmSpaceId !== null) {
-                  await onRemove(deleteConfirmSpaceId);
-                  setShowDeleteModeDialog(false);
-                  setDeleteConfirmSpaceId(null);
+            }}
+            className="flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer border-border bg-muted/40 text-muted-foreground hover:bg-muted/80 hover:border-foreground/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Database className="w-5 h-5" />
+            <span className="font-medium text-foreground">Database</span>
+            <span className="text-xs text-center leading-snug opacity-70">
+              Deletes only from the database.
+            </span>
+          </button>
+
+          <button
+            type="button"
+            disabled={isRemoving}
+            onClick={async () => {
+                if (deleteConfirmSpace?.space_code !== undefined) {
+                  setIsRemoving(true);
+                  try {
+                    await onRemove(deleteConfirmSpace.space_code);
+                    setShowDeleteModeDialog(false);
+                    setDeleteConfirmSpace(null);
+                  } finally {
+                    setIsRemoving(false);
+                  }
                 }
-              }}
-            >
-              Remove from DB + ClickUp
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            }}
+            className="flex flex-col items-center gap-1.5 rounded-lg border p-3 text-sm transition-colors cursor-pointer border-border bg-muted/40 text-muted-foreground hover:bg-muted/80 hover:border-foreground/30 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isRemoving ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <Link2Off className="w-5 h-5" />
+            )}
+            <span className="font-medium text-foreground">ClickUp</span>
+            <span className="text-xs text-center leading-snug opacity-70">
+              Remove the space from database then from the ClickUp.
+            </span>
+          </button>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setShowDeleteModeDialog(false);
+              setDeleteConfirmSpace(null);
+            }}
+            disabled={isRemoving}
+            className="w-full"
+          >
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     </div>
   );
 }

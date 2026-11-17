@@ -22,7 +22,7 @@ Functions:
 """
 
 import asyncio
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from typing import List
 
 from backend.src.application.use_cases.shared.clickup_task_context import fetch_task_context
@@ -61,19 +61,19 @@ async def filter_search_candidates(
     """
     tasks_with_context = await asyncio.gather(*[fetch_task_context(task, clickup_reader) for task in tasks])
 
-    cutoff = datetime.now() - timedelta(days=30)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=30)
 
     eligible = [
         (task, ctx)
         for task, ctx in tasks_with_context
-        if ctx.get("date_created") and ctx["date_created"] <= cutoff
+        if ctx.get("date_created") and ctx["date_created"] >= cutoff
     ]
 
     if not eligible:
         return []
 
     eligible.sort(
-        key=lambda pair: pair[1].get("date_updated") or datetime.min,
+        key=lambda pair: pair[1].get("date_updated") or datetime.min.replace(tzinfo=timezone.utc),
         reverse=True
     )
 

@@ -115,7 +115,7 @@ export function TaskCard({
     setFieldErrors({});
     const errors: { name?: string; description?: string; form?: string } = {};
 
-    if (editing && isDirty){
+    if (editing && !isDirty){
       errors.form = 'No changes to update';
     }
     if (!draft.name?.trim()) {

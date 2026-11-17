@@ -156,8 +156,7 @@ class ManageClickUpTaskUseCase(IManageClickUpTaskUseCase):
         )
 
         logger.info(
-            "Task updated successfully. list_id=%s name=%s",
-            request.list_id,
+            "Task updated successfully: name=%s",
             request.name,
         )
 
